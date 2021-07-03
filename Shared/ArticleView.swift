@@ -9,11 +9,7 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @AppStorage(SettingKeys.fontSize) var fontSize: Int = 13 {
-        didSet {
-            url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
-        }
-    }
+    @AppStorage(SettingKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
     @AppStorage(SettingKeys.marginPortrait) var marginPortrait: Int = 70
     @AppStorage(SettingKeys.marginLandscape) var marginLandscape: Int = 70
     @AppStorage(SettingKeys.lineHeight) var lineHeight: Double = 1.4
@@ -25,34 +21,54 @@ struct ArticleView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ArticleWebView(url: $url)
-                .onAppear {
-                    currentSize = geometry.size
-                    url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
-                }
-                .toolbar(content: {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            //
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                        }
+            VStack {
+                Text("Hello World")
+                    .font(.system(size: CGFloat(fontSize), weight: .regular, design: .default))
+                ArticleWebView(url: $url)
+                    .onAppear {
+                        currentSize = geometry.size
+                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
                     }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            isShowingPopover = true
-                        } label: {
-                            Image(systemName: "textformat.size")
+                    .onChange(of: fontSize, perform: { _ in
+                        url = URL(fileURLWithPath: "") // force a change of url
+                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                    })
+                    .onChange(of: marginPortrait, perform: { _ in
+                        url = URL(fileURLWithPath: "") // force a change of url
+                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                    })
+                    .onChange(of: marginLandscape, perform: { _ in
+                        url = URL(fileURLWithPath: "") // force a change of url
+                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                    })
+                    .onChange(of: lineHeight, perform: { _ in
+                        url = URL(fileURLWithPath: "") // force a change of url
+                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                    })
+                    .toolbar(content: {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                //
+                            } label: {
+                                Image(systemName: "square.and.arrow.up")
+                            }
                         }
-                        .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                            ArticleSettingsView()
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                isShowingPopover = true
+                            } label: {
+                                Image(systemName: "textformat.size")
+                            }
+                            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                                ArticleSettingsView()
+                            }
                         }
-                    }
-                })
-                .navigationTitle(item.title ?? "Untitled")
-#if !os(macOS)
-                .navigationBarTitleDisplayMode(.inline)
+                    })
+                    .navigationTitle(item.title ?? "Untitled")
+    #if !os(macOS)
+                    .navigationBarTitleDisplayMode(.inline)
 #endif
+            }
         }
     }
 

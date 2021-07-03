@@ -7,8 +7,17 @@
 
 import SwiftUI
 
+struct ArticleSettingsConstants {
+    static let minFontSize = UIDevice().userInterfaceIdiom == .pad ? 11 : 9
+    static let maxFontSize = 30
+    static let minLineHeight = 1.2
+    static let maxLineHeight = 2.6
+    static let minMarginWidth = 45 //%
+    static let maxMarginWidth = 95 //%
+}
+
 struct ArticleSettingsView: View {
-    @AppStorage(SettingKeys.fontSize) var fontSize: Int = 13
+    @AppStorage(SettingKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait: Int = 70
     @AppStorage(SettingKeys.marginLandscape) private var marginLandscape: Int = 70
     @AppStorage(SettingKeys.lineHeight) private var lineHeight: Double = 1.4
@@ -41,7 +50,9 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    fontSize -= 1
+                    if fontSize > ArticleSettingsConstants.minFontSize {
+                        fontSize -= 1
+                    }
                 } label: {
                     Image(systemName: "textformat.size.smaller")
                 }
@@ -52,7 +63,9 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    fontSize += 1
+                    if fontSize < ArticleSettingsConstants.maxFontSize {
+                        fontSize += 1
+                    }
                 } label: {
                     Image(systemName: "textformat.size.larger")
                 }
@@ -65,7 +78,9 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    //
+                    if lineHeight > ArticleSettingsConstants.minLineHeight {
+                        lineHeight -= 0.2
+                    }
                 } label: {
                     Image("lineheight")
                 }
@@ -76,7 +91,9 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    //
+                    if lineHeight < ArticleSettingsConstants.maxLineHeight {
+                        lineHeight += 0.2
+                    }
                 } label: {
                     Image("lineheight")
                 }
@@ -89,7 +106,9 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    //
+                    if marginPortrait > ArticleSettingsConstants.minMarginWidth {
+                        marginPortrait -= 5
+                    }
                 } label: {
                     Image(systemName: "increase.indent")
                 }
@@ -100,7 +119,9 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    //
+                    if marginPortrait < ArticleSettingsConstants.maxMarginWidth {
+                        marginPortrait += 5
+                    }
                 } label: {
                     Image(systemName: "decrease.indent")
                 }
@@ -111,7 +132,6 @@ struct ArticleSettingsView: View {
                     )
             }
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15))
-
         }
     }
 }
