@@ -32,6 +32,15 @@ struct SidebarView: View {
                     }
                 }
             }
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        //
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                    }
+                }
+            })
             .listStyle(.sidebar)
             .refreshable {
                 //TODO

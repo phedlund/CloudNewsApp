@@ -33,6 +33,15 @@ struct ItemsView: View {
                 }
                 .listRowBackground(Color(.clear)) // disable selection highlight
             }
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        //
+                    } label: {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            })
             .listStyle(.plain)
             .navigationTitle(node.title)
         }
