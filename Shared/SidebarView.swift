@@ -10,7 +10,7 @@ import SwiftUI
 struct SidebarView: View {
     @AppStorage(StorageKeys.selectedCategory) private var selection: String?
     @ObservedObject var model = FeedTreeModel()
-    @State var isShowingLogin = false
+    @State var isShowingSettings = false
 
     var body: some View {
         VStack {
@@ -49,7 +49,7 @@ struct SidebarView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        isShowingLogin = true
+                        isShowingSettings = true
                     } label: {
                         Image(systemName: "slider.horizontal.3")
                     }
@@ -65,14 +65,11 @@ struct SidebarView: View {
                 }
             }
             .navigationTitle(Text("Feeds"))
-            .sheet(isPresented: $isShowingLogin, onDismiss: {
-                isShowingLogin = false
+            .sheet(isPresented: $isShowingSettings, onDismiss: {
+                isShowingSettings = false
             }, content: {
                 NavigationView(content: {
-                    LoginView(showModal: $isShowingLogin)
-//                    SettingsView(showModal: $showModalSheet)
-//                        .environmentObject(preferences)
-//                        .environmentObject(sessionManager)
+                    SettingsView(showModal: $isShowingSettings)
                 })
             })
 

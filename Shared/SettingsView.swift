@@ -36,9 +36,15 @@ struct SettingsView: View {
     
 struct SettingsForm: View {
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart: Bool = false
-    @AppStorage(StorageKeys.offlineMode) var offlineMode: Bool = false
+    @AppStorage(StorageKeys.syncInBackground) var syncInBackground: Bool = false
     @AppStorage(StorageKeys.productName) var productName: String = ""
     @AppStorage(StorageKeys.productVersion) var productVersion: String = ""
+    @AppStorage(StorageKeys.showFavIcons) var showFavIcons: Bool = true
+    @AppStorage(StorageKeys.showThumbnails) var showThumbnails: Bool = true
+    @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
+    @AppStorage(StorageKeys.hideRead) var hideRead: Bool = false
+    @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
+    @AppStorage(StorageKeys.compactView) var compactView: Bool = false
     @State var isShowingMailView = false
 
     var body: some View {
@@ -67,8 +73,30 @@ struct SettingsForm: View {
                 Toggle(isOn: $syncOnStart) {
                     Text("Sync on Start")
                 }
-                Toggle(isOn: $offlineMode) {
-                    Text("Work Offline")
+                Toggle(isOn: $syncInBackground) {
+                    Text("Sync in Background")
+                }
+            }
+            Section(header: Text("Images")) {
+                Toggle(isOn: $showFavIcons) {
+                    Text("Show Favicons")
+                }
+                Toggle(isOn: $showThumbnails) {
+                    Text("Show Thumbnails")
+                }
+            }
+            Section(header: Text("Reading")) {
+                Toggle(isOn: $markReadWhileScrolling) {
+                    Text("Mark Items Read While Scrolling")
+                }
+                Toggle(isOn: $hideRead) {
+                    Text("Hide Read Items")
+                }
+                Toggle(isOn: $sortOldestFirst) {
+                    Text("Sort Oldest Item First")
+                }
+                Toggle(isOn: $compactView) {
+                    Text("Comapct View")
                 }
             }
             Section(header: Text("Support")) {
