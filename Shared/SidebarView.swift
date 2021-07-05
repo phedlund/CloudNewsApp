@@ -14,21 +14,20 @@ struct SidebarView: View {
     var body: some View {
         VStack {
             List(selection: $selection) {
-                ForEach(model.feedTree, id: \.self.id) { node in
-                    if node.isLeaf {
-                        NavigationLink(destination: ItemsView(node: node)) {
-                            Label(node.title, systemImage: "doc")
-                                .tag(node.id)
+                OutlineGroup(model.feedTree, children: \.children) { item in
+                    HStack {
+                        item.value.faviconImage
+                        NavigationLink(destination: ItemsView(node: item.value)) {
+                            Text(item.value.title)
+                                .lineLimit(1)
+                                .font(.subheadline)
+                            Spacer()
                         }
-                    } else {
-                        Section(header: Label(node.title, systemImage: "folder")) {
-                            ForEach(node.children) { feed in
-                                NavigationLink(destination: ItemsView(node: feed)) {
-                                    Label(feed.title, systemImage: "doc")
-                                        .tag(feed.id)
-                                }
-                            }
-                        }
+                        Text(item.value.unreadCount ?? "")
+                            .font(.subheadline)
+                            .colorInvert()
+                            .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
+                            .background(Capsule().fill(.gray))
                     }
                 }
             }

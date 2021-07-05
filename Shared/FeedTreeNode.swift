@@ -10,27 +10,20 @@ import Foundation
 import SwiftUI
 
 protocol FeedTreeNode {
-    associatedtype ID
     associatedtype Child: FeedTreeNode
 
-    var id: ID { get }
     var isLeaf: Bool { get }
     var childCount: Int { get }
-    var children: [Child] { get }
+    var children: [Child]? { get }
     var items: [CDItem] { get }
     var title: String { get }
     var unreadCount: String? { get }
-    var faviconImage: Image? { get }
+    var faviconImage: FavImage? { get }
     var sortId: Int { get }
 }
 
-struct AllFeedNode: FeedTreeNode, Identifiable {
+struct AllFeedNode: FeedTreeNode {
     typealias Child = Self
-
-    typealias ID = UUID
-    var id: UUID {
-        return UUID()
-    }
 
     var sortId: Int {
         return 0
@@ -44,8 +37,8 @@ struct AllFeedNode: FeedTreeNode, Identifiable {
         return 0
     }
     
-    var children: [Child] {
-        return []
+    var children: [Child]? {
+        return nil
     }
 
     var items: [CDItem] {
@@ -64,18 +57,14 @@ struct AllFeedNode: FeedTreeNode, Identifiable {
         return nil
     }
     
-    var faviconImage: Image? {
-        return Image("All Articles")
+    var faviconImage: FavImage? {
+        return FavImage()
     }
     
 }
 
-struct StarredFeedNode: FeedTreeNode, Identifiable {
+struct StarredFeedNode: FeedTreeNode {
     typealias Child = Self
-    typealias ID = UUID
-    var id: UUID {
-        return UUID()
-    }
 
     var sortId: Int {
         return 1
@@ -93,9 +82,9 @@ struct StarredFeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var children: [Child] {
+    var children: [Child]? {
         get {
-            return []
+            return nil
         }
     }
     
@@ -119,27 +108,21 @@ struct StarredFeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var faviconImage: Image? {
+    var faviconImage: FavImage? {
         get {
-            return Image("Starred Articles")
+            return FavImage(feed: nil, isFolder: false, isStarred: true)
         }
     }
     
 }
 
-struct FolderFeedNode: FeedTreeNode, Identifiable {
+struct FolderFeedNode: FeedTreeNode {
     typealias Child = FeedNode
-
-    typealias ID = UUID
-    var id: UUID {
-        return UUID()
-    }
 
     var sortId: Int {
         return Int(self.folder.id) + 100
     }
 
-    
     let folder: CDFolder
     
     init(folder: CDFolder){
@@ -162,7 +145,7 @@ struct FolderFeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var children: [Child] {
+    var children: [Child]? {
         get {
             var result = [FeedNode]()
             if let feeds = CDFeed.inFolder(folder: self.folder.id) {
@@ -194,20 +177,16 @@ struct FolderFeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var faviconImage: Image? {
+    var faviconImage: FavImage? {
         get {
-            return Image("folder")
+            return FavImage(feed: nil, isFolder: true)
         }
     }
     
 }
 
-struct FeedNode: FeedTreeNode, Identifiable {
+struct FeedNode: FeedTreeNode {
     typealias Child = Self
-    typealias ID = UUID
-    var id: UUID {
-        return UUID()
-    }
 
     var sortId: Int {
         return Int(self.feed.id) + 1000
@@ -231,9 +210,9 @@ struct FeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var children: [Child] {
+    var children: [Child]? {
         get {
-            return []
+            return nil
         }
     }
     
@@ -260,16 +239,45 @@ struct FeedNode: FeedTreeNode, Identifiable {
         }
     }
     
-    var faviconImage: Image? {
+    var faviconImage: FavImage? {
         get {
-            var result: Image?
-            if let faviconLink = feed.faviconLink, let url = URL(string: faviconLink) {
-                result = Image(url.absoluteString)
-            } else {
-                result = Image("All Articles")
-            }
-            return result
+            FavImage(feed: feed)
         }
     }
     
+}
+
+struct FavImage: View {
+    var feed: CDFeed?
+    var isFolder = false
+    var isStarred = false
+
+    @ViewBuilder
+    var body: some View {
+        if let faviconLink = feed?.faviconLink, let url = URL(string: faviconLink) {
+            AsyncImage(url: url, content: { phase in
+                switch phase {
+                case .empty:
+                    Color.purple.opacity(0.1)
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure(_):
+                    Image(systemName: "exclamationmark.icloud")
+                        .resizable()
+                        .scaledToFit()
+                @unknown default:
+                    Image(systemName: "exclamationmark.icloud")
+                }
+            })
+                .frame(width: 16, height: 16, alignment: .center)
+        } else if isFolder {
+            Image(systemName: "folder")
+        } else if isStarred {
+            Image(systemName: "star.fill")
+        } else {
+            Image("favicon")
+        }
+    }
 }
