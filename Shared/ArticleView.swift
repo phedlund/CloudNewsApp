@@ -9,10 +9,10 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @AppStorage(SettingKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
-    @AppStorage(SettingKeys.marginPortrait) var marginPortrait: Int = 70
-    @AppStorage(SettingKeys.marginLandscape) var marginLandscape: Int = 70
-    @AppStorage(SettingKeys.lineHeight) var lineHeight: Double = 1.4
+    @AppStorage(StorageKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
+    @AppStorage(StorageKeys.marginPortrait) var marginPortrait: Int = 70
+    @AppStorage(StorageKeys.marginLandscape) var marginLandscape: Int = 70
+    @AppStorage(StorageKeys.lineHeight) var lineHeight: Double = 1.4
     @State private var url = URL(fileURLWithPath: "")
     @State private var isShowingPopover = false
     @State private var currentSize: CGSize = .zero

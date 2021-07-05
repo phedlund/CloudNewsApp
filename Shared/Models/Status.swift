@@ -26,10 +26,10 @@ struct Warnings: Codable {
 }
 
 
-struct Status : Codable {
+struct Status: Codable {
     
-    let version : String?
-    let warnings : Warnings?
+    let version: String?
+    let warnings: Warnings?
     
     enum CodingKeys: String, CodingKey {
         case version = "version"

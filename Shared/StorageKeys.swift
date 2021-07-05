@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import KeychainAccess
 
-enum SettingKeys {
+enum StorageKeys {
     static let username = "username"
     static let password = "password"
     static let server = "Server"
@@ -20,7 +19,7 @@ enum SettingKeys {
     static let dbReset = "dbReset"
     static let didSyncInBackground = "didSyncInBackground"
     static let notesApiVersion = "notesApiVersion"
-    static let notesVersion = "notesVersion"
+    static let newsVersion = "newsVersion"
     static let productVersion = "productVersion"
     static let productName = "productName"
     static let eTag = "eTag"
@@ -33,30 +32,4 @@ enum SettingKeys {
     static let marginPortrait = "MarginPortrait"
     static let marginLandscape = "MarginLandscape"
     static let lineHeight = "LineHeight"
-}
-
-@propertyWrapper struct KeychainBacked<String> {
-    let key: String
-    let defaultValue: String
-    var storage = Keychain(service: "com.peterandlinda.CloudNews")
-
-    var wrappedValue: String {
-        get {
-            let value = storage["\(key)"] as? String
-            return value ?? defaultValue
-        }
-        set {
-            storage["\(key)"] = (newValue as! Swift.String)
-        }
-    }
-}
-
-class KeychainStore: ObservableObject {
-
-    @KeychainBacked(key: SettingKeys.username, defaultValue: "")
-    var username: String
-
-    @KeychainBacked(key: SettingKeys.password, defaultValue: "")
-    var password: String
-
 }

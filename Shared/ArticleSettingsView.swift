@@ -17,10 +17,10 @@ struct ArticleSettingsConstants {
 }
 
 struct ArticleSettingsView: View {
-    @AppStorage(SettingKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
-    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait: Int = 70
-    @AppStorage(SettingKeys.marginLandscape) private var marginLandscape: Int = 70
-    @AppStorage(SettingKeys.lineHeight) private var lineHeight: Double = 1.4
+    @AppStorage(StorageKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
+    @AppStorage(StorageKeys.marginPortrait) private var marginPortrait: Int = 70
+    @AppStorage(StorageKeys.marginLandscape) private var marginLandscape: Int = 70
+    @AppStorage(StorageKeys.lineHeight) private var lineHeight: Double = 1.4
 
     var body: some View {
         VStack {

@@ -22,9 +22,14 @@ typealias SyncCompletionBlockNewItems = (_ newItems: [ItemProtocol]) -> Void
 //
 //}
 
+struct ProductStatus {
+    var name: String
+    var version: String
+}
 
 class NewsManager {
-    
+
+    static let shared = NewsManager()
     static let session = URLSession.shared //(configuration: URLSessionConfiguration.background(withIdentifier: "com.peterandlinda.CloudNews.background"))
     var syncTimer: Timer?
     
@@ -45,19 +50,32 @@ class NewsManager {
             }
             self.syncTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { (_) in
                 NotificationCenter.default.post(name: .syncInitiated, object: nil)
-                self.sync(completion: {
-                    NotificationCenter.default.post(name: .syncComplete, object: nil)
-                })
+                async {
+                    try await self.sync()
+                }
             }
         }
     }
 
-    func version() async throws {
+    func status() async throws -> ProductStatus {
+        let router = StatusRouter.status
+        let (data, _ /*response*/) = try await URLSession.shared.data(for: router.urlRequest(), delegate: nil)
+        let decoder = JSONDecoder()
+        let result = try decoder.decode(CloudStatus.self, from: data)
+        let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
+        return productStatus
+    }
+
+    func version() async throws -> String {
         let router = Router.version
         do {
             let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
-            print(String(data: data, encoding: .utf8))
-        } catch { }
+            let decoder = JSONDecoder()
+            let result = try decoder.decode(Status.self, from: data)
+            return result.version ?? ""
+        } catch {
+            throw PBHError.networkError("Unknown login error")
+        }
     }
 
     func addFeed(url: String) async throws {
@@ -207,32 +225,28 @@ class NewsManager {
      7. Get new items and modified items: GET /items/updated?lastModified=12123123123&type=3
 
      */
-    func sync(completion: @escaping SyncCompletionBlock) {
+    func sync() async throws {
         guard let _ = CDItem.all() else {
-//            self.initialSync()
+            try await self.initialSync()
             return
         }
-
-        //2
-        func localRead(completion: @escaping SyncCompletionBlock) {
-            if let localRead = CDRead.all(), localRead.count > 0 {
-                let readParameters: ParameterDict = ["items": localRead]
-//                NewsSessionManager.shared.request(Router.itemsRead(parameters: readParameters)).responseData { response in
-//                    switch response.result {
-//                    case .success:
-//                        CDRead.clear()
-//                    default:
-//                        break
-//                    }
-//                    completion()
-//                }
-            } else {
-                completion()
-            }
-        }
         
-        //3
-        func localStarred(completion: @escaping SyncCompletionBlock) {
+        do {
+            if let localRead = CDRead.all(), localRead.count > 0 {
+                let readParameters = ["items": localRead]
+                let readRouter = Router.itemsRead(parameters: readParameters)
+                async let (_, readResponse) = NewsManager.session.data(for: readRouter.urlRequest(), delegate: nil)
+                let readItemsResponse = try await readResponse
+                if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
+                    switch httpReadResponse.statusCode {
+                    case 200:
+                        CDRead.clear()
+                    default:
+                        break
+                    }
+                }
+            }
+            
             if let localStarred = CDStarred.all(), localStarred.count > 0 {
                 if let starredItems = CDItem.items(itemIds: localStarred) {
                     var params: [Any] = []
@@ -242,26 +256,21 @@ class NewsManager {
                         param["guidHash"] = starredItem.guidHash
                         params.append(param)
                     }
-                    let starredParameters: ParameterDict = ["items": params]
-//                    NewsSessionManager.shared.request(Router.itemsStarred(parameters: starredParameters)).responseData { response in
-//                        switch response.result {
-//                        case .success:
-//                            CDStarred.clear()
-//                        default:
-//                            break
-//                        }
-//                        completion()
-//                    }
-                } else {
-                    completion()
+                    let starredParameters = ["items": params]
+                    let starredRouter = Router.itemsStarred(parameters: starredParameters)
+                    async let (_, starredResponse) = NewsManager.session.data(for: starredRouter.urlRequest(), delegate: nil)
+                    let starredItemsResponse = try await starredResponse
+                    if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
+                        switch httpStarredResponse.statusCode {
+                        case 200:
+                            CDStarred.clear()
+                        default:
+                            break
+                        }
+                    }
                 }
-            } else {
-                completion()
             }
-        }
-
-        //4
-        func localUnstarred(completion: @escaping SyncCompletionBlock) {
+            
             if let localUnstarred = CDUnstarred.all(), localUnstarred.count > 0 {
                 if let unstarredItems = CDItem.items(itemIds: localUnstarred) {
                     var params: [Any] = []
@@ -271,24 +280,58 @@ class NewsManager {
                         param["guidHash"] = unstarredItem.guidHash
                         params.append(param)
                     }
-                    let unstarredParameters: ParameterDict = ["items": params]
-//                    NewsSessionManager.shared.request(Router.itemsUnstarred(parameters: unstarredParameters)).responseData { response in
-//                        switch response.result {
-//                        case .success:
-//                            CDUnstarred.clear()
-//                        default:
-//                            break
-//                        }
-//                        completion()
-//                    }
-                } else {
-                    completion()
+                    let unStarredParameters = ["items": params]
+                    let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
+                    async let (_, unStarredResponse) = NewsManager.session.data(for: unStarredRouter.urlRequest(), delegate: nil)
+                    let unStarredItemsResponse = try await unStarredResponse
+                    if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
+                        switch httpUnStarredResponse.statusCode {
+                        case 200:
+                            CDUnstarred.clear()
+                        default:
+                            break
+                        }
+                    }
                 }
-            } else {
-                completion()
             }
+            
+            async let (folderData, _ /*folderResponse*/) = NewsManager.session.data(for: Router.folders.urlRequest(), delegate: nil)
+            // 4.
+            async let (feedsData, _ /*feedsResponse*/) = NewsManager.session.data(for: Router.feeds.urlRequest(), delegate: nil)
+            
+            let updatedParameters: ParameterDict = ["type": 3,
+                                                    "lastModified": CDItem.lastModified(),
+                                                    "id": 0]
+            
+            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
+            async let (updatedItemsData, _ /*feedsResponse*/) = NewsManager.session.data(for: updatedItemRouter.urlRequest(), delegate: nil)
+            
+            let foldersData = try await folderData
+            let allFeedsData = try await feedsData
+            let allItemsData = try await updatedItemsData
+            
+            let folders: Folders = try getType(from: foldersData)
+            let feeds: Feeds = try getType(from: allFeedsData)
+            let items: Items = try getType(from: allItemsData)
+            
+            if let folders = folders.folders {
+                CDFolder.update(folders: folders)
+            }
+            
+            if let feeds = feeds.feeds {
+                CDFeed.update(feeds: feeds)
+            }
+            
+            if let items = items.items {
+                CDItem.update(items: items, completion: nil)
+            }
+            
+            NotificationCenter.default.post(name: .syncComplete, object: nil)
+        } catch(let error) {
+            print(error.localizedDescription)
         }
 
+/*
         //5
         func folders(completion: @escaping SyncCompletionBlock) {
 //            NewsSessionManager.shared.request(Router.folders).responseDecodable(completionHandler: { (response: DataResponse<Folders>) in
@@ -375,20 +418,21 @@ class NewsManager {
 //            })
         }
         
-        localRead {
-            localStarred {
-                localUnstarred {
-                    folders {
-                        feeds {
-                            items {
-                                self.updateBadge()
-                                completion()
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        localRead {
+//            localStarred {
+//                localUnstarred {
+//                    folders {
+//                        feeds {
+//                            items {
+//                                self.updateBadge()
+//                                completion()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        */
     }
 
     func updateBadge() {

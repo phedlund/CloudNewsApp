@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct SidebarView: View {
-    @AppStorage(SettingKeys.selectedCategory) private var selection: String?
+    @AppStorage(StorageKeys.selectedCategory) private var selection: String?
     @ObservedObject var model = FeedTreeModel()
+    @State var isShowingLogin = false
 
     var body: some View {
         VStack {
@@ -34,7 +35,21 @@ struct SidebarView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        //
+                        async {
+                            do {
+                                try await NewsManager().sync()
+                                model.update()
+                            } catch {
+                                //
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        isShowingLogin = true
                     } label: {
                         Image(systemName: "slider.horizontal.3")
                     }
@@ -42,9 +57,25 @@ struct SidebarView: View {
             })
             .listStyle(.sidebar)
             .refreshable {
-                //TODO
+                do {
+                    try await NewsManager().sync()
+                    model.update()
+                } catch {
+                    //
+                }
             }
             .navigationTitle(Text("Feeds"))
+            .sheet(isPresented: $isShowingLogin, onDismiss: {
+                isShowingLogin = false
+            }, content: {
+                NavigationView(content: {
+                    LoginView(showModal: $isShowingLogin)
+//                    SettingsView(showModal: $showModalSheet)
+//                        .environmentObject(preferences)
+//                        .environmentObject(sessionManager)
+                })
+            })
+
         }
     }
 }

@@ -64,6 +64,10 @@ class FeedTreeModel: NSObject, ObservableObject {
     override init() {
         self.feedTree = [Node]()
         super.init()
+        update()
+    }
+
+    func update() {
         self.feedTree.removeAll()
         self.feedTree.append(Node(value: AnyTreeNode(AllFeedNode())))
         self.feedTree.append(Node(value: AnyTreeNode(StarredFeedNode())))

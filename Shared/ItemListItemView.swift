@@ -12,8 +12,8 @@ import SwiftUI
 struct ItemListItemViev: View {
 //    @Environment(\.verticalSizeClass) var verticalSizeClass
 //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @AppStorage(SettingKeys.compactView) private var compactView: Bool?
-    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails: Bool?
+    @AppStorage(StorageKeys.compactView) private var compactView: Bool?
+    @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
     @ObservedObject var item: CDItem
 
     var body: some View {

@@ -24,7 +24,79 @@ enum UrlSessionMethod: String {
     case trace = "TRACE"
 }
 
+
+enum PBHError: Error {
+    case networkError(String)
+}
+
+enum StatusRouter {
+    case status
+
+    static let applicationJson = "application/json"
+
+    var method: UrlSessionMethod {
+        switch self {
+        case .status:
+            return .get
+        }
+    }
+
+    private var credentials: String {
+        let username = "appstore" //KeychainStore().username
+        let password = "reviewer701" //KeychainStore().password
+        return Data("\(username):\(password)".utf8).base64EncodedString()
+    }
+
+    private var basicAuthHeader: String {
+        return "Basic \(credentials)"
+    }
+
+    // MARK: URLRequestConvertible
+
+    func urlRequest() throws -> URLRequest {
+        @AppStorage(StorageKeys.server) var server: String = ""
+
+        server = "https://peter.hedlund.dev"
+
+        switch self {
+        case .status:
+            if !server.isEmpty {
+                var ocsUrlComponents = URLComponents()
+                if let url = URL(string: server),
+                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                    ocsUrlComponents.scheme = components.scheme
+                    ocsUrlComponents.host = components.host
+                    ocsUrlComponents.port = components.port
+                    var pathComponents = url.pathComponents
+
+                    if pathComponents.last == "index.php" {
+                        pathComponents = pathComponents.dropLast()
+                    }
+                    var newPath = pathComponents.joined(separator: "/")
+                    if newPath.last == "/" {
+                        newPath = String(newPath.dropLast())
+                    }
+                    if newPath.hasPrefix("//") {
+                        newPath = String(newPath.dropFirst())
+                    }
+                    ocsUrlComponents.path = "\(newPath)/status.php"
+                }
+                let url = ocsUrlComponents.url ?? URL(string: server)
+
+                var urlRequest = URLRequest(url: url ?? URL(fileURLWithPath: "/"))
+                urlRequest.httpMethod = method.rawValue
+                urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
+                return urlRequest
+            } else {
+                throw PBHError.networkError("Missing server address")
+            }
+        }
+    }
+}
+
 enum Router {
+
     case feeds
     case addFeed(url: String, folder: Int)
     case deleteFeed(id: Int)
@@ -121,8 +193,8 @@ enum Router {
     }
 
     private var credentials: String {
-        let username = "appstore" //KeychainStore().username
-        let password = "reviewer701" //KeychainStore().password
+        @KeychainStorage(StorageKeys.username) var username: String = ""
+        @KeychainStorage(StorageKeys.password) var password: String = ""
         return Data("\(username):\(password)".utf8).base64EncodedString()
     }
 
@@ -134,7 +206,7 @@ enum Router {
     // MARK: URLRequestConvertible
     
     func urlRequest() throws -> URLRequest {
-        @AppStorage(SettingKeys.server) var server: String = ""
+        @AppStorage(StorageKeys.server) var server: String = ""
 
         server = "https://peter.hedlund.dev"
         let baseURLString = "\(server)/apps/news/api/v1-2"
