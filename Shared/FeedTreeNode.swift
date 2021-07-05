@@ -158,6 +158,15 @@ struct FolderFeedNode: FeedTreeNode {
     }
 
     var items: [CDItem] {
+        if let feeds = CDFeed.inFolder(folder: self.folder.id) {
+            var folderItems = [CDItem]()
+            for feed in feeds {
+                if let items = CDItem.items(feed: feed.id) {
+                    folderItems.append(contentsOf: items)
+                }
+            }
+            return folderItems
+        }
         return []
     }
 
