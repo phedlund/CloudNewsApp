@@ -21,6 +21,7 @@ class AnyTreeNode: FeedTreeNode {
     var unreadCount: String?
     var faviconImage: FavImage?
     var sortId: Int
+    var basePredicate: NSPredicate
 
     init<T: FeedTreeNode>(_ x: T) {
         self.isLeaf = x.isLeaf
@@ -36,6 +37,7 @@ class AnyTreeNode: FeedTreeNode {
         self.unreadCount = x.unreadCount
         self.faviconImage = x.faviconImage
         self.sortId = x.sortId
+        self.basePredicate = x.basePredicate
     }
 }
 

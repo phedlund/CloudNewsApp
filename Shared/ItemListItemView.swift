@@ -98,7 +98,7 @@ struct ItemListItemViev: View {
 //                                        } else {
                                             EmptyView()
 //                                        }
-                                        Text("Today" /*provider.dateText*/)
+                                        Text(provider.dateAuthorFeed)
                                             .font(.subheadline)
                                             .foregroundColor(Color(.black))
                                             .italic()
@@ -147,6 +147,7 @@ struct ItemListItemViev: View {
 //                        }
                     })
                 }
+                .opacity(item.unread ? 1.0 : 0.4)
                 .padding([.leading, .trailing], 10)
                 .background(Color(.white) // any non-transparent background
                                 .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 2, x: 0, y: 0))

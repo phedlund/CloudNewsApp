@@ -20,10 +20,15 @@ protocol FeedTreeNode {
     var unreadCount: String? { get }
     var faviconImage: FavImage? { get }
     var sortId: Int { get }
+    var basePredicate: NSPredicate { get }
 }
 
 struct AllFeedNode: FeedTreeNode {
     typealias Child = Self
+
+    var basePredicate: NSPredicate {
+        return NSPredicate(format: "TRUEPREDICATE")
+    }
 
     var sortId: Int {
         return 0
@@ -65,6 +70,10 @@ struct AllFeedNode: FeedTreeNode {
 
 struct StarredFeedNode: FeedTreeNode {
     typealias Child = Self
+
+    var basePredicate: NSPredicate {
+        return NSPredicate(format: "starred == true")
+    }
 
     var sortId: Int {
         return 1
@@ -118,6 +127,13 @@ struct StarredFeedNode: FeedTreeNode {
 
 struct FolderFeedNode: FeedTreeNode {
     typealias Child = FeedNode
+
+    var basePredicate: NSPredicate {
+        if let feedIds = CDFeed.idsInFolder(folder: folder.id) {
+            return NSPredicate(format: "feedId IN %@", feedIds)
+        }
+        return NSPredicate(format: "FALSEPREDICATE")
+    }
 
     var sortId: Int {
         return Int(self.folder.id) + 100
@@ -197,6 +213,10 @@ struct FolderFeedNode: FeedTreeNode {
 struct FeedNode: FeedTreeNode {
     typealias Child = Self
 
+    var basePredicate: NSPredicate {
+        return NSPredicate(format: "feedId == %d", feed.id)
+    }
+
     var sortId: Int {
         return Int(self.feed.id) + 1000
     }
@@ -226,7 +246,10 @@ struct FeedNode: FeedTreeNode {
     }
     
     var items: [CDItem] {
-        if let items = CDItem.items(feed: feed.id) {
+        @AppStorage(StorageKeys.hideRead) var hideRead: Bool = false
+        @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
+
+        if let items = CDItem.items(feed: feed.id, hideRead: hideRead, oldestFirst: sortOldestFirst) {
             return items
         }
         return []

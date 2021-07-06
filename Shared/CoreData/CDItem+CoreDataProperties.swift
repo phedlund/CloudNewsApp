@@ -1,10 +1,9 @@
 //
 //  CDItem+CoreDataProperties.swift
-//  
+//  CloudNews
 //
-//  Created by Peter Hedlund on 1/21/19.
+//  Created by Peter Hedlund on 7/5/21.
 //
-//  This file was automatically generated and should not be edited.
 //
 
 import Foundation
@@ -34,5 +33,9 @@ extension CDItem {
     @NSManaged public var title: String?
     @NSManaged public var unread: Bool
     @NSManaged public var url: String?
+
+}
+
+extension CDItem : Identifiable {
 
 }

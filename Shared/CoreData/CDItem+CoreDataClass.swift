@@ -142,14 +142,17 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
-    static func all() -> [CDItem]? {
+    static func all(hideRead: Bool = false, oldestFirst: Bool = false) -> [CDItem]? {
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
-        let sortDescription = NSSortDescriptor(key: "id", ascending: false)
+        let sortDescription = NSSortDescriptor(key: "lastModified", ascending: oldestFirst)
         request.sortDescriptors = [sortDescription]
 
         var itemList = [CDItem]()
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            var results  = try NewsData.mainThreadContext.fetch(request)
+            if hideRead {
+                results = results.filter( { $0.unread } )
+            }
             for record in results {
                 itemList.append(record)
             }
@@ -208,13 +211,18 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return itemList
     }
 
-    static func items(feed: Int32) -> [CDItem]? {
+    static func items(feed: Int32, hideRead: Bool = false, oldestFirst: Bool = false) -> [CDItem]? {
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        let sortDescription = NSSortDescriptor(key: "pubDate", ascending: oldestFirst)
+        request.sortDescriptors = [sortDescription]
         let predicate = NSPredicate(format: "feedId == %d", feed)
         request.predicate = predicate
 
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            var results  = try NewsData.mainThreadContext.fetch(request)
+            if hideRead {
+                results = results.filter( { $0.unread })
+            }
             return results
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
