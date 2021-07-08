@@ -249,24 +249,25 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return itemList
     }
     
-    static func markRead(itemIds: [Int32], state: Bool, completion: SyncCompletionBlock) {
-        NewsData.mainThreadContext.performAndWait {
+    static func markRead(itemIds: [Int32], state: Bool) async throws {
+        try await NewsData.mainThreadContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
                 let predicate = NSPredicate(format:"id IN %@", itemIds)
                 request.predicate = predicate
                 let records = try NewsData.mainThreadContext.fetch(request)
-                records.forEach({ (item) in
+                records.forEach({ item in
                     item.unread = state
                 })
                 try NewsData.mainThreadContext.save()
-            } catch { }
-            completion()
+            } catch {
+                throw PBHError.databaseError("Error marking items read")
+            }
         }
     }
 
-    static func markStarred(itemId: Int32, state: Bool, completion: SyncCompletionBlock) {
-        NewsData.mainThreadContext.performAndWait {
+    static func markStarred(itemId: Int32, state: Bool) async throws {
+        try await NewsData.mainThreadContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
                 let predicate = NSPredicate(format:"id == %d", itemId)
@@ -276,8 +277,9 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     item.starred = state
                 })
                 try NewsData.mainThreadContext.save()
-            } catch { }
-            completion()
+            } catch {
+                throw PBHError.databaseError("Error marking item starred")
+            }
         }
     }
 

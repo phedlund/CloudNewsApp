@@ -24,9 +24,9 @@ enum UrlSessionMethod: String {
     case trace = "TRACE"
 }
 
-
 enum PBHError: Error {
     case networkError(String)
+    case databaseError(String)
 }
 
 enum StatusRouter {
@@ -42,8 +42,8 @@ enum StatusRouter {
     }
 
     private var credentials: String {
-        let username = "appstore" //KeychainStore().username
-        let password = "reviewer701" //KeychainStore().password
+        @KeychainStorage(StorageKeys.username) var username = ""
+        @KeychainStorage(StorageKeys.password) var password = ""
         return Data("\(username):\(password)".utf8).base64EncodedString()
     }
 
@@ -56,7 +56,7 @@ enum StatusRouter {
     func urlRequest() throws -> URLRequest {
         @AppStorage(StorageKeys.server) var server: String = ""
 
-        server = "https://peter.hedlund.dev"
+//        server = "https://peter.hedlund.dev"
 
         switch self {
         case .status:
@@ -214,94 +214,25 @@ enum Router {
       
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
         urlRequest.httpMethod = method.rawValue
+        urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        urlRequest.timeoutInterval = 20.0
         urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
         urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
-
-//        let queryItems = parameters.map {
-//            return URLQueryItem(name: "\($0)", value: "\($1)")
-//        }
-
-
-/*
-
- For PUT requests
- //            if let body = (try? JSONSerialization.data(withJSONObject: parameters, options: [])) {
- //                urlRequest.httpBody = body
- //                urlRequest.setValue("no-cache", forHTTPHeaderField: "cache-control")
- //                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
-
-
- var request = URLRequest(url: fullURL)
- request.httpMethod = "PUT"
- request.allHTTPHeaderFields = [
-     "Content-Type": "application/json",
-     "Accept": "application/json"
- ]
-
-
- let headers = [
-            "content-type": "application/json",
-            "cache-control": "no-cache",
-            "postman-token": "121b2f04-d2a4-72b7-a93f-98e3383f9fa0"
-        ]
- let parameters = [
-            "username": "\(Username)",
-            "password": "\(password)"
-        ]
-
- if let postData = (try? JSONSerialization.data(withJSONObject: parameters, options: [])) {
-
-        var request = NSMutableURLRequest(url: URL(string: "YOUR_URL_HERE")!,
-                                              cachePolicy: .useProtocolCachePolicy,
-                                              timeoutInterval: 10.0)
-        request.httpMethod = "POST"
-        request.allHTTPHeaderFields = headers
-        request.httpBody = postData
-
-        let session = URLSession.shared
-
-        let task = URLSession.shared.dataTask(with: request as URLRequest) {
-               (data, response, error) -> Void in
-                if (error != nil) {
-                    print(error)
-                } else {
-                    DispatchQueue.main.async(execute: {
-
-                      if let json = (try? JSONSerialization.jsonObject(with: data!, options: [])) as? NSDictionary
-                        {
-                            let success = json["status"] as? Int
-                            let message = json["message"] as? String
-                            // here you check your success code.
-                            if (success == 1)
-                            {
-                                print(message)
-                                let vc = UIActivityViewController(activityItems: [image],  applicationActivities: [])
-                                 present(vc, animated: true)
-                            }
-                            else
-                            {
-
-                               // print(message)
-                            }
-
-                        }
-
-                    })
-                }
-            }
-
-            task.resume()
-        }
-
- */
-
-
 
         switch self {
         case .folders, .feeds:
             break
-//        case .addFeed(let url, let folder):
-//            let parameters = ["url": url, "folder": folder] as [String : Any]
+        case .addFeed(let url, let folder):
+            let parameters = ["url": url, "folder": folder] as [String : Any]
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+//                urlRequest.setValue("no-cache", forHTTPHeaderField: "cache-control")
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+//                urlRequest.httpMethod = "PUT"
+            }
+
+
+
 //            urlRequest = try URLEncoding.default.encode(urlRequest, with: parameters)
 
 //        deleteFeed
@@ -309,9 +240,12 @@ enum Router {
 //            renameFeed
 //        markFeedRead
         
-//        case .addFolder(let name):
-//            let parameters = ["name": name]
-//            urlRequest = try URLEncoding.default.encode(urlRequest, with: parsameters)
+        case .addFolder(let name):
+            let parameters = ["name": name]
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+            }
 //            deleteFolder
 //            renameFolder
 //            markFolderRead
@@ -324,12 +258,16 @@ enum Router {
                 }
                 components?.queryItems = queryItems
                 urlRequest.url = components?.url
-                print(urlRequest.url?.absoluteString)
             }
-//
-//        case .itemsRead(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
+
+        case .itemsRead(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+            }
+
 //            urlRequest = try JSONEncoding.default.encode(urlRequest, with: parameters)
-//
+
         case .version:
             break
             

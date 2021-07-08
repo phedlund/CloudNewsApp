@@ -89,16 +89,34 @@ class NewsManager {
         let router = Router.addFolder(name: name)
         do {
             let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
-        } catch { }
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8))
+                switch httpResponse.statusCode {
+                case 200:
+//                    __unused int newFolderId = [self addFolder:responseObject];
+//                    [self->foldersToAdd removeObject:name];
+                    break
+                case 409:
+                    throw PBHError.networkError("The folder already exists")
+                case 422:
+                    throw PBHError.networkError("The folder name is invalid.")
+                default:
+                    throw PBHError.networkError("Error adding folder")
+                }
+            }
+        } catch {
+            throw PBHError.networkError("Error adding folder")
+        }
 
-//        NewsSessionManager.shared.request(router).responseDecodable(completionHandler: { (response: DataResponse<Folders>) in
-//            debugPrint(response)
-//        })
+        //        NewsSessionManager.shared.request(router).responseDecodable(completionHandler: { (response: DataResponse<Folders>) in
+        //            debugPrint(response)
+        //        })
     }
 
-    func markRead(itemIds: [Int32], state: Bool, completion: @escaping SyncCompletionBlock) {
-        CDItem.markRead(itemIds: itemIds, state: state) {
-            completion()
+    func markRead(itemIds: [Int32], state: Bool) async throws {
+        do {
+            try await CDItem.markRead(itemIds: itemIds, state: state)
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
             if state {
@@ -106,45 +124,72 @@ class NewsManager {
             } else {
                 router = Router.itemsRead(parameters: parameters)
             }
-//            NewsSessionManager.shared.request(router).responseData { response in
-//                switch response.result {
-//                case .success:
-//                    if state {
-//                        CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
-//                    } else {
-//                        CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
-//                    }
-//                default:
-//                    break
-//                }
-//            }
+            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8))
+                switch httpResponse.statusCode {
+                case 200:
+                    if state {
+                        CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
+                    } else {
+                        CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
+                    }
+                default:
+                    break
+                }
+            }
+        } catch {
+            throw PBHError.networkError("Error marking items read")
         }
     }
 
-    func markStarred(item: CDItem, starred: Bool, completion: @escaping SyncCompletionBlock) {
-        CDItem.markStarred(itemId: item.id, state: starred) {
-            completion()
+    func markStarred(item: CDItem, starred: Bool) async throws {
+        do {
+            try await CDItem.markStarred(itemId: item.id, state: starred)
             let parameters: ParameterDict = ["items": [["feedId": item.feedId,
-                                                     "guidHash": item.guidHash as Any]]]
+                                                        "guidHash": item.guidHash as Any]]]
             var router: Router
             if starred {
                 router = Router.itemsStarred(parameters: parameters)
             } else {
                 router = Router.itemsUnstarred(parameters: parameters)
             }
-//            NewsSessionManager.shared.request(router).responseData { response in
-//                switch response.result {
-//                case .success:
-//                    if starred {
-//                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
-//                    } else {
-//                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
-//                    }
-//                default:
-//                    break
-//                }
-//                completion()
-//            }
+            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            //(for: request, from: body ?? Data(), delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8))
+                switch httpResponse.statusCode {
+                case 200:
+                    if starred {
+                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+                    } else {
+                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+                    }
+                default:
+                    break
+                }
+            }
+
+
+    //            NewsSessionManager.shared.request(router).responseData { response in
+    //                switch response.result {
+    //                case .success:
+    //                    if starred {
+    //                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+    //                    } else {
+    //                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+    //                    }
+    //                default:
+    //                    break
+    //                }
+    //                completion()
+    //            }
+
+
+        } catch {
+            throw PBHError.networkError("Error marking item starred")
         }
     }
 

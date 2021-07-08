@@ -28,6 +28,11 @@ struct ArticleView: View {
                     .onAppear {
                         currentSize = geometry.size
                         url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                        if item.unread {
+                            async {
+                                try? await NewsManager.shared.markRead(itemIds: [item.id], state: false)
+                            }
+                        }
                     }
                     .onChange(of: fontSize, perform: { _ in
                         url = URL(fileURLWithPath: "") // force a change of url
