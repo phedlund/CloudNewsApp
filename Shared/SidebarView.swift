@@ -28,7 +28,9 @@ struct SidebarView: View {
                             .font(.subheadline)
                             .colorInvert()
                             .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-                            .background(Capsule().fill(.gray))
+                            .background(Capsule()
+                                            .fill(.gray)
+                                            .opacity(item.value.unreadCount != nil ? 1.0 : 0.0))
                     }
                 }
             }
