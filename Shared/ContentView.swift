@@ -35,7 +35,7 @@ struct ContentView: View {
             ItemsView(node: Node(TreeNode(isLeaf: false,
                                           items: [],
                                           sortId: 0,
-                                          basePredicate: NSPredicate(format: "TRUEPREDICATE"),
+                                          basePredicate: NSPredicate(value: true),
                                           nodeType: .all)))
         }
     }

@@ -270,7 +270,7 @@ class NewsManager {
 
      */
     func sync() async throws {
-        guard let _ = CDItem.all() else {
+        guard let _ = CDItem.items(nodeType: .all) else {
             try await self.initialSync()
             return
         }
