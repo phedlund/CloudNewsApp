@@ -13,7 +13,7 @@ struct ItemsView: View {
     @State private var predicate: NSPredicate?
     @State private var sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor]()
 
-    @State var node: AnyTreeNode
+    @State var node: Node<TreeNode>
     @State private var items = [CDItem]()
     
     var body: some View {
@@ -52,27 +52,27 @@ struct ItemsView: View {
             }
         })
         .listStyle(.plain)
-        .navigationTitle(node.title)
+        .navigationTitle(node.value.title)
         .onAppear {
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.basePredicate, unredPredicate!]) : node.basePredicate
+            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
         }
         .onChange(of: hideRead) { _ in
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.basePredicate, unredPredicate!]) : node.basePredicate
+            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
         }
         .onChange(of: sortOldestFirst) { _ in
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.basePredicate, unredPredicate!]) : node.basePredicate
+            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
         }
     }
 }
 
-struct ItemsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ItemsView(node: AnyTreeNode(StarredFeedNode()))
-    }
-}
+//struct ItemsView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ItemsView(node: AnyTreeNode(StarredFeedNode()))
+//    }
+//}

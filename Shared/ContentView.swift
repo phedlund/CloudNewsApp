@@ -32,7 +32,11 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             SidebarView()
-            ItemsView(node: AnyTreeNode(StarredFeedNode()))
+            ItemsView(node: Node(TreeNode(isLeaf: false,
+                                          items: [],
+                                          sortId: 0,
+                                          basePredicate: NSPredicate(format: "TRUEPREDICATE"),
+                                          nodeType: .all)))
         }
     }
 

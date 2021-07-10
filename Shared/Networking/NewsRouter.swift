@@ -208,8 +208,7 @@ enum Router {
     func urlRequest() throws -> URLRequest {
         @AppStorage(StorageKeys.server) var server: String = ""
 
-        server = "https://peter.hedlund.dev"
-        let baseURLString = "\(server)/apps/news/api/v1-2"
+        let baseURLString = "\(server)/index.php/apps/news/api/v1-2"
         let url = URL(string: baseURLString)! //FIX
       
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))

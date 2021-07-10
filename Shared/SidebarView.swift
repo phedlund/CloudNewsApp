@@ -10,28 +10,13 @@ import SwiftUI
 struct SidebarView: View {
     @AppStorage(StorageKeys.selectedCategory) private var selection: String?
     @ObservedObject var model = FeedTreeModel()
-    @State var isShowingSettings = false
+    @State private var isShowingSettings = false
 
     var body: some View {
         VStack {
             List(selection: $selection) {
-                OutlineGroup(model.feedTree, children: \.children) { item in
-                    HStack {
-                        item.value.faviconImage
-                        NavigationLink(destination: ItemsView(node: item.value)) {
-                            Text(item.value.title)
-                                .lineLimit(1)
-                                .font(.subheadline)
-                            Spacer()
-                        }
-                        Text(item.value.unreadCount ?? "")
-                            .font(.subheadline)
-                            .colorInvert()
-                            .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-                            .background(Capsule()
-                                            .fill(.gray)
-                                            .opacity(item.value.unreadCount != nil ? 1.0 : 0.0))
-                    }
+                OutlineGroup(model.feedTree.children ?? [], children: \.children) { item in
+                    NodeView(node: item)
                 }
             }
             .toolbar(content: {

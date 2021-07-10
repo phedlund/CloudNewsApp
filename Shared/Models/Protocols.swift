@@ -8,6 +8,13 @@
 
 import Foundation
 
+enum NodeType {
+    case all
+    case starred
+    case folder(id: Int32)
+    case feed(id: Int32)
+}
+
 protocol FolderProtocol {
     var id: Int32 { get set }
     var name: String? { get set }
@@ -53,6 +60,5 @@ protocol ItemProtocol {
 }
 
 func getType<T: Decodable>(from jsonData: Data) throws -> T {
-//    let jsonData = Data(jsonString.utf8)
     return try JSONDecoder().decode(T.self, from: jsonData)
 }

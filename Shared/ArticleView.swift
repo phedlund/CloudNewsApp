@@ -30,7 +30,7 @@ struct ArticleView: View {
                         url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
                         if item.unread {
                             async {
-                                try? await NewsManager.shared.markRead(itemIds: [item.id], state: false)
+                                try? await NewsManager.shared.markRead(items: [item], state: false)
                             }
                         }
                     }

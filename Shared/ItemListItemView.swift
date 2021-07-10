@@ -20,7 +20,7 @@ struct ItemListItemViev: View {
         let isCompactView = /*compactView ??*/ false
         let isShowingThumbnails = /*showThumbnails ??*/ true
 //        let cellHeight: CGFloat = isCompactView ? 84 : 150
-        let provider = item 
+        let provider = item
 //            GeometryReader { geometry in
 //                let cellWidth = min(geometry.size.width * 0.95, 690)
                 ZStack {

@@ -114,9 +114,10 @@ class NewsManager {
         //        })
     }
 
-    func markRead(itemIds: [Int32], state: Bool) async throws {
+    func markRead(items: [CDItem], state: Bool) async throws {
         do {
-            try await CDItem.markRead(itemIds: itemIds, state: state)
+            try await CDItem.markRead(items: items, state: state)
+            let itemIds = items.map( { $0.id } )
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
             if state {
@@ -124,10 +125,8 @@ class NewsManager {
             } else {
                 router = Router.itemsRead(parameters: parameters)
             }
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (_, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8))
                 switch httpResponse.statusCode {
                 case 200:
                     if state {
@@ -481,12 +480,12 @@ class NewsManager {
     }
 
     func updateBadge() {
-        let unreadCount = CDItem.unreadCount()
-        if unreadCount > 0 {
-//            App.dockTile.badgeLabel = "\(unreadCount)"
-        } else {
-//            App.dockTile.badgeLabel = nil
-        }
+//        let unreadCount = CDItem.unreadCount()
+//        if unreadCount > 0 {
+////            App.dockTile.badgeLabel = "\(unreadCount)"
+//        } else {
+////            App.dockTile.badgeLabel = nil
+//        }
     }
 
 }

@@ -162,34 +162,35 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return itemList
     }
 
-    static func unreadCount(feed: Int32) -> Int {
+    static func unreadCount(nodeType: NodeType) -> Int {
+        var result = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
-        let predicate = NSPredicate(format: "feedId == %d", feed)
-        request.predicate = predicate
-
-        do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
-            return results.filter( { $0.unread } ).count
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return 0
-    }
-
-    static func unreadCount(folder: Int32) -> Int {
-        if let feedIds = CDFeed.idsInFolder(folder: folder) {
-            let request : NSFetchRequest<CDItem> = self.fetchRequest()
-            let predicate = NSPredicate(format: "feedId IN %@", feedIds)
+        switch nodeType {
+        case .all:
+            let predicate = NSPredicate(format: "unread == true")
             request.predicate = predicate
 
-            do {
-                let results  = try NewsData.mainThreadContext.fetch(request)
-                return results.filter( { $0.unread } ).count
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
+        case .starred:
+            let predicate = NSPredicate(format: "starred == true")
+            request.predicate = predicate
+
+        case .feed(let feedId):
+            let predicate1 = NSPredicate(format: "unread == true")
+            let predicate2 = NSPredicate(format: "feedId == %d", feedId)
+            request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+
+        case .folder(let folderId):
+            if let feedIds = CDFeed.idsInFolder(folder: folderId) {
+                let predicate1 = NSPredicate(format: "unread == true")
+                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
+                request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
             }
         }
-        return 0
+        if let count = try? NewsData.mainThreadContext.count(for: request) {
+            result = count
+        }
+
+        return result
     }
 
     static func items(itemIds: [Int32]) -> [ItemProtocol]? {
@@ -249,14 +250,14 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return itemList
     }
     
-    static func markRead(itemIds: [Int32], state: Bool) async throws {
+    static func markRead(items: [CDItem], state: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
-            let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
+//            let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
-                let predicate = NSPredicate(format:"id IN %@", itemIds)
-                request.predicate = predicate
-                let records = try NewsData.mainThreadContext.fetch(request)
-                records.forEach({ item in
+//                let predicate = NSPredicate(format:"id IN %@", itemIds)
+//                request.predicate = predicate
+//                let records = try NewsData.mainThreadContext.fetch(request)
+                items.forEach({ item in
                     item.unread = state
                 })
                 try NewsData.mainThreadContext.save()
@@ -357,17 +358,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return result
     }
     
-    static func unreadCount() -> Int {
-        var result = 0
-        let request : NSFetchRequest<CDItem> = self.fetchRequest()
-        let predicate = NSPredicate(format: "unread == true")
-        request.predicate = predicate
-        if let count = try? NewsData.mainThreadContext.count(for: request) {
-            result = count
-        }
-        return result
-    }
-
     private func imageURL(summary: String) -> URL? {
         guard let doc: Document = try? SwiftSoup.parse(summary) else {
             return nil
