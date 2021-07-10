@@ -26,6 +26,7 @@ struct NodeView: View {
                                     .fill(.gray)
                                     .opacity(node.value.unreadCount != nil ? 1.0 : 0.0))
             }
+            .padding(.trailing, node.value.isLeaf ? 23 : 0)
         }
     }
 }
