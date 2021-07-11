@@ -40,13 +40,15 @@ struct TreeNode: FeedTreeNode {
 }
 
 struct FavImage: View {
+    static let validSchemas = ["http", "https", "file"]
+
     var feed: CDFeed?
     var isFolder = false
     var isStarred = false
 
     @ViewBuilder
     var body: some View {
-        if let faviconLink = feed?.faviconLink, let url = URL(string: faviconLink) {
+        if let link = feed?.faviconLink, link != "favicon", let url = URL(string: link), let scheme = url.scheme, FavImage.validSchemas.contains(scheme) {
             AsyncImage(url: url, content: { phase in
                 switch phase {
                 case .empty:
@@ -56,20 +58,63 @@ struct FavImage: View {
                         .resizable()
                         .scaledToFill()
                 case .failure(_):
-                    Image(systemName: "exclamationmark.icloud")
+                    FeedFavImage(feed: feed)
+                @unknown default:
+                    Image("favicon")
+                        .resizable()
+                        .scaledToFit()
+                }
+            })
+            .frame(width: 16, height: 16, alignment: .center)
+        } else if isFolder {
+            Image(systemName: "folder")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
+        } else if isStarred {
+            Image(systemName: "star.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
+        } else {
+            FeedFavImage(feed: feed)
+        }
+    }
+}
+
+struct FeedFavImage: View {
+    var feed: CDFeed?
+
+    @ViewBuilder
+    var body: some View {
+        if let feed = feed,
+            let feedUrl = URL(string: feed.link ?? ""),
+            let host = feedUrl.host,
+            let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
+            AsyncImage(url: url, content: { phase in
+                switch phase {
+                case .empty:
+                    Color.purple.opacity(0.1)
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure(_):
+                    Image("favicon")
                         .resizable()
                         .scaledToFit()
                 @unknown default:
-                    Image(systemName: "exclamationmark.icloud")
+                    Image("favicon")
+                        .resizable()
+                        .scaledToFit()
                 }
             })
                 .frame(width: 16, height: 16, alignment: .center)
-        } else if isFolder {
-            Image(systemName: "folder")
-        } else if isStarred {
-            Image(systemName: "star.fill")
         } else {
             Image("favicon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
         }
     }
 }
