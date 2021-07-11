@@ -9,13 +9,13 @@ import SwiftUI
 
 struct SidebarView: View {
     @AppStorage(StorageKeys.selectedCategory) private var selection: String?
-    @ObservedObject var model = FeedTreeModel()
+    @EnvironmentObject var nodeTree: FeedTreeModel
     @State private var isShowingSettings = false
 
     var body: some View {
         VStack {
             List(selection: $selection) {
-                OutlineGroup(model.feedTree.children ?? [], children: \.children) { item in
+                OutlineGroup(nodeTree.feedTree.children ?? [], children: \.children) { item in
                     NodeView(node: item)
                 }
             }
@@ -25,7 +25,7 @@ struct SidebarView: View {
                         async {
                             do {
                                 try await NewsManager().sync()
-                                model.update()
+                                nodeTree.update()
                             } catch {
                                 //
                             }
@@ -46,7 +46,7 @@ struct SidebarView: View {
             .refreshable {
                 do {
                     try await NewsManager().sync()
-                    model.update()
+                    nodeTree.update()
                 } catch {
                     //
                 }

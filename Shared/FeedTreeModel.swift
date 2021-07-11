@@ -34,6 +34,10 @@ final class Node<Value>: Identifiable, ObservableObject {
         }
         children?.append(child)
     }
+
+    func reset() {
+        children?.removeAll()
+    }
 }
 
 extension Node: Equatable where Value: Equatable {
@@ -101,6 +105,7 @@ class FeedTreeModel: NSObject, ObservableObject {
     }
 
     func update() {
+        feedTree.reset()
         feedTree.add(child: buildAllItemsNode())
         feedTree.add(child: buildStarredItemsNode())
 

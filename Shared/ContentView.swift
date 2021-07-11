@@ -10,6 +10,7 @@ import CoreData
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var nodeTree = FeedTreeModel()
 
     init() {
         if let cssTemplateURL = Bundle.main.url(forResource: "rss", withExtension: "css") {
@@ -32,11 +33,8 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             SidebarView()
-            ItemsView(node: Node(TreeNode(isLeaf: false,
-                                          items: [],
-                                          sortId: 0,
-                                          basePredicate: NSPredicate(value: true),
-                                          nodeType: .all)))
+                .environmentObject(nodeTree)
+            ItemsView(node: nodeTree.feedTree.children![0])
         }
     }
 
