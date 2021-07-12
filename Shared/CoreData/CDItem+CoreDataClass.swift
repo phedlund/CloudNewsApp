@@ -58,11 +58,10 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return dateLabelText
     }
 
-    dynamic var favIcon: Image? {
-        var result = Image("All Articles")
-        if let feed = CDFeed.feed(id: feedId),
-            let faviconLink = feed.faviconLink,
-            let url = URL(string: faviconLink) {
+    dynamic var favIcon: FavImage? {
+//        var result = Image("All Articles")
+        if let feed = CDFeed.feed(id: feedId) {
+            return FavImage(feed: feed, isFolder: false, isStarred: false)
 //            var options: KingfisherOptionsInfo? = nil
 //            if !unread {
 //                let processor = CompositingImageProcessor(compositingOperation: .copy, alpha: 0.5, backgroundColor: nil)
@@ -78,7 +77,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
 //                }
 //            }
         }
-        return result
+        return nil
     }
 
     dynamic var starIcon: Image? {
@@ -89,8 +88,8 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     dynamic var thumbnailURL: URL? {
-        if let summary = body, let imageURL = self.imageURL(summary: summary) {
-            return imageURL
+        if let summary = body, let imageURL = ArticleImage.imageURL(summary: summary) {
+            return URL(string: imageURL)
         }
         return nil
     }
@@ -329,25 +328,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
             print("Could not fetch \(error), \(error.userInfo)")
         }
         return result
-    }
-    
-    private func imageURL(summary: String) -> URL? {
-        guard let doc: Document = try? SwiftSoup.parse(summary) else {
-            return nil
-        } // parse html
-        do {
-            let srcs: Elements = try doc.select("img[src]")
-            let srcsStringArray: [String?] = srcs.array().map { try? $0.attr("src").description }
-            if let firstString = srcsStringArray.first, let urlString = firstString, let url = URL(string: urlString) {
-                return url
-            }
-        } catch Exception.Error(_, let message) {
-            print(message)
-        } catch {
-            print("error")
-
-        }
-        return nil
     }
 
 }

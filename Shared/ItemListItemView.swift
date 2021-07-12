@@ -14,6 +14,7 @@ struct ItemListItemViev: View {
 //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @AppStorage(StorageKeys.compactView) private var compactView: Bool?
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
+    @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
     @ObservedObject var item: CDItem
 
     var body: some View {
@@ -30,54 +31,28 @@ struct ItemListItemViev: View {
                     VStack(content: {
                         HStack(alignment: .top, spacing: 10, content: {
                             if isShowingThumbnails && provider.thumbnailURL != nil {
-                                if isCompactView /*|| horizontalSizeClass == .compact*/ {
-                                    VStack {
-                                        AsyncImage(url: provider.thumbnailURL, content: { phase in
-                                            switch phase {
-                                            case .empty:
-                                                Color.purple.opacity(0.1)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            case .failure(_):
-                                                Image(systemName: "exclamationmark.icloud")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                            @unknown default:
-                                                Image(systemName: "exclamationmark.icloud")
-                                            }
-                                        })
-                                            .frame(width: 66, height: 66, alignment: .center)
-                                            .cornerRadius(6.0)
-                                            .opacity(1.0)
-                                    }
-                                    .padding(EdgeInsets(top: 6, leading: 6, bottom: 0, trailing: 0))
-                                } else {
-                                    VStack {
-                                        Spacer()
-                                        AsyncImage(url: provider.thumbnailURL, content: { phase in
-                                            switch phase {
-                                            case .empty:
-                                                Color.purple.opacity(0.1)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            case .failure(_):
-                                                Image(systemName: "exclamationmark.icloud")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                            @unknown default:
-                                                Image(systemName: "exclamationmark.icloud")
-                                            }
-                                        })
-                                            .frame(width: 112, height: 112, alignment: .center)
-                                            .cornerRadius(12.0)
-                                            .opacity(1.0)
-                                        Spacer()
-                                    }
+                                VStack {
+                                    Spacer()
+                                    AsyncImage(url: provider.thumbnailURL, content: { phase in
+                                        switch phase {
+                                        case .empty:
+                                            Color.black.opacity(0.1)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        case .failure(_):
+                                           Color.black.opacity(0.1)
+                                        @unknown default:
+                                            Color.black.opacity(0.1)
+                                        }
+                                    })
+                                        .frame(width: isCompactView ? 66 : 112, height:  isCompactView ? 66 : 112, alignment: .center)
+                                        .cornerRadius( isCompactView ? 6.0 : 12.0)
+                                        .opacity(1.0)
+                                    Spacer()
                                 }
+                                .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
                             } else {
                                 EmptyView()
                             }
@@ -89,15 +64,11 @@ struct ItemListItemViev: View {
                                         .lineLimit(2)
                                         .fixedSize(horizontal: false, vertical: true) //force wrapping
                                     HStack {
-//                                        if SettingsStore.showFavIcons {
-//                                            KFImage(provider.favIconUrl!)
-//                                                .resizable()
-//                                                .aspectRatio(contentMode: .fill)
-//                                                .frame(width: 16, height: 16, alignment: .center)
-//                                                .opacity(Double(provider.imageAlpha))
-//                                        } else {
+                                        if showFavIcons ?? true {
+                                            item.favIcon
+                                        } else {
                                             EmptyView()
-//                                        }
+                                        }
                                         Text(provider.dateAuthorFeed)
                                             .font(.subheadline)
                                             .foregroundColor(Color(.black))
