@@ -13,50 +13,89 @@ struct ArticleView: View {
     @AppStorage(StorageKeys.marginPortrait) var marginPortrait: Int = 70
     @AppStorage(StorageKeys.marginLandscape) var marginLandscape: Int = 70
     @AppStorage(StorageKeys.lineHeight) var lineHeight: Double = 1.4
-    @State private var url = URL(fileURLWithPath: "")
+
+    @StateObject var webViewManager = WebViewManager()
+
     @State private var isShowingPopover = false
     @State private var currentSize: CGSize = .zero
 
     var item: CDItem
 
+    private var url = URL(fileURLWithPath: "")
+    private var webView: ArticleWebView?
+
+    init(item: CDItem) {
+        self.item = item
+        url = documentsFolderURL?
+            .appendingPathComponent("summary")
+            .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+    }
+
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                Text("Hello World")
-                    .font(.system(size: CGFloat(fontSize), weight: .regular, design: .default))
-                ArticleWebView(url: $url)
+                ArticleWebView(webView: webViewManager.webView)
                     .onAppear {
                         currentSize = geometry.size
-                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
-                        if item.unread {
-                            async {
-                                try? await NewsManager.shared.markRead(items: [item], state: false)
-                            }
-                        }
+                        configureView(size: currentSize)
+                        webViewManager.webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+                        delayMarkingRead()
                     }
                     .onChange(of: fontSize, perform: { _ in
-                        url = URL(fileURLWithPath: "") // force a change of url
-                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                        configureView(size: currentSize)
+                        webViewManager.webView.reload()
                     })
                     .onChange(of: marginPortrait, perform: { _ in
-                        url = URL(fileURLWithPath: "") // force a change of url
-                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                        configureView(size: currentSize)
+                        webViewManager.webView.reload()
                     })
                     .onChange(of: marginLandscape, perform: { _ in
-                        url = URL(fileURLWithPath: "") // force a change of url
-                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                        configureView(size: currentSize)
+                        webViewManager.webView.reload()
                     })
                     .onChange(of: lineHeight, perform: { _ in
-                        url = URL(fileURLWithPath: "") // force a change of url
-                        url = configureView(size: currentSize) ?? URL(fileURLWithPath: "")
+                        configureView(size: currentSize)
+                        webViewManager.webView.reload()
                     })
                     .toolbar(content: {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                webViewManager.webView.goBack()
+                            } label: {
+                                Image(systemName: "chevron.backward")
+                            }
+                            .disabled(!webViewManager.webView.canGoBack)
+                        }
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                webViewManager.webView.goForward()
+                            } label: {
+                                Image(systemName: "chevron.forward")
+                            }
+                            .disabled(!webViewManager.webView.canGoForward)
+                        }
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                if webViewManager.webView.isLoading {
+                                    webViewManager.webView.stopLoading()
+                                } else {
+                                    webViewManager.webView.reload()
+                                }
+                            } label: {
+                                if webViewManager.webView.isLoading {
+                                    Image(systemName: "xmark")
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                }
+                            }
+                        }
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
                                 //
                             } label: {
                                 Image(systemName: "square.and.arrow.up")
                             }
+                            .disabled(webViewManager.webView.isLoading)
                         }
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
@@ -67,6 +106,7 @@ struct ArticleView: View {
                             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                                 ArticleSettingsView()
                             }
+                            .disabled(webViewManager.webView.isLoading)
                         }
                     })
                     .navigationTitle(item.title ?? "Untitled")
@@ -77,7 +117,18 @@ struct ArticleView: View {
         }
     }
 
-    private func configureView(size: CGSize) -> URL? {
+    private func delayMarkingRead() {
+        // The delay prevents the view from jumping back to the items list
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if item.unread {
+                async {
+                    try? await NewsManager.shared.markRead(items: [item], unread: false)
+                }
+            }
+        }
+    }
+
+    private func configureView(size: CGSize) {
 //        if item.item.feedPreferWeb == true {
 //            if item.item.feedUseReader == true {
 //                if let readable = item.item.readable, readable.count > 0 {
@@ -137,10 +188,9 @@ struct ArticleView: View {
                     }
                 }
                 html = fixRelativeUrl(html: html, baseUrlString: baseString)
-                return saveItemSummary(html: html, item: item, feedTitle: "Feed Title", size: size)
+                saveItemSummary(html: html, item: item, feedTitle: "Feed Title", size: size)
             }
 //        }
-        return nil
     }
 
 }
@@ -168,10 +218,7 @@ struct StatefulPreviewWrapper<Value, Content: View>: View {
 
 struct ArticleView_Previews: PreviewProvider {
     static var previews: some View {
-        StatefulPreviewWrapper(URL(fileURLWithPath: "")) {
-            ArticleWebView(url: $0)
-        }
-
+        ArticleWebView(webView: WebViewManager().webView)
     }
 }
 

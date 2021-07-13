@@ -10,25 +10,70 @@ import WebKit
 
 #if os(macOS)
 struct ArticleWebView: NSViewRepresentable {
-    @Binding var url: URL
+    public let webView: WKWebView
+
+    public init(webView: WKWebView) {
+      self.webView = webView
+    }
 
     func makeNSView(context: Context) -> WKWebView {
-        return WKWebView()
+        return webView
     }
 
     func updateNSView(_ uiView: WKWebView, context: Context) {
-        uiView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())    }
+    }
+
 }
 #else
 struct ArticleWebView: UIViewRepresentable {
-    @Binding var url: URL
+
+    public let webView: WKWebView
+
+    public init(webView: WKWebView) {
+      self.webView = webView
+    }
 
     func makeUIView(context: Context) -> WKWebView {
-        return WKWebView()
+        webView.navigationDelegate = context.coordinator
+        return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        uiView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
     }
+
+    func makeCoordinator() -> WebViewCoordinator {
+        WebViewCoordinator()
+    }
+
 }
 #endif
+
+class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
+            if let url = navigationAction.request.url {
+                if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                    decisionHandler(.cancel)
+                    return
+                }
+                if navigationAction.navigationType != .other {
+//                    loadingSummary = url.scheme == "file" || url.scheme == "about"
+                }
+            }
+        }
+        decisionHandler(.allow);
+//        loadingComplete = false
+
+    }
+
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if !(navigationAction.targetFrame?.isMainFrame ?? false) {
+            webView.load(navigationAction.request)
+        }
+        return nil
+    }
+
+
+}
