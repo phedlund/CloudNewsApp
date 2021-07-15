@@ -9,6 +9,20 @@
 import Foundation
 import CoreData
 
+extension NSManagedObjectContext {
+
+    /// Executes the given `NSBatchUpdateRequest` and directly merges the changes to bring the given managed object context up to date.
+    ///
+    /// - Parameter batchUpdateRequest: The `NSBatchUpdateRequest` to execute.
+    /// - Throws: An error if anything went wrong executing the batch deletion.
+    public func executeAndMergeChanges(using batchUpdateRequest: NSBatchUpdateRequest) throws {
+        batchUpdateRequest.resultType = .updatedObjectIDsResultType
+        let result = try execute(batchUpdateRequest) as? NSBatchUpdateResult
+        let changes: [AnyHashable: Any] = [NSUpdatedObjectsKey: result?.result as? [NSManagedObjectID] ?? []]
+        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self])
+    }
+}
+
 extension NSFetchRequestResult where Self: NSManagedObject {
 
     @discardableResult

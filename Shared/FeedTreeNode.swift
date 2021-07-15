@@ -33,9 +33,7 @@ struct TreeNode: FeedTreeNode {
     var nodeType: NodeType
     mutating func updateCount() {
         let count = CDItem.unreadCount(nodeType: nodeType)
-        if count > 0 {
-            unreadCount = "\(count)"
-        }
+        unreadCount = count > 0 ? "\(count)" : nil
     }
 }
 

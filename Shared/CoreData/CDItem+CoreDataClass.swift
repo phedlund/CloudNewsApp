@@ -222,16 +222,26 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    static func markRead(items: [CDItem], state: Bool) async throws {
+    static func markRead(items: [CDItem], unread: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
-//            let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
-//                let predicate = NSPredicate(format:"id IN %@", itemIds)
-//                request.predicate = predicate
-//                let records = try NewsData.mainThreadContext.fetch(request)
-                items.forEach({ item in
-                    item.unread = state
-                })
+                let request = NSBatchUpdateRequest(entityName: CDItem.entityName)
+                let itemIds = items.map( { $0.id })
+                request.predicate = NSPredicate(format: "id IN %@", itemIds)
+                request.propertiesToUpdate = ["unread": NSNumber(value: unread)]
+//                request.resultType = .updatedObjectsCountResultType
+                try NewsData.mainThreadContext.executeAndMergeChanges(using: request)
+                try NewsData.mainThreadContext.save()
+            } catch {
+                throw PBHError.databaseError("Error marking items read")
+            }
+        }
+    }
+
+    static func markRead(item: CDItem, unread: Bool) async throws {
+        try await NewsData.mainThreadContext.perform {
+            do {
+                item.unread = unread
                 try NewsData.mainThreadContext.save()
             } catch {
                 throw PBHError.databaseError("Error marking items read")

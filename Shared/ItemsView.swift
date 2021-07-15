@@ -12,10 +12,8 @@ struct ItemsView: View {
     @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
     @State private var predicate: NSPredicate?
     @State private var sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor]()
-
     @State var node: Node<TreeNode>
-    @State private var items = [CDItem]()
-    
+
     var body: some View {
         VStack {
             FilteredFetchView(predicate: predicate, sortDescriptors: sortDescriptors) { (items: FetchedResults<CDItem>) in
@@ -40,33 +38,36 @@ struct ItemsView: View {
                     }
                     .listRowBackground(Color(.clear)) // disable selection highlight
                 }
+                .toolbar(content: {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            let unreadItems = items.filter( { $0.unread == true })
+                            async {
+                                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                            }
+                        } label: {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                })
             }
         }
-        .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    //
-                } label: {
-                    Image(systemName: "checkmark")
-                }
-            }
-        })
         .listStyle(.plain)
         .navigationTitle(node.value.title)
         .onAppear {
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
+            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
         .onChange(of: hideRead) { _ in
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
+            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
         .onChange(of: sortOldestFirst) { _ in
             sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : nil
-            predicate = unredPredicate != nil ? NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate!]) : node.value.basePredicate
+            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
     }
 }

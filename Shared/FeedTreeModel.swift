@@ -87,6 +87,11 @@ class FeedTreeModel: NSObject, ObservableObject {
     override init() {
         super.init()
         cancellables.insert(NotificationCenter.default
+                                .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
+                                .sink(receiveValue: { [weak self] notification in
+            self?.updateCounts()
+        }))
+        cancellables.insert(NotificationCenter.default
                                 .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
                                 .sink(receiveValue: { [weak self] notification in
             self?.updateCounts()
@@ -95,11 +100,17 @@ class FeedTreeModel: NSObject, ObservableObject {
         update()
     }
     
-
     func updateCounts() {
         if let children = feedTree.children {
             for node in children {
+                if let childNodes = node.children {
+                    for childNode in childNodes {
+                        childNode.value.updateCount()
+                        childNode.objectWillChange.send()
+                    }
+                }
                 node.value.updateCount()
+                node.objectWillChange.send()
             }
         }
     }
@@ -144,7 +155,7 @@ class FeedTreeModel: NSObject, ObservableObject {
                                  title: "Starred Articles",
                                  unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(feed: nil, isFolder: false, isStarred: true),
-                                 sortId: 0,
+                                 sortId: 1,
                                  basePredicate: NSPredicate(format: "starred == true"),
                                  nodeType: .starred)
         return Node(itemsNode)

@@ -114,13 +114,17 @@ class NewsManager {
         //        })
     }
 
-    func markRead(items: [CDItem], state: Bool) async throws {
+    func markRead(items: [CDItem], unread: Bool) async throws {
         do {
-            try await CDItem.markRead(items: items, state: state)
+            if items.count > 1 {
+                try await CDItem.markRead(items: items, unread: unread)
+            } else {
+                try await CDItem.markRead(item: items[0], unread: unread)
+            }
             let itemIds = items.map( { $0.id } )
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
-            if state {
+            if unread {
                 router = Router.itemsUnread(parameters: parameters)
             } else {
                 router = Router.itemsRead(parameters: parameters)
@@ -129,7 +133,7 @@ class NewsManager {
             if let httpResponse = response as? HTTPURLResponse {
                 switch httpResponse.statusCode {
                 case 200:
-                    if state {
+                    if unread {
                         CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
                     } else {
                         CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
