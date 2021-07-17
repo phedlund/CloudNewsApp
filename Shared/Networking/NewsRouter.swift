@@ -51,12 +51,10 @@ enum StatusRouter {
         return "Basic \(credentials)"
     }
 
-    // MARK: URLRequestConvertible
+    // MARK: URLRequest
 
     func urlRequest() throws -> URLRequest {
         @AppStorage(StorageKeys.server) var server: String = ""
-
-//        server = "https://peter.hedlund.dev"
 
         switch self {
         case .status:
@@ -222,21 +220,28 @@ enum Router {
         case .folders, .feeds:
             break
         case .addFeed(let url, let folder):
+            urlRequest.url = urlRequest.url?.appendingPathComponent(path)
             let parameters = ["url": url, "folder": folder] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-//                urlRequest.setValue("no-cache", forHTTPHeaderField: "cache-control")
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
-//                urlRequest.httpMethod = "PUT"
             }
-
-
-
 //            urlRequest = try URLEncoding.default.encode(urlRequest, with: parameters)
 
 //        deleteFeed
-//            moveFeed
-//            renameFeed
+        case .moveFeed( _, let folder):
+            let parameters = ["folderId": folder] as [String: Any]
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+            }
+
+        case .renameFeed( _, let name):
+            let parameters = ["feedTitle": name] as [String: Any]
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+            }
 //        markFeedRead
         
         case .addFolder(let name):

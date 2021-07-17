@@ -19,6 +19,7 @@ struct FeedSettingsView: View {
     @State private var stepperValue: Int32 = 250
     @State private var folderNames = [String]()
     @State private var folderSelection: String = "(No Folder)"
+    @State private var currentFolderName = ""
 
     var body: some View {
         Form {
@@ -61,6 +62,7 @@ struct FeedSettingsView: View {
                 if let folder = CDFolder.folder(id: feed?.folderId ?? 0),
                     let folderName = folder.name {
                     folderSelection = folderName
+                    currentFolderName = folderName
                 }
                 stepperValue = feed?.articleCount ?? 250
                 title = feed?.title ?? "Untitled"
@@ -71,7 +73,7 @@ struct FeedSettingsView: View {
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    //
+                    onSave()
                     dismiss()
                 } label: {
                     Text("Save")
@@ -85,6 +87,40 @@ struct FeedSettingsView: View {
                 }
             }
         })
+    }
+
+    private func onSave() {
+        if let feed = self.feed {
+            if folderSelection != currentFolderName {
+                if let newFolder = CDFolder.folder(name: folderSelection) {
+                    feed.folderId = newFolder.id
+                    Task {
+                        do {
+                            try await NewsManager.shared.moveFeed(feed: feed, to: newFolder.id)
+                        } catch {
+                            //
+                        }
+                    }
+                }
+            }
+            if !title.isEmpty, title != feed.title {
+                feed.title = title
+                Task {
+                    do {
+                        try await NewsManager.shared.renameFeed(feed: feed, to: title)
+                    } catch {
+                        //
+                    }
+                }
+            }
+            feed.preferWeb = preferWeb
+            feed.articleCount = stepperValue
+            do {
+                try NewsData.mainThreadContext.save()
+            } catch {
+                //
+            }
+        }
     }
 
 }

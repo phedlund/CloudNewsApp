@@ -23,7 +23,11 @@ struct SidebarView: View {
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @ObservedObject var nodeTree: FeedTreeModel
     @State private var isShowingSheet = false
+    @State private var isShowingFolderRename = false
+    @State private var isRenamingFolder = false
+    @State private var currentFolderName = ""
     @State private var modalSheet: ModalSheet?
+    @State private var nodeFrame: CGRect = .zero
 
     var body: some View {
         List(selection: $selection) {
@@ -35,9 +39,10 @@ struct SidebarView: View {
                             EmptyView()
                         case .folder(let folderId):
                             Button {
-                                //                                    currentFolderId = folderId
-                                modalSheet = .folders
-                                isShowingSheet = true
+                                if let folder = CDFolder.folder(id: folderId) {
+                                    currentFolderName = folder.name ?? "New Folder"
+                                    isShowingFolderRename = true
+                                }
                             } label: {
                                 Label("Rename...", systemImage: "square.and.pencil")
                             }
@@ -66,7 +71,6 @@ struct SidebarView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
-                        
                     }
                     .tag(item.value.sortId)
             }
@@ -74,7 +78,7 @@ struct SidebarView: View {
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    async {
+                    Task {
                         do {
                             try await NewsManager().sync()
                             nodeTree.update()
@@ -128,6 +132,23 @@ struct SidebarView: View {
                 })
             }
         })
+        .alert(isPresented: $isShowingFolderRename,
+               TextAlert(title: "Rename Folder",
+                         message: "Enter the new name of the folder",
+                         accept: "Rename") { result in
+            if let text = result {
+                // Text was accepted
+            } else {
+                // The dialog was cancelled
+            }
+        })
+//        .popover(isPresented: $isShowingFolderRename,
+//                 attachmentAnchor: .rect(.rect(nodeFrame)),
+//                 arrowEdge: .leading) {
+//            FolderRenameView(showModal: $isShowingFolderRename,
+//                             isRenaming: $isRenamingFolder,
+//                             folderName: $currentFolderName)
+//        }
     }
 }
 

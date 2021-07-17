@@ -483,6 +483,50 @@ class NewsManager {
         */
     }
 
+    func moveFeed(feed: CDFeed, to folder: Int32) async throws {
+        let moveFeedRouter = Router.moveFeed(id: Int(feed.id), folder: Int(folder))
+        do {
+            let (_, moveResponse) = try await NewsManager.session.data(for: moveFeedRouter.urlRequest(), delegate: nil)
+            if let httpResponse = moveResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 404:
+                    break // handle error
+                default:
+                    break
+                }
+            }
+        }
+    }
+
+    func renameFeed(feed: CDFeed, to name: String) async throws {
+        let renameRouter = Router.renameFeed(id: Int(feed.id), newName: name)
+        do {
+            let (_, renameResponse) = try await NewsManager.session.data(for: renameRouter.urlRequest(), delegate: nil)
+            if let httpResponse = renameResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 404:
+                    break // handle error
+                default:
+                    break
+                }
+                //                        case 404:
+                //                            message = @"The feed does not exist.";
+                //                            break;
+                //                        case 405:
+                //                            message = @"Please update the News app on the server to enable feed renaming.";
+                //                            break;
+                //                        default:
+                //                            message = [NSString stringWithFormat:@"The server responded '%@' and the error reported was '%@'.", [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], [error localizedDescription]];
+                //                            break;
+
+            }
+        } catch {
+            //
+        }
+    }
+
     func updateBadge() {
 //        let unreadCount = CDItem.unreadCount()
 //        if unreadCount > 0 {

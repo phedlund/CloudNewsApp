@@ -69,4 +69,18 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
         return nil
     }
 
+    static func folder(name: String) -> CDFolder? {
+        let request: NSFetchRequest<CDFolder> = self.fetchRequest()
+        let predicate = NSPredicate(format: "name == %@", name)
+        request.predicate = predicate
+        request.fetchLimit = 1
+        do {
+            let results  = try NewsData.mainThreadContext.fetch(request)
+            return results.first
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+
 }
