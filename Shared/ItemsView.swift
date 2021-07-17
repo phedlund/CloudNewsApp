@@ -42,7 +42,7 @@ struct ItemsView: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             let unreadItems = items.filter( { $0.unread == true })
-                            async {
+                            Task {
                                 try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
                             }
                         } label: {

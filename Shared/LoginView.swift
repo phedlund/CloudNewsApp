@@ -82,7 +82,7 @@ struct LoginForm: View {
                 HStack {
                     Spacer()
                     Button("Connect") {
-                        async {
+                        Task {
                             await login()
                         }
                     }

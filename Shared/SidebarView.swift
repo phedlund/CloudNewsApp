@@ -137,7 +137,7 @@ struct SidebarView: View {
                          message: "Enter the new name of the folder",
                          accept: "Rename") { result in
             if let text = result {
-                // Text was accepted
+                currentFolderName = text
             } else {
                 // The dialog was cancelled
             }

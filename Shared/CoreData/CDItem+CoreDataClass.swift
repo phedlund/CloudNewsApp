@@ -94,23 +94,23 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    dynamic var thumbnail: Image? {
-        var result: Image?
-        guard let imageURL = self.thumbnailURL else {
-            return result
-        }
-
-//        let resource = ImageResource(downloadURL: imageURL)
-//        KingfisherManager.shared.retrieveImage(with: resource, options: nil, progressBlock: nil, downloadTaskUpdated: nil) { (networkResult) in
-//            switch networkResult {
-//            case .success(let image):
-//                result = Image(uiImage: image.image)
-//            case .failure( _):
-//                break
-//            }
+//    dynamic var thumbnail: Image? {
+//        var result: Image?
+//        guard let imageURL = self.thumbnailURL else {
+//            return result
 //        }
-       return result
-    }
+//
+////        let resource = ImageResource(downloadURL: imageURL)
+////        KingfisherManager.shared.retrieveImage(with: resource, options: nil, progressBlock: nil, downloadTaskUpdated: nil) { (networkResult) in
+////            switch networkResult {
+////            case .success(let image):
+////                result = Image(uiImage: image.image)
+////            case .failure( _):
+////                break
+////            }
+////        }
+//       return result
+//    }
 
     dynamic var labelTextColor: Color {
         var result: Color = .gray
@@ -292,7 +292,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         existingRecord.title = item.title
                         existingRecord.unread = item.unread
                         existingRecord.url = item.url
-                        let _ = existingRecord.thumbnail
+//                        let _ = existingRecord.thumbnail
                     } else {
                         let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: NewsData.mainThreadContext) as! CDItem
                         newRecord.author = item.author
@@ -312,7 +312,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.url = item.url
                         newItems.append(newRecord)
                         newItemsCount += 1
-                        let _ = newRecord.thumbnail
+//                        let _ = newRecord.thumbnail
                     }
                 }
                 try NewsData.mainThreadContext.save()

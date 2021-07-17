@@ -121,7 +121,7 @@ struct ArticleView: View {
         // The delay prevents the view from jumping back to the items list
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             if item.unread {
-                async {
+                Task {
                     try? await NewsManager.shared.markRead(items: [item], unread: false)
                 }
             }
@@ -188,7 +188,7 @@ struct ArticleView: View {
                     }
                 }
                 html = fixRelativeUrl(html: html, baseUrlString: baseString)
-                saveItemSummary(html: html, item: item, feedTitle: "Feed Title", size: size)
+                _ = saveItemSummary(html: html, item: item, feedTitle: "Feed Title", size: size)
             }
 //        }
     }

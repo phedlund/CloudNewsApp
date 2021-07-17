@@ -50,7 +50,7 @@ class NewsManager {
             }
             self.syncTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { (_) in
                 NotificationCenter.default.post(name: .syncInitiated, object: nil)
-                async {
+                Task {
                     try await self.sync()
                 }
             }
@@ -69,7 +69,7 @@ class NewsManager {
     func version() async throws -> String {
         let router = Router.version
         do {
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (data, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
             let decoder = JSONDecoder()
             let result = try decoder.decode(Status.self, from: data)
             return result.version ?? ""
@@ -81,7 +81,7 @@ class NewsManager {
     func addFeed(url: String) async throws {
         let router = Router.addFeed(url: url, folder: 0)
         do {
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (_, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
         } catch { }
     }
     
@@ -91,7 +91,7 @@ class NewsManager {
             let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8))
+                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
 //                    __unused int newFolderId = [self addFolder:responseObject];
@@ -162,7 +162,7 @@ class NewsManager {
             //(for: request, from: body ?? Data(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8))
+                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
