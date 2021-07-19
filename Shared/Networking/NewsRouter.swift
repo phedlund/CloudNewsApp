@@ -251,7 +251,12 @@ enum Router {
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
 //            deleteFolder
-//            renameFolder
+        case .renameFolder( _, let name):
+            let parameters = ["name": name] as [String: Any]
+            if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
+                urlRequest.httpBody = body
+                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+            }
 //            markFolderRead
         
         case .items(let parameters), .updatedItems(let parameters):

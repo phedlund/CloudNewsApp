@@ -527,6 +527,37 @@ class NewsManager {
         }
     }
 
+    func renameFolder(folder: CDFolder, to name: String) async throws {
+        let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
+        do {
+            let (_, renameResponse) = try await NewsManager.session.data(for: renameRouter.urlRequest(), delegate: nil)
+            if let httpResponse = renameResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 404:
+                    break // handle error
+                default:
+                    break
+                }
+//                    case 404:
+//                        message = @"The folder does not exist.";
+//                        break;
+//                    case 409:
+//                        message = @"A folder with this name already exists.";
+//                        break;
+//                    case 422:
+//                        message = @"The folder name is invalid";
+//                        break;
+//                    default:
+//                        message = [NSString stringWithFormat:@"The server responded '%@' and the error reported was '%@'.", [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], [error localizedDescription]];
+//                        break;
+            }
+        } catch {
+            //
+        }
+    }
+
+
     func updateBadge() {
 //        let unreadCount = CDItem.unreadCount()
 //        if unreadCount > 0 {

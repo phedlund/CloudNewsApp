@@ -24,12 +24,9 @@ struct SidebarView: View {
     @ObservedObject var nodeTree: FeedTreeModel
     @State private var isShowingSheet = false
     @State private var isShowingFolderRename = false
-    @State private var isRenamingFolder = false
-    @State private var currentFolderName = ""
     @State private var modalSheet: ModalSheet?
     @State private var nodeFrame: CGRect = .zero
-    @State private var preferences: [ObjectIdentifier: CGRect] = [:]
-    @State var currentNode: Node<TreeNode>?
+    @State private var preferences = [ObjectIdentifier: CGRect]()
 
     var body: some View {
         GeometryReader { geometry in
@@ -42,11 +39,9 @@ struct SidebarView: View {
                                 EmptyView()
                             case .folder(let folderId):
                                 Button {
-                                    if let folder = CDFolder.folder(id: folderId) {
-                                        nodeFrame = preferences[item.id] ?? .zero
-                                        currentFolderName = folder.name ?? "New Folder"
-                                        isShowingFolderRename = true
-                                    }
+                                    selectedFeed = Int(folderId)
+                                    nodeFrame = preferences[item.id] ?? .zero
+                                    isShowingFolderRename = true
                                 } label: {
                                     Label("Rename...", systemImage: "square.and.pencil")
                                 }
@@ -140,19 +135,10 @@ struct SidebarView: View {
                     })
                 }
             })
-            .onChange(of: isRenamingFolder, perform: { newValue in
-                if newValue == true {
-                    isRenamingFolder = false
-                    // Rename folder
-                    let _ = print(currentFolderName)
-                }
-            })
             .popover(isPresented: $isShowingFolderRename,
                      attachmentAnchor: .rect(.rect(nodeFrame)),
                      arrowEdge: .trailing) {
-                FolderRenameView(showModal: $isShowingFolderRename,
-                                 isRenaming: $isRenamingFolder,
-                                 folderName: $currentFolderName)
+                FolderRenameView(showModal: $isShowingFolderRename)
             }
         }
     }
