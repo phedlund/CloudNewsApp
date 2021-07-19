@@ -28,132 +28,148 @@ struct SidebarView: View {
     @State private var currentFolderName = ""
     @State private var modalSheet: ModalSheet?
     @State private var nodeFrame: CGRect = .zero
+    @State private var preferences: [ObjectIdentifier: CGRect] = [:]
+    @State var currentNode: Node<TreeNode>?
 
     var body: some View {
-        List(selection: $selection) {
-            OutlineGroup(nodeTree.feedTree.children ?? [], children: \.children) { item in
-                NodeView(node: item)
-                    .contextMenu {
-                        switch item.value.nodeType {
-                        case .all, .starred:
-                            EmptyView()
-                        case .folder(let folderId):
-                            Button {
-                                if let folder = CDFolder.folder(id: folderId) {
-                                    currentFolderName = folder.name ?? "New Folder"
-                                    isShowingFolderRename = true
+        GeometryReader { geometry in
+            List(selection: $selection) {
+                OutlineGroup(nodeTree.feedTree.children ?? [], children: \.children) { item in
+                    NodeView(node: item)
+                        .contextMenu {
+                            switch item.value.nodeType {
+                            case .all, .starred:
+                                EmptyView()
+                            case .folder(let folderId):
+                                Button {
+                                    if let folder = CDFolder.folder(id: folderId) {
+                                        nodeFrame = preferences[item.id] ?? .zero
+                                        currentFolderName = folder.name ?? "New Folder"
+                                        isShowingFolderRename = true
+                                    }
+                                } label: {
+                                    Label("Rename...", systemImage: "square.and.pencil")
                                 }
-                            } label: {
-                                Label("Rename...", systemImage: "square.and.pencil")
-                            }
-                            Button(role: .destructive) {
-                                //
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        case .feed(let feedId):
-                            Button {
-                                selectedFeed = Int(feedId)
-                                modalSheet = .feedSettings
-                                isShowingSheet = true
-                            } label: {
-                                Label("Settings...", systemImage: "gearshape")
-                            }
-                            Button {
-                                modalSheet = .folders
-                                isShowingSheet = true
-                            } label: {
-                                Label("Folder...", systemImage: "folder")
-                            }
-                            Button(role: .destructive) {
-                                //
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                                Button(role: .destructive) {
+                                    //
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .disabled(true)
+                            case .feed(let feedId):
+                                Button {
+                                    selectedFeed = Int(feedId)
+                                    modalSheet = .feedSettings
+                                    isShowingSheet = true
+                                } label: {
+                                    Label("Settings...", systemImage: "gearshape")
+                                }
+                                Button(role: .destructive) {
+                                    //
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .disabled(true)
                             }
                         }
-                    }
-                    .tag(item.value.sortId)
-            }
-        }
-        .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task {
-                        do {
-                            try await NewsManager().sync()
-                            nodeTree.update()
-                        } catch {
-                            //
+                        .tag(item.value.sortId)
+                        .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
+                            [item.id: geometry[$0]]
                         }
+                        .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
+                            if let newPreference = rects.first {
+                                self.preferences[newPreference.key] = newPreference.value
+                            }
+                        }
+                }
+            }
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        Task {
+                            do {
+                                try await NewsManager().sync()
+                                nodeTree.update()
+                            } catch {
+                                //
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
                     }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        modalSheet = .settings
+                        isShowingSheet = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                    }
+                }
+            })
+            .listStyle(.sidebar)
+            .refreshable {
+                do {
+                    try await NewsManager().sync()
+                    nodeTree.update()
+                } catch {
+                    //
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    modalSheet = .settings
-                    isShowingSheet = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
+            .navigationTitle(Text("Feeds"))
+            .sheet(item: $modalSheet, onDismiss: {
+                isShowingSheet = false
+                modalSheet = nil
+            }, content: { sheet in
+                switch sheet {
+                case .settings:
+                    NavigationView(content: {
+                        SettingsView(showModal: $isShowingSheet)
+                    })
+                case .folders:
+                    NavigationView(content: {
+                        SettingsView(showModal: $isShowingSheet)
+                    })
+                case .feedSettings:
+                    NavigationView(content: {
+                        FeedSettingsView()
+                    })
+                case .login:
+                    NavigationView(content: {
+                        SettingsView(showModal: $isShowingSheet)
+                    })
                 }
-            }
-        })
-        .listStyle(.sidebar)
-        .refreshable {
-            do {
-                try await NewsManager().sync()
-                nodeTree.update()
-            } catch {
-                //
+            })
+            .onChange(of: isRenamingFolder, perform: { newValue in
+                if newValue == true {
+                    isRenamingFolder = false
+                    // Rename folder
+                    let _ = print(currentFolderName)
+                }
+            })
+            .popover(isPresented: $isShowingFolderRename,
+                     attachmentAnchor: .rect(.rect(nodeFrame)),
+                     arrowEdge: .trailing) {
+                FolderRenameView(showModal: $isShowingFolderRename,
+                                 isRenaming: $isRenamingFolder,
+                                 folderName: $currentFolderName)
             }
         }
-        .navigationTitle(Text("Feeds"))
-        .sheet(item: $modalSheet, onDismiss: {
-            isShowingSheet = false
-            modalSheet = nil
-        }, content: { sheet in
-            switch sheet {
-            case .settings:
-                NavigationView(content: {
-                    SettingsView(showModal: $isShowingSheet)
-                })
-            case .folders:
-                NavigationView(content: {
-                    SettingsView(showModal: $isShowingSheet)
-                })
-            case .feedSettings:
-                NavigationView(content: {
-                    FeedSettingsView()
-                })
-            case .login:
-                NavigationView(content: {
-                    SettingsView(showModal: $isShowingSheet)
-                })
-            }
-        })
-        .alert(isPresented: $isShowingFolderRename,
-               TextAlert(title: "Rename Folder",
-                         message: "Enter the new name of the folder",
-                         accept: "Rename") { result in
-            if let text = result {
-                currentFolderName = text
-            } else {
-                // The dialog was cancelled
-            }
-        })
-//        .popover(isPresented: $isShowingFolderRename,
-//                 attachmentAnchor: .rect(.rect(nodeFrame)),
-//                 arrowEdge: .leading) {
-//            FolderRenameView(showModal: $isShowingFolderRename,
-//                             isRenaming: $isRenamingFolder,
-//                             folderName: $currentFolderName)
-//        }
     }
 }
 
 struct SidebarView_Previews: PreviewProvider {
     static var previews: some View {
         SidebarView(nodeTree: FeedTreeModel())
+    }
+}
+
+struct RectPreferences<Item: Hashable>: PreferenceKey {
+    typealias Value = [Item: CGRect]
+
+    static var defaultValue: Value { [:] }
+
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value.merge(nextValue()) { $1 }
     }
 }

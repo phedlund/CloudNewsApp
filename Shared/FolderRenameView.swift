@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct FolderRenameView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Binding var showModal: Bool
     @Binding var isRenaming: Bool
     @Binding var folderName: String
@@ -23,7 +25,8 @@ struct FolderRenameView: View {
             Spacer()
             Divider()
             Button {
-                //
+                isRenaming = true
+                dismiss()
             } label: {
                 Text("Rename")
             }

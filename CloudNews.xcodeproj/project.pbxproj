@@ -95,8 +95,6 @@
 		D02F4546265C8D2900A3505B /* CDRead+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44EA265C89F700A3505B /* CDRead+CoreDataClass.swift */; };
 		D02FA074269E2E7600A77875 /* FeedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02FA073269E2E7600A77875 /* FeedSettingsView.swift */; };
 		D02FA075269E2E7600A77875 /* FeedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02FA073269E2E7600A77875 /* FeedSettingsView.swift */; };
-		D02FF26726A357EC00BADD0A /* TextAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02FF26626A357EC00BADD0A /* TextAlertView.swift */; };
-		D02FF26826A357EC00BADD0A /* TextAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02FF26626A357EC00BADD0A /* TextAlertView.swift */; };
 		D0698979268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
 		D069897A268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
 		D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */; };
@@ -184,7 +182,6 @@
 		D02F44EA265C89F700A3505B /* CDRead+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CDRead+CoreDataClass.swift"; sourceTree = "<group>"; };
 		D02F44EB265C89F700A3505B /* FeedTreeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedTreeNode.swift; sourceTree = "<group>"; };
 		D02FA073269E2E7600A77875 /* FeedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedSettingsView.swift; sourceTree = "<group>"; };
-		D02FF26626A357EC00BADD0A /* TextAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAlertView.swift; sourceTree = "<group>"; };
 		D0698978268569BF005AA05B /* ItemListItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemListItemView.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageKeys.swift; sourceTree = "<group>"; };
 		D0B0B2F5267ED1C600A997DB /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -262,7 +259,6 @@
 				D0FEBD68268BFCDB00AC0618 /* ArticleWebView.swift */,
 				D02FA073269E2E7600A77875 /* FeedSettingsView.swift */,
 				D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */,
-				D02FF26626A357EC00BADD0A /* TextAlertView.swift */,
 				D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */,
 				D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */,
 				D00AFA1526937C9700BAED44 /* LoginView.swift */,
@@ -485,7 +481,6 @@
 				D02F4523265C8CD800A3505B /* CoreDataExtension.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
 				D02F4539265C8D0C00A3505B /* CDUnstarred+CoreDataProperties.swift in Sources */,
-				D02FF26726A357EC00BADD0A /* TextAlertView.swift in Sources */,
 				D02F44EF265C89F700A3505B /* NewsSessionManager.swift in Sources */,
 				D0B0B2F9267ED1D900A997DB /* ItemsView.swift in Sources */,
 				D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */,
@@ -550,7 +545,6 @@
 				D02F4524265C8CD900A3505B /* CoreDataExtension.swift in Sources */,
 				D0FEBD6D268C09D200AC0618 /* HexColor.swift in Sources */,
 				D02F453A265C8D0D00A3505B /* CDUnstarred+CoreDataProperties.swift in Sources */,
-				D02FF26826A357EC00BADD0A /* TextAlertView.swift in Sources */,
 				D02F44EE265C89F700A3505B /* NewsSessionManager.swift in Sources */,
 				D0B0B2FA267ED1D900A997DB /* ItemsView.swift in Sources */,
 				D02F44F6265C89F700A3505B /* NewsRouter.swift in Sources */,
