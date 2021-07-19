@@ -11,7 +11,6 @@ import SwiftUI
 
 protocol FeedTreeNode {
     var isLeaf: Bool { get }
-    var items: [CDItem] { get }
     var title: String { get }
     var unreadCount: String? { get }
     var faviconImage: FavImage? { get }
@@ -24,7 +23,6 @@ protocol FeedTreeNode {
 
 struct TreeNode: FeedTreeNode {
     var isLeaf: Bool
-    var items: [CDItem]
     var title = ""
     var unreadCount: String?
     var faviconImage: FavImage?

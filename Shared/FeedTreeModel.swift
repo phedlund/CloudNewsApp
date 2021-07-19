@@ -79,7 +79,7 @@ struct NodeBuilder {
 }
 
 class FeedTreeModel: NSObject, ObservableObject {
-    @Published var feedTree = Node(TreeNode(isLeaf: false, items: [], sortId: -1, basePredicate: NSPredicate(value: true), nodeType: .all))
+    @Published var feedTree = Node(TreeNode(isLeaf: false, sortId: -1, basePredicate: NSPredicate(value: true), nodeType: .all))
     let objectWillChange = ObservableObjectPublisher()
 
     private var cancellables = Set<AnyCancellable>()
@@ -135,9 +135,7 @@ class FeedTreeModel: NSObject, ObservableObject {
 
     private func buildAllItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
-        let items = CDItem.items(nodeType: .all)
         let itemsNode = TreeNode(isLeaf: true,
-                                 items: items ?? [],
                                  title: "All Articles",
                                  unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(),
@@ -149,9 +147,7 @@ class FeedTreeModel: NSObject, ObservableObject {
 
     private func buildStarredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
-        let items = CDItem.items(nodeType: .starred)
         let itemsNode = TreeNode(isLeaf: true,
-                                 items: items ?? [],
                                  title: "Starred Articles",
                                  unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(feed: nil, isFolder: false, isStarred: true),
@@ -163,8 +159,7 @@ class FeedTreeModel: NSObject, ObservableObject {
 
     private func buildFolderNode(folder: CDFolder) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .folder(id: folder.id))
-        let items = CDItem.items(nodeType: .folder(id: folder.id))
-        
+
         var basePredicate: NSPredicate {
             if let feedIds = CDFeed.idsInFolder(folder: folder.id) {
                 return NSPredicate(format: "feedId IN %@", feedIds)
@@ -173,7 +168,6 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
         
         let folderNode = Node(TreeNode(isLeaf: false,
-                                       items: items ?? [],
                                        title: folder.name ?? "Untitled Folder",
                                        unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                        faviconImage: FavImage(feed: nil, isFolder: true),
@@ -191,10 +185,8 @@ class FeedTreeModel: NSObject, ObservableObject {
 
     private func buildFeedNode(feed: CDFeed) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
-        let items = CDItem.items(nodeType: .feed(id: feed.id))
 
         let itemsNode = TreeNode(isLeaf: true,
-                                 items: items ?? [],
                                  title: feed.title ?? "Untitled Feed",
                                  unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(feed: feed),
