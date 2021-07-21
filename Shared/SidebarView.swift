@@ -31,7 +31,7 @@ struct SidebarView: View {
     var body: some View {
         GeometryReader { geometry in
             List(selection: $selection) {
-                OutlineGroup(nodeTree.feedTree.children ?? [], children: \.children) { item in
+                OutlineGroup(nodeTree.nodeArray, children: \.children) { item in
                     NodeView(node: item)
                         .contextMenu {
                             switch item.value.nodeType {

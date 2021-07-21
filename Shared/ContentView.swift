@@ -33,7 +33,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             SidebarView(nodeTree: nodeTree)
-            ItemsView(node: nodeTree.feedTree.children![0])
+            ItemsView(node: nodeTree.nodeArray[0])
         }
     }
 

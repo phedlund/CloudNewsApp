@@ -7,8 +7,6 @@
 
 import Combine
 import CoreData
-import Foundation
-import SwiftUI
 
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
@@ -23,21 +21,6 @@ final class Node<Value>: Identifiable, ObservableObject {
         self.children = children
     }
 
-    init(_ value: Value, @NodeBuilder builder: () -> [Node]) {
-        self.value = value
-        self.children = builder()
-    }
-
-    func add(child: Node) {
-        if children == nil {
-            children = []
-        }
-        children?.append(child)
-    }
-
-    func reset() {
-        children?.removeAll()
-    }
 }
 
 extension Node: Equatable where Value: Equatable {
@@ -66,20 +49,13 @@ extension Node where Value: Equatable {
                 }
             }
         }
-        
+
         return nil
     }
 }
 
-@resultBuilder
-struct NodeBuilder {
-    static func buildBlock<Value>(_ children: Node<Value>...) -> [Node<Value>] {
-        children
-    }
-}
-
 class FeedTreeModel: NSObject, ObservableObject {
-    @Published var feedTree = Node(TreeNode(isLeaf: false, sortId: -1, basePredicate: NSPredicate(value: true), nodeType: .all))
+    @Published var nodeArray = [Node<TreeNode>]()
     let objectWillChange = ObservableObjectPublisher()
 
     private var cancellables = Set<AnyCancellable>()
@@ -101,39 +77,37 @@ class FeedTreeModel: NSObject, ObservableObject {
     }
     
     func updateCounts() {
-        if let children = feedTree.children {
-            for node in children {
-                if let childNodes = node.children {
-                    for childNode in childNodes {
-                        childNode.value.updateCount()
-                        childNode.objectWillChange.send()
-                    }
+        for node in nodeArray {
+            if let childNodes = node.children {
+                for childNode in childNodes {
+                    childNode.value.updateCount()
+                    childNode.objectWillChange.send()
                 }
-                node.value.updateCount()
-                node.objectWillChange.send()
             }
+            node.value.updateCount()
+            node.objectWillChange.send()
         }
     }
 
     func update() {
-        feedTree.reset()
-        feedTree.add(child: buildAllItemsNode())
-        feedTree.add(child: buildStarredItemsNode())
+        nodeArray.removeAll()
+        nodeArray.append(allItemsNode())
+        nodeArray.append(starredItemsNode())
 
         if let folders = CDFolder.all() {
             for folder in folders {
-                feedTree.add(child: buildFolderNode(folder: folder))
+                nodeArray.append(folderNode(folder: folder))
             }
         }
         if let feeds = CDFeed.inFolder(folder: 0) {
             for feed in feeds {
-                feedTree.add(child: buildFeedNode(feed: feed))
+                nodeArray.append(feedNode(feed: feed))
             }
         }
         updateCounts()
     }
 
-    private func buildAllItemsNode() -> Node<TreeNode> {
+    private func allItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
         let itemsNode = TreeNode(isLeaf: true,
                                  title: "All Articles",
@@ -145,7 +119,7 @@ class FeedTreeModel: NSObject, ObservableObject {
         return Node(itemsNode)
     }
 
-    private func buildStarredItemsNode() -> Node<TreeNode> {
+    private func starredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
         let itemsNode = TreeNode(isLeaf: true,
                                  title: "Starred Articles",
@@ -157,7 +131,7 @@ class FeedTreeModel: NSObject, ObservableObject {
         return Node(itemsNode)
     }
 
-    private func buildFolderNode(folder: CDFolder) -> Node<TreeNode> {
+    private func folderNode(folder: CDFolder) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .folder(id: folder.id))
 
         var basePredicate: NSPredicate {
@@ -167,23 +141,25 @@ class FeedTreeModel: NSObject, ObservableObject {
             return NSPredicate(value: false)
         }
         
-        let folderNode = Node(TreeNode(isLeaf: false,
+        let folderNode = TreeNode(isLeaf: false,
                                        title: folder.name ?? "Untitled Folder",
                                        unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                        faviconImage: FavImage(feed: nil, isFolder: true),
                                        sortId: Int(folder.id) + 100,
                                        basePredicate: basePredicate,
-                                       nodeType: .folder(id: folder.id)))
+                                       nodeType: .folder(id: folder.id))
         
         if let feeds = CDFeed.inFolder(folder: folder.id) {
+            var children = [Node<TreeNode>]()
             for feed in feeds {
-                folderNode.add(child: buildFeedNode(feed: feed))
+                children.append(feedNode(feed: feed))
             }
+            return Node(folderNode, children: children)
         }
-        return folderNode
+        return Node(folderNode)
     }
 
-    private func buildFeedNode(feed: CDFeed) -> Node<TreeNode> {
+    private func feedNode(feed: CDFeed) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
 
         let itemsNode = TreeNode(isLeaf: true,

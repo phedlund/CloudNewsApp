@@ -19,6 +19,7 @@ protocol FeedTreeNode {
     var nodeType: NodeType { get }
 
     mutating func updateCount()
+    mutating func updateTitle (_ title: String)
 }
 
 struct TreeNode: FeedTreeNode {
@@ -32,6 +33,11 @@ struct TreeNode: FeedTreeNode {
     mutating func updateCount() {
         let count = CDItem.unreadCount(nodeType: nodeType)
         unreadCount = count > 0 ? "\(count)" : nil
+    }
+    mutating func updateTitle (_ title: String) {
+        if !title.isEmpty {
+            self.title = title
+        }
     }
 }
 
