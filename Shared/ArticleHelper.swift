@@ -32,8 +32,7 @@ extension ArticleView {
 //        return result
 //    }
 
-    func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) -> URL? {
-        var result: URL? = nil
+    func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) {
         var summary = replaceVideoIframe(html: html)
         var dateText = "";
         let dateNumber = TimeInterval(item.pubDate)
@@ -121,13 +120,10 @@ extension ArticleView {
                 .appendingPathComponent("summary")
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
-                result = saveUrl
             }
         } catch {
             //
         }
-        
-        return result
     }
     
     private func updateCss(size: CGSize) -> String {
