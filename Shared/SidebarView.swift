@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomModalView
 
 enum ModalSheet {
     case login
@@ -24,6 +25,7 @@ struct SidebarView: View {
     @ObservedObject var nodeTree: FeedTreeModel
     @State private var isShowingSheet = false
     @State private var isShowingFolderRename = false
+    @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var nodeFrame: CGRect = .zero
     @State private var preferences = [ObjectIdentifier: CGRect]()
@@ -94,11 +96,16 @@ struct SidebarView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        modalSheet = .settings
-                        isShowingSheet = true
+                    Menu {
+                        Button("Settings...", action: {
+                            modalSheet = .settings
+                            isShowingSheet = true
+                        })
+                        Button("Add...", action: {
+                            isShowingAddModal = true
+                        })
                     } label: {
-                        Image(systemName: "slider.horizontal.3")
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             })
@@ -112,6 +119,10 @@ struct SidebarView: View {
                 }
             }
             .navigationTitle(Text("Feeds"))
+            .modal(isPresented: $isShowingAddModal) {
+                AddView()
+                    .padding(0)
+            }
             .sheet(item: $modalSheet, onDismiss: {
                 isShowingSheet = false
                 modalSheet = nil

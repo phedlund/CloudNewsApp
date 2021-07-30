@@ -94,9 +94,10 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-//                    __unused int newFolderId = [self addFolder:responseObject];
-//                    [self->foldersToAdd removeObject:name];
-                    break
+                    if let folders: Folders = try getType(from: data),
+                        let folderArray = folders.folders {
+                        CDFolder.update(folders: folderArray)
+                    }
                 case 409:
                     throw PBHError.networkError("The folder already exists")
                 case 422:
@@ -108,10 +109,6 @@ class NewsManager {
         } catch {
             throw PBHError.networkError("Error adding folder")
         }
-
-        //        NewsSessionManager.shared.request(router).responseDecodable(completionHandler: { (response: DataResponse<Folders>) in
-        //            debugPrint(response)
-        //        })
     }
 
     func markRead(items: [CDItem], unread: Bool) async throws {

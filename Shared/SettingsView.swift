@@ -11,6 +11,8 @@ import MessageUI
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Binding var showModal: Bool
 #if !os(macOS)
     @State var result: Result<MFMailComposeResult, Error>? = nil
@@ -25,10 +27,12 @@ struct SettingsView: View {
             .listStyle(GroupedListStyle())
             .navigationTitle("Settings")
             .navigationBarItems(trailing:
-                                    Button("Done") {
+                                    Button(action: {
                 showModal = false
-
-            })
+                dismiss()
+            }, label: {
+                Text("Done")
+            }))
 #endif
     }
 
