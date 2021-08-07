@@ -220,14 +220,11 @@ enum Router {
         case .folders, .feeds:
             break
         case .addFeed(let url, let folder):
-            urlRequest.url = urlRequest.url?.appendingPathComponent(path)
-            let parameters = ["url": url, "folder": folder] as [String : Any]
+            let parameters = ["url": url, "folderId": NSNull()] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
-//            urlRequest = try URLEncoding.default.encode(urlRequest, with: parameters)
-
 //        deleteFeed
         case .moveFeed( _, let folder):
             let parameters = ["folderId": folder] as [String: Any]

@@ -81,8 +81,51 @@ class NewsManager {
     func addFeed(url: String) async throws {
         let router = Router.addFeed(url: url, folder: 0)
         do {
-            let (_, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
-        } catch { }
+            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8) ?? "")
+                switch httpResponse.statusCode {
+                case 200:
+                    if let feeds: Feeds = try getType(from: data),
+                       let feedArray = feeds.feeds, let newFeed = feedArray.first {
+                        let newFeedId = newFeed.id
+                        CDFeed.update(feeds: feedArray)
+                        let parameters: ParameterDict = ["batchSize": 200,
+                                                         "offset": 0,
+                                                         "type": 0,
+                                                         "id": newFeedId,
+                                                         "getRead": NSNumber(value: true)]
+                        let router = Router.items(parameters: parameters)
+                        let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+                        if let httpResponse = response as? HTTPURLResponse {
+                            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                            print(String(data: data, encoding: .utf8) ?? "")
+                            switch httpResponse.statusCode {
+                            case 200:
+                                if let items: Items = try getType(from: data),
+                                   let itemsArray = items.items {
+                                    CDItem.update(items: itemsArray, completion: nil)
+                                }
+                                break
+                            default:
+                                throw PBHError.networkError("Error adding feed")
+                            }
+                        }
+                    }
+                case 405:
+                    throw PBHError.networkError("Method not allowed")
+                case 409:
+                    throw PBHError.networkError("The feed already exists")
+                case 422:
+                    throw PBHError.networkError("The feed could not be read. It most likely contains errors")
+                default:
+                    throw PBHError.networkError("Error adding feed")
+                }
+            }
+        } catch {
+            throw PBHError.networkError("Error adding feed")
+        }
     }
     
     func addFolder(name: String) async throws {
@@ -98,6 +141,8 @@ class NewsManager {
                         let folderArray = folders.folders {
                         CDFolder.update(folders: folderArray)
                     }
+                case 405:
+                    throw PBHError.networkError("Method not allowed")
                 case 409:
                     throw PBHError.networkError("The folder already exists")
                 case 422:

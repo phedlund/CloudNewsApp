@@ -53,7 +53,11 @@ struct Feed: Codable, FeedProtocol {
         ordering = try values.decode(Int32.self, forKey: .ordering)
         pinned = try values.decode(Bool.self, forKey: .pinned)
         title = try values.decodeIfPresent(String.self, forKey: .title)
-        unreadCount = try values.decode(Int32.self, forKey: .unreadCount)
+        if let uCount = try values.decodeIfPresent(Int32.self, forKey: .unreadCount) {
+            unreadCount = uCount
+        } else {
+            unreadCount = 0
+        }
         updateErrorCount = try values.decode(Int32.self, forKey: .updateErrorCount)
         url = try values.decodeIfPresent(String.self, forKey: .url)
     }
