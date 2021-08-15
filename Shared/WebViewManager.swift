@@ -9,7 +9,13 @@ import Combine
 import SwiftUI
 import WebKit
 
+enum WebViewType {
+    case article
+    case login
+}
+
 class WebViewManager: ObservableObject {
+    var type: WebViewType
 
     @Published public var webView: WKWebView {
         didSet {
@@ -19,10 +25,16 @@ class WebViewManager: ObservableObject {
 
     private var observers: [NSKeyValueObservation] = []
 
-    public init() {
+    public init(type: WebViewType) {
+        self.type = type
         let webConfig = WKWebViewConfiguration ()
-        webConfig.allowsInlineMediaPlayback = true
-        webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
+        switch type {
+        case .article:
+            webConfig.allowsInlineMediaPlayback = true
+            webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
+        case .login:
+            webConfig.websiteDataStore = .nonPersistent()
+        }
         self.webView = WKWebView(frame: .zero, configuration: webConfig)
         setupObservers()
     }

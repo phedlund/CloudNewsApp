@@ -14,7 +14,7 @@ struct ArticleView: View {
     @AppStorage(StorageKeys.marginLandscape) var marginLandscape: Int = 70
     @AppStorage(StorageKeys.lineHeight) var lineHeight: Double = 1.4
 
-    @StateObject var webViewManager = WebViewManager()
+    @StateObject var webViewManager = WebViewManager(type: .article)
 
     @State private var isShowingPopover = false
     @State private var currentSize: CGSize = .zero
@@ -185,7 +185,7 @@ struct StatefulPreviewWrapper<Value, Content: View>: View {
 
 struct ArticleView_Previews: PreviewProvider {
     static var previews: some View {
-        ArticleWebView(webView: WebViewManager().webView)
+        ArticleWebView(webView: WebViewManager(type: .article).webView)
     }
 }
 
