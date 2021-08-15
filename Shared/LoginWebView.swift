@@ -67,11 +67,7 @@ struct LoginWebView: NSViewRepresentable {
 struct LoginWebView: UIViewRepresentable {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage(StorageKeys.server) var server: String = "" {
-        willSet {
-            print("willSet: \(newValue)")
-        }
-    }
+    @AppStorage(StorageKeys.server) var server: String = ""
     @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn: Bool = false
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
