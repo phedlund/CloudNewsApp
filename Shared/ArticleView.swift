@@ -118,9 +118,6 @@ struct ArticleView: View {
                         }
                     })
                     .navigationTitle(item.title ?? "Untitled")
-#if !os(macOS)
-                    .navigationBarTitleDisplayMode(.inline)
-#endif
             }
         }
     }
