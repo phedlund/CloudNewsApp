@@ -64,12 +64,14 @@ class FeedTreeModel: NSObject, ObservableObject {
         super.init()
         cancellables.insert(NotificationCenter.default
                                 .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
-                                .sink(receiveValue: { [weak self] notification in
+                                .receive(on: DispatchQueue.main)
+                                .sink(receiveValue: { [weak self] _ in
             self?.updateCounts()
         }))
         cancellables.insert(NotificationCenter.default
                                 .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
-                                .sink(receiveValue: { [weak self] notification in
+                                .receive(on: DispatchQueue.main)
+                                .sink(receiveValue: { [weak self] _ in
             self?.updateCounts()
         }))
 
