@@ -28,6 +28,32 @@ struct ItemsView: View {
                             }
                             .opacity(0)
                             ItemListItemViev(item: item)
+                                .contextMenu {
+                                    let isUnRead = item.unread
+                                    let isStarred = item.starred
+                                    Button {
+                                        Task {
+                                            try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                                        }
+                                    } label: {
+                                        Label {
+                                            Text(isUnRead ? "Read" : "Unread")
+                                        } icon: {
+                                            Image(systemName: isUnRead ? "eye" : "eye.slash")
+                                        }
+                                    }
+                                    Button {
+                                        Task {
+                                            try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                                        }
+                                    } label: {
+                                        Label {
+                                            Text(isStarred ? "Unstar" : "Star")
+                                        } icon: {
+                                            Image(systemName: isStarred ? "star" : "star.fill")
+                                        }
+                                    }
+                                }
                                 .frame(minWidth: 300,
                                        idealWidth: 700,
                                        maxWidth: 700,

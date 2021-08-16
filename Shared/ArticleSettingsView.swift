@@ -22,13 +22,24 @@ struct ArticleSettingsView: View {
     @AppStorage(StorageKeys.marginLandscape) private var marginLandscape: Int = 70
     @AppStorage(StorageKeys.lineHeight) private var lineHeight: Double = 1.4
 
+    var item: CDItem
+
     var body: some View {
         VStack {
             HStack {
+                let isUnRead = item.unread
+                let isStarred = item.starred
                 Button {
-                    //
+                    Task {
+                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                    }
                 } label: {
-                    Image(systemName: "eye.slash")
+                    Label {
+                        Text(isUnRead ? "Read" : "Unread")
+                    } icon: {
+                        Image(systemName: isUnRead ? "eye" : "eye.slash")
+                    }
+                    .labelStyle(.iconOnly)
                 }
                 .frame(width: 50, height: 35, alignment: .center)
                 .overlay(
@@ -37,9 +48,16 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 15)
                 Button {
-                    //
+                    Task {
+                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                    }
                 } label: {
-                    Image(systemName: "star")
+                    Label {
+                        Text(isStarred ? "Unstar" : "Star")
+                    } icon: {
+                        Image(systemName: isStarred ? "star" : "star.fill")
+                    }
+                    .labelStyle(.iconOnly)
                 }
                 .frame(width: 50, height: 35, alignment: .center)
                 .overlay(
@@ -138,6 +156,6 @@ struct ArticleSettingsView: View {
 
 struct ArticleSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        ArticleSettingsView()
+        ArticleSettingsView(item: CDItem())
     }
 }

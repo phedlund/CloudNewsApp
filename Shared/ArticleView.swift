@@ -112,7 +112,7 @@ struct ArticleView: View {
                                 Image(systemName: "textformat.size")
                             }
                             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                                ArticleSettingsView()
+                                ArticleSettingsView(item: item)
                             }
                             .disabled(webViewManager.webView.isLoading)
                         }
