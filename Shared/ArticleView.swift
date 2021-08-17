@@ -17,7 +17,9 @@ struct ArticleView: View {
     @StateObject var webViewManager = WebViewManager(type: .article)
 
     @State private var isShowingPopover = false
+    @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
+    @State private var sharingProvider: SharingProvider?
 
     var item: CDItem
 
@@ -99,9 +101,12 @@ struct ArticleView: View {
                         }
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
-                                //
+                                isShowingSharePopover = canShare()
                             } label: {
                                 Image(systemName: "square.and.arrow.up")
+                            }
+                            .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                                ActivityView(activityItems: [sharingProvider ?? []], applicationActivities: [SafariActivity()])
                             }
                             .disabled(webViewManager.webView.isLoading)
                         }
@@ -123,6 +128,27 @@ struct ArticleView: View {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
         }
+    }
+
+    private func canShare() -> Bool {
+        var result = false
+        var viewedUrl: URL?
+        var subject = ""
+        let webView = webViewManager.webView
+        viewedUrl = webView.url
+        subject = webView.title ?? ""
+        if viewedUrl?.absoluteString.hasSuffix("Documents/summary.html") ?? false {
+            if let urlString = item.url {
+                viewedUrl = URL(string: urlString) ?? nil
+                subject = item.title ?? ""
+            }
+        }
+
+        if let shareUrl = viewedUrl {
+            sharingProvider = SharingProvider(placeholderItem: shareUrl, subject: subject)
+            result = true
+        }
+        return result
     }
 
     private func delayMarkingRead() {
