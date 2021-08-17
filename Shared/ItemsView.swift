@@ -89,6 +89,9 @@ struct ItemsView: View {
                         }
                     }
                 })
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
             }
         }
         .listStyle(.plain)

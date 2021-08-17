@@ -119,6 +119,9 @@ struct ArticleView: View {
                     })
                     .navigationTitle(item.title ?? "Untitled")
             }
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
         }
     }
 

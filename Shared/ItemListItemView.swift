@@ -28,6 +28,7 @@ struct ItemListItemViev: View {
                     Rectangle()
                         .foregroundColor(Color(.white))
                         .edgesIgnoringSafeArea(.all)
+                        .cornerRadius(4)
                     VStack(content: {
                         HStack(alignment: .top, spacing: 10, content: {
                             if isShowingThumbnails && provider.thumbnailURL != nil {
@@ -121,7 +122,8 @@ struct ItemListItemViev: View {
                 .opacity(item.unread ? 1.0 : 0.4)
                 .padding([.leading, .trailing], 10)
                 .background(Color(.white) // any non-transparent background
-                                .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 2, x: 0, y: 0))
+                                .cornerRadius(4)
+                                .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 4, x: 0, y: 4))
 //            }
     }
 //        else {
