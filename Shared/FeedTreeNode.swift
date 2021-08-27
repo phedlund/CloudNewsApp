@@ -12,33 +12,35 @@ import SwiftUI
 protocol FeedTreeNode {
     var isLeaf: Bool { get }
     var title: String { get }
-    var unreadCount: String? { get }
+    var unreadCount: String { get }
     var faviconImage: FavImage? { get }
     var sortId: Int { get }
     var basePredicate: NSPredicate { get }
     var nodeType: NodeType { get }
-
-    mutating func updateCount()
-    mutating func updateTitle (_ title: String)
 }
 
 struct TreeNode: FeedTreeNode {
     var isLeaf: Bool
-    var title = ""
-    var unreadCount: String?
+    var title: String {
+        switch nodeType {
+        case .all:
+            return "All Articles"
+        case .starred:
+            return "Starred Articles"
+        case .folder(let id):
+            return CDFolder.folder(id: id)?.name ?? "Untitled Folder"
+        case .feed(let id):
+            return CDFeed.feed(id: id)?.title ?? "Untitled Feed"
+        }
+    }
+    var unreadCount: String {
+        let count = CDItem.unreadCount(nodeType: nodeType)
+        return count > 0 ? "\(count)" : ""
+    }
     var faviconImage: FavImage?
     var sortId: Int
     var basePredicate: NSPredicate
     var nodeType: NodeType
-    mutating func updateCount() {
-        let count = CDItem.unreadCount(nodeType: nodeType)
-        unreadCount = count > 0 ? "\(count)" : nil
-    }
-    mutating func updateTitle (_ title: String) {
-        if !title.isEmpty {
-            self.title = title
-        }
-    }
 }
 
 struct FavImage: View {

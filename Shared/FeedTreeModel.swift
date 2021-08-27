@@ -10,6 +10,9 @@ import CoreData
 
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
+    @Published var unreadCount: String?
+    @Published var title: String?
+
     private(set) var children: [Node]?
 
     init(_ value: Value) {
@@ -82,11 +85,13 @@ class FeedTreeModel: NSObject, ObservableObject {
         for node in nodeArray {
             if let childNodes = node.children {
                 for childNode in childNodes {
-                    childNode.value.updateCount()
+                    childNode.unreadCount = childNode.value.unreadCount
+                    childNode.title = childNode.value.title
                     childNode.objectWillChange.send()
                 }
             }
-            node.value.updateCount()
+            node.unreadCount = node.value.unreadCount
+            node.title = node.value.title
             node.objectWillChange.send()
         }
     }
@@ -112,25 +117,26 @@ class FeedTreeModel: NSObject, ObservableObject {
     private func allItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
         let itemsNode = TreeNode(isLeaf: true,
-                                 title: "All Articles",
-                                 unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(),
                                  sortId: 0,
                                  basePredicate: NSPredicate(value: true),
                                  nodeType: .all)
-        return Node(itemsNode)
+        let node = Node(itemsNode)
+        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
+        return node
     }
 
     private func starredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
         let itemsNode = TreeNode(isLeaf: true,
-                                 title: "Starred Articles",
-                                 unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(feed: nil, isFolder: false, isStarred: true),
                                  sortId: 1,
                                  basePredicate: NSPredicate(format: "starred == true"),
                                  nodeType: .starred)
-        return Node(itemsNode)
+        let node = Node(itemsNode)
+        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
+        return node
+
     }
 
     private func folderNode(folder: CDFolder) -> Node<TreeNode> {
@@ -144,8 +150,6 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
         
         let folderNode = TreeNode(isLeaf: false,
-                                       title: folder.name ?? "Untitled Folder",
-                                       unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                        faviconImage: FavImage(feed: nil, isFolder: true),
                                        sortId: Int(folder.id) + 100,
                                        basePredicate: basePredicate,
@@ -156,22 +160,26 @@ class FeedTreeModel: NSObject, ObservableObject {
             for feed in feeds {
                 children.append(feedNode(feed: feed))
             }
-            return Node(folderNode, children: children)
+            let node = Node(folderNode, children: children)
+            node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
+            return node
         }
-        return Node(folderNode)
+        let node = Node(folderNode)
+        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
+        return node
     }
 
     private func feedNode(feed: CDFeed) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
 
         let itemsNode = TreeNode(isLeaf: true,
-                                 title: feed.title ?? "Untitled Feed",
-                                 unreadCount: unreadCount > 0 ? "\(unreadCount)" : nil,
                                  faviconImage: FavImage(feed: feed),
                                  sortId: Int(feed.id) + 1000,
                                  basePredicate: NSPredicate(format: "feedId == %d", feed.id),
                                  nodeType: .feed(id: feed.id))
-        return Node(itemsNode)
+        let node = Node(itemsNode)
+        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
+        return node
     }
 
 }
