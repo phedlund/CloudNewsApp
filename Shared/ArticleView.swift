@@ -69,6 +69,9 @@ struct ArticleView: View {
                     })
                     .toolbar(content: {
                         ToolbarItem(placement: .navigationBarLeading) {
+                            Spacer(minLength: 10)
+                        }
+                        ToolbarItem(placement: .navigationBarLeading) {
                             Button {
                                 webViewManager.webView.goBack()
                             } label: {
@@ -215,3 +218,10 @@ struct ArticleView_Previews: PreviewProvider {
     }
 }
 
+extension UINavigationController {
+
+  open override func viewWillLayoutSubviews() {
+    navigationBar.topItem?.backButtonDisplayMode = .minimal
+  }
+
+}
