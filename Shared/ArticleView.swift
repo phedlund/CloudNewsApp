@@ -185,7 +185,7 @@ struct ArticleView: View {
                 }
             }
             html = fixRelativeUrl(html: html, baseUrlString: baseString)
-            saveItemSummary(html: html, item: item, feedTitle: "Feed Title", size: size)
+            saveItemSummary(html: html, item: item, feedTitle: feed?.title, size: size)
         }
     }
 
