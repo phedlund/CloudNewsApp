@@ -322,7 +322,7 @@ class NewsManager {
         }
         
         do {
-            if let localRead = CDRead.all(), localRead.count > 0 {
+            if let localRead = CDRead.all(), !localRead.isEmpty {
                 let readParameters = ["items": localRead]
                 let readRouter = Router.itemsRead(parameters: readParameters)
                 async let (_, readResponse) = NewsManager.session.data(for: readRouter.urlRequest(), delegate: nil)
@@ -337,7 +337,7 @@ class NewsManager {
                 }
             }
             
-            if let localStarred = CDStarred.all(), localStarred.count > 0 {
+            if let localStarred = CDStarred.all(), !localStarred.isEmpty {
                 if let starredItems = CDItem.items(itemIds: localStarred) {
                     var params: [Any] = []
                     for starredItem in starredItems {
@@ -361,7 +361,7 @@ class NewsManager {
                 }
             }
             
-            if let localUnstarred = CDUnstarred.all(), localUnstarred.count > 0 {
+            if let localUnstarred = CDUnstarred.all(), !localUnstarred.isEmpty {
                 if let unstarredItems = CDItem.items(itemIds: localUnstarred) {
                     var params: [Any] = []
                     for unstarredItem in unstarredItems {
