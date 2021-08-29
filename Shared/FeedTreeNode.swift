@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import URLImage
 
 protocol FeedTreeNode {
     var isLeaf: Bool { get }
@@ -53,22 +54,21 @@ struct FavImage: View {
     @ViewBuilder
     var body: some View {
         if let link = feed?.faviconLink, link != "favicon", let url = URL(string: link), let scheme = url.scheme, FavImage.validSchemas.contains(scheme) {
-            AsyncImage(url: url, content: { phase in
-                switch phase {
-                case .empty:
-                    Color.purple.opacity(0.1)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure(_):
-                    FeedFavImage(feed: feed)
-                @unknown default:
-                    Image("favicon")
-                        .resizable()
-                        .scaledToFit()
-                }
-            })
+            URLImage(url) {
+                // This view is displayed before download starts
+                EmptyView()
+            } inProgress: { progress in
+                // Display progress
+                EmptyView()
+            } failure: { error, retry in
+                // Display error and retry button
+                EmptyView()
+            } content: { image in
+                // Downloaded image
+                image
+                    .resizable()
+                    .scaledToFill()
+            }
             .frame(width: 16, height: 16, alignment: .center)
         } else if isFolder {
             Image(systemName: "folder")
@@ -95,24 +95,23 @@ struct FeedFavImage: View {
             let feedUrl = URL(string: feed.link ?? ""),
             let host = feedUrl.host,
             let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
-            AsyncImage(url: url, content: { phase in
-                switch phase {
-                case .empty:
-                    Color.purple.opacity(0.1)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure(_):
-                    Image("favicon")
-                        .resizable()
-                        .scaledToFit()
-                @unknown default:
-                    Image("favicon")
-                        .resizable()
-                        .scaledToFit()
-                }
-            })
+            URLImage(url) {
+                // This view is displayed before download starts
+                EmptyView()
+            } inProgress: { progress in
+                // Display progress
+                EmptyView()
+            } failure: { error, retry in
+                // Display error and retry button
+                Image("favicon")
+                    .resizable()
+                    .scaledToFit()
+            } content: { image in
+                // Downloaded image
+                image
+                    .resizable()
+                    .scaledToFill()
+            }
                 .frame(width: 16, height: 16, alignment: .center)
         } else {
             Image("favicon")

@@ -107,6 +107,8 @@
 		D081F85326CB483E00511B60 /* SafariActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85126CB483E00511B60 /* SafariActivity.swift */; };
 		D081F85526CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D081F85626CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
+		D0955E1226DC40DE00D5560E /* URLImage in Frameworks */ = {isa = PBXBuildFile; productRef = D0955E1126DC40DE00D5560E /* URLImage */; };
+		D0955E1426DC40DE00D5560E /* URLImageStore in Frameworks */ = {isa = PBXBuildFile; productRef = D0955E1326DC40DE00D5560E /* URLImageStore */; };
 		D0AFBC4526B041C500A75C05 /* CustomModalView in Frameworks */ = {isa = PBXBuildFile; productRef = D0AFBC4426B041C500A75C05 /* CustomModalView */; };
 		D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */; };
 		D0B0B2F2267C2B0500A997DB /* StorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */; };
@@ -222,8 +224,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0955E1426DC40DE00D5560E /* URLImageStore in Frameworks */,
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
+				D0955E1226DC40DE00D5560E /* URLImage in Frameworks */,
 				D0AFBC4526B041C500A75C05 /* CustomModalView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -400,6 +404,8 @@
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
 				D0AFBC4426B041C500A75C05 /* CustomModalView */,
+				D0955E1126DC40DE00D5560E /* URLImage */,
+				D0955E1326DC40DE00D5560E /* URLImageStore */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -456,6 +462,7 @@
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */,
+				D0955E1026DC40DE00D5560E /* XCRemoteSwiftPackageReference "url-image" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -887,6 +894,14 @@
 				minimumVersion = 2.3.2;
 			};
 		};
+		D0955E1026DC40DE00D5560E /* XCRemoteSwiftPackageReference "url-image" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/dmytro-anokhin/url-image";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jankaltoun/CustomModalView";
@@ -917,6 +932,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		D0955E1126DC40DE00D5560E /* URLImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0955E1026DC40DE00D5560E /* XCRemoteSwiftPackageReference "url-image" */;
+			productName = URLImage;
+		};
+		D0955E1326DC40DE00D5560E /* URLImageStore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0955E1026DC40DE00D5560E /* XCRemoteSwiftPackageReference "url-image" */;
+			productName = URLImageStore;
 		};
 		D0AFBC4426B041C500A75C05 /* CustomModalView */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -8,6 +8,7 @@
 
 import SwiftSoup
 import SwiftUI
+import URLImage
 
 struct ItemListItemViev: View {
 //    @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -33,29 +34,18 @@ struct ItemListItemViev: View {
                         HStack(alignment: .top, spacing: 10, content: {
                             if isShowingThumbnails && provider.thumbnailURL != nil {
                                 VStack {
-                                    Spacer()
-                                    AsyncImage(url: provider.thumbnailURL, content: { phase in
-                                        switch phase {
-                                        case .empty:
-                                            Color.black.opacity(0.1)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        case .failure(_):
-                                           Color.black.opacity(0.1)
-                                        @unknown default:
-                                            Color.black.opacity(0.1)
-                                        }
-                                    })
-                                        .frame(width: isCompactView ? 66 : 112, height:  isCompactView ? 66 : 112, alignment: .center)
-                                        .cornerRadius( isCompactView ? 6.0 : 12.0)
+                                    URLImage(provider.thumbnailURL!) { image in
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    }
+                                        .frame(width: isCompactView ? 66 : 145, alignment: .center)
+                                        .cornerRadius(0)
                                         .opacity(1.0)
-                                    Spacer()
                                 }
-                                .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             } else {
-                                EmptyView()
+                                Spacer(minLength: 2)
                             }
                             HStack {
                                 VStack(alignment: .leading, spacing: 8, content: {
@@ -120,10 +110,10 @@ struct ItemListItemViev: View {
                     })
                 }
                 .opacity(item.unread ? 1.0 : 0.4)
-                .padding([.leading, .trailing], 10)
+                .padding([.trailing], 10)
                 .background(Color(.white) // any non-transparent background
                                 .cornerRadius(4)
-                                .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 4, x: 0, y: 4))
+                                .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 3, x: 0, y: 3))
 //            }
     }
 //        else {
