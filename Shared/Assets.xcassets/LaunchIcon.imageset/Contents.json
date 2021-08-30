@@ -1,19 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "LaunchIcon.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "LaunchIcon@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "LaunchIcon@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "LaunchIcon.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {
