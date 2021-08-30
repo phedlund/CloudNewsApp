@@ -126,6 +126,7 @@ struct ArticleView: View {
                         }
                     })
                     .navigationTitle(item.title ?? "Untitled")
+                    .navigationBarTitleDisplayMode(.inline)
             }
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)

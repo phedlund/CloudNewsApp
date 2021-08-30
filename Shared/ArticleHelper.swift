@@ -128,7 +128,7 @@ extension ArticleView {
     
     private func updateCss(size: CGSize) -> String {
         let currentWidth = Int((size.width) * CGFloat((Double(marginPortrait) / 100.0)))
-        let currentWidthLandscape = (size.height) * CGFloat((Double(marginLandscape) / 100.0))
+        let currentWidthLandscape = (size.height) * CGFloat((Double(marginPortrait) / 100.0))
 
         return ":root {" +
         "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
