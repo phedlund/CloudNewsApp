@@ -9,8 +9,10 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
+    @AppStorage(StorageKeys.isloggedIn) private var isLoggedIn = false
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var nodeTree = FeedTreeModel()
+    @State private var isShowingLogin = false
 
     init() {
         if let cssTemplateURL = Bundle.main.url(forResource: "rss", withExtension: "css") {
@@ -35,6 +37,13 @@ struct ContentView: View {
             SidebarView(nodeTree: nodeTree)
             ItemsView(node: nodeTree.nodeArray[0])
         }
+        .onAppear {
+            isShowingLogin = !isLoggedIn
+        }
+        .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
+            SettingsView(showModal: .constant(true))
+        }
+        
     }
 
 }
