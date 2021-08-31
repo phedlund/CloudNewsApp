@@ -16,100 +16,104 @@ struct ItemsView: View {
     @State var node: Node<TreeNode>
     @State private var preferences = [ObjectIdentifier: CGRect]()
 
+    @FetchRequest(sortDescriptors: [SortDescriptor(\.lastModified, order: .reverse)])
+    private var items: FetchedResults<CDItem>
+
     var body: some View {
         GeometryReader { geometry in
-            FilteredFetchView(predicate: predicate, sortDescriptors: sortDescriptors) { (items: FetchedResults<CDItem>) in
-                List {
-                    ForEach(items, id: \.self) { item in
-                        // Workaround to hide disclosure indicator
-                        ZStack(alignment: .center) {
-                            NavigationLink(destination: ArticleView(item: item)) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-                            ItemListItemViev(item: item)
-                                .contextMenu {
-                                    let isUnRead = item.unread
-                                    let isStarred = item.starred
-                                    Button {
-                                        Task {
-                                            try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
-                                        }
-                                    } label: {
-                                        Label {
-                                            Text(isUnRead ? "Read" : "Unread")
-                                        } icon: {
-                                            Image(systemName: isUnRead ? "eye" : "eye.slash")
-                                        }
-                                    }
-                                    Button {
-                                        Task {
-                                            try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
-                                        }
-                                    } label: {
-                                        Label {
-                                            Text(isStarred ? "Unstar" : "Star")
-                                        } icon: {
-                                            Image(systemName: isStarred ? "star" : "star.fill")
-                                        }
-                                    }
-                                }
-                                .frame(minWidth: 300,
-                                       idealWidth: 700,
-                                       maxWidth: 700,
-                                       minHeight: 85,
-                                       idealHeight: 160,
-                                       maxHeight: 160,
-                                       alignment: .center)
-                                .onDisappear {
-                                    checkMarkingRead(item: item)
-                                }
-                                .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
-                                    [item.id: geometry[$0]]
-                                }
-                                .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
-                                    if let newPreference = rects.first {
-                                        self.preferences[newPreference.key] = newPreference.value
-                                    }
-                                }
+            List {
+                ForEach(items, id: \.self) { item in
+                    // Workaround to hide disclosure indicator
+                    ZStack(alignment: .center) {
+                        NavigationLink(destination: ArticleView(item: item)) {
+                            EmptyView()
                         }
-                        .listRowSeparator(.hidden)
-                    }
-                    .listRowBackground(Color(.clear)) // disable selection highlight
-                }
-                .toolbar(content: {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            let unreadItems = items.filter( { $0.unread == true })
-                            Task {
-                                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                        .opacity(0)
+                        ItemListItemViev(item: item)
+                            .contextMenu {
+                                let isUnRead = item.unread
+                                let isStarred = item.starred
+                                Button {
+                                    Task {
+                                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                                    }
+                                } label: {
+                                    Label {
+                                        Text(isUnRead ? "Read" : "Unread")
+                                    } icon: {
+                                        Image(systemName: isUnRead ? "eye" : "eye.slash")
+                                    }
+                                }
+                                Button {
+                                    Task {
+                                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                                    }
+                                } label: {
+                                    Label {
+                                        Text(isStarred ? "Unstar" : "Star")
+                                    } icon: {
+                                        Image(systemName: isStarred ? "star" : "star.fill")
+                                    }
+                                }
                             }
-                        } label: {
-                            Image(systemName: "checkmark")
-                        }
+                            .frame(minWidth: 300,
+                                   idealWidth: 700,
+                                   maxWidth: 700,
+                                   minHeight: 85,
+                                   idealHeight: 160,
+                                   maxHeight: 160,
+                                   alignment: .center)
+                            .onDisappear {
+                                checkMarkingRead(item: item)
+                            }
+                            .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
+                                [item.id: geometry[$0]]
+                            }
+                            .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
+                                if let newPreference = rects.first {
+                                    self.preferences[newPreference.key] = newPreference.value
+                                }
+                            }
                     }
-                })
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                    .listRowSeparator(.hidden)
                 }
+                .listRowBackground(Color(.clear)) // disable selection highlight
+            }
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        let unreadItems = items.filter( { $0.unread == true })
+                        Task {
+                            try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                        }
+                    } label: {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            })
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
         }
         .listStyle(.plain)
         .navigationTitle(node.value.title)
         .onAppear {
-            sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
+            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
+            items.sortDescriptors = [sortDescriptor]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
+            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
         .onChange(of: hideRead) { _ in
-            sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
+            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
+            items.sortDescriptors = [sortDescriptor]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
+            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
         .onChange(of: sortOldestFirst) { _ in
-            sortDescriptors = [NSSortDescriptor(key: "pubDate", ascending: sortOldestFirst)]
+            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
+            items.sortDescriptors = [sortDescriptor]
             let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            predicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
+            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
         }
     }
 
