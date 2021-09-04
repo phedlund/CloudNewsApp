@@ -86,36 +86,21 @@ class FeedTreeModel: NSObject, ObservableObject {
             .store(in: &cancellables)
 
         preferences.$hideRead.sink { [weak self] newHideRead in
-            print(UserDefaults.standard.bool(forKey: StorageKeys.hideRead))
             self?.updatePredicate(newHideRead)
         }
         .store(in: &cancellables)
-        
+
+        preferences.$sortOldestFirst.sink { [weak self] newSortOldestFirst in
+            self?.updateSortOldestFirst(newSortOldestFirst)
+        }
+        .store(in: &cancellables)
+
         update()
     }
 
     private func updatePredicate(_ hideRead: Bool) {
-        let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-        for node in nodeArray {
-            if let childNodes = node.children {
-                for childNode in childNodes {
-                    switch childNode.value.nodeType {
-                    case .all:
-                        node.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(value: true), unredPredicate])
-                    case .starred:
-                        node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "starred == true"), unredPredicate])
-                    case .folder(let id):
-                        if let feedIds = CDFeed.idsInFolder(folder: id) {
-                            node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId IN %@", feedIds), unredPredicate])
-                        } else {
-                            node.predicate =  NSPredicate(value: false)
-                        }
-                    case .feed(let id):
-                        node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId == %d", id), unredPredicate])
-                    }
-                    childNode.objectWillChange.send()
-                }
-            }
+
+        func update(_ node: Node<TreeNode>) {
             switch node.value.nodeType {
             case .all:
                 node.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(value: true), unredPredicate])
@@ -130,22 +115,48 @@ class FeedTreeModel: NSObject, ObservableObject {
             case .feed(let id):
                 node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId == %d", id), unredPredicate])
             }
-            node.objectWillChange.send()
+        }
+
+        let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+
+        for node in nodeArray {
+            if let childNodes = node.children {
+                for childNode in childNodes {
+                    update(childNode)
+                }
+            }
+            update(node)
+        }
+    }
+
+    func updateSortOldestFirst(_ sortOldestFirst: Bool) {
+        let sortDescriptors = [SortDescriptor(\CDItem.pubDate, order: sortOldestFirst ? .forward : .reverse)]
+
+        for node in nodeArray {
+            if let childNodes = node.children {
+                for childNode in childNodes {
+                    childNode.sortDescriptors = sortDescriptors
+                }
+            }
+            node.sortDescriptors = sortDescriptors
         }
     }
 
     func updateCounts() {
-        for node in nodeArray {
-            if let childNodes = node.children {
-                for childNode in childNodes {
-                    childNode.unreadCount = childNode.value.unreadCount
-                    childNode.title = childNode.value.title
-                    childNode.objectWillChange.send()
-                }
-            }
+
+        func update(_ node: Node<TreeNode>) {
             node.unreadCount = node.value.unreadCount
             node.title = node.value.title
             node.objectWillChange.send()
+        }
+
+        for node in nodeArray {
+            if let childNodes = node.children {
+                for childNode in childNodes {
+                    update(childNode)
+                }
+            }
+            update(node)
         }
     }
 
@@ -166,6 +177,7 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
         updateCounts()
         updatePredicate(preferences.hideRead)
+        updateSortOldestFirst(preferences.sortOldestFirst)
     }
 
     private func allItemsNode() -> Node<TreeNode> {

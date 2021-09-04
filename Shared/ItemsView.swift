@@ -99,6 +99,9 @@ struct ItemsView: View {
         .onReceive(node.$predicate) { predicate in
             items.nsPredicate = predicate
         }
+        .onReceive(node.$sortDescriptors) { sortDescriptors in
+            items.sortDescriptors = sortDescriptors
+        }
     }
 
     fileprivate func checkMarkingRead(item: CDItem) {
