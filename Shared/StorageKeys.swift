@@ -42,7 +42,7 @@ enum StorageKeys {
     static let theme = "CurrentTheme"
     static let markReadWhileScrolling = "MarkWhileScrolling"
     static let sortOldestFirst = "SortOldestFirst"
-    static let hideRead = "HideRead"
+    static let hideRead = "hideRead"
     static let previousPasteboardURL = "PreviousPasteboardURL"
     static let backgrounds = "Backgrounds"
     static let foldersToAdd = "FoldersToAdd"

@@ -12,6 +12,8 @@ import URLImageStore
 @main
 struct CloudNewsApp: App {
 
+    @StateObject var treeModel = FeedTreeModel()
+
     var body: some Scene {
         let fileStore = URLImageFileStore()
         let inMemoryStore = URLImageInMemoryStore()
@@ -21,6 +23,7 @@ struct CloudNewsApp: App {
             ContentView()
                 .environment(\.managedObjectContext, NewsData.mainThreadContext)
                 .environment(\.urlImageService, urlImageService)
+                .environmentObject(treeModel)
         }
     }
 }

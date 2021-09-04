@@ -39,6 +39,7 @@ struct SettingsView: View {
 }
     
 struct SettingsForm: View {
+    @EnvironmentObject private var nodeTree: FeedTreeModel
     @AppStorage(StorageKeys.server) var server: String = ""
     @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn: Bool = false
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart: Bool = false
@@ -49,7 +50,6 @@ struct SettingsForm: View {
     @AppStorage(StorageKeys.showFavIcons) var showFavIcons: Bool = true
     @AppStorage(StorageKeys.showThumbnails) var showThumbnails: Bool = true
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @AppStorage(StorageKeys.hideRead) var hideRead: Bool = false
     @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
     @AppStorage(StorageKeys.compactView) var compactView: Bool = false
     @State var isShowingMailView = false
@@ -102,7 +102,7 @@ struct SettingsForm: View {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
-                Toggle(isOn: $hideRead) {
+                Toggle(isOn: $nodeTree.preferences.hideRead) {
                     Text("Hide Read Items")
                 }
                 Toggle(isOn: $sortOldestFirst) {

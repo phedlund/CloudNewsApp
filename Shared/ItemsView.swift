@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct ItemsView: View {
-    @AppStorage(StorageKeys.hideRead) var hideRead: Bool = false
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
-    @State private var predicate: NSPredicate?
-    @State private var sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor]()
-    @State var node: Node<TreeNode>
     @State private var preferences = [ObjectIdentifier: CGRect]()
+    @FetchRequest var items: FetchedResults<CDItem>
+    @ObservedObject var node: Node<TreeNode>
 
-    @FetchRequest(sortDescriptors: [SortDescriptor(\.lastModified, order: .reverse)])
-    private var items: FetchedResults<CDItem>
+    init(_ node: Node<TreeNode>) {
+        self.node = node
+        self._items = FetchRequest(sortDescriptors: node.sortDescriptors, predicate: node.predicate)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -97,23 +96,8 @@ struct ItemsView: View {
         }
         .listStyle(.plain)
         .navigationTitle(node.value.title)
-        .onAppear {
-            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
-            items.sortDescriptors = [sortDescriptor]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
-        }
-        .onChange(of: hideRead) { _ in
-            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
-            items.sortDescriptors = [sortDescriptor]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
-        }
-        .onChange(of: sortOldestFirst) { _ in
-            let sortDescriptor: SortDescriptor<CDItem> = SortDescriptor(\.lastModified, order: sortOldestFirst ? .forward : .reverse)
-            items.sortDescriptors = [sortDescriptor]
-            let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [node.value.basePredicate, unredPredicate])
+        .onReceive(node.$predicate) { predicate in
+            items.nsPredicate = predicate
         }
     }
 

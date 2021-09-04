@@ -11,7 +11,7 @@ struct NodeView: View {
     @ObservedObject var node: Node<TreeNode>
 
     var body: some View {
-        NavigationLink(destination: ItemsView(node: node)) {
+        NavigationLink(destination: ItemsView(node)) {
             HStack {
                 node.value.faviconImage
                 Text(node.value.title)

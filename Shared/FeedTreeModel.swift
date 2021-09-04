@@ -7,11 +7,14 @@
 
 import Combine
 import CoreData
+import SwiftUI
 
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
     @Published var unreadCount: String?
     @Published var title: String?
+    @Published var predicate = NSPredicate(value: true)
+    @Published var sortDescriptors = [SortDescriptor(\CDItem.pubDate, order: .reverse)]
 
     private(set) var children: [Node]?
 
@@ -58,6 +61,7 @@ extension Node where Value: Equatable {
 }
 
 class FeedTreeModel: NSObject, ObservableObject {
+    @Published var preferences = Preferences()
     @Published var nodeArray = [Node<TreeNode>]()
     let objectWillChange = ObservableObjectPublisher()
 
@@ -65,22 +69,71 @@ class FeedTreeModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        cancellables.insert(NotificationCenter.default
-                                .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
-                                .receive(on: DispatchQueue.main)
-                                .sink(receiveValue: { [weak self] _ in
-            self?.updateCounts()
-        }))
-        cancellables.insert(NotificationCenter.default
-                                .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
-                                .receive(on: DispatchQueue.main)
-                                .sink(receiveValue: { [weak self] _ in
-            self?.updateCounts()
-        }))
 
+        NotificationCenter.default
+            .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateCounts()
+            }
+            .store(in: &cancellables)
+        NotificationCenter.default
+            .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateCounts()
+            }
+            .store(in: &cancellables)
+
+        preferences.$hideRead.sink { [weak self] newHideRead in
+            print(UserDefaults.standard.bool(forKey: StorageKeys.hideRead))
+            self?.updatePredicate(newHideRead)
+        }
+        .store(in: &cancellables)
+        
         update()
     }
-    
+
+    private func updatePredicate(_ hideRead: Bool) {
+        let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+        for node in nodeArray {
+            if let childNodes = node.children {
+                for childNode in childNodes {
+                    switch childNode.value.nodeType {
+                    case .all:
+                        node.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(value: true), unredPredicate])
+                    case .starred:
+                        node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "starred == true"), unredPredicate])
+                    case .folder(let id):
+                        if let feedIds = CDFeed.idsInFolder(folder: id) {
+                            node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId IN %@", feedIds), unredPredicate])
+                        } else {
+                            node.predicate =  NSPredicate(value: false)
+                        }
+                    case .feed(let id):
+                        node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId == %d", id), unredPredicate])
+                    }
+                    childNode.objectWillChange.send()
+                }
+            }
+            switch node.value.nodeType {
+            case .all:
+                node.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(value: true), unredPredicate])
+            case .starred:
+                node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "starred == true"), unredPredicate])
+            case .folder(let id):
+                if let feedIds = CDFeed.idsInFolder(folder: id) {
+                    node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId IN %@", feedIds), unredPredicate])
+                } else {
+                    node.predicate =  NSPredicate(value: false)
+                }
+            case .feed(let id):
+                node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId == %d", id), unredPredicate])
+            }
+            node.objectWillChange.send()
+        }
+    }
+
     func updateCounts() {
         for node in nodeArray {
             if let childNodes = node.children {
@@ -112,6 +165,7 @@ class FeedTreeModel: NSObject, ObservableObject {
             }
         }
         updateCounts()
+        updatePredicate(preferences.hideRead)
     }
 
     private func allItemsNode() -> Node<TreeNode> {

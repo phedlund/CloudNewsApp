@@ -99,6 +99,8 @@
 		D045A16126C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
 		D0698979268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
 		D069897A268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
+		D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
+		D07A043826E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D081F84F26CB478B00511B60 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F84E26CB478B00511B60 /* ActivityView.swift */; };
 		D081F85026CB478B00511B60 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F84E26CB478B00511B60 /* ActivityView.swift */; };
 		D081F85226CB483E00511B60 /* SafariActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85126CB483E00511B60 /* SafariActivity.swift */; };
@@ -195,6 +197,7 @@
 		D02FA073269E2E7600A77875 /* FeedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedSettingsView.swift; sourceTree = "<group>"; };
 		D045A15F26C5F6D4002E553F /* LoginWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginWebView.swift; sourceTree = "<group>"; };
 		D0698978268569BF005AA05B /* ItemListItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemListItemView.swift; sourceTree = "<group>"; };
+		D07A043626E2F61F00178EEE /* UserDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
 		D081F84E26CB478B00511B60 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		D081F85126CB483E00511B60 /* SafariActivity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SafariActivity.swift; sourceTree = "<group>"; };
 		D081F85426CB489300511B60 /* SharingProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharingProvider.swift; sourceTree = "<group>"; };
@@ -262,6 +265,7 @@
 				D0B0B2FE267FF86300A997DB /* FeedTreeModel.swift */,
 				D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */,
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
+				D07A043626E2F61F00178EEE /* UserDefault.swift */,
 				D02F44D3265C89F700A3505B /* NotificationNames.swift */,
 				D02F44D4265C89F700A3505B /* SyncHelper.swift */,
 				D02F449F265C86BE00A3505B /* CloudNewsApp.swift */,
@@ -540,6 +544,7 @@
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D02F44ED265C89F700A3505B /* FeedTreeNode.swift in Sources */,
 				D02F4529265C8CE700A3505B /* CDStarred+CoreDataClass.swift in Sources */,
+				D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */,
 				D0B0B2F3267D7DC000A997DB /* NewsData.xcdatamodeld in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
@@ -608,6 +613,7 @@
 				D02F451C265C8CC500A3505B /* Avatar.swift in Sources */,
 				D02F44EC265C89F700A3505B /* FeedTreeNode.swift in Sources */,
 				D02F452A265C8CE800A3505B /* CDStarred+CoreDataClass.swift in Sources */,
+				D07A043826E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F2267C2B0500A997DB /* StorageKeys.swift in Sources */,
 				D0B0B2F4267D7DC000A997DB /* NewsData.xcdatamodeld in Sources */,
 				D045A16126C5F6D4002E553F /* LoginWebView.swift in Sources */,
