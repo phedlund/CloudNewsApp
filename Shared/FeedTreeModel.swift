@@ -63,7 +63,6 @@ extension Node where Value: Equatable {
 class FeedTreeModel: NSObject, ObservableObject {
     @Published var preferences = Preferences()
     @Published var nodeArray = [Node<TreeNode>]()
-    let objectWillChange = ObservableObjectPublisher()
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -147,7 +146,6 @@ class FeedTreeModel: NSObject, ObservableObject {
         func update(_ node: Node<TreeNode>) {
             node.unreadCount = node.value.unreadCount
             node.title = node.value.title
-            node.objectWillChange.send()
         }
 
         for node in nodeArray {

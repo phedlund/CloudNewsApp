@@ -9,6 +9,7 @@ import SwiftUI
 
 struct NodeView: View {
     @ObservedObject var node: Node<TreeNode>
+    @State var unreadCount = ""
 
     var body: some View {
         NavigationLink(destination: ItemsView(node)) {
@@ -27,6 +28,9 @@ struct NodeView: View {
                                     .opacity(node.value.unreadCount.isEmpty ? 0.0 : 1.0))
             }
             .padding(.trailing, node.value.isLeaf ? 23 : 0)
+        }
+        .onReceive(node.$unreadCount) { newUnreadCount in
+            unreadCount = newUnreadCount ?? ""
         }
     }
 }

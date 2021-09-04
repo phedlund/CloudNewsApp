@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 import CustomModalView
 
 enum ModalSheet {
@@ -22,13 +23,18 @@ extension ModalSheet: Identifiable {
 struct SidebarView: View {
     @AppStorage(StorageKeys.selectedFolder) private var selection: String?
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-    @ObservedObject var nodeTree: FeedTreeModel
+    @EnvironmentObject private var nodeTree: FeedTreeModel
     @State private var isShowingSheet = false
     @State private var isShowingFolderRename = false
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var nodeFrame: CGRect = .zero
     @State private var preferences = [ObjectIdentifier: CGRect]()
+    @State private var isSyncing = false
+
+    private var publisher = NotificationCenter.default
+        .publisher(for: .syncComplete)
+        .receive(on: DispatchQueue.main)
 
     var body: some View {
         GeometryReader { geometry in
@@ -82,18 +88,25 @@ struct SidebarView: View {
             }
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .opacity(isSyncing ? 1.0 : 0.0)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         Task {
                             do {
+                                isSyncing = true
                                 try await NewsManager().sync()
                                 nodeTree.update()
                             } catch {
-                                //
+                                isSyncing = false
                             }
                         }
                     } label: {
                         Image(systemName: "arrow.clockwise")
                     }
+                    .disabled(isSyncing)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
@@ -110,6 +123,9 @@ struct SidebarView: View {
                 }
             })
             .listStyle(.sidebar)
+            .onReceive(publisher) { _ in
+                isSyncing = false
+            }
             .refreshable {
                 do {
                     try await NewsManager().sync()
@@ -119,10 +135,10 @@ struct SidebarView: View {
                 }
             }
             .navigationTitle(Text("Feeds"))
-            .modal(isPresented: $isShowingAddModal) {
-                AddView()
-                    .padding(0)
-            }
+            //            .modal(isPresented: $isShowingAddModal) {
+            //                AddView()
+            //                    .padding(0)
+            //            }
             .sheet(item: $modalSheet, onDismiss: {
                 isShowingSheet = false
                 modalSheet = nil
@@ -157,7 +173,7 @@ struct SidebarView: View {
 
 struct SidebarView_Previews: PreviewProvider {
     static var previews: some View {
-        SidebarView(nodeTree: FeedTreeModel())
+        SidebarView()
     }
 }
 
