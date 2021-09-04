@@ -9,9 +9,10 @@ import SwiftUI
 
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @State private var preferences = [ObjectIdentifier: CGRect]()
     @FetchRequest var items: FetchedResults<CDItem>
     @ObservedObject var node: Node<TreeNode>
+    @State private var preferences = [ObjectIdentifier: CGRect]()
+    @State private var isMarkAllReadDisabled = true
 
     init(_ node: Node<TreeNode>) {
         self.node = node
@@ -88,6 +89,7 @@ struct ItemsView: View {
                     } label: {
                         Image(systemName: "checkmark")
                     }
+                    .disabled(isMarkAllReadDisabled)
                 }
             })
             .background {
@@ -101,6 +103,9 @@ struct ItemsView: View {
         }
         .onReceive(node.$sortDescriptors) { sortDescriptors in
             items.sortDescriptors = sortDescriptors
+        }
+        .onReceive(node.$unreadCount) { unreadCount in
+            isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
         }
     }
 
