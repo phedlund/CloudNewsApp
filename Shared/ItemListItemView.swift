@@ -39,9 +39,11 @@ struct ItemListItemViev: View {
                                             .resizable()
                                             .scaledToFill()
                                     }
-                                        .frame(width: isCompactView ? 66 : 145, alignment: .center)
-                                        .cornerRadius(0)
-                                        .opacity(1.0)
+                                    .environment(\.urlImageOptions, URLImageOptions(
+                                        maxPixelSize: CGSize(width: 600.0, height: 600.0)
+                                    ))
+                                    .frame(width: isCompactView ? 66 : 145, alignment: .center)
+                                    .cornerRadius(0)
                                 }
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             } else {

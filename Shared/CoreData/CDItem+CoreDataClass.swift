@@ -8,6 +8,7 @@
 //
 
 import CoreData
+import URLImage
 import SwiftSoup
 import SwiftUI
 
@@ -93,24 +94,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
         return nil
     }
-
-//    dynamic var thumbnail: Image? {
-//        var result: Image?
-//        guard let imageURL = self.thumbnailURL else {
-//            return result
-//        }
-//
-////        let resource = ImageResource(downloadURL: imageURL)
-////        KingfisherManager.shared.retrieveImage(with: resource, options: nil, progressBlock: nil, downloadTaskUpdated: nil) { (networkResult) in
-////            switch networkResult {
-////            case .success(let image):
-////                result = Image(uiImage: image.image)
-////            case .failure( _):
-////                break
-////            }
-////        }
-//       return result
-//    }
 
     dynamic var labelTextColor: Color {
         var result: Color = .gray
@@ -312,7 +295,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.url = item.url
                         newItems.append(newRecord)
                         newItemsCount += 1
-//                        let _ = newRecord.thumbnail
+                        CDItem.downloadThumbnail(newRecord.thumbnailURL)
                     }
                 }
                 try NewsData.mainThreadContext.save()
@@ -338,6 +321,15 @@ public class CDItem: NSManagedObject, ItemProtocol {
             print("Could not fetch \(error), \(error.userInfo)")
         }
         return result
+    }
+
+    static func downloadThumbnail(_ url: URL?) {
+        guard let url = url else {
+            return
+        }
+
+        let model = ThumbnailModel(url: url)
+        model.load()
     }
 
 }
