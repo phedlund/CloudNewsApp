@@ -8,11 +8,11 @@
    inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
    sodipodi:version="0.32"
    id="svg2"
-   height="1024"
+   height="256"
    inkscape:export-filename="/Users/peter/Projects/iOCNews/iTunesArtwork@2x.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
-   width="1024"
+   width="256"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -33,8 +33,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.97949219"
-     inkscape:cx="470.65204"
-     inkscape:cy="487.49751"
+     inkscape:cx="521.6989"
+     inkscape:cy="334.35693"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="2108"
@@ -17693,51 +17693,52 @@
        transform="matrix(0,-1,1,0,819.61086,-67.82594)" />
     <g
        id="g9504"
-       transform="translate(4.9934026e-6,176.00985)">
+       transform="matrix(0.27415384,0,0,0.27415384,28.062373,-220.95238)"
+       style="stroke-width:3.64759">
       <rect
          transform="rotate(-40)"
-         style="fill:#d9ba29;fill-opacity:1"
+         style="fill:#d9ba29;fill-opacity:1;stroke-width:3.64759"
          width="350"
          height="350"
-         rx="75.195312"
-         ry="75.195312"
+         rx="62.877876"
+         ry="62.877876"
          x="92.417633"
          y="52.184433"
          id="rect8863" />
       <rect
          transform="rotate(-40)"
-         style="fill:#ebf452;fill-opacity:1"
+         style="fill:#ebf452;fill-opacity:1;stroke-width:3.64759"
          width="336.32809"
          height="336.32809"
-         rx="68.359375"
-         ry="68.359375"
+         rx="57.161705"
+         ry="57.161705"
          x="99.253571"
          y="59.02037"
          id="rect8865" />
       <rect
          transform="rotate(-40)"
-         style="fill:url(#linearGradient6714)"
+         style="fill:url(#linearGradient6714);stroke-width:3.64759"
          width="322.65625"
          height="322.65625"
-         rx="64.257805"
-         ry="64.257805"
+         rx="53.731976"
+         ry="53.731976"
          x="106.08951"
          y="65.85614"
          id="rect8867" />
       <circle
-         style="fill:#ffffff;stroke-width:1.3671875"
+         style="fill:#ffffff;stroke-width:4.98675"
          cx="180.60123"
          cy="314.00076"
          r="32.8125"
          id="circle8871"
          transform="rotate(-39.999999)" />
       <path
-         style="fill:#ffffff;stroke-width:1.22816622"
+         style="fill:#ffffff;stroke-width:4.47994"
          inkscape:connector-curvature="0"
          d="M 457.62985,68.735523 422.02076,98.615101 A 112.10937,112.10937 0 0 0 264.07748,84.796863 L 234.1979,49.187769 a 158.59375,158.59375 0 0 1 223.43195,19.547754 z"
          id="path8873" />
       <path
-         style="fill:#ffffff;stroke-width:1.22816622"
+         style="fill:#ffffff;stroke-width:4.47994"
          inkscape:connector-curvature="0"
          d="M 482.76569,47.644055 A 191.40625,191.40625 0 0 0 213.10643,24.051937 l -30.75839,-36.656426 a 239.2578,239.2578 45 0 1 337.07407,29.49015 z"
          id="path8875" />
@@ -17746,88 +17747,88 @@
          id="rect8881"
          y="-64.869522"
          x="273.68439"
-         ry="75.195312"
-         rx="75.195312"
+         ry="62.877876"
+         rx="62.877876"
          height="350"
          width="350"
-         style="fill:#006600;stroke-width:2.734375" />
+         style="fill:#006600;stroke-width:9.97401" />
       <rect
          transform="rotate(-20)"
          id="rect8883"
          y="-58.033585"
          x="280.52032"
-         ry="68.359375"
-         rx="68.359375"
+         ry="57.161705"
+         rx="57.161705"
          height="336.32809"
          width="336.32809"
-         style="fill:#66cc33;stroke-width:2.734375" />
+         style="fill:#66cc33;stroke-width:9.97401" />
       <rect
          transform="rotate(-20)"
          id="rect8885"
          y="-51.197815"
          x="287.35626"
-         ry="64.257805"
-         rx="64.257805"
+         ry="53.731976"
+         rx="53.731976"
          height="322.65625"
          width="322.65625"
-         style="fill:url(#linearGradient5896);stroke-width:2.734375" />
+         style="fill:url(#linearGradient5896);stroke-width:9.97401" />
       <circle
          transform="rotate(-20)"
          id="circle8889"
          r="32.8125"
          cy="196.94679"
          cx="361.86798"
-         style="fill:#ffffff;stroke-width:1.3671875" />
+         style="fill:#ffffff;stroke-width:4.98675" />
       <path
          id="path8891"
          d="M 536.82267,49.117245 493.14165,65.015837 A 112.10937,112.10937 0 0 0 349.44963,-1.988842 l -15.89859,-43.68102 a 158.59375,158.59375 0 0 1 203.27163,94.787107 z"
          inkscape:connector-curvature="0"
-         style="fill:#ffffff;stroke-width:1.22816622" />
+         style="fill:#ffffff;stroke-width:4.47994" />
       <path
          id="path8893"
          d="M 567.65633,37.89471 A 191.40625,191.40625 45 0 0 322.3285,-76.503525 l -16.3662,-44.965765 a 239.2578,239.2578 0 0 1 306.65979,142.9978 z"
          inkscape:connector-curvature="0"
-         style="fill:#ffffff;stroke-width:1.22816622" />
+         style="fill:#ffffff;stroke-width:4.47994" />
       <rect
-         style="fill:#003399;stroke-width:2.734375"
+         style="fill:#003399;stroke-width:9.97401"
          width="350"
          height="350"
-         rx="75.195312"
-         ry="75.195312"
+         rx="62.877876"
+         ry="62.877876"
          x="392.69934"
          y="-252.03804"
          id="rect8899" />
       <rect
-         style="fill:#0083d7;stroke-width:2.734375"
+         style="fill:#0083d7;stroke-width:9.97401"
          width="336.32809"
          height="336.32809"
-         rx="68.359375"
-         ry="68.359375"
+         rx="57.161705"
+         ry="57.161705"
          x="399.53528"
          y="-245.2021"
          id="rect8901" />
       <rect
-         style="fill:url(#linearGradient5894);stroke-width:2.734375"
+         style="fill:url(#linearGradient5894);stroke-width:9.97401"
          width="322.65625"
          height="322.65625"
-         rx="64.257805"
-         ry="64.257805"
+         rx="53.731976"
+         ry="53.731976"
          x="406.37122"
          y="-238.36633"
          id="rect8903" />
       <circle
-         style="fill:#ffffff;stroke-width:1.3671875"
+         style="fill:#ffffff;stroke-width:4.98675"
          cx="480.88287"
          cy="9.7782774"
          r="32.8125"
          id="circle8907" />
       <path
-         style="fill:#ffffff;stroke-width:1.22816622"
+         style="fill:#ffffff;stroke-width:4.47994"
          inkscape:connector-curvature="0"
          d="M 606.66411,42.590773 H 560.17974 A 112.10937,112.10937 0 0 0 448.07036,-69.518595 V -116.00297 A 158.59375,158.59375 0 0 1 606.66411,42.590773 Z"
          id="path8909" />
       <path
-         style="fill:#ffffff;stroke-width:1.22816622"
+         style="fill:#ffffff;stroke-width:4.47994"
          inkscape:connector-curvature="0"
          d="M 639.47661,42.590773 A 191.40625,191.40625 0 0 0 448.07036,-148.81547 v -47.85156 A 239.2578,239.2578 0 0 1 687.32818,42.590773 Z"
          id="path8911" />
@@ -17836,48 +17837,49 @@
          id="rect7725"
          y="-453.1987"
          x="443.24127"
-         ry="75.195312"
-         rx="75.195312"
+         ry="62.877876"
+         rx="62.877876"
          height="350"
          width="350"
-         style="fill:#d40000;stroke-width:2.734375" />
+         style="fill:#d40000;stroke-width:9.97401" />
       <rect
          transform="rotate(20)"
          id="rect7727"
          y="-446.36276"
          x="450.07721"
-         ry="68.359375"
-         rx="68.359375"
+         ry="57.161705"
+         rx="57.161705"
          height="336.32809"
          width="336.32809"
-         style="fill:#ff0000;stroke-width:2.734375" />
+         style="fill:#ff0000;stroke-width:9.97401" />
       <rect
          transform="rotate(20)"
          id="rect7729"
          y="-439.52698"
          x="456.91315"
-         ry="64.257805"
-         rx="64.257805"
+         ry="53.731976"
+         rx="53.731976"
          height="322.65625"
          width="322.65625"
-         style="fill:url(#linearGradient5892);stroke-width:2.734375" />
+         style="fill:url(#linearGradient5892);stroke-width:9.97401" />
       <g
          transform="matrix(1.1540987,0.42005758,-0.42005758,1.1540987,1359.8781,-549.20658)"
-         id="g7774">
+         id="g7774"
+         style="stroke-width:3.64759">
         <circle
-           style="fill:#ffffff"
+           style="fill:#ffffff;stroke-width:3.64759"
            cx="68"
            cy="189"
            r="24"
            id="circle7731"
            transform="matrix(1.1131942,0,0,1.1131942,-530.52395,432.68597)" />
         <path
-           style="fill:#ffffff"
+           style="fill:#ffffff;stroke-width:3.64759"
            inkscape:connector-curvature="0"
            d="m -352.41288,669.79633 h -37.8486 a 91.281924,91.281924 0 0 0 -91.28193,-91.28192 v -37.8486 a 129.13053,129.13053 0 0 1 129.13053,129.13052 z"
            id="path7733" />
         <path
-           style="fill:#ffffff"
+           style="fill:#ffffff;stroke-width:3.64759"
            inkscape:connector-curvature="0"
            d="M -325.69622,669.79633 A 155.84719,155.84719 0 0 0 -481.54341,513.94915 v -38.9618 a 194.80898,194.80898 0 0 1 194.80899,194.80898 z"
            id="path7735" />
@@ -17887,29 +17889,29 @@
          id="rect8802"
          y="-677.63574"
          x="427.34818"
-         ry="75.195312"
-         rx="75.195312"
+         ry="62.877876"
+         rx="62.877876"
          height="350"
          width="350"
-         style="fill:#cc5d15;stroke-width:2.734375" />
+         style="fill:#cc5d15;stroke-width:9.97401" />
       <rect
          transform="rotate(40)"
          id="rect8804"
          y="-670.7998"
          x="434.18411"
-         ry="68.359375"
-         rx="68.359375"
+         ry="57.161705"
+         rx="57.161705"
          height="336.32812"
          width="336.32812"
-         style="fill:#f49c52;stroke-width:2.734375" />
+         style="fill:#f49c52;stroke-width:9.97401" />
       <rect
          transform="rotate(40)"
-         style="fill:url(#linearGradient5890);stroke-width:2.734375"
+         style="fill:url(#linearGradient5890);stroke-width:9.97401"
          id="rect8806"
          y="-663.96387"
          x="441.02005"
-         ry="64.257812"
-         rx="64.257812"
+         ry="53.731983"
+         rx="53.731983"
          height="322.65625"
          width="322.65625" />
       <circle
@@ -17918,17 +17920,17 @@
          r="32.8125"
          cy="-419.2373"
          cx="520.31689"
-         style="fill:#ffffff;stroke-width:1.3671875" />
+         style="fill:#ffffff;stroke-width:4.98675" />
       <path
          id="path8810"
          d="M 743.32898,119.28533 707.71988,89.40575 A 112.10938,112.10938 0 0 0 693.90164,-68.537534 l 29.87958,-35.609096 a 158.59375,158.59375 0 0 1 19.54776,223.43196 z"
          inkscape:connector-curvature="0"
-         style="fill:#ffffff;stroke-width:2.734375" />
+         style="fill:#ffffff;stroke-width:9.97401" />
       <path
          id="path8812"
          d="m 768.46481,140.3768 a 191.40625,191.40625 0 0 0 -23.59212,-269.65926 l 30.75839,-36.65643 a 239.25782,239.25782 0 0 1 29.49016,337.07408 z"
          inkscape:connector-curvature="0"
-         style="fill:#ffffff;stroke-width:2.734375" />
+         style="fill:#ffffff;stroke-width:9.97401" />
     </g>
     <g
        inkscape:label="fill text"
