@@ -109,7 +109,6 @@ struct ItemListItemViev: View {
 //                        }
                     })
                 }
-                .opacity(item.unread ? 1.0 : 0.4)
                 .padding([.trailing], 10)
                 .background(Color(.white) // any non-transparent background
                                 .cornerRadius(4)

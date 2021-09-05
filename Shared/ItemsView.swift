@@ -13,6 +13,10 @@ struct ItemsView: View {
     @ObservedObject var node: Node<TreeNode>
     @State private var preferences = [ObjectIdentifier: CGRect]()
     @State private var isMarkAllReadDisabled = true
+    @State private var readItems = [CDItem]()
+
+    let timer = Timer.publish(every: 3, on: .main, in: .common)
+        .autoconnect()
 
     init(_ node: Node<TreeNode>) {
         self.node = node
@@ -63,6 +67,7 @@ struct ItemsView: View {
                                    idealHeight: 160,
                                    maxHeight: 160,
                                    alignment: .center)
+                            .opacity(item.unread ? 1.0 : 0.4)
                             .onDisappear {
                                 checkMarkingRead(item: item)
                             }
@@ -107,17 +112,24 @@ struct ItemsView: View {
         .onReceive(node.$unreadCount) { unreadCount in
             isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
         }
+        .onReceive(timer) { _ in
+            guard !readItems.isEmpty else { return }
+            Task(priority: .background) {
+                try? await NewsManager.shared.markRead(items: readItems, unread: false)
+                readItems.removeAll()
+            }
+        }
+
     }
 
-    fileprivate func checkMarkingRead(item: CDItem) {
-        let nodeFrame = preferences[item.id] ?? .zero
+    private func checkMarkingRead(item: CDItem) {
         if markReadWhileScrolling,
+           item.unread,
+           let nodeFrame = preferences[item.id],
            nodeFrame.origin.y < 0,
-           (abs(nodeFrame.origin.y) - nodeFrame.size.height) > 0,
-           item.unread {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
-            }
+           (abs(nodeFrame.origin.y) - nodeFrame.size.height) > 0
+        {
+            readItems.append(item)
         }
     }
 
