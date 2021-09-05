@@ -14,10 +14,13 @@ struct NodeView: View {
     var body: some View {
         NavigationLink(destination: ItemsView(node)) {
             HStack {
-                node.value.faviconImage
-                Text(node.value.title)
-                    .lineLimit(1)
-                    .font(.subheadline)
+                Label {
+                    Text(node.value.title)
+                        .lineLimit(1)
+                } icon: {
+                    node.value.faviconImage
+                }
+                .labelStyle(.titleAndIcon)
                 Spacer(minLength: 12)
                 Text(node.value.unreadCount)
                     .font(.subheadline)
