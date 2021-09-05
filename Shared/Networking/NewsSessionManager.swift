@@ -158,6 +158,9 @@ class NewsManager {
 
     func markRead(items: [CDItem], unread: Bool) async throws {
         do {
+            if items.isEmpty {
+                return
+            }
             if items.count > 1 {
                 try await CDItem.markRead(items: items, unread: unread)
             } else {
