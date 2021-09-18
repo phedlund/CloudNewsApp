@@ -9,186 +9,200 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
+    @EnvironmentObject var treeModel: FeedTreeModel
+
     @AppStorage(StorageKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
     @AppStorage(StorageKeys.marginPortrait) var marginPortrait: Int = 70
     @AppStorage(StorageKeys.marginLandscape) var marginLandscape: Int = 70
     @AppStorage(StorageKeys.lineHeight) var lineHeight: Double = 1.4
 
-    @StateObject var webViewManager = WebViewManager(type: .article)
+//    var webViewManager = WebViewManager(type: .article)
 
+    @State private var isShowingData = false
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
     @State private var sharingProvider: SharingProvider?
 
-    var item: CDItem
+    var articleModel: ArticleModel
 
     private var feed: CDFeed?
     private var url = URL(fileURLWithPath: "")
     private var webView: ArticleWebView?
 
-    init(item: CDItem) {
-        self.item = item
-        self.feed = CDFeed.feed(id: item.feedId)
-        url = documentsFolderURL?
-            .appendingPathComponent("summary")
-            .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+    init(articleModel: ArticleModel) {
+        self.articleModel = articleModel
+//        self.feed = CDFeed.feed(id: item.feedId)
+//        url = tempDirectory()?
+//            .appendingPathComponent("\(item.id)_summary")
+//            .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
     }
 
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                ArticleWebView(webView: webViewManager.webView)
-                    .onAppear {
-                        currentSize = geometry.size
-                        if feed?.preferWeb == true,
-                           let urlString = item.url,
-                           let url = URL(string: urlString) {
-                            webViewManager.webView.load(URLRequest(url: url))
-                        } else {
-                            configureView(size: currentSize)
-                            webViewManager.webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
-                        }
-                        delayMarkingRead()
-                    }
-                    .onChange(of: fontSize, perform: { _ in
-                        configureView(size: currentSize)
-                        webViewManager.webView.reload()
-                    })
-                    .onChange(of: marginPortrait, perform: { _ in
-                        configureView(size: currentSize)
-                        webViewManager.webView.reload()
-                    })
-                    .onChange(of: marginLandscape, perform: { _ in
-                        configureView(size: currentSize)
-                        webViewManager.webView.reload()
-                    })
-                    .onChange(of: lineHeight, perform: { _ in
-                        configureView(size: currentSize)
-                        webViewManager.webView.reload()
-                    })
-                    .toolbar(content: {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Spacer(minLength: 10)
-                        }
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button {
-                                webViewManager.webView.goBack()
-                            } label: {
-                                Image(systemName: "chevron.backward")
-                            }
-                            .disabled(!webViewManager.webView.canGoBack)
-                        }
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button {
-                                webViewManager.webView.goForward()
-                            } label: {
-                                Image(systemName: "chevron.forward")
-                            }
-                            .disabled(!webViewManager.webView.canGoForward)
-                        }
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button {
-                                if webViewManager.webView.isLoading {
-                                    webViewManager.webView.stopLoading()
-                                } else {
-                                    webViewManager.webView.reload()
-                                }
-                            } label: {
-                                if webViewManager.webView.isLoading {
-                                    Image(systemName: "xmark")
-                                } else {
-                                    Image(systemName: "arrow.clockwise")
-                                }
-                            }
-                        }
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                isShowingSharePopover = canShare()
-                            } label: {
-                                Image(systemName: "square.and.arrow.up")
-                            }
-                            .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                                ActivityView(activityItems: [sharingProvider ?? []], applicationActivities: [SafariActivity()])
-                            }
-                            .disabled(webViewManager.webView.isLoading)
-                        }
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                isShowingPopover = true
-                            } label: {
-                                Image(systemName: "textformat.size")
-                            }
-                            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                                ArticleSettingsView(item: item)
-                            }
-                            .disabled(webViewManager.webView.isLoading)
-                        }
-                    })
-                    .navigationTitle(item.title ?? "Untitled")
-                    .navigationBarTitleDisplayMode(.inline)
+                if isShowingData {
+                    ArticleWebView(webView: WebViewManager(type: .article).webView, treeModel: treeModel, item: articleModel.item, size: geometry.size)
+                        .environmentObject(treeModel)
+    //                    .onAppear {
+    //                        currentSize = geometry.size
+    //                        if feed?.preferWeb == true,
+    //                           let urlString = item.url,
+    //                           let url = URL(string: urlString) {
+    //                            webViewManager.webView.load(URLRequest(url: url))
+    //                        } else {
+    //                            configureView(size: currentSize)
+    //                            webViewManager.webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+    //                        }
+    //                        delayMarkingRead()
+    //                    }
+    //                    .onChange(of: fontSize, perform: { _ in
+    ////                        configureView(size: currentSize)
+    //                        webView.update()
+    //                    })
+    //                    .onChange(of: marginPortrait, perform: { _ in
+    ////                        configureView(size: currentSize)
+    //                        webView.update()
+    //                    })
+    //                    .onChange(of: marginLandscape, perform: { _ in
+    ////                        configureView(size: currentSize)
+    //                        webView.update()
+    //                    })
+    //                    .onChange(of: lineHeight, perform: { _ in
+    ////                        configureView(size: currentSize)
+    //                        webView.update()
+    //                    })
+    //                    .toolbar(content: {
+    //                        ToolbarItem(placement: .navigationBarLeading) {
+    //                            Spacer(minLength: 10)
+    //                        }
+    //                        ToolbarItem(placement: .navigationBarLeading) {
+    //                            Button {
+    //                                webViewManager.webView.goBack()
+    //                            } label: {
+    //                                Image(systemName: "chevron.backward")
+    //                            }
+    //                            .disabled(!webViewManager.webView.canGoBack)
+    //                        }
+    //                        ToolbarItem(placement: .navigationBarLeading) {
+    //                            Button {
+    //                                webViewManager.webView.goForward()
+    //                            } label: {
+    //                                Image(systemName: "chevron.forward")
+    //                            }
+    //                            .disabled(!webViewManager.webView.canGoForward)
+    //                        }
+    //                        ToolbarItem(placement: .navigationBarLeading) {
+    //                            Button {
+    //                                if webViewManager.webView.isLoading {
+    //                                    webViewManager.webView.stopLoading()
+    //                                } else {
+    //                                    webViewManager.webView.reload()
+    //                                }
+    //                            } label: {
+    //                                if webViewManager.webView.isLoading {
+    //                                    Image(systemName: "xmark")
+    //                                } else {
+    //                                    Image(systemName: "arrow.clockwise")
+    //                                }
+    //                            }
+    //                        }
+    //                        ToolbarItem(placement: .navigationBarTrailing) {
+    //                            Button {
+    //                                isShowingSharePopover = canShare()
+    //                            } label: {
+    //                                Image(systemName: "square.and.arrow.up")
+    //                            }
+    //                            .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+    //                                ActivityView(activityItems: [sharingProvider ?? []], applicationActivities: [SafariActivity()])
+    //                            }
+    //                            .disabled(webViewManager.webView.isLoading)
+    //                        }
+    //                        ToolbarItem(placement: .navigationBarTrailing) {
+    //                            Button {
+    //                                isShowingPopover = true
+    //                            } label: {
+    //                                Image(systemName: "textformat.size")
+    //                            }
+    //                            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+    //                                ArticleSettingsView(item: item)
+    //                            }
+    //                            .disabled(webViewManager.webView.isLoading)
+    //                        }
+    //                    })
+                        .navigationTitle(articleModel.item.title ?? "Untitled")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+                else {
+                    Text(articleModel.item.title ?? "Untitled")
+                        .navigationTitle(articleModel.item.title ?? "Untitled")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
             }
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
+            .onReceive(articleModel.$isShowingData, perform: { isShowingData in
+                self.isShowingData = isShowingData
+            })
         }
     }
 
     private func canShare() -> Bool {
-        var result = false
-        var viewedUrl: URL?
-        var subject = ""
-        let webView = webViewManager.webView
-        viewedUrl = webView.url
-        subject = webView.title ?? ""
-        if viewedUrl?.absoluteString.hasSuffix("Documents/summary.html") ?? false {
-            if let urlString = item.url {
-                viewedUrl = URL(string: urlString) ?? nil
-                subject = item.title ?? ""
-            }
-        }
-
-        if let shareUrl = viewedUrl {
-            sharingProvider = SharingProvider(placeholderItem: shareUrl, subject: subject)
-            result = true
-        }
+        let result = false
+//        var viewedUrl: URL?
+//        var subject = ""
+//        let webView = webViewManager.webView
+//        viewedUrl = webView.url
+//        subject = webView.title ?? ""
+//        if viewedUrl?.absoluteString.hasSuffix("_summary.html") ?? false {
+//            if let urlString = item.url {
+//                viewedUrl = URL(string: urlString) ?? nil
+//                subject = item.title ?? ""
+//            }
+//        }
+//
+//        if let shareUrl = viewedUrl {
+//            sharingProvider = SharingProvider(placeholderItem: shareUrl, subject: subject)
+//            result = true
+//        }
         return result
     }
 
     private func delayMarkingRead() {
         // The delay prevents the view from jumping back to the items list
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            if item.unread {
+            if articleModel.item.unread {
                 Task {
-                    try? await NewsManager.shared.markRead(items: [item], unread: false)
+                    try? await NewsManager.shared.markRead(items: [articleModel.item], unread: false)
                 }
             }
         }
     }
 
-    private func configureView(size: CGSize) {
-        if var html = item.body,
-           let urlString = item.url,
-           let url = URL(string: urlString) {
-            let baseString = "\(url.scheme ?? "")://\(url.host ?? "")"
-            if baseString.range(of: "youtu", options: .caseInsensitive) != nil {
-                if html.range(of: "iframe", options: .caseInsensitive) != nil {
-                    html = createYoutubeItem(html: html, urlString: urlString)
-                } else if let urlString = item.url, urlString.contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
-                    let videoIdStartIndex = urlString.index(after: equalIndex)
-                    let videoId = String(urlString[videoIdStartIndex...])
-                    let screenSize = UIScreen.main.nativeBounds.size
-                    let margin = marginPortrait
-                    let currentWidth = Double(screenSize.width / UIScreen.main.scale) * (Double(margin) / 100.0)
-                    let newheight = currentWidth * 0.5625
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(currentWidth))px\" height=\"\(Int(newheight))px\"></embed>"
-                    html = embed
-                }
-            }
-            html = fixRelativeUrl(html: html, baseUrlString: baseString)
-            saveItemSummary(html: html, item: item, feedTitle: feed?.title, size: size)
-        }
-    }
+//    private func configureView(size: CGSize) {
+//        if var html = item.body,
+//           let urlString = item.url,
+//           let url = URL(string: urlString) {
+//            let baseString = "\(url.scheme ?? "")://\(url.host ?? "")"
+//            if baseString.range(of: "youtu", options: .caseInsensitive) != nil {
+//                if html.range(of: "iframe", options: .caseInsensitive) != nil {
+//                    html = createYoutubeItem(html: html, urlString: urlString)
+//                } else if let urlString = item.url, urlString.contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+//                    let videoIdStartIndex = urlString.index(after: equalIndex)
+//                    let videoId = String(urlString[videoIdStartIndex...])
+//                    let screenSize = UIScreen.main.nativeBounds.size
+//                    let margin = marginPortrait
+//                    let currentWidth = Double(screenSize.width / UIScreen.main.scale) * (Double(margin) / 100.0)
+//                    let newheight = currentWidth * 0.5625
+//                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(currentWidth))px\" height=\"\(Int(newheight))px\"></embed>"
+//                    html = embed
+//                }
+//            }
+//            html = fixRelativeUrl(html: html, baseUrlString: baseString)
+//            saveItemSummary(html: html, item: item, feedTitle: feed?.title, size: size)
+//        }
+//    }
 
 }
 
@@ -213,11 +227,11 @@ struct StatefulPreviewWrapper<Value, Content: View>: View {
     }
 }
 
-struct ArticleView_Previews: PreviewProvider {
-    static var previews: some View {
-        ArticleWebView(webView: WebViewManager(type: .article).webView)
-    }
-}
+//struct ArticleView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ArticleWebView(webView: WebViewManager(type: .article).webView)
+//    }
+//}
 
 extension UINavigationController {
 

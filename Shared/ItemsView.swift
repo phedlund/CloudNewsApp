@@ -26,10 +26,10 @@ struct ItemsView: View {
     var body: some View {
         GeometryReader { geometry in
             List {
-                ForEach(items, id: \.self) { item in
+                ForEach(items, id: \.self.id) { item in
                     // Workaround to hide disclosure indicator
                     ZStack(alignment: .center) {
-                        NavigationLink(destination: ArticleView(item: item)) {
+                        NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: item.id))) {
                             EmptyView()
                         }
                         .opacity(0)
@@ -60,6 +60,7 @@ struct ItemsView: View {
                                     }
                                 }
                             }
+                            .tag(item.id)
                             .frame(minWidth: 300,
                                    idealWidth: 700,
                                    maxWidth: 700,
@@ -67,16 +68,23 @@ struct ItemsView: View {
                                    idealHeight: 160,
                                    maxHeight: 160,
                                    alignment: .center)
-                            .opacity(item.unread ? 1.0 : 0.4)
-                            .onDisappear {
-                                checkMarkingRead(item: item)
-                            }
+//                            .opacity(item.unread ? 1.0 : 0.4)
+//                            .onDisappear {
+//                                checkMarkingRead(item: item)
+//                            }
                             .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
                                 [item.id: geometry[$0]]
                             }
                             .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
                                 if let newPreference = rects.first {
                                     self.preferences[newPreference.key] = newPreference.value
+                                    if markReadWhileScrolling,
+                                       item.unread,
+                                       newPreference.value.origin.y < 0,
+                                       (abs(newPreference.value.origin.y) - newPreference.value.size.height) > 0
+                                    {
+                                        readItems.append(item)
+                                    }
                                 }
                             }
                     }
@@ -122,17 +130,17 @@ struct ItemsView: View {
 
     }
 
-    private func checkMarkingRead(item: CDItem) {
-        if markReadWhileScrolling,
-           item.unread,
-           let nodeFrame = preferences[item.id],
-           nodeFrame.origin.y < 0,
-           (abs(nodeFrame.origin.y) - nodeFrame.size.height) > 0
-        {
-            readItems.append(item)
-        }
-    }
-
+//    private func checkMarkingRead(item: CDItem) {
+//        if markReadWhileScrolling,
+//           item.unread,
+//           let nodeFrame = preferences[item.id],
+//           nodeFrame.origin.y < 0,
+//           (abs(nodeFrame.origin.y) - nodeFrame.size.height) > 0
+//        {
+//            readItems.append(item)
+//        }
+//    }
+//
 }
 
 //struct ItemsView_Previews: PreviewProvider {
@@ -140,3 +148,13 @@ struct ItemsView: View {
 //        ItemsView(node: AnyTreeNode(StarredFeedNode()))
 //    }
 //}
+
+struct NavigationLazyView<Content: View>: View {
+    let build: () -> Content
+    init(_ build: @autoclosure @escaping () -> Content) {
+        self.build = build
+    }
+    var body: Content {
+        build()
+    }
+}

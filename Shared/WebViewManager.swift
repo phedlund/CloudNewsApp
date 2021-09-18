@@ -14,8 +14,10 @@ enum WebViewType {
     case login
 }
 
-class WebViewManager: ObservableObject {
+class WebViewManager: ObservableObject, Identifiable, Equatable {
+    var id = UUID()
     var type: WebViewType
+
 
     @Published public var webView: WKWebView {
         didSet {
@@ -37,6 +39,10 @@ class WebViewManager: ObservableObject {
         }
         self.webView = WKWebView(frame: .zero, configuration: webConfig)
         setupObservers()
+    }
+
+    static func == (lhs: WebViewManager, rhs: WebViewManager) -> Bool {
+        lhs.id == rhs.id
     }
 
     private func setupObservers() {

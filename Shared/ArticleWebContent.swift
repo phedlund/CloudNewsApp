@@ -6,31 +6,55 @@
 //  Copyright © 2021 Peter Hedlund. All rights reserved.
 //
 
+import Combine
 import SwiftSoup
 import SwiftUI
 
-extension ArticleView {
+class ArticleWebContent: ObservableObject {
+    @Published var url: URL?
 
-    var documentsFolderURL: URL? {
-        do {
-            return try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        } catch { }
-            return nil
+    public let item: CDItem
+    public let size: CGSize
+
+    private var feed: CDFeed?
+    private var model: FeedTreeModel
+
+    init(item: CDItem, model: FeedTreeModel, size: CGSize) {
+        self.item = item
+        self.feed = CDFeed.feed(id: item.feedId)
+        self.size = size
+        self.model = model
+        configureView()
     }
 
-//    static func readble(html: String, url: URL) -> String? {
-//        let article = readable(html.cString(using: .utf8),
-//                               url.absoluteString.cString(using: .utf8),
-//                               "UTF-8",
-//                               Int32(READABLE_OPTIONS_DEFAULT));
-//        guard let readableArticle = article else {
-//            return nil
-//        }
-//        var result = String(cString: readableArticle)
-//        result = ArticleHelper.fixRelativeUrl(html: result,
-//                                              baseUrlString: String(format: "%@://%@/%@", url.scheme!, url.host!, url.path))
-//        return result
-//    }
+    func update(_ model: FeedTreeModel) {
+//        self.model = model
+        configureView()
+    }
+
+    private func configureView() {
+        if var html = item.body,
+           let urlString = item.url,
+           let url = URL(string: urlString) {
+            let baseString = "\(url.scheme ?? "")://\(url.host ?? "")"
+            if baseString.range(of: "youtu", options: .caseInsensitive) != nil {
+                if html.range(of: "iframe", options: .caseInsensitive) != nil {
+                    html = createYoutubeItem(html: html, urlString: urlString)
+                } else if let urlString = item.url, urlString.contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+                    let videoIdStartIndex = urlString.index(after: equalIndex)
+                    let videoId = String(urlString[videoIdStartIndex...])
+                    let screenSize = UIScreen.main.nativeBounds.size
+                    let margin = model.preferences.marginPortrait
+                    let currentWidth = Double(screenSize.width / UIScreen.main.scale) * (Double(margin) / 100.0)
+                    let newheight = currentWidth * 0.5625
+                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(currentWidth))px\" height=\"\(Int(newheight))px\"></embed>"
+                    html = embed
+                }
+            }
+            html = fixRelativeUrl(html: html, baseUrlString: baseString)
+            saveItemSummary(html: html, item: item, feedTitle: feed?.title, size: size)
+        }
+    }
 
     func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) {
         var summary = replaceVideoIframe(html: html)
@@ -65,7 +89,6 @@ extension ArticleView {
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
-                <meta name='viewport' content='width=device-width; initial-scale=1.0; minimum-scale=1.0; maximum-scale=2.0; user-scalable=yes' />
                 <style>
                     \(self.updateCss(size: size))
                 </style>
@@ -116,42 +139,30 @@ extension ArticleView {
         """
         
         do {
-            if let saveUrl = documentsFolderURL?
+            if let saveUrl = tempDirectory()?
                 .appendingPathComponent("summary")
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
             }
-        } catch {
-            //
+        } catch(let error) {
+            print(error.localizedDescription)
         }
     }
     
     private func updateCss(size: CGSize) -> String {
-        let currentWidth = Int((size.width) * CGFloat((Double(marginPortrait) / 100.0)))
-        let currentWidthLandscape = (size.height) * CGFloat((Double(marginPortrait) / 100.0))
+        let currentWidth = Int((size.width) * CGFloat((Double(model.preferences.marginPortrait) / 100.0)))
+        let currentWidthLandscape = (size.height) * CGFloat((Double(model.preferences.marginPortrait) / 100.0))
 
         return ":root {" +
         "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
         "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
-        "--font-size: \(fontSize)px;" +
+        "--font-size: \(model.preferences.fontSize)px;" +
         "--body-width-portrait: \(currentWidth)px;" +
         "--body-width-landscape: \(currentWidthLandscape)px;" +
-        "--line-height: \(lineHeight)em;" +
+        "--line-height: \(model.preferences.lineHeight)em;" +
         "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
         "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
         "}"
-    }
-
-    func fileUrlInDocumentsDirectory(_ fileName: String, fileExtension: String) -> URL
-    {
-        do {
-            var containerURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            containerURL = containerURL.appendingPathComponent(fileName)
-            containerURL = containerURL.appendingPathExtension(fileExtension)
-            return containerURL
-        } catch {
-            return URL(fileURLWithPath: "")
-        }
     }
 
     func fixRelativeUrl(html: String, baseUrlString: String) -> String {
@@ -195,14 +206,14 @@ extension ArticleView {
                 if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
                     if src.contains("youtu"), let videoId = src.youtubeVideoID {
                         let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(marginPortrait / 100);
+                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(model.preferences.marginPortrait / 100);
                         let newheight = currentWidth * 0.5625;
                         let embed = String(format: "<embed id=\"yt\" src=\"http://www.youtube.com/embed/%@?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></embed>", videoId, currentWidth, newheight)
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)
                     }
                     if src.contains("vimeo"), let videoId = src.vimeoID {
                         let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(marginPortrait / 100);
+                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(model.preferences.marginPortrait / 100);
                         let newheight = currentWidth * 0.5625;
                         let embed = String(format:"<iframe id=\"vimeo\" src=\"http://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, currentWidth, newheight)
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)

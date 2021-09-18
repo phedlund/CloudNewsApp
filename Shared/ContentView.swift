@@ -19,8 +19,8 @@ struct ContentView: View {
         if let cssTemplateURL = Bundle.main.url(forResource: "rss", withExtension: "css") {
             do {
                 let cssTemplate = try String(contentsOf: cssTemplateURL, encoding: .utf8)
-                if let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                    try cssTemplate.write(to: docDir.appendingPathComponent("rss.css"), atomically: true, encoding: .utf8)
+                if let tempDir = tempDirectory() {
+                    try cssTemplate.write(to: tempDir.appendingPathComponent("rss.css"), atomically: true, encoding: .utf8)
                 }
             } catch { }
         }

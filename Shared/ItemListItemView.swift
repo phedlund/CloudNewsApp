@@ -19,6 +19,7 @@ struct ItemListItemViev: View {
     @ObservedObject var item: CDItem
 
     var body: some View {
+        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let isCompactView = /*compactView ??*/ false
         let isShowingThumbnails = /*showThumbnails ??*/ true
 //        let cellHeight: CGFloat = isCompactView ? 84 : 150
@@ -44,6 +45,7 @@ struct ItemListItemViev: View {
                                     ))
                                     .frame(width: isCompactView ? 66 : 145, alignment: .center)
                                     .cornerRadius(0)
+                                    .opacity(item.unread ? 1.0 : 0.4)
                                 }
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             } else {
@@ -53,7 +55,7 @@ struct ItemListItemViev: View {
                                 VStack(alignment: .leading, spacing: 8, content: {
                                     Text(transformedTitel(provider.title))
                                         .font(.headline)
-                                        .foregroundColor(Color(.black))
+                                        .foregroundColor(textColor)
                                         .lineLimit(2)
                                         .fixedSize(horizontal: false, vertical: true) //force wrapping
                                     HStack {
@@ -64,7 +66,7 @@ struct ItemListItemViev: View {
                                         }
                                         Text(provider.dateAuthorFeed)
                                             .font(.subheadline)
-                                            .foregroundColor(Color(.black))
+                                            .foregroundColor(textColor)
                                             .italic()
                                             .lineLimit(1)
                                     }
@@ -74,7 +76,7 @@ struct ItemListItemViev: View {
                                         Text(transformedBody(provider.body))
                                             .lineLimit(4)
                                             .font(.subheadline)
-                                            .foregroundColor(Color(.black))
+                                            .foregroundColor(textColor)
                                     }
                                     if isCompactView /*|| horizontalSizeClass == .compact*/ {
                                         EmptyView()
