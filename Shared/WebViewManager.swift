@@ -14,6 +14,7 @@ enum WebViewType {
     case login
 }
 
+@dynamicMemberLookup
 class WebViewManager: ObservableObject, Identifiable, Equatable {
     var id = UUID()
     var type: WebViewType
@@ -29,7 +30,7 @@ class WebViewManager: ObservableObject, Identifiable, Equatable {
 
     public init(type: WebViewType) {
         self.type = type
-        let webConfig = WKWebViewConfiguration ()
+        let webConfig = WKWebViewConfiguration()
         switch type {
         case .article:
             webConfig.allowsInlineMediaPlayback = true
@@ -39,6 +40,18 @@ class WebViewManager: ObservableObject, Identifiable, Equatable {
         }
         self.webView = WKWebView(frame: .zero, configuration: webConfig)
         setupObservers()
+    }
+
+    func resetWebView() {
+        let webConfig = WKWebViewConfiguration()
+        switch type {
+        case .article:
+            webConfig.allowsInlineMediaPlayback = true
+            webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
+        case .login:
+            webConfig.websiteDataStore = .nonPersistent()
+        }
+        self.webView = WKWebView(frame: .zero, configuration: webConfig)
     }
 
     static func == (lhs: WebViewManager, rhs: WebViewManager) -> Bool {

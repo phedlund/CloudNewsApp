@@ -90,19 +90,19 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         super.init()
         
         model.preferences.$marginPortrait.sink { [weak self] newMarginPortrait in
-            self?.content.update(model)
+            self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)
 
         model.preferences.$fontSize.sink { [weak self] newFontSize in
-            self?.content.update(model)
+            self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)
 
         model.preferences.$lineHeight.sink { [weak self] newLineHeight in
-            self?.content.update(model)
+            self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)

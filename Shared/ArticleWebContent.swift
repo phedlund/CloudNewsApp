@@ -11,8 +11,6 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent: ObservableObject {
-    @Published var url: URL?
-
     public let item: CDItem
     public let size: CGSize
 
@@ -24,15 +22,10 @@ class ArticleWebContent: ObservableObject {
         self.feed = CDFeed.feed(id: item.feedId)
         self.size = size
         self.model = model
-        configureView()
+        configure()
     }
 
-    func update(_ model: FeedTreeModel) {
-//        self.model = model
-        configureView()
-    }
-
-    private func configureView() {
+    func configure() {
         if var html = item.body,
            let urlString = item.url,
            let url = URL(string: urlString) {
