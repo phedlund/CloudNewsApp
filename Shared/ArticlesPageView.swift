@@ -61,10 +61,15 @@ struct ArticlesPageView: View {
         .onChange(of: selectedIndex) { newValue in
             print("Selected Index \(newValue)")
             currentModel?.isShowingData = false
+            webViewManager.webView.stopLoading()
             if let model = models.first(where: { $0.item.id == newValue }) {
                 currentModel = model
-                webViewManager.resetWebView()
-                model.webView = webViewManager.webView
+                if let existingWebView = model.webView {
+                    webViewManager.webView = existingWebView
+                } else {
+                    webViewManager.resetWebView()
+                    model.webView = webViewManager.webView
+                }
                 model.isShowingData = true
             }
         }

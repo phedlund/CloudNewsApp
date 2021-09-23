@@ -27,6 +27,7 @@ struct ArticleView: View {
                         .environmentObject(treeModel)
                         .navigationTitle(articleModel.item.title ?? "Untitled")
                         .navigationBarTitleDisplayMode(.inline)
+                        .transition(AnyTransition.opacity.animation(.easeIn(duration: 0.3)))
                 }
                 else {
                     EmptyView()
