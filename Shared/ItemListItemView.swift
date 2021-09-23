@@ -116,7 +116,7 @@ struct ItemListItemViev: View {
                 .padding([.trailing], 10)
                 .background(Color(.white) // any non-transparent background
                                 .cornerRadius(4)
-                                .shadow(color: Color(white: 0.5, opacity: 0.25), radius: 3, x: 0, y: 3))
+                                .shadow(color: Color(white: 0.4, opacity: 0.35), radius: 2, x: 0, y: 2))
 //            }
     }
 //        else {
