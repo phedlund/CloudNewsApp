@@ -33,9 +33,9 @@ struct ItemListItemViev: View {
                         .cornerRadius(4)
                     VStack(content: {
                         HStack(alignment: .top, spacing: 10, content: {
-                            if isShowingThumbnails && provider.thumbnailURL != nil {
+                            if isShowingThumbnails, let thumbnailURL = provider.thumbnailURL {
                                 VStack {
-                                    URLImage(provider.thumbnailURL!) { image in
+                                    URLImage(thumbnailURL) { image in
                                         image
                                             .resizable()
                                             .scaledToFill()
@@ -44,8 +44,8 @@ struct ItemListItemViev: View {
                                         maxPixelSize: CGSize(width: 600.0, height: 600.0)
                                     ))
                                     .frame(width: isCompactView ? 66 : 145, alignment: .center)
-                                    .cornerRadius(0)
-                                    .opacity(item.unread ? 1.0 : 0.4)
+                                    .clipped()
+                                    .overlay(Color(white: 1.0, opacity: item.unread ? 0.0 : 0.4))
                                 }
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             } else {
