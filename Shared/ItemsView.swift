@@ -15,8 +15,7 @@ struct ItemsView: View {
     @State private var isMarkAllReadDisabled = true
     @State private var readItems = [CDItem]()
 
-    let timer = Timer.publish(every: 3, on: .main, in: .common)
-        .autoconnect()
+    private let throttler = Throttler(minimumDelay: 2)
 
     init(_ node: Node<TreeNode>) {
         self.node = node
@@ -25,6 +24,10 @@ struct ItemsView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let viewWidth = geometry.size.width
+            let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
+            let cellHeight: CGFloat = 160.0  /*85*/
+
             List {
                 ForEach(items, id: \.self.id) { item in
                     // Workaround to hide disclosure indicator
@@ -34,6 +37,8 @@ struct ItemsView: View {
                         }
                         .opacity(0)
                         ItemListItemViev(item: item)
+                            .tag(item.id)
+                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             .contextMenu {
                                 let isUnRead = item.unread
                                 let isStarred = item.starred
@@ -60,18 +65,6 @@ struct ItemsView: View {
                                     }
                                 }
                             }
-                            .tag(item.id)
-                            .frame(minWidth: 300,
-                                   idealWidth: 700,
-                                   maxWidth: 700,
-                                   minHeight: 85,
-                                   idealHeight: 160,
-                                   maxHeight: 160,
-                                   alignment: .center)
-//                            .opacity(item.unread ? 1.0 : 0.4)
-//                            .onDisappear {
-//                                checkMarkingRead(item: item)
-//                            }
                             .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
                                 [item.id: geometry[$0]]
                             }
@@ -120,11 +113,13 @@ struct ItemsView: View {
         .onReceive(node.$unreadCount) { unreadCount in
             isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
         }
-        .onReceive(timer) { _ in
-            guard !readItems.isEmpty else { return }
-            Task(priority: .background) {
-                try? await NewsManager.shared.markRead(items: readItems, unread: false)
-                readItems.removeAll()
+        .onChange(of: readItems) { _ in
+            throttler.throttle {
+                let currentReadItems = readItems
+                Task(priority: .background) {
+                    try? await NewsManager.shared.markRead(items: currentReadItems, unread: false)
+                    readItems.removeAll(where: { currentReadItems.contains($0) })
+                }
             }
         }
 

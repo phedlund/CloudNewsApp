@@ -20,9 +20,9 @@ struct ItemListItemViev: View {
 
     var body: some View {
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        let isCompactView = /*compactView ??*/ false
-        let isShowingThumbnails = /*showThumbnails ??*/ true
-//        let cellHeight: CGFloat = isCompactView ? 84 : 150
+        let isCompactView = compactView ?? false
+        let isShowingThumbnails = showThumbnails ?? true
+        let cellHeight: CGFloat = isCompactView ? 84.0 : 160.0
         let provider = item
 //            GeometryReader { geometry in
 //                let cellWidth = min(geometry.size.width * 0.95, 690)
@@ -43,7 +43,7 @@ struct ItemListItemViev: View {
                                     .environment(\.urlImageOptions, URLImageOptions(
                                         maxPixelSize: CGSize(width: 600.0, height: 600.0)
                                     ))
-                                    .frame(width: isCompactView ? 66 : 145, alignment: .center)
+                                    .frame(width: isCompactView ? 66 : 145, height: cellHeight, alignment: .center)
                                     .clipped()
                                     .overlay(Color(white: 1.0, opacity: item.unread ? 0.0 : 0.4))
                                 }
