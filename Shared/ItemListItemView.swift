@@ -8,7 +8,7 @@
 
 import SwiftSoup
 import SwiftUI
-import URLImage
+import Kingfisher
 
 struct ItemListItemViev: View {
 //    @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -21,9 +21,6 @@ struct ItemListItemViev: View {
     var body: some View {
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let isCompactView = compactView ?? false
-        let isShowingThumbnails = showThumbnails ?? true
-        let cellHeight: CGFloat = isCompactView ? 84.0 : 160.0
-        let provider = item
 //            GeometryReader { geometry in
 //                let cellWidth = min(geometry.size.width * 0.95, 690)
                 ZStack {
@@ -33,27 +30,10 @@ struct ItemListItemViev: View {
                         .cornerRadius(4)
                     VStack(content: {
                         HStack(alignment: .top, spacing: 10, content: {
-                            if isShowingThumbnails, let thumbnailURL = provider.thumbnailURL {
-                                VStack {
-                                    URLImage(thumbnailURL) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    }
-                                    .environment(\.urlImageOptions, URLImageOptions(
-                                        maxPixelSize: CGSize(width: 600.0, height: 600.0)
-                                    ))
-                                    .frame(width: isCompactView ? 66 : 145, height: cellHeight, alignment: .center)
-                                    .clipped()
-                                    .overlay(Color(white: 1.0, opacity: item.unread ? 0.0 : 0.4))
-                                }
-                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            } else {
-                                Spacer(minLength: 2)
-                            }
+                            ItemImageView(item: item)
                             HStack {
                                 VStack(alignment: .leading, spacing: 8, content: {
-                                    Text(transformedTitel(provider.title))
+                                    Text(transformedTitel(item.title))
                                         .font(.headline)
                                         .foregroundColor(textColor)
                                         .lineLimit(2)
@@ -64,7 +44,7 @@ struct ItemListItemViev: View {
                                         } else {
                                             EmptyView()
                                         }
-                                        Text(provider.dateAuthorFeed)
+                                        Text(item.dateAuthorFeed)
                                             .font(.subheadline)
                                             .foregroundColor(textColor)
                                             .italic()
@@ -73,7 +53,7 @@ struct ItemListItemViev: View {
                                     if isCompactView /*|| horizontalSizeClass == .compact*/ {
                                         EmptyView()
                                     } else {
-                                        Text(transformedBody(provider.body))
+                                        Text(transformedBody(item.body))
                                             .lineLimit(4)
                                             .font(.subheadline)
                                             .foregroundColor(textColor)
@@ -89,7 +69,7 @@ struct ItemListItemViev: View {
                             }
                             .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
                             VStack {
-                                if provider.starred {
+                                if item.starred {
                                     Image(systemName: "star.fill")
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)

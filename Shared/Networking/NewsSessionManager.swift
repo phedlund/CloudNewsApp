@@ -105,7 +105,7 @@ class NewsManager {
                             case 200:
                                 if let items: Items = try getType(from: data),
                                    let itemsArray = items.items {
-                                    CDItem.update(items: itemsArray, completion: nil)
+                                    try await CDItem.update(items: itemsArray)
                                 }
                                 break
                             default:
@@ -282,10 +282,10 @@ class NewsManager {
             let feeds: Feeds = try getType(from: allFeedsData)
 
             if let items = unreadItems.items {
-                CDItem.update(items: items, completion: nil)
+                try await CDItem.update(items: items)
             }
             if let itemsStarred = starredItems.items {
-                CDItem.update(items: itemsStarred, completion: nil)
+                try await CDItem.update(items: itemsStarred)
             }
             if let folders = folders.folders {
                 CDFolder.update(folders: folders)
@@ -416,7 +416,7 @@ class NewsManager {
             }
             
             if let items = items.items {
-                CDItem.update(items: items, completion: nil)
+                try await CDItem.update(items: items)
             }
             
             NotificationCenter.default.post(name: .syncComplete, object: nil)

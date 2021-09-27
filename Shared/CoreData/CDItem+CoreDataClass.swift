@@ -88,13 +88,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return Image("unstarred_mac")
     }
 
-    dynamic var thumbnailURL: URL? {
-        if let summary = body, let imageURL = ArticleImage.imageURL(summary: summary) {
-            return URL(string: imageURL)
-        }
-        return nil
-    }
-
     dynamic var labelTextColor: Color {
         var result: Color = .gray
         if !unread {
@@ -249,12 +242,10 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
-    static func update(items: [ItemProtocol], completion: SyncCompletionBlockNewItems?) {
-        NewsData.mainThreadContext.performAndWait {
+    static func update(items: [ItemProtocol]) async throws {
+        try await NewsData.mainThreadContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
-                var newItemsCount = 0
-                var newItems = [ItemProtocol]()
                 for item in items {
                     let predicate = NSPredicate(format: "id == %d", item.id)
                     request.predicate = predicate
@@ -293,17 +284,12 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.title = item.title
                         newRecord.unread = item.unread
                         newRecord.url = item.url
-                        newItems.append(newRecord)
-                        newItemsCount += 1
-                        CDItem.downloadThumbnail(newRecord.thumbnailURL)
+                        newRecord.imageLink = ArticleImage.imageURL(urlString: newRecord.url, summary: newRecord.body)
                     }
                 }
                 try NewsData.mainThreadContext.save()
-                if let completion = completion, newItemsCount > 0 {
-                    completion(newItems)
-                }
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
+            } catch {
+                throw PBHError.databaseError("Error updating items")
             }
         }
     }
