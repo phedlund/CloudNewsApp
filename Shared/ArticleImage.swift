@@ -7,16 +7,12 @@
 //
 
 import Foundation
-import Combine
-import URLImage
-import URLImageStore
 import SwiftSoup
-import UIKit
 
 struct ArticleImage {
 
     static let validSchemas = ["http", "https", "file"]
-    static let imagesToSkip = ["feedads","twitter_icon","facebook_icon","feedburner","gplus-16"]
+    static let imagesToSkip = ["feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16"]
 
     static func imageURL(urlString: String?, summary: String?) -> String? {
         if let urlString = urlString, let url = URL(string: urlString) {
@@ -60,45 +56,6 @@ struct ArticleImage {
             }
         }
         return nil
-    }
-
-}
-
-final class ThumbnailModel: ObservableObject {
-
-    static let downloadService = URLImageService(fileStore: URLImageFileStore(), inMemoryStore: URLImageInMemoryStore())
-    let url: URL
-
-    private var cancellable: AnyCancellable?
-
-    init(url: URL) {
-        self.url = url
-    }
-
-    @Published private(set) var image: CGImage?
-
-    var isLoaded: Bool {
-        image != nil
-    }
-
-    func load() {
-        guard image == nil && cancellable == nil else {
-            return
-        }
-
-        cancellable = ThumbnailModel.downloadService
-            .remoteImagePublisher(url, identifier: nil)
-            .sink { [weak self] result in
-                guard let self = self else {
-                    return
-                }
-
-                self.cancellable = nil
-            }
-            receiveValue: { info in
-                print("Downloaded image with size \(info.size)")
-                self.image = info.cgImage
-            }
     }
 
 }

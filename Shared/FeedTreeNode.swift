@@ -7,8 +7,8 @@
 //
 
 import Foundation
+import Kingfisher
 import SwiftUI
-import URLImage
 
 protocol FeedTreeNode {
     var isLeaf: Bool { get }
@@ -54,22 +54,10 @@ struct FavImage: View {
     @ViewBuilder
     var body: some View {
         if let link = feed?.faviconLink, link != "favicon", let url = URL(string: link), let scheme = url.scheme, FavImage.validSchemas.contains(scheme) {
-            URLImage(url) {
-                // This view is displayed before download starts
-                EmptyView()
-            } inProgress: { progress in
-                // Display progress
-                EmptyView()
-            } failure: { error, retry in
-                // Display error and retry button
-                EmptyView()
-            } content: { image in
-                // Downloaded image
-                image
-                    .resizable()
-                    .scaledToFill()
-            }
-            .frame(width: 16, height: 16, alignment: .center)
+            KFImage(url)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 16, height: 16, alignment: .center)
         } else if isFolder {
             Image(systemName: "folder")
                 .resizable()
@@ -95,23 +83,15 @@ struct FeedFavImage: View {
             let feedUrl = URL(string: feed.link ?? ""),
             let host = feedUrl.host,
             let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
-            URLImage(url) {
-                // This view is displayed before download starts
-                EmptyView()
-            } inProgress: { progress in
-                // Display progress
-                EmptyView()
-            } failure: { error, retry in
-                // Display error and retry button
-                Image("favicon")
-                    .resizable()
-                    .scaledToFit()
-            } content: { image in
-                // Downloaded image
-                image
-                    .resizable()
-                    .scaledToFill()
-            }
+
+            KFImage(url)
+                .placeholder {
+                    Image("favicon")
+                        .resizable()
+                        .frame(width: 16, height: 16, alignment: .center)
+                }
+                .resizable()
+                .scaledToFill()
                 .frame(width: 16, height: 16, alignment: .center)
         } else {
             Image("favicon")

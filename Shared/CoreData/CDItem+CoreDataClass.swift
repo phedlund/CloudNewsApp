@@ -8,7 +8,6 @@
 //
 
 import CoreData
-import URLImage
 import SwiftSoup
 import SwiftUI
 
@@ -307,15 +306,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
             print("Could not fetch \(error), \(error.userInfo)")
         }
         return result
-    }
-
-    static func downloadThumbnail(_ url: URL?) {
-        guard let url = url else {
-            return
-        }
-
-        let model = ThumbnailModel(url: url)
-        model.load()
     }
 
 }
