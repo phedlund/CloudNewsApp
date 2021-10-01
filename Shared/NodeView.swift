@@ -18,7 +18,7 @@ struct NodeView: View {
                     Text(node.value.title)
                         .lineLimit(1)
                 } icon: {
-                    node.value.faviconImage
+                    FeedFavIconView(nodeType: node.value.nodeType)
                 }
                 .labelStyle(.titleAndIcon)
                 Spacer(minLength: 12)

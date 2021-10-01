@@ -15,9 +15,9 @@ struct ItemListItemViev: View {
 //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @AppStorage(StorageKeys.compactView) private var compactView: Bool?
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-    @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
     @ObservedObject var item: CDItem
 
+    @ViewBuilder
     var body: some View {
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let isCompactView = compactView ?? false
@@ -39,11 +39,7 @@ struct ItemListItemViev: View {
                                         .lineLimit(2)
                                         .fixedSize(horizontal: false, vertical: true) //force wrapping
                                     HStack {
-                                        if showFavIcons ?? true {
-                                            item.favIcon
-                                        } else {
-                                            EmptyView()
-                                        }
+                                        ItemFavIconView(item: item)
                                         Text(item.dateAuthorFeed)
                                             .font(.subheadline)
                                             .foregroundColor(textColor)
@@ -68,20 +64,7 @@ struct ItemListItemViev: View {
                                 Spacer()
                             }
                             .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
-                            VStack {
-                                if item.starred {
-                                    Image(systemName: "star.fill")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 16, height: 16, alignment: .center)
-                                } else {
-                                    HStack {
-                                        Spacer()
-                                    }
-                                    .frame(width: 16)
-                                }
-                            }
-                            .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                            ItemStarredView(item: item)
                         })
 //                        if /*horizontalSizeClass == .compact &&*/ !isCompactView  {
 //                            Text(transformedBody(provider.body))

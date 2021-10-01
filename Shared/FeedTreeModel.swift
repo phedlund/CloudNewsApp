@@ -181,7 +181,6 @@ class FeedTreeModel: NSObject, ObservableObject {
     private func allItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
         let itemsNode = TreeNode(isLeaf: true,
-                                 faviconImage: FavImage(),
                                  sortId: 0,
                                  basePredicate: NSPredicate(value: true),
                                  nodeType: .all)
@@ -193,7 +192,6 @@ class FeedTreeModel: NSObject, ObservableObject {
     private func starredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
         let itemsNode = TreeNode(isLeaf: true,
-                                 faviconImage: FavImage(feed: nil, isFolder: false, isStarred: true),
                                  sortId: 1,
                                  basePredicate: NSPredicate(format: "starred == true"),
                                  nodeType: .starred)
@@ -214,7 +212,6 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
         
         let folderNode = TreeNode(isLeaf: false,
-                                       faviconImage: FavImage(feed: nil, isFolder: true),
                                        sortId: Int(folder.id) + 100,
                                        basePredicate: basePredicate,
                                        nodeType: .folder(id: folder.id))
@@ -237,7 +234,6 @@ class FeedTreeModel: NSObject, ObservableObject {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
 
         let itemsNode = TreeNode(isLeaf: true,
-                                 faviconImage: FavImage(feed: feed),
                                  sortId: Int(feed.id) + 1000,
                                  basePredicate: NSPredicate(format: "feedId == %d", feed.id),
                                  nodeType: .feed(id: feed.id))

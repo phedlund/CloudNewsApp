@@ -58,28 +58,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return dateLabelText
     }
 
-    dynamic var favIcon: FavImage? {
-//        var result = Image("All Articles")
-        if let feed = CDFeed.feed(id: feedId) {
-            return FavImage(feed: feed, isFolder: false, isStarred: false)
-//            var options: KingfisherOptionsInfo? = nil
-//            if !unread {
-//                let processor = CompositingImageProcessor(compositingOperation: .copy, alpha: 0.5, backgroundColor: nil)
-//                options = [.processor(processor)]
-//            }
-//            let resource = ImageResource(downloadURL: url, cacheKey: nil)
-//            KingfisherManager.shared.retrieveImage(with: resource, options: options, progressBlock: nil, downloadTaskUpdated: nil) { (networkResult) in
-//                switch networkResult {
-//                case .success(let image):
-//                    result = Image(uiImage: image.image)
-//                case .failure( _):
-//                    break
-//                }
-//            }
-        }
-        return nil
-    }
-
     dynamic var starIcon: Image? {
         if starred {
             return Image("starred_mac")
@@ -245,6 +223,9 @@ public class CDItem: NSManagedObject, ItemProtocol {
         try await NewsData.mainThreadContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
+                let itemCount = items.count
+                var current = 0
+                var newRecords = [CDItem]()
                 for item in items {
                     let predicate = NSPredicate(format: "id == %d", item.id)
                     request.predicate = predicate
@@ -283,9 +264,14 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.title = item.title
                         newRecord.unread = item.unread
                         newRecord.url = item.url
-                        newRecord.imageLink = ArticleImage.imageURL(urlString: newRecord.url, summary: newRecord.body)
+//                        newRecord.imageLink = ArticleImage.imageURL(urlString: newRecord.url, summary: item.body)
+                        newRecords.append(newRecord)
+                        current += 1
+                        print("Count \(itemCount), Current \(current)")
                     }
                 }
+                let articleImageFetcher = ItemImageFetcher(newRecords)
+                articleImageFetcher.itemImages()
                 try NewsData.mainThreadContext.save()
             } catch {
                 throw PBHError.databaseError("Error updating items")
