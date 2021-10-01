@@ -13,7 +13,7 @@ import SwiftSoup
 class ItemImageFetcher {
 
     private let validSchemas = ["http", "https", "file"]
-    private let imagesToSkip = ["feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16"]
+    private let imagesToSkip = ["sdbnblognews", "feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16", "_64", "blank", "pixel"]
 
     private var items: [CDItem]
     private var imageUrls = [URL]()
@@ -31,14 +31,23 @@ class ItemImageFetcher {
                     let doc: Document = try SwiftSoup.parse(html)
                     let meta: Element? = try doc.head()?.select("meta[property=og:image]").first()
                     if let ogImage = try meta?.attr("content"), let ogUrl = URL(string: ogImage) {
-                        item.imageLink = ogImage
-                        imageUrls.append(ogUrl)
+                        let isNotSkipped = imagesToSkip.allSatisfy({
+                            !ogImage.contains($0)
+                        })
+                        if isNotSkipped {
+                            item.imageLink = ogImage
+                            imageUrls.append(ogUrl)
+                        }
                     } else {
                         let twMeta: Element? = try doc.head()?.select("meta[property=twitter:image]").first()
                         if let twImage = try twMeta?.attr("content"), let twUrl = URL(string: twImage) {
-                            item.imageLink = twImage
-                            imageUrls.append(twUrl)
-                        }
+                            let isNotSkipped = imagesToSkip.allSatisfy({
+                                !twImage.contains($0)
+                            })
+                            if isNotSkipped {
+                                item.imageLink = twImage
+                                imageUrls.append(twUrl)
+                            }                        }
                     }
                 } catch {
                     print("error")
@@ -83,6 +92,10 @@ class ItemImageFetcher {
                 print("Skipped \(skippedResources.count)")
                 print("Failed \(failedResources.count)")
                 print("Completed \(completedResources.count)")
+                for resource in completedResources {
+                    print(resource.cacheKey)
+                    print(resource.downloadURL.absoluteString)
+                }
                 try? NewsData.mainThreadContext.save()
             }
             preFetcher.start()
