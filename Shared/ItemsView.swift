@@ -15,7 +15,7 @@ struct ItemsView: View {
     @State private var isMarkAllReadDisabled = true
     @State private var readItems = [CDItem]()
 
-    private let throttler = Throttler(minimumDelay: 2)
+    let operationQueue = OperationQueue.main
 
     init(_ node: Node<TreeNode>) {
         self.node = node
@@ -27,7 +27,7 @@ struct ItemsView: View {
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
             let cellHeight: CGFloat = 160.0  /*85*/
-
+            let _ = print("Redrawing list")
             List {
                 ForEach(items, id: \.self.id) { item in
                     // Workaround to hide disclosure indicator
@@ -39,32 +39,6 @@ struct ItemsView: View {
                         ItemListItemViev(item: item)
                             .tag(item.id)
                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            .contextMenu {
-                                let isUnRead = item.unread
-                                let isStarred = item.starred
-                                Button {
-                                    Task {
-                                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
-                                    }
-                                } label: {
-                                    Label {
-                                        Text(isUnRead ? "Read" : "Unread")
-                                    } icon: {
-                                        Image(systemName: isUnRead ? "eye" : "eye.slash")
-                                    }
-                                }
-                                Button {
-                                    Task {
-                                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
-                                    }
-                                } label: {
-                                    Label {
-                                        Text(isStarred ? "Unstar" : "Star")
-                                    } icon: {
-                                        Image(systemName: isStarred ? "star" : "star.fill")
-                                    }
-                                }
-                            }
                             .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
                                 [item.id: geometry[$0]]
                             }
@@ -77,6 +51,14 @@ struct ItemsView: View {
                                        (abs(newPreference.value.origin.y) - newPreference.value.size.height) > 0
                                     {
                                         readItems.append(item)
+                                        operationQueue.cancelAllOperations()
+                                        operationQueue.schedule(after: OperationQueue.SchedulerTimeType.init(Date(timeIntervalSinceNow: 2.0)), tolerance: 1.0, options: nil, {
+                                            let currentReadItems = readItems
+                                            Task(priority: .userInitiated) {
+                                                try? await NewsManager.shared.markRead(items: currentReadItems, unread: false)
+                                                readItems.removeAll(where: { currentReadItems.contains($0) })
+                                            }
+                                        })
                                     }
                                 }
                             }
@@ -113,29 +95,9 @@ struct ItemsView: View {
         .onReceive(node.$unreadCount) { unreadCount in
             isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
         }
-        .onChange(of: readItems) { _ in
-            throttler.throttle {
-                let currentReadItems = readItems
-                Task(priority: .background) {
-                    try? await NewsManager.shared.markRead(items: currentReadItems, unread: false)
-                    readItems.removeAll(where: { currentReadItems.contains($0) })
-                }
-            }
-        }
 
     }
 
-//    private func checkMarkingRead(item: CDItem) {
-//        if markReadWhileScrolling,
-//           item.unread,
-//           let nodeFrame = preferences[item.id],
-//           nodeFrame.origin.y < 0,
-//           (abs(nodeFrame.origin.y) - nodeFrame.size.height) > 0
-//        {
-//            readItems.append(item)
-//        }
-//    }
-//
 }
 
 //struct ItemsView_Previews: PreviewProvider {
