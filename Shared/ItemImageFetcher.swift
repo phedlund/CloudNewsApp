@@ -13,7 +13,7 @@ import SwiftSoup
 class ItemImageFetcher {
 
     private let validSchemas = ["http", "https", "file"]
-    private let imagesToSkip = ["sdbnblognews", "feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16", "_64", "blank", "pixel"]
+    private let imagesToSkip = ["sdbnblognews", "feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16", "_64", "blank", "pixel", "__ptq"]
 
     private var items: [CDItem]
     private var imageUrls = [URL]()
