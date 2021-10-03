@@ -26,11 +26,31 @@ struct ArticlesPageView: View {
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
-    @State private var sharingProvider: SharingProvider?
     @State private var currentModel: ArticleModel?
 
     var items: FetchedResults<CDItem>
     private var models = [ArticleModel]()
+
+    private var sharingProvider: SharingProvider? {
+        var viewedUrl: URL?
+        var subject = ""
+        if let model = models.first(where: { $0.item.id == selectedIndex }) {
+            viewedUrl = webViewManager.webView.url
+            subject = webViewManager.webView.title ?? ""
+            if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
+                if let urlString = model.item.url {
+                    viewedUrl = URL(string: urlString) ?? nil
+                    subject = model.item.title ?? ""
+                }
+            }
+
+            if let url = viewedUrl {
+                return SharingProvider(placeholderItem: url, subject: subject)
+            }
+        }
+        return nil
+
+    }
 
     init(items: FetchedResults<CDItem>, selectedIndex: Int32) {
         self.items = items
@@ -110,12 +130,12 @@ struct ArticlesPageView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    isShowingSharePopover = canShare()
+                    isShowingSharePopover = sharingProvider != nil
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
                 .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                    ActivityView(activityItems: [sharingProvider ?? []], applicationActivities: [SafariActivity()])
+                    ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
                 }
                 .disabled(webViewManager.isLoading)
             }
@@ -133,28 +153,6 @@ struct ArticlesPageView: View {
                 .disabled(webViewManager.isLoading)
             }
         })
-    }
-
-    private func canShare() -> Bool {
-        var result = false
-        var viewedUrl: URL?
-        var subject = ""
-        if let model = currentModel {
-            viewedUrl = webViewManager.webView.url
-            subject = webViewManager.webView.title ?? ""
-            if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
-                if let urlString = model.item.url {
-                    viewedUrl = URL(string: urlString) ?? nil
-                    subject = model.item.title ?? ""
-                }
-            }
-
-            if let shareUrl = viewedUrl {
-                sharingProvider = SharingProvider(placeholderItem: shareUrl, subject: subject)
-                result = true
-            }
-        }
-        return result
     }
 
 }
