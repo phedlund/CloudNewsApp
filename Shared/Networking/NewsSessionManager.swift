@@ -319,10 +319,13 @@ class NewsManager {
 
      */
     func sync() async throws {
-        guard let _ = CDItem.items(nodeType: .all) else {
-            try await self.initialSync()
-            return
-        }
+        do {
+            let count = try NewsData.mainThreadContext.count(for: CDItem.fetchRequest())
+            if count == 0 {
+                try await self.initialSync()
+                return
+            }
+        } catch { }
         
         do {
             if let localRead = CDRead.all(), !localRead.isEmpty {

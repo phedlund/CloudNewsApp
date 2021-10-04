@@ -28,7 +28,7 @@ struct ArticlesPageView: View {
     @State private var currentSize: CGSize = .zero
     @State private var currentModel: ArticleModel?
 
-    var items: FetchedResults<CDItem>
+    var items: [CDItem]
     private var models = [ArticleModel]()
 
     private var sharingProvider: SharingProvider? {
@@ -49,10 +49,9 @@ struct ArticlesPageView: View {
             }
         }
         return nil
-
     }
 
-    init(items: FetchedResults<CDItem>, selectedIndex: Int32) {
+    init(items: [CDItem], selectedIndex: Int32) {
         self.items = items
 
         _selectedIndex = State(initialValue: selectedIndex)

@@ -12,7 +12,7 @@ struct NodeView: View {
     @State var unreadCount = ""
 
     var body: some View {
-        NavigationLink(destination: ItemsView(node)) {
+        NavigationLink(destination: ItemsView(node: node)) {
             HStack {
                 Label {
                     Text(node.value.title)

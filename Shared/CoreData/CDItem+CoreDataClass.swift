@@ -141,40 +141,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    static func items(nodeType: NodeType, hideRead: Bool = false, oldestFirst: Bool = false) -> [CDItem]? {
-        let request : NSFetchRequest<CDItem> = self.fetchRequest()
-        let sortDescription = NSSortDescriptor(key: "lastModified", ascending: oldestFirst)
-        request.sortDescriptors = [sortDescription]
-        switch nodeType {
-        case .all:
-            let predicate = NSPredicate(format: "unread == %@", NSNumber(value: hideRead))
-            request.predicate = predicate
-
-        case .starred:
-            let predicate = NSPredicate(format: "starred == true")
-            request.predicate = predicate
-
-        case .feed(let feedId):
-            let predicate1 = NSPredicate(format: "unread == %@", NSNumber(value: hideRead))
-            let predicate2 = NSPredicate(format: "feedId == %d", feedId)
-            request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-
-        case .folder(let folderId):
-            if let feedIds = CDFeed.idsInFolder(folder: folderId) {
-                let predicate1 = NSPredicate(format: "unread == %@", NSNumber(value: hideRead))
-                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-                request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-            }
-        }
-        do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
-            return results
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
     static func markRead(items: [CDItem], unread: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
             do {

@@ -9,18 +9,14 @@ import SwiftUI
 
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @FetchRequest var items: FetchedResults<CDItem>
+    @StateObject private var viewModel = ItemViewModel()
     @ObservedObject var node: Node<TreeNode>
     @State private var preferences = [ObjectIdentifier: CGRect]()
     @State private var isMarkAllReadDisabled = true
+    @State private var navTitle = ""
     @State private var readItems = [CDItem]()
 
     let operationQueue = OperationQueue.main
-
-    init(_ node: Node<TreeNode>) {
-        self.node = node
-        self._items = FetchRequest(sortDescriptors: node.sortDescriptors, predicate: node.predicate)
-    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -29,10 +25,10 @@ struct ItemsView: View {
             let cellHeight: CGFloat = 160.0  /*85*/
             let _ = print("Redrawing list")
             List {
-                ForEach(items, id: \.self.id) { item in
+                ForEach(viewModel.nodeItems(node.value.nodeType), id: \.objectID) { item in
                     // Workaround to hide disclosure indicator
                     ZStack(alignment: .center) {
-                        NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: item.id))) {
+                        NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: viewModel.nodeItems(node.value.nodeType), selectedIndex: item.id))) {
                             EmptyView()
                         }
                         .opacity(0)
@@ -70,7 +66,7 @@ struct ItemsView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        let unreadItems = items.filter( { $0.unread == true })
+                        let unreadItems = viewModel.nodeItems(node.value.nodeType).filter( { $0.unread == true })
                         Task {
                             try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
                         }
@@ -85,17 +81,13 @@ struct ItemsView: View {
             }
         }
         .listStyle(.plain)
-        .navigationTitle(node.value.title)
-        .onReceive(node.$predicate) { predicate in
-            items.nsPredicate = predicate
-        }
-        .onReceive(node.$sortDescriptors) { sortDescriptors in
-            items.sortDescriptors = sortDescriptors
-        }
+        .navigationTitle(navTitle)
         .onReceive(node.$unreadCount) { unreadCount in
             isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
         }
-
+        .onReceive(node.$title) { title in
+            navTitle = title ?? "Untitled"
+        }
     }
 
 }
