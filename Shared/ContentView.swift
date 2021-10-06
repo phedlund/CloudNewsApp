@@ -36,7 +36,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             SidebarView()
-            ItemsView(node: nodeTree.nodeArray[0])
+            ItemsView(node: nodeTree.nodes[0])
         }
         .onAppear {
             isShowingLogin = !isLoggedIn

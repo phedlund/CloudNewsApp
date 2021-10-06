@@ -30,7 +30,7 @@ final class Node<Value>: Identifiable, ObservableObject {
 }
 
 extension Node: Equatable where Value: Equatable {
-    static func ==(lhs: Node, rhs: Node) -> Bool {
+    static func == (lhs: Node, rhs: Node) -> Bool {
         lhs.value == rhs.value && lhs.children == rhs.children
     }
 }
@@ -60,44 +60,67 @@ extension Node where Value: Equatable {
     }
 }
 
-class FeedTreeModel: NSObject, ObservableObject {
+class FeedTreeModel: ObservableObject {
     @Published var preferences = Preferences()
-    @Published var nodeArray = [Node<TreeNode>]()
+    @Published var nodes = [Node<TreeNode>]()
+
+    private var folders = [CDFolder]() {
+        willSet {
+            nodes = update()
+        }
+    }
+    private var feeds = [CDFeed]()  {
+        willSet {
+            nodes = update()
+        }
+    }
 
     private var cancellables = Set<AnyCancellable>()
 
-    override init() {
-        super.init()
+    init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),
+         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher()) {
+        feedPublisher.sink { feeds in
+            print("Updating Feeds")
+            self.feeds = feeds
+        }
+        .store(in: &cancellables)
+        folderPublisher.sink { folders in
+            print("Updating Folders")
+            self.folders = folders
+        }
+        .store(in: &cancellables)
 
         NotificationCenter.default
             .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.updateCounts()
+                guard let self = self else { return }
+                self.updateCounts(self.nodes)
             }
             .store(in: &cancellables)
         NotificationCenter.default
             .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.updateCounts()
+                guard let self = self else { return }
+                self.updateCounts(self.nodes)
             }
             .store(in: &cancellables)
 
         preferences.$hideRead.sink { [weak self] newHideRead in
-            self?.updatePredicate(newHideRead)
+            guard let self = self else { return }
+            self.updatePredicate(self.nodes, hideRead: newHideRead)
         }
         .store(in: &cancellables)
 
         preferences.$sortOldestFirst.sink { [weak self] newSortOldestFirst in
-            self?.updateSortOldestFirst(newSortOldestFirst)
+            guard let self = self else { return }
+            self.updateSortOldestFirst(self.nodes, sortOldestFirst: newSortOldestFirst)
         }
         .store(in: &cancellables)
-
-        update()
     }
 
-    private func updatePredicate(_ hideRead: Bool) {
+    private func updatePredicate(_ nodes: [Node<TreeNode>], hideRead: Bool) {
 
         func update(_ node: Node<TreeNode>) {
             switch node.value.nodeType {
@@ -118,7 +141,7 @@ class FeedTreeModel: NSObject, ObservableObject {
 
         let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
 
-        for node in nodeArray {
+        for node in nodes {
             if let childNodes = node.children {
                 for childNode in childNodes {
                     update(childNode)
@@ -128,10 +151,10 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
     }
 
-    func updateSortOldestFirst(_ sortOldestFirst: Bool) {
+    private func updateSortOldestFirst(_ nodes: [Node<TreeNode>], sortOldestFirst: Bool) {
         let sortDescriptors = [SortDescriptor(\CDItem.pubDate, order: sortOldestFirst ? .forward : .reverse)]
 
-        for node in nodeArray {
+        for node in nodes {
             if let childNodes = node.children {
                 for childNode in childNodes {
                     childNode.sortDescriptors = sortDescriptors
@@ -141,14 +164,14 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
     }
 
-    func updateCounts() {
+    private func updateCounts(_ nodes: [Node<TreeNode>]) {
 
         func update(_ node: Node<TreeNode>) {
             node.unreadCount = node.value.unreadCount
             node.title = node.value.title
         }
 
-        for node in nodeArray {
+        for node in nodes {
             if let childNodes = node.children {
                 for childNode in childNodes {
                     update(childNode)
@@ -158,24 +181,26 @@ class FeedTreeModel: NSObject, ObservableObject {
         }
     }
 
-    func update() {
-        nodeArray.removeAll()
-        nodeArray.append(allItemsNode())
-        nodeArray.append(starredItemsNode())
+    func update() -> [Node<TreeNode>] {
+        var result = [Node<TreeNode>]()
+
+        result.append(allItemsNode())
+        result.append(starredItemsNode())
 
         if let folders = CDFolder.all() {
             for folder in folders {
-                nodeArray.append(folderNode(folder: folder))
+                result.append(folderNode(folder: folder))
             }
         }
         if let feeds = CDFeed.inFolder(folder: 0) {
             for feed in feeds {
-                nodeArray.append(feedNode(feed: feed))
+                result.append(feedNode(feed: feed))
             }
         }
-        updateCounts()
-        updatePredicate(preferences.hideRead)
-        updateSortOldestFirst(preferences.sortOldestFirst)
+        updateCounts(result)
+        updatePredicate(result, hideRead: preferences.hideRead)
+        updateSortOldestFirst(result, sortOldestFirst: preferences.sortOldestFirst)
+        return result
     }
 
     private func allItemsNode() -> Node<TreeNode> {

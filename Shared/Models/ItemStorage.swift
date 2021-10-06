@@ -44,3 +44,75 @@ extension ItemStorage: NSFetchedResultsControllerDelegate {
         self.items.value = items
     }
 }
+
+class FeedStorage: NSObject, ObservableObject {
+    var feeds = CurrentValueSubject<[CDFeed], Never>([])
+    private let feedFetchController: NSFetchedResultsController<CDFeed>
+    static let shared = FeedStorage()
+
+    private override init() {
+        let fetchRequest = CDFeed.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDFeed.id, ascending: false)]
+        fetchRequest.predicate = NSPredicate(value: true)
+        feedFetchController = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: NewsData.mainThreadContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil)
+
+        super.init()
+
+        feedFetchController.delegate = self
+
+        do {
+            try feedFetchController.performFetch()
+            feeds.value = feedFetchController.fetchedObjects ?? []
+        } catch {
+            print("Error: could not fetch feeds")
+        }
+
+    }
+}
+
+extension FeedStorage: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard let feeds = controller.fetchedObjects as? [CDFeed] else { return }
+        self.feeds.value = feeds
+    }
+}
+
+class FolderStorage: NSObject, ObservableObject {
+    var folders = CurrentValueSubject<[CDFolder], Never>([])
+    private let folderFetchController: NSFetchedResultsController<CDFolder>
+    static let shared = FolderStorage()
+
+    private override init() {
+        let fetchRequest = CDFolder.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDFolder.id, ascending: false)]
+        fetchRequest.predicate = NSPredicate(value: true)
+        folderFetchController = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: NewsData.mainThreadContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil)
+
+        super.init()
+
+        folderFetchController.delegate = self
+
+        do {
+            try folderFetchController.performFetch()
+            folders.value = folderFetchController.fetchedObjects ?? []
+        } catch {
+            print("Error: could not fetch feeds")
+        }
+
+    }
+}
+
+extension FolderStorage: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard let folders = controller.fetchedObjects as? [CDFolder] else { return }
+        self.folders.value = folders
+    }
+}
