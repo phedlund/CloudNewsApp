@@ -18,6 +18,14 @@ final class Node<Value>: Identifiable, ObservableObject {
 
     private(set) var children: [Node]?
 
+    init() {
+        value = TreeNode(isLeaf: true,
+                         sortId: -1,
+                         basePredicate: NSPredicate(value: true),
+                         nodeType: .all) as! Value
+        title = "All Articles"
+    }
+
     init(_ value: Value) {
         self.value = value
     }
@@ -61,7 +69,6 @@ extension Node where Value: Equatable {
 }
 
 class FeedTreeModel: ObservableObject {
-    @Published var preferences = Preferences()
     @Published var nodes = [Node<TreeNode>]()
 
     private var folders = [CDFolder]() {
@@ -75,6 +82,7 @@ class FeedTreeModel: ObservableObject {
         }
     }
 
+    private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
     init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),

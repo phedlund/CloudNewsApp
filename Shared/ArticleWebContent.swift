@@ -15,13 +15,12 @@ class ArticleWebContent: ObservableObject {
     public let size: CGSize
 
     private var feed: CDFeed?
-    private var model: FeedTreeModel
+    private var preferences = Preferences()
 
-    init(item: CDItem, model: FeedTreeModel, size: CGSize) {
+    init(item: CDItem, size: CGSize) {
         self.item = item
         self.feed = CDFeed.feed(id: item.feedId)
         self.size = size
-        self.model = model
         configure()
     }
 
@@ -37,7 +36,7 @@ class ArticleWebContent: ObservableObject {
                     let videoIdStartIndex = urlString.index(after: equalIndex)
                     let videoId = String(urlString[videoIdStartIndex...])
                     let screenSize = UIScreen.main.nativeBounds.size
-                    let margin = model.preferences.marginPortrait
+                    let margin = preferences.marginPortrait
                     let currentWidth = Double(screenSize.width / UIScreen.main.scale) * (Double(margin) / 100.0)
                     let newheight = currentWidth * 0.5625
                     let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(currentWidth))px\" height=\"\(Int(newheight))px\"></embed>"
@@ -143,16 +142,16 @@ class ArticleWebContent: ObservableObject {
     }
     
     private func updateCss(size: CGSize) -> String {
-        let currentWidth = Int((size.width) * CGFloat((Double(model.preferences.marginPortrait) / 100.0)))
-        let currentWidthLandscape = (size.height) * CGFloat((Double(model.preferences.marginPortrait) / 100.0))
+        let currentWidth = Int((size.width) * CGFloat((Double(preferences.marginPortrait) / 100.0)))
+        let currentWidthLandscape = (size.height) * CGFloat((Double(preferences.marginPortrait) / 100.0))
 
         return ":root {" +
         "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
         "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
-        "--font-size: \(model.preferences.fontSize)px;" +
+        "--font-size: \(preferences.fontSize)px;" +
         "--body-width-portrait: \(currentWidth)px;" +
         "--body-width-landscape: \(currentWidthLandscape)px;" +
-        "--line-height: \(model.preferences.lineHeight)em;" +
+        "--line-height: \(preferences.lineHeight)em;" +
         "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
         "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
         "}"
@@ -199,14 +198,14 @@ class ArticleWebContent: ObservableObject {
                 if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
                     if src.contains("youtu"), let videoId = src.youtubeVideoID {
                         let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(model.preferences.marginPortrait / 100);
+                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(preferences.marginPortrait / 100);
                         let newheight = currentWidth * 0.5625;
                         let embed = String(format: "<embed id=\"yt\" src=\"http://www.youtube.com/embed/%@?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></embed>", videoId, currentWidth, newheight)
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)
                     }
                     if src.contains("vimeo"), let videoId = src.vimeoID {
                         let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(model.preferences.marginPortrait / 100);
+                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(preferences.marginPortrait / 100);
                         let newheight = currentWidth * 0.5625;
                         let embed = String(format:"<iframe id=\"vimeo\" src=\"http://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, currentWidth, newheight)
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)

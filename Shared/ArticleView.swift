@@ -9,8 +9,6 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @EnvironmentObject var treeModel: FeedTreeModel
-
     @State private var isShowingData = false
 
     var articleModel: ArticleModel
@@ -23,8 +21,7 @@ struct ArticleView: View {
         GeometryReader { geometry in
             VStack {
                 if isShowingData {
-                    ArticleWebView(webView: articleModel.webView!, treeModel: treeModel, item: articleModel.item, size: geometry.size)
-                        .environmentObject(treeModel)
+                    ArticleWebView(webView: articleModel.webView!, item: articleModel.item, size: geometry.size)
                         .navigationTitle(articleModel.item.title ?? "Untitled")
                         .navigationBarTitleDisplayMode(.inline)
                         .transition(AnyTransition.opacity.animation(.easeIn(duration: 0.3)))

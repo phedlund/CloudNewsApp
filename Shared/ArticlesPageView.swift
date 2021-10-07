@@ -20,13 +20,12 @@ class ArticleModel: ObservableObject, Identifiable {
 }
 
 struct ArticlesPageView: View {
-    @EnvironmentObject var treeModel: FeedTreeModel
     @ObservedObject var webViewManager = WebViewManager(type: .article)
     @State var selectedIndex: Int32 = -1
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
-    @State private var currentModel: ArticleModel?
+    @State private var currentModel: ArticleModel
 
     var items: [CDItem]
     private var models = [ArticleModel]()
@@ -53,7 +52,7 @@ struct ArticlesPageView: View {
 
     init(items: [CDItem], selectedIndex: Int32) {
         self.items = items
-
+        currentModel = ArticleModel(item: items[0])
         _selectedIndex = State(initialValue: selectedIndex)
         for item in items {
             models.append(ArticleModel(item: item))
@@ -79,7 +78,7 @@ struct ArticlesPageView: View {
         }
         .onChange(of: selectedIndex) { newValue in
             print("Selected Index \(newValue)")
-            currentModel?.isShowingData = false
+            currentModel.isShowingData = false
             webViewManager.webView.stopLoading()
             if let model = models.first(where: { $0.item.id == newValue }) {
                 currentModel = model
@@ -145,7 +144,7 @@ struct ArticlesPageView: View {
                     Image(systemName: "textformat.size")
                 }
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                    if let item = currentModel?.item {
+                    if let item = currentModel.item {
                         ArticleSettingsView(item: item)
                     }
                 }

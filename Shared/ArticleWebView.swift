@@ -34,17 +34,15 @@ struct ArticleWebView: UIViewRepresentable {
     private var feed: CDFeed?
     private var url = URL(fileURLWithPath: "")
     private var content: ArticleWebContent
-    private var treeModel: FeedTreeModel
 
     private var cancellables = Set<AnyCancellable>()
 
-    public init(webView: WKWebView, treeModel: FeedTreeModel, item: CDItem, size: CGSize) {
+    public init(webView: WKWebView, item: CDItem, size: CGSize) {
         self.webView = webView
         self.item = item
         self.feed = CDFeed.feed(id: item.feedId)
         self.size = size
-        self.treeModel = treeModel
-        self.content = ArticleWebContent(item: item, model: treeModel, size: size)
+        self.content = ArticleWebContent(item: item, size: size)
         url = tempDirectory()?
             .appendingPathComponent("summary")
             .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
@@ -69,46 +67,43 @@ struct ArticleWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> WebViewCoordinator {
-        WebViewCoordinator(model: treeModel, webView: webView, content: content)
+        WebViewCoordinator(webView: webView, content: content)
     }
 
 }
 #endif
 
 class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
-    @ObservedObject var model: FeedTreeModel
     private var content: ArticleWebContent
 
     private var cancellables = Set<AnyCancellable>()
     private var webView: WKWebView
+    private var preferences = Preferences()
 
-    init(model: FeedTreeModel, webView: WKWebView, content: ArticleWebContent) {
-        self.model = model
+    init(webView: WKWebView, content: ArticleWebContent) {
         self.webView = webView
         self.content = content
 
         super.init()
         
-        model.preferences.$marginPortrait.sink { [weak self] newMarginPortrait in
+        preferences.$marginPortrait.sink { [weak self] newMarginPortrait in
             self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)
 
-        model.preferences.$fontSize.sink { [weak self] newFontSize in
+        preferences.$fontSize.sink { [weak self] newFontSize in
             self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)
 
-        model.preferences.$lineHeight.sink { [weak self] newLineHeight in
+        preferences.$lineHeight.sink { [weak self] newLineHeight in
             self?.content.configure()
             self?.webView.reload()
         }
         .store(in: &cancellables)
-
     }
-
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
