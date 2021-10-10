@@ -9,97 +9,139 @@
 import Foundation
 import Kingfisher
 import SwiftSoup
+import SwiftUI
 
-class ItemImageFetcher {
-
+actor ItemImageFetcher {
     private let validSchemas = ["http", "https", "file"]
-    private let imagesToSkip = ["sdbnblognews", "feedads", "twitter_icon", "facebook_icon", "feedburner", "gplus-16", "_64", "blank", "pixel", "__ptq"]
 
-    private var items: [CDItem]
-    private var imageUrls = [URL]()
+    func itemImages() async throws {
 
-    init(_ items: [CDItem]) {
-        self.items = items
-    }
-
-    func itemImages() {
-
-        func stepTwo(_ item: CDItem) {
+        func stepTwo(_ item: CDItem) -> URL? {
             if let urlString = item.url, let url = URL(string: urlString) {
                 do {
                     let html = try String(contentsOf: url)
                     let doc: Document = try SwiftSoup.parse(html)
                     let meta: Element? = try doc.head()?.select("meta[property=og:image]").first()
                     if let ogImage = try meta?.attr("content"), let ogUrl = URL(string: ogImage) {
-                        let isNotSkipped = imagesToSkip.allSatisfy({
-                            !ogImage.contains($0)
-                        })
-                        if isNotSkipped {
-                            item.imageLink = ogImage
-                            imageUrls.append(ogUrl)
-                        }
+                        return ogUrl
                     } else {
                         let twMeta: Element? = try doc.head()?.select("meta[property=twitter:image]").first()
                         if let twImage = try twMeta?.attr("content"), let twUrl = URL(string: twImage) {
-                            let isNotSkipped = imagesToSkip.allSatisfy({
-                                !twImage.contains($0)
-                            })
-                            if isNotSkipped {
-                                item.imageLink = twImage
-                                imageUrls.append(twUrl)
-                            }                        }
+                            return twUrl
+                        }
                     }
                 } catch {
                     print("error")
                 }
             }
+            return nil
         }
 
-        for item in items {
-            if let summary = item.body {
-                do {
-                    let doc: Document = try SwiftSoup.parse(summary)
-                    let srcs: Elements = try doc.select("img[src]")
-                    let images = try srcs.array().map({ try $0.attr("src") })
-                    let filteredImages = images.filter { src in
-                        if !validSchemas.contains(String(src.prefix(4))) {
-                            return false
-                        }
-                        for skip in imagesToSkip {
-                            if src.contains(skip) {
+        let oldLastModified = Preferences().lastModified
+        if let items = CDItem.items(lastModified: oldLastModified) {
+            for item in items {
+                var itemImageUrl: URL?
+                if let summary = item.body {
+                    do {
+                        let doc: Document = try SwiftSoup.parse(summary)
+                        let srcs: Elements = try doc.select("img[src]")
+                        let images = try srcs.array().map({ try $0.attr("src") })
+                        let filteredImages = images.filter { src in
+                            if !validSchemas.contains(String(src.prefix(4))) {
                                 return false
                             }
+                            return true
                         }
-                        return true
+                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                            itemImageUrl = imgUrl
+                        } else {
+                            itemImageUrl = stepTwo(item)
+                        }
+                    } catch Exception.Error(_, let message) {
+                        print(message)
+                    } catch {
+                        print("error")
                     }
-                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                        item.imageLink = urlString
-                        imageUrls.append(imgUrl)
-                    } else {
-                        stepTwo(item)
+                } else {
+                    itemImageUrl = stepTwo(item)
+                }
+
+                if let imageUrl = itemImageUrl {
+                    do {
+                        if let _ = try await retrieve(imageUrl) {
+                            item.imageLink = itemImageUrl?.absoluteString
+                        }
+                    } catch let error {
+                        print(error.localizedDescription)
                     }
-                } catch Exception.Error(_, let message) {
-                    print(message)
-                } catch {
-                    print("error")
                 }
-            } else {
-                stepTwo(item)
             }
-        }
-        if !imageUrls.isEmpty {
-            let preFetcher = ImagePrefetcher(urls: imageUrls, options: []) { skippedResources, failedResources, completedResources in
-                print("Skipped \(skippedResources.count)")
-                print("Failed \(failedResources.count)")
-                print("Completed \(completedResources.count)")
-                for resource in completedResources {
-                    print(resource.cacheKey)
-                    print(resource.downloadURL.absoluteString)
-                }
-                try? NewsData.mainThreadContext.save()
-            }
-            preFetcher.start()
         }
     }
+    
+}
 
+extension ItemImageFetcher {
+
+    func retrieve(_ url: URL) async throws -> KFCrossPlatformImage? {
+
+        let manager = KingfisherManager.shared
+            let resource = ImageResource(downloadURL: url)
+            print(resource.downloadURL.absoluteString)
+            let sizeProcessor = SizeProcessor()
+            do {
+                let image = try await manager.retrieveImage(with: resource, options: [.processor(sizeProcessor)], progressBlock: nil, downloadTaskUpdated: nil)
+                print("Image with key \(image.source.cacheKey)")
+                return image.image
+            } catch let error {
+                print(error.localizedDescription)
+            }
+        return nil
+    }
+
+}
+
+extension KingfisherManager {
+
+    func retrieveImage(with: ImageResource, options: KingfisherOptionsInfo?, progressBlock: DownloadProgressBlock?, downloadTaskUpdated: DownloadTaskUpdatedBlock?) async throws -> RetrieveImageResult {
+        try await withCheckedThrowingContinuation { continuation in
+            let _ = retrieveImage(with: with, options: options, progressBlock: progressBlock, downloadTaskUpdated: downloadTaskUpdated) { result in
+                switch result {
+                case .success(let image):
+                    continuation.resume(returning: image)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+}
+
+struct SizeProcessor: ImageProcessor {
+    // `identifier` should be the same for processors with the same properties/functionality
+    // It will be used when storing and retrieving the image to/from cache.
+    let identifier = "dev.pbh.sizeprocessor"
+
+    // Convert input data/image to target image and return it.
+    func process(item: ImageProcessItem, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {
+        switch item {
+        case .image(let image):
+            let size = image.size
+            if size.height > 100, size.width > 100 {
+                return image
+            }
+            print("Small image: \(size)")
+            return nil
+        case .data(let data):
+            if let image = KFCrossPlatformImage(data: data) {
+                let size = image.size
+                if size.height > 100, size.width > 100 {
+                    return image
+                }
+                print("Small image: \(size)")
+                return nil
+            }
+            return nil
+        }
+    }
 }

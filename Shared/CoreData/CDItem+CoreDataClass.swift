@@ -141,15 +141,34 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
+    static func items(lastModified: Int32) -> [CDItem]? {
+        let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        let sortDescription = NSSortDescriptor(key: "id", ascending: false)
+        request.sortDescriptors = [sortDescription]
+        let predicate = NSPredicate(format:"lastModified > %d", lastModified)
+        request.predicate = predicate
+
+        do {
+            let results  = try NewsData.mainThreadContext.fetch(request)
+            return results
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+
     static func markRead(items: [CDItem], unread: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
             do {
-                let request = NSBatchUpdateRequest(entityName: CDItem.entityName)
-                let itemIds = items.map( { $0.id })
-                request.predicate = NSPredicate(format: "id IN %@", itemIds)
-                request.propertiesToUpdate = ["unread": NSNumber(value: unread)]
+//                let request = NSBatchUpdateRequest(entityName: CDItem.entityName)
+//                let itemIds = items.map( { $0.id })
+//                request.predicate = NSPredicate(format: "id IN %@", itemIds)
+//                request.propertiesToUpdate = ["unread": NSNumber(value: unread)]
 //                request.resultType = .updatedObjectsCountResultType
-                try NewsData.mainThreadContext.executeAndMergeChanges(using: request)
+//                try NewsData.mainThreadContext.executeAndMergeChanges(using: request)
+                for item in items {
+                    item.unread = unread
+                }
                 try NewsData.mainThreadContext.save()
             } catch {
                 throw PBHError.databaseError("Error marking items read")
@@ -191,7 +210,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
             do {
                 let itemCount = items.count
                 var current = 0
-                var newRecords = [CDItem]()
                 for item in items {
                     let predicate = NSPredicate(format: "id == %d", item.id)
                     request.predicate = predicate
@@ -230,14 +248,10 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.title = item.title
                         newRecord.unread = item.unread
                         newRecord.url = item.url
-//                        newRecord.imageLink = ArticleImage.imageURL(urlString: newRecord.url, summary: item.body)
-                        newRecords.append(newRecord)
                         current += 1
                         print("Count \(itemCount), Current \(current)")
                     }
                 }
-                let articleImageFetcher = ItemImageFetcher(newRecords)
-                articleImageFetcher.itemImages()
                 try NewsData.mainThreadContext.save()
             } catch {
                 throw PBHError.databaseError("Error updating items")

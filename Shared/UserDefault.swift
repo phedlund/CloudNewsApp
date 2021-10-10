@@ -67,5 +67,5 @@ struct Preferences {
     @UserDefault(StorageKeys.marginPortrait) var marginPortrait = 70
     @UserDefault(StorageKeys.fontSize) var fontSize = 14
     @UserDefault(StorageKeys.lineHeight) var lineHeight = 1.4
-
+    @UserDefault(StorageKeys.lastModified) var lastModified: Int32 = 0
 }

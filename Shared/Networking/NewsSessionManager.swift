@@ -298,6 +298,10 @@ class NewsManager {
                 CDFeed.update(feeds: feeds)
             }
             updateBadge()
+            let articleImageFetcher = ItemImageFetcher()
+            Task {
+                try? await articleImageFetcher.itemImages()
+            }
         } catch(let error) {
             print(error.localizedDescription)
         }
@@ -390,13 +394,16 @@ class NewsManager {
                     }
                 }
             }
-            
+
+            let newestKnownLastModified = CDItem.lastModified()
+            Preferences().lastModified = newestKnownLastModified
+
             async let (folderData, _ /*folderResponse*/) = NewsManager.session.data(for: Router.folders.urlRequest(), delegate: nil)
             // 4.
             async let (feedsData, _ /*feedsResponse*/) = NewsManager.session.data(for: Router.feeds.urlRequest(), delegate: nil)
             
             let updatedParameters: ParameterDict = ["type": 3,
-                                                    "lastModified": CDItem.lastModified(),
+                                                    "lastModified": newestKnownLastModified,
                                                     "id": 0]
             
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
@@ -421,7 +428,11 @@ class NewsManager {
             if let items = items.items {
                 try await CDItem.update(items: items)
             }
-            
+            let articleImageFetcher = ItemImageFetcher()
+            Task {
+                try? await articleImageFetcher.itemImages()
+            }
+
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
             print(error.localizedDescription)

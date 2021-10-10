@@ -11,7 +11,8 @@ import CoreData
 struct ContentView: View {
     @AppStorage(StorageKeys.isloggedIn) private var isLoggedIn = false
     @Environment(\.managedObjectContext) private var viewContext
-    
+    @StateObject private var nodeTree = FeedTreeModel()
+
     @State private var isShowingLogin = false
 
     init() {
@@ -35,7 +36,9 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             SidebarView()
+                .environmentObject(nodeTree)
             ItemsView(node: Node<TreeNode>())
+                .environmentObject(nodeTree)
         }
         .onAppear {
             isShowingLogin = !isLoggedIn
