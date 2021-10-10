@@ -33,6 +33,7 @@ struct ItemListItemViev: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 8, content: {
                                     Text(item.displayTitle)
+                                        .multilineTextAlignment(.leading)
                                         .font(.headline)
                                         .foregroundColor(textColor)
                                         .lineLimit(2)
@@ -49,6 +50,7 @@ struct ItemListItemViev: View {
                                         EmptyView()
                                     } else {
                                         Text(item.displayBody)
+                                            .multilineTextAlignment(.leading)
                                             .lineLimit(4)
                                             .font(.subheadline)
                                             .foregroundColor(textColor)
