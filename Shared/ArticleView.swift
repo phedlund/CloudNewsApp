@@ -22,7 +22,7 @@ struct ArticleView: View {
             VStack {
                 if isShowingData {
                     ArticleWebView(webView: articleModel.webView!, item: articleModel.item, size: geometry.size)
-                        .navigationTitle(articleModel.item.title ?? "Untitled")
+                        .navigationTitle(articleModel.item.displayTitle)
                         .navigationBarTitleDisplayMode(.inline)
                         .transition(AnyTransition.opacity.animation(.easeIn(duration: 0.3)))
                 }

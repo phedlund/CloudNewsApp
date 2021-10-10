@@ -137,6 +137,8 @@
 		D0B8A80A269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0CAF5E2270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5E3270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
+		D0CAF5E827127A3100BB9062 /* CDItemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */; };
+		D0CAF5E927127A3100BB9062 /* CDItemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */; };
 		D0E8C64126A24C7900BA3ABE /* FolderRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */; };
 		D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */; };
 		D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
@@ -227,6 +229,7 @@
 		D0B0B2FE267FF86300A997DB /* FeedTreeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedTreeModel.swift; sourceTree = "<group>"; };
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		D0CAF5E1270A603000BB9062 /* ItemStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemStorage.swift; sourceTree = "<group>"; };
+		D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CDItemExtension.swift; sourceTree = "<group>"; };
 		D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderRenameView.swift; sourceTree = "<group>"; };
 		D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
@@ -390,6 +393,7 @@
 				D02F44E0265C89F700A3505B /* CDStarred+CoreDataProperties.swift */,
 				D02F44E1265C89F700A3505B /* CDUnread+CoreDataProperties.swift */,
 				D02F44E7265C89F700A3505B /* CDRead+CoreDataProperties.swift */,
+				D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -564,6 +568,7 @@
 				D0E8C64126A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
 				D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */,
+				D0CAF5E827127A3100BB9062 /* CDItemExtension.swift in Sources */,
 				D04A495B26FE9181003FD659 /* Throttler.swift in Sources */,
 				D081F85226CB483E00511B60 /* SafariActivity.swift in Sources */,
 				D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */,
@@ -640,6 +645,7 @@
 				D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
 				D0FEBD67268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F2265C89F700A3505B /* NotificationNames.swift in Sources */,
+				D0CAF5E927127A3100BB9062 /* CDItemExtension.swift in Sources */,
 				D04A495C26FE9181003FD659 /* Throttler.swift in Sources */,
 				D081F85326CB483E00511B60 /* SafariActivity.swift in Sources */,
 				D0B8A80A269928C3002A99A4 /* NodeView.swift in Sources */,

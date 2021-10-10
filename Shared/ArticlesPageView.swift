@@ -39,7 +39,7 @@ struct ArticlesPageView: View {
             if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
                 if let urlString = model.item.url {
                     viewedUrl = URL(string: urlString) ?? nil
-                    subject = model.item.title ?? ""
+                    subject = model.item.displayTitle
                 }
             }
 

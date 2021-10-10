@@ -58,7 +58,7 @@ class ArticleWebContent: ObservableObject {
         dateFormat.timeStyle = .short;
         dateText += dateFormat.string(from: date)
         let feedTitle = feedTitle ?? ""
-        let title = item.title ?? ""
+        let title = item.displayTitle
         let url = item.url ?? ""
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {

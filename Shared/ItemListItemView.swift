@@ -32,7 +32,7 @@ struct ItemListItemViev: View {
                             ItemImageView(item: item)
                             HStack {
                                 VStack(alignment: .leading, spacing: 8, content: {
-                                    Text(transformedTitel(item.title))
+                                    Text(item.displayTitle)
                                         .font(.headline)
                                         .foregroundColor(textColor)
                                         .lineLimit(2)
@@ -48,7 +48,7 @@ struct ItemListItemViev: View {
                                     if isCompactView /*|| horizontalSizeClass == .compact*/ {
                                         EmptyView()
                                     } else {
-                                        Text(transformedBody(item.body))
+                                        Text(item.displayBody)
                                             .lineLimit(4)
                                             .font(.subheadline)
                                             .foregroundColor(textColor)
@@ -111,44 +111,6 @@ struct ItemListItemViev: View {
 //            EmptyView()
 //        }
 //    }
-
-
-    private func transformedTitel(_ value: String?) -> String {
-        guard let titleValue = value else {
-            return "No Title"
-        }
-
-        return plainSummary(raw: titleValue as String)
-    }
-
-    private func transformedBody(_ value: String?) -> String {
-        guard let summaryValue = value else {
-            return "No Summary"
-        }
-
-        var summary: String = summaryValue as String
-        if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-            if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-                if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                    let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                    let sub = summary[start..<end]
-                    summary = summary.replacingOccurrences(of: sub, with: "")
-                }
-            }
-        }
-        return  plainSummary(raw: summary)
-    }
-
-    private func plainSummary(raw: String) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(raw) else {
-            return raw
-        } // parse html
-        guard let txt = try? doc.text() else {
-            return raw
-        }
-        return txt
-    }
-
 
 }
 

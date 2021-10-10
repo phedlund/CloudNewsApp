@@ -58,21 +58,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return dateLabelText
     }
 
-    dynamic var starIcon: Image? {
-        if starred {
-            return Image("starred_mac")
-        }
-        return Image("unstarred_mac")
-    }
-
-    dynamic var labelTextColor: Color {
-        var result: Color = .gray
-        if !unread {
-            result = .gray
-        }
-        return result
-    }
-
     @objc override public class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
 //        print("Debug: called for:", key)
 
