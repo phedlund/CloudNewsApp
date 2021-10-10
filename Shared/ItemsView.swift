@@ -5,18 +5,17 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+import Combine
+import CoreData
 import SwiftUI
 
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @StateObject private var viewModel = ItemViewModel()
+    @EnvironmentObject private var model: FeedTreeModel
+    @StateObject var scrollViewHelper = ScrollViewHelper()
     @ObservedObject var node: Node<TreeNode>
-    @State private var preferences = [ObjectIdentifier: CGRect]()
     @State private var isMarkAllReadDisabled = true
     @State private var navTitle = ""
-    @State private var readItems = [CDItem]()
-
-    let operationQueue = OperationQueue.main
 
     var body: some View {
         GeometryReader { geometry in
@@ -24,72 +23,69 @@ struct ItemsView: View {
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
             let cellHeight: CGFloat = 160.0  /*85*/
             let _ = print("Redrawing list")
-            List {
-                ForEach(viewModel.nodeItems(node.value.nodeType), id: \.objectID) { item in
-                    // Workaround to hide disclosure indicator
-                    ZStack(alignment: .center) {
-                        NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: viewModel.nodeItems(node.value.nodeType), selectedIndex: item.id))) {
-                            EmptyView()
-                        }
-                        .opacity(0)
-                        ItemListItemViev(item: item)
-                            .tag(item.id)
-                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
-                                [item.id: geometry[$0]]
+            let items = model.nodeItems(node.value.nodeType)
+            ScrollView {
+                ZStack {
+                    LazyVStack(spacing: 15.0) {
+                        Spacer(minLength: 1.0)
+                        ForEach(items, id: \.objectID) { item in
+                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: item.id))) {
+                                ItemListItemViev(item: item)
+                                    .tag(item.id)
+                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             }
-                            .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
-                                if let newPreference = rects.first {
-                                    self.preferences[newPreference.key] = newPreference.value
-                                    if markReadWhileScrolling,
-                                       item.unread,
-                                       newPreference.value.origin.y < 0,
-                                       (abs(newPreference.value.origin.y) - newPreference.value.size.height) > 0
-                                    {
-                                        readItems.append(item)
-                                        operationQueue.cancelAllOperations()
-                                        operationQueue.schedule(after: OperationQueue.SchedulerTimeType.init(Date(timeIntervalSinceNow: 2.0)), tolerance: 1.0, options: nil, {
-                                            let currentReadItems = readItems
-                                            Task(priority: .userInitiated) {
-                                                try? await NewsManager.shared.markRead(items: currentReadItems, unread: false)
-                                                readItems.removeAll(where: { currentReadItems.contains($0) })
-                                            }
-                                        })
-                                    }
+                        }
+                    }
+                    .toolbar(content: {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                let unreadItems = items.filter( { $0.unread == true })
+                                Task {
+                                    try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
                                 }
+                            } label: {
+                                Image(systemName: "checkmark")
                             }
-                    }
-                    .listRowSeparator(.hidden)
-                }
-                .listRowBackground(Color(.clear)) // disable selection highlight
-            }
-            .toolbar(content: {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        let unreadItems = viewModel.nodeItems(node.value.nodeType).filter( { $0.unread == true })
-                        Task {
-                            try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                            .disabled(isMarkAllReadDisabled)
                         }
-                    } label: {
-                        Image(systemName: "checkmark")
+                    })
+                    .background {
+                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }
-                    .disabled(isMarkAllReadDisabled)
+                    GeometryReader {
+                        let offset = -$0.frame(in: .named("scroll")).minY
+                        Color.clear.preference(key: ViewOffsetKey.self, value: offset)
+                    }
                 }
-            })
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
-        }
-        .listStyle(.plain)
-        .navigationTitle(navTitle)
-        .onReceive(node.$unreadCount) { unreadCount in
-            isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
-        }
-        .onReceive(node.$title) { title in
-            navTitle = title ?? "Untitled"
+            .coordinateSpace(name: "scroll")
+            .onPreferenceChange(ViewOffsetKey.self) {
+                scrollViewHelper.currentOffset = $0
+            }.onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                if markReadWhileScrolling {
+                    print($0)
+                    let numberOfItems = ($0 / (cellHeight + 15.0)).rounded(.down)
+                    print("Number of items \(numberOfItems)")
+                    if numberOfItems > 0 {
+                        let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                        print("Number of unread items \(itemsToMarkRead.count)")
+                        if !itemsToMarkRead.isEmpty {
+                            Task(priority: .userInitiated) {
+                                try? await NewsManager.shared.markRead(items: itemsToMarkRead, unread: false)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(navTitle)
+            .onReceive(node.$unreadCount) { unreadCount in
+                isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
+            }
+            .onReceive(node.$title) { title in
+                navTitle = title ?? "Untitled"
+            }
         }
     }
-
 }
 
 //struct ItemsView_Previews: PreviewProvider {
@@ -105,5 +101,27 @@ struct NavigationLazyView<Content: View>: View {
     }
     var body: Content {
         build()
+    }
+}
+
+class ScrollViewHelper: ObservableObject {
+    @Published var currentOffset: CGFloat = 0
+    @Published var offsetAtScrollEnd: CGFloat = 0
+    
+    private var cancellable: AnyCancellable?
+    
+    init() {
+        cancellable = AnyCancellable($currentOffset
+                                        .debounce(for: 0.2, scheduler: DispatchQueue.main)
+                                        .dropFirst()
+                                        .assign(to: \.offsetAtScrollEnd, on: self))
+    }
+    
+}
+
+struct ViewOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = .zero
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value += nextValue()
     }
 }

@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct NodeView: View {
+    @EnvironmentObject private var model: FeedTreeModel
     @ObservedObject var node: Node<TreeNode>
     @State var unreadCount = ""
 
     var body: some View {
-        NavigationLink(destination: ItemsView(node: node)) {
+        NavigationLink(destination: ItemsView(node: node)
+                        .environmentObject(model)) {
             HStack {
                 Label {
                     Text(node.value.title)

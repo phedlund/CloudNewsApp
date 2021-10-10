@@ -81,12 +81,14 @@ class FeedTreeModel: ObservableObject {
             nodes = update()
         }
     }
+    private var items = [CDItem]()
 
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
     init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),
-         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher()) {
+         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher(),
+         itemPublisher: AnyPublisher<[CDItem], Never> = ItemStorage.shared.items.eraseToAnyPublisher()) {
         feedPublisher.sink { feeds in
             print("Updating Feeds")
             self.feeds = feeds
@@ -97,23 +99,12 @@ class FeedTreeModel: ObservableObject {
             self.folders = folders
         }
         .store(in: &cancellables)
-
-        NotificationCenter.default
-            .publisher(for: .NSManagedObjectContextDidMergeChangesObjectIDs, object: NewsData.mainThreadContext)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.updateCounts(self.nodes)
-            }
-            .store(in: &cancellables)
-        NotificationCenter.default
-            .publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.updateCounts(self.nodes)
-            }
-            .store(in: &cancellables)
+        itemPublisher.sink { items in
+            print("Updating in Tree Model")
+            self.items = items
+            self.updateCounts(self.nodes)
+        }
+        .store(in: &cancellables)
 
         preferences.$hideRead.sink { [weak self] newHideRead in
             guard let self = self else { return }
@@ -126,6 +117,22 @@ class FeedTreeModel: ObservableObject {
             self.updateSortOldestFirst(self.nodes, sortOldestFirst: newSortOldestFirst)
         }
         .store(in: &cancellables)
+    }
+
+    func nodeItems(_ nodeType: NodeType) -> [CDItem] {
+        switch nodeType {
+        case .all:
+            return items
+        case .starred:
+            return items.filter({ $0.starred == true })
+        case .folder(let id):
+            if let feedIds = CDFeed.idsInFolder(folder: id) {
+                return items.filter({ feedIds.contains($0.feedId) })
+            }
+        case .feed(let id):
+            return items.filter({ $0.feedId == id })
+        }
+        return []
     }
 
     private func updatePredicate(_ nodes: [Node<TreeNode>], hideRead: Bool) {

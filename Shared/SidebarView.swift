@@ -21,9 +21,9 @@ extension ModalSheet: Identifiable {
 }
 
 struct SidebarView: View {
+    @EnvironmentObject private var model: FeedTreeModel
     @AppStorage(StorageKeys.selectedFolder) private var selection: String?
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-    @StateObject private var nodeTree = FeedTreeModel()
     @State private var isShowingSheet = false
     @State private var isShowingFolderRename = false
     @State private var isShowingAddModal = false
@@ -39,7 +39,7 @@ struct SidebarView: View {
     var body: some View {
         GeometryReader { geometry in
             List(selection: $selection) {
-                OutlineGroup(nodeTree.nodes, children: \.children) { item in
+                OutlineGroup(model.nodes, children: \.children) { item in
                     NodeView(node: item)
                         .contextMenu {
                             switch item.value.nodeType {
@@ -98,7 +98,7 @@ struct SidebarView: View {
                             do {
                                 isSyncing = true
                                 try await NewsManager().sync()
-                                nodeTree.update()
+                                model.update()
                             } catch {
                                 isSyncing = false
                             }
@@ -129,7 +129,7 @@ struct SidebarView: View {
             .refreshable {
                 do {
                     try await NewsManager().sync()
-                    nodeTree.update()
+                    model.update()
                 } catch {
                     //
                 }
@@ -177,8 +177,8 @@ struct SidebarView_Previews: PreviewProvider {
     }
 }
 
-struct RectPreferences<Item: Hashable>: PreferenceKey {
-    typealias Value = [Item: CGRect]
+struct RectPreferences<NSManagedObjectID: Hashable>: PreferenceKey {
+    typealias Value = [NSManagedObjectID: CGRect]
 
     static var defaultValue: Value { [:] }
 
