@@ -97,13 +97,7 @@
 		D02FA075269E2E7600A77875 /* FeedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02FA073269E2E7600A77875 /* FeedSettingsView.swift */; };
 		D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
 		D045A16126C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
-		D04A495B26FE9181003FD659 /* Throttler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A495A26FE9181003FD659 /* Throttler.swift */; };
-		D04A495C26FE9181003FD659 /* Throttler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A495A26FE9181003FD659 /* Throttler.swift */; };
 		D04A49652701278F003FD659 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D04A49642701278F003FD659 /* Kingfisher */; };
-		D04A496C27014938003FD659 /* ItemImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A496B27014938003FD659 /* ItemImageView.swift */; };
-		D04A496D27014938003FD659 /* ItemImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A496B27014938003FD659 /* ItemImageView.swift */; };
-		D04A496F2702ACA2003FD659 /* ItemStarredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A496E2702ACA2003FD659 /* ItemStarredView.swift */; };
-		D04A49702702ACA2003FD659 /* ItemStarredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A496E2702ACA2003FD659 /* ItemStarredView.swift */; };
 		D04A49722702AE62003FD659 /* FavIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A49712702AE62003FD659 /* FavIconView.swift */; };
 		D04A49732702AE62003FD659 /* FavIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A49712702AE62003FD659 /* FavIconView.swift */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
@@ -139,6 +133,8 @@
 		D0CAF5E3270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5E827127A3100BB9062 /* CDItemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */; };
 		D0CAF5E927127A3100BB9062 /* CDItemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */; };
+		D0CAF5EB2713A6F900BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5EA2713A6F900BB9062 /* ItemViews.swift */; };
+		D0CAF5EC2713A6F900BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5EA2713A6F900BB9062 /* ItemViews.swift */; };
 		D0E8C64126A24C7900BA3ABE /* FolderRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */; };
 		D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */; };
 		D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
@@ -211,9 +207,6 @@
 		D02F44EB265C89F700A3505B /* FeedTreeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedTreeNode.swift; sourceTree = "<group>"; };
 		D02FA073269E2E7600A77875 /* FeedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedSettingsView.swift; sourceTree = "<group>"; };
 		D045A15F26C5F6D4002E553F /* LoginWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginWebView.swift; sourceTree = "<group>"; };
-		D04A495A26FE9181003FD659 /* Throttler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Throttler.swift; sourceTree = "<group>"; };
-		D04A496B27014938003FD659 /* ItemImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImageView.swift; sourceTree = "<group>"; };
-		D04A496E2702ACA2003FD659 /* ItemStarredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemStarredView.swift; sourceTree = "<group>"; };
 		D04A49712702AE62003FD659 /* FavIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavIconView.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		D0698978268569BF005AA05B /* ItemListItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemListItemView.swift; sourceTree = "<group>"; };
@@ -230,6 +223,7 @@
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		D0CAF5E1270A603000BB9062 /* ItemStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemStorage.swift; sourceTree = "<group>"; };
 		D0CAF5E727127A3100BB9062 /* CDItemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CDItemExtension.swift; sourceTree = "<group>"; };
+		D0CAF5EA2713A6F900BB9062 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderRenameView.swift; sourceTree = "<group>"; };
 		D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
@@ -297,11 +291,10 @@
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D0B0B2F8267ED1D900A997DB /* ItemsView.swift */,
 				D0698978268569BF005AA05B /* ItemListItemView.swift */,
-				D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */,
-				D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */,
+				D0CAF5EA2713A6F900BB9062 /* ItemViews.swift */,
 				D04A49712702AE62003FD659 /* FavIconView.swift */,
-				D04A496B27014938003FD659 /* ItemImageView.swift */,
-				D04A496E2702ACA2003FD659 /* ItemStarredView.swift */,
+				D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */,
+				D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
 				D0FEBD68268BFCDB00AC0618 /* ArticleWebView.swift */,
@@ -318,7 +311,6 @@
 				D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
-				D04A495A26FE9181003FD659 /* Throttler.swift */,
 				D0FEBD5D268AB57F00AC0618 /* rss.css */,
 				D02F44A2265C86BF00A3505B /* Assets.xcassets */,
 				D0FEBD59268AB55600AC0618 /* Colors.xcassets */,
@@ -566,21 +558,19 @@
 				D02F4545265C8D2800A3505B /* CDRead+CoreDataClass.swift in Sources */,
 				D02F453F265C8D1800A3505B /* CDRead+CoreDataProperties.swift in Sources */,
 				D0E8C64126A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
+				D0CAF5EB2713A6F900BB9062 /* ItemViews.swift in Sources */,
 				D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */,
 				D0CAF5E827127A3100BB9062 /* CDItemExtension.swift in Sources */,
-				D04A495B26FE9181003FD659 /* Throttler.swift in Sources */,
 				D081F85226CB483E00511B60 /* SafariActivity.swift in Sources */,
 				D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */,
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F4525265C8CDD00A3505B /* CDItem+CoreDataClass.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D02F44ED265C89F700A3505B /* FeedTreeNode.swift in Sources */,
-				D04A496C27014938003FD659 /* ItemImageView.swift in Sources */,
 				D02F4529265C8CE700A3505B /* CDStarred+CoreDataClass.swift in Sources */,
 				D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */,
-				D04A496F2702ACA2003FD659 /* ItemStarredView.swift in Sources */,
 				D0B0B2F3267D7DC000A997DB /* NewsData.xcdatamodeld in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D02F4517265C8CB900A3505B /* Feeds.swift in Sources */,
@@ -643,21 +633,19 @@
 				D02F4546265C8D2900A3505B /* CDRead+CoreDataClass.swift in Sources */,
 				D02F4540265C8D1900A3505B /* CDRead+CoreDataProperties.swift in Sources */,
 				D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
+				D0CAF5EC2713A6F900BB9062 /* ItemViews.swift in Sources */,
 				D0FEBD67268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F2265C89F700A3505B /* NotificationNames.swift in Sources */,
 				D0CAF5E927127A3100BB9062 /* CDItemExtension.swift in Sources */,
-				D04A495C26FE9181003FD659 /* Throttler.swift in Sources */,
 				D081F85326CB483E00511B60 /* SafariActivity.swift in Sources */,
 				D0B8A80A269928C3002A99A4 /* NodeView.swift in Sources */,
 				D064CAEF26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F4526265C8CDD00A3505B /* CDItem+CoreDataClass.swift in Sources */,
 				D02F451C265C8CC500A3505B /* Avatar.swift in Sources */,
 				D02F44EC265C89F700A3505B /* FeedTreeNode.swift in Sources */,
-				D04A496D27014938003FD659 /* ItemImageView.swift in Sources */,
 				D02F452A265C8CE800A3505B /* CDStarred+CoreDataClass.swift in Sources */,
 				D07A043826E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F2267C2B0500A997DB /* StorageKeys.swift in Sources */,
-				D04A49702702ACA2003FD659 /* ItemStarredView.swift in Sources */,
 				D0B0B2F4267D7DC000A997DB /* NewsData.xcdatamodeld in Sources */,
 				D045A16126C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D02F4518265C8CBA00A3505B /* Feeds.swift in Sources */,

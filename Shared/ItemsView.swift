@@ -49,16 +49,17 @@ struct ItemsView: View {
                             .disabled(isMarkAllReadDisabled)
                         }
                     })
-                    .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                    }
                     GeometryReader {
                         let offset = -$0.frame(in: .named("scroll")).minY
                         Color.clear.preference(key: ViewOffsetKey.self, value: offset)
                     }
                 }
             }
+            .navigationTitle(navTitle)
             .coordinateSpace(name: "scroll")
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
             .onPreferenceChange(ViewOffsetKey.self) {
                 scrollViewHelper.currentOffset = $0
             }.onReceive(scrollViewHelper.$offsetAtScrollEnd) {
@@ -77,7 +78,6 @@ struct ItemsView: View {
                     }
                 }
             }
-            .navigationTitle(navTitle)
             .onReceive(node.$unreadCount) { unreadCount in
                 isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
             }
