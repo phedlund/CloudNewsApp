@@ -29,7 +29,7 @@ struct ItemListItemViev: View {
                 HStack(alignment: .top, spacing: 10, content: {
                     ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: cellHeight))
                     HStack {
-                        VStack(alignment: .leading, spacing: 8, content: {
+                        VStack(alignment: .leading, spacing: 8) {
                             TitleView(item: item)
                             FavIconDateAuthorView(item: item)
                             if settings.compactView /*|| horizontalSizeClass == .compact*/ {
@@ -37,13 +37,9 @@ struct ItemListItemViev: View {
                             } else {
                                 BodyView(item: item)
                             }
-                            if settings.compactView /*|| horizontalSizeClass == .compact*/ {
-                                EmptyView()
-                            } else {
-                                Spacer()
-                            }
-                        })
-                            .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                            Spacer()
+                        }
+                        .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
                         Spacer()
                     }
                     .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
