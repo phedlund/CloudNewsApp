@@ -12,16 +12,18 @@ import SwiftUI
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
     @EnvironmentObject private var model: FeedTreeModel
+    @EnvironmentObject private var settings: Preferences
     @StateObject var scrollViewHelper = ScrollViewHelper()
     @ObservedObject var node: Node<TreeNode>
     @State private var isMarkAllReadDisabled = true
     @State private var navTitle = ""
+    @State private var cellHeight: CGFloat = 160.0
+    @State private var thumbnailWidth: CGFloat = 145.0
 
     var body: some View {
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
-            let cellHeight: CGFloat = 160.0  /*85*/
             let _ = print("Redrawing list")
             let items = model.nodeItems(node.value.nodeType)
             ScrollView {
@@ -83,6 +85,10 @@ struct ItemsView: View {
             }
             .onReceive(node.$title) { title in
                 navTitle = title ?? "Untitled"
+            }
+            .onReceive(settings.$compactView) { newCompactView in
+                cellHeight = newCompactView ? 85.0 : 160.0
+                thumbnailWidth = newCompactView ? 66.0 : 145.0
             }
         }
     }

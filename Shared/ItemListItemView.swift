@@ -13,31 +13,31 @@ import Kingfisher
 struct ItemListItemViev: View {
 //    @Environment(\.verticalSizeClass) var verticalSizeClass
 //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @AppStorage(StorageKeys.compactView) private var compactView: Bool?
+    @EnvironmentObject private var settings: Preferences
     @ObservedObject var item: CDItem
+    @State private var cellHeight: CGFloat = 160.0
+    @State private var thumbnailWidth: CGFloat = 145.0
 
     @ViewBuilder
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        let isCompactView = compactView ?? false
         ZStack {
             Rectangle()
                 .foregroundColor(Color(.white))
                 .edgesIgnoringSafeArea(.all)
                 .cornerRadius(4)
-            VStack(content: {
+            VStack {
                 HStack(alignment: .top, spacing: 10, content: {
-                    ItemImageView(item: item)
+                    ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: cellHeight))
                     HStack {
                         VStack(alignment: .leading, spacing: 8, content: {
                             TitleView(item: item)
                             FavIconDateAuthorView(item: item)
-                            if isCompactView /*|| horizontalSizeClass == .compact*/ {
+                            if settings.compactView /*|| horizontalSizeClass == .compact*/ {
                                 EmptyView()
                             } else {
                                 BodyView(item: item)
                             }
-                            if isCompactView /*|| horizontalSizeClass == .compact*/ {
+                            if settings.compactView /*|| horizontalSizeClass == .compact*/ {
                                 EmptyView()
                             } else {
                                 Spacer()
@@ -57,7 +57,7 @@ struct ItemListItemViev: View {
                 //                        } else {
                 //                            EmptyView()
                 //                        }
-            })
+            }
         }
         .contextMenu {
             let isUnRead = item.unread
@@ -89,11 +89,16 @@ struct ItemListItemViev: View {
         .background(Color(.white) // any non-transparent background
                         .cornerRadius(4)
                         .shadow(color: Color(white: 0.4, opacity: 0.35), radius: 2, x: 0, y: 2))
+        .onReceive(settings.$compactView) { newCompactView in
+            cellHeight = newCompactView ? 85.0 : 160.0
+            thumbnailWidth = newCompactView ? 66.0 : 145.0
+        }
+
         //            }
     }
     //        else {
     //            EmptyView()
     //        }
     //    }
-    
+
 }

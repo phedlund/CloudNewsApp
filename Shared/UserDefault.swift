@@ -61,11 +61,12 @@ final class UserDefault<T>: NSObject {
 
 // Holds a reference to all the values we store in UserDefaults. This isn't necessary but once you start
 // having a lot of preferences in your app, you'll probably want to have those in a single place.
-struct Preferences {
+class Preferences: ObservableObject {
     @UserDefault(StorageKeys.hideRead) var hideRead = false
     @UserDefault(StorageKeys.sortOldestFirst) var sortOldestFirst = false
     @UserDefault(StorageKeys.marginPortrait) var marginPortrait = 70
     @UserDefault(StorageKeys.fontSize) var fontSize = 14
     @UserDefault(StorageKeys.lineHeight) var lineHeight = 1.4
     @UserDefault(StorageKeys.lastModified) var lastModified: Int32 = 0
+    @UserDefault(StorageKeys.compactView) var compactView = false
 }
