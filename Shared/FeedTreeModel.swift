@@ -13,8 +13,6 @@ final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
     @Published var unreadCount: String?
     @Published var title: String?
-    @Published var predicate = NSPredicate(value: true)
-    @Published var sortDescriptors = [SortDescriptor(\CDItem.pubDate, order: .reverse)]
 
     private(set) var children: [Node]?
 
@@ -71,6 +69,9 @@ extension Node where Value: Equatable {
 class FeedTreeModel: ObservableObject {
     @Published var nodes = [Node<TreeNode>]()
 
+    private var isHidingRead = false
+    private var isSortingOldestFirst = false
+
     private var folders = [CDFolder]() {
         willSet {
             nodes = update()
@@ -89,6 +90,12 @@ class FeedTreeModel: ObservableObject {
     init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),
          folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher(),
          itemPublisher: AnyPublisher<[CDItem], Never> = ItemStorage.shared.items.eraseToAnyPublisher()) {
+        itemPublisher.sink { items in
+            print("Updating in Tree Model")
+            self.items = items
+            self.updateCounts(self.nodes)
+        }
+        .store(in: &cancellables)
         feedPublisher.sink { feeds in
             print("Updating Feeds")
             self.feeds = feeds
@@ -99,84 +106,48 @@ class FeedTreeModel: ObservableObject {
             self.folders = folders
         }
         .store(in: &cancellables)
-        itemPublisher.sink { items in
-            print("Updating in Tree Model")
-            self.items = items
-            self.updateCounts(self.nodes)
-        }
-        .store(in: &cancellables)
 
         preferences.$hideRead.sink { [weak self] newHideRead in
             guard let self = self else { return }
-            self.updatePredicate(self.nodes, hideRead: newHideRead)
+            self.isHidingRead = newHideRead
         }
         .store(in: &cancellables)
 
         preferences.$sortOldestFirst.sink { [weak self] newSortOldestFirst in
             guard let self = self else { return }
-            self.updateSortOldestFirst(self.nodes, sortOldestFirst: newSortOldestFirst)
+            self.isSortingOldestFirst = newSortOldestFirst
         }
         .store(in: &cancellables)
     }
 
     func nodeItems(_ nodeType: NodeType) -> [CDItem] {
+        var filteredItems = [CDItem]()
+
         switch nodeType {
         case .all:
-            return items
+            filteredItems = items.filter({ isHidingRead ? $0.unread : true })
         case .starred:
-            return items.filter({ $0.starred == true })
+            filteredItems = items.filter { item in
+                let check1 = item.starred == true
+                let check2 = isHidingRead ? item.unread : true
+                return check1 && check2
+            }
         case .folder(let id):
             if let feedIds = CDFeed.idsInFolder(folder: id) {
-                return items.filter({ feedIds.contains($0.feedId) })
+                filteredItems = items.filter { item in
+                    let check1 = feedIds.contains(item.feedId)
+                    let check2 = isHidingRead ? item.unread : true
+                    return check1 && check2
+                }
             }
         case .feed(let id):
-            return items.filter({ $0.feedId == id })
-        }
-        return []
-    }
-
-    private func updatePredicate(_ nodes: [Node<TreeNode>], hideRead: Bool) {
-
-        func update(_ node: Node<TreeNode>) {
-            switch node.value.nodeType {
-            case .all:
-                node.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(value: true), unredPredicate])
-            case .starred:
-                node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "starred == true"), unredPredicate])
-            case .folder(let id):
-                if let feedIds = CDFeed.idsInFolder(folder: id) {
-                    node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId IN %@", feedIds), unredPredicate])
-                } else {
-                    node.predicate =  NSPredicate(value: false)
-                }
-            case .feed(let id):
-                node.predicate =  NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "feedId == %d", id), unredPredicate])
+            filteredItems = items.filter { item in
+                let check1 = item.feedId == id
+                let check2 = isHidingRead ? item.unread : true
+                return check1 && check2
             }
         }
-
-        let unredPredicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-
-        for node in nodes {
-            if let childNodes = node.children {
-                for childNode in childNodes {
-                    update(childNode)
-                }
-            }
-            update(node)
-        }
-    }
-
-    private func updateSortOldestFirst(_ nodes: [Node<TreeNode>], sortOldestFirst: Bool) {
-        let sortDescriptors = [SortDescriptor(\CDItem.pubDate, order: sortOldestFirst ? .forward : .reverse)]
-
-        for node in nodes {
-            if let childNodes = node.children {
-                for childNode in childNodes {
-                    childNode.sortDescriptors = sortDescriptors
-                }
-            }
-            node.sortDescriptors = sortDescriptors
-        }
+        return filteredItems.sorted(by: { isSortingOldestFirst ? $1.id > $0.id : $0.id > $1.id })
     }
 
     private func updateCounts(_ nodes: [Node<TreeNode>]) {
@@ -213,8 +184,6 @@ class FeedTreeModel: ObservableObject {
             }
         }
         updateCounts(result)
-        updatePredicate(result, hideRead: preferences.hideRead)
-        updateSortOldestFirst(result, sortOldestFirst: preferences.sortOldestFirst)
         return result
     }
 

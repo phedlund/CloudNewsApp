@@ -19,13 +19,13 @@ struct ItemsView: View {
     @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0
     @State private var thumbnailWidth: CGFloat = 145.0
+    @State private var items = [CDItem]()
 
     var body: some View {
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
             let _ = print("Redrawing list")
-            let items = model.nodeItems(node.value.nodeType)
             ScrollView {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
@@ -79,6 +79,12 @@ struct ItemsView: View {
                         }
                     }
                 }
+            }
+            .onReceive(settings.$hideRead) { _ in
+                items = model.nodeItems(node.value.nodeType)
+            }
+            .onReceive(settings.$sortOldestFirst) { _ in
+                items = model.nodeItems(node.value.nodeType)
             }
             .onReceive(node.$unreadCount) { unreadCount in
                 isMarkAllReadDisabled = unreadCount?.isEmpty ?? true
