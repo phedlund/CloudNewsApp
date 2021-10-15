@@ -12,15 +12,12 @@ import SwiftUI
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
     @Published var unreadCount: String?
-    @Published var title: String?
+    @Published var title = ""
 
     private(set) var children: [Node]?
 
     init() {
-        value = TreeNode(isLeaf: true,
-                         sortId: -1,
-                         basePredicate: NSPredicate(value: true),
-                         nodeType: .all) as! Value
+        value = TreeNode(nodeType: .all) as! Value
         title = "All Articles"
     }
 
@@ -189,10 +186,7 @@ class FeedTreeModel: ObservableObject {
 
     private func allItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
-        let itemsNode = TreeNode(isLeaf: true,
-                                 sortId: 0,
-                                 basePredicate: NSPredicate(value: true),
-                                 nodeType: .all)
+        let itemsNode = TreeNode(nodeType: .all)
         let node = Node(itemsNode)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
@@ -200,10 +194,7 @@ class FeedTreeModel: ObservableObject {
 
     private func starredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
-        let itemsNode = TreeNode(isLeaf: true,
-                                 sortId: 1,
-                                 basePredicate: NSPredicate(format: "starred == true"),
-                                 nodeType: .starred)
+        let itemsNode = TreeNode(nodeType: .starred)
         let node = Node(itemsNode)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
@@ -220,10 +211,7 @@ class FeedTreeModel: ObservableObject {
             return NSPredicate(value: false)
         }
         
-        let folderNode = TreeNode(isLeaf: false,
-                                       sortId: Int(folder.id) + 100,
-                                       basePredicate: basePredicate,
-                                       nodeType: .folder(id: folder.id))
+        let folderNode = TreeNode(nodeType: .folder(id: folder.id))
         
         if let feeds = CDFeed.inFolder(folder: folder.id) {
             var children = [Node<TreeNode>]()
@@ -242,10 +230,7 @@ class FeedTreeModel: ObservableObject {
     private func feedNode(feed: CDFeed) -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
 
-        let itemsNode = TreeNode(isLeaf: true,
-                                 sortId: Int(feed.id) + 1000,
-                                 basePredicate: NSPredicate(format: "feedId == %d", feed.id),
-                                 nodeType: .feed(id: feed.id))
+        let itemsNode = TreeNode(nodeType: .feed(id: feed.id))
         let node = Node(itemsNode)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node

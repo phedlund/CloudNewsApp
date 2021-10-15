@@ -9,16 +9,12 @@
 import Foundation
 
 protocol FeedTreeNode {
-    var isLeaf: Bool { get }
     var title: String { get }
     var unreadCount: String { get }
-    var sortId: Int { get }
-    var basePredicate: NSPredicate { get }
     var nodeType: NodeType { get }
 }
 
 struct TreeNode: FeedTreeNode {
-    var isLeaf: Bool
     var title: String {
         switch nodeType {
         case .all:
@@ -35,7 +31,5 @@ struct TreeNode: FeedTreeNode {
         let count = CDItem.unreadCount(nodeType: nodeType)
         return count > 0 ? "\(count)" : ""
     }
-    var sortId: Int
-    var basePredicate: NSPredicate
     var nodeType: NodeType
 }

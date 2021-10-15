@@ -75,7 +75,6 @@ struct SidebarView: View {
                                 .disabled(true)
                             }
                         }
-                        .tag(item.value.sortId)
                         .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
                             [item.id: geometry[$0]]
                         }

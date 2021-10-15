@@ -17,7 +17,7 @@ struct NodeView: View {
                         .environmentObject(model)) {
             HStack {
                 Label {
-                    Text(node.value.title)
+                    Text(node.title)
                         .lineLimit(1)
                 } icon: {
                     FeedFavIconView(nodeType: node.value.nodeType)
@@ -32,7 +32,7 @@ struct NodeView: View {
                                     .fill(.gray)
                                     .opacity(node.value.unreadCount.isEmpty ? 0.0 : 1.0))
             }
-            .padding(.trailing, node.value.isLeaf ? 23 : 0)
+            .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
         }
         .onReceive(node.$unreadCount) { newUnreadCount in
             unreadCount = newUnreadCount ?? ""
