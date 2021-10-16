@@ -81,10 +81,10 @@ struct ItemsView: View {
                 }
             }
             .onReceive(settings.$hideRead) { _ in
-                items = model.nodeItems(node.value.nodeType)
+                items = model.nodeItems(node.nodeType)
             }
             .onReceive(settings.$sortOldestFirst) { _ in
-                items = model.nodeItems(node.value.nodeType)
+                items = model.nodeItems(node.nodeType)
             }
             .onReceive(node.$unreadCount) { unreadCount in
                 isMarkAllReadDisabled = unreadCount.isEmpty

@@ -14,20 +14,24 @@ final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
     @Published var unreadCount = ""
     @Published var title = ""
-
+    
+    private(set) var nodeType: NodeType
     private(set) var children = [Node]()
 
     init() {
         value = TreeNode(nodeType: .all) as! Value
+        nodeType = .all
         title = "All Articles"
     }
 
-    init(_ value: Value) {
+    init(_ value: Value, nodeType: NodeType) {
         self.value = value
+        self.nodeType = nodeType
     }
 
-    init(_ value: Value, children: [Node]) {
+    init(_ value: Value, nodeType: NodeType, children: [Node]) {
         self.value = value
+        self.nodeType = nodeType
         self.children = children
     }
 
@@ -185,7 +189,7 @@ class FeedTreeModel: ObservableObject {
     private func allItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
         let itemsNode = TreeNode(nodeType: .all)
-        let node = Node(itemsNode)
+        let node = Node(itemsNode, nodeType: .all)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
@@ -193,7 +197,7 @@ class FeedTreeModel: ObservableObject {
     private func starredItemsNode() -> Node<TreeNode> {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
         let itemsNode = TreeNode(nodeType: .starred)
-        let node = Node(itemsNode)
+        let node = Node(itemsNode, nodeType: .starred)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
 
@@ -216,11 +220,11 @@ class FeedTreeModel: ObservableObject {
             for feed in feeds {
                 children.append(feedNode(feed: feed))
             }
-            let node = Node(folderNode, children: children)
+            let node = Node(folderNode, nodeType: .folder(id: folder.id), children: children)
             node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
             return node
         }
-        let node = Node(folderNode)
+        let node = Node(folderNode, nodeType: .folder(id: folder.id))
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
@@ -229,7 +233,7 @@ class FeedTreeModel: ObservableObject {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
 
         let itemsNode = TreeNode(nodeType: .feed(id: feed.id))
-        let node = Node(itemsNode)
+        let node = Node(itemsNode, nodeType: .feed(id: feed.id))
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
