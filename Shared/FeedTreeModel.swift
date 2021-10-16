@@ -153,8 +153,8 @@ class FeedTreeModel: ObservableObject {
     private func updateCounts(_ nodes: [Node<TreeNode>]) {
 
         func update(_ node: Node<TreeNode>) {
-            node.unreadCount = node.value.unreadCount
-            node.title = node.value.title
+            node.unreadCount = nodeUnreadCount(node.nodeType)
+            node.title = nodeTitle(node.nodeType)
         }
 
         for node in nodes {
@@ -163,6 +163,24 @@ class FeedTreeModel: ObservableObject {
             }
 
             update(node)
+        }
+    }
+    
+    private func nodeUnreadCount(_ nodeType: NodeType) -> String {
+        let count = CDItem.unreadCount(nodeType: nodeType)
+        return count > 0 ? "\(count)" : ""
+    }
+
+    private func nodeTitle(_ nodeType: NodeType) -> String {
+        switch nodeType {
+        case .all:
+            return "All Articles"
+        case .starred:
+            return "Starred Articles"
+        case .folder(let id):
+            return CDFolder.folder(id: id)?.name ?? "Untitled Folder"
+        case .feed(let id):
+            return CDFeed.feed(id: id)?.title ?? "Untitled Feed"
         }
     }
 
