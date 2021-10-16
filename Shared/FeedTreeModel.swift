@@ -8,13 +8,14 @@
 import Combine
 import CoreData
 import SwiftUI
+import SwiftSoup
 
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
     @Published var unreadCount = ""
     @Published var title = ""
 
-    private(set) var children: [Node]?
+    private(set) var children = [Node]()
 
     init() {
         value = TreeNode(nodeType: .all) as! Value
@@ -51,11 +52,9 @@ extension Node where Value: Equatable {
             return self
         }
 
-        if let children = children {
-            for child in children {
-                if let match = child.find(value) {
-                    return match
-                }
+        for child in children {
+            if let match = child.find(value) {
+                return match
             }
         }
 
@@ -155,11 +154,10 @@ class FeedTreeModel: ObservableObject {
         }
 
         for node in nodes {
-            if let childNodes = node.children {
-                for childNode in childNodes {
-                    update(childNode)
-                }
+            for childNode in node.children {
+                update(childNode)
             }
+
             update(node)
         }
     }

@@ -25,11 +25,8 @@ struct SidebarView: View {
     @AppStorage(StorageKeys.selectedFolder) private var selection: String?
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @State private var isShowingSheet = false
-    @State private var isShowingFolderRename = false
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
-    @State private var nodeFrame: CGRect = .zero
-    @State private var preferences = [ObjectIdentifier: CGRect]()
     @State private var isSyncing = false
 
     private var publisher = NotificationCenter.default
@@ -38,53 +35,22 @@ struct SidebarView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            List(selection: $selection) {
-                OutlineGroup(model.nodes, children: \.children) { item in
-                    NodeView(node: item)
-                        .contextMenu {
-                            switch item.value.nodeType {
-                            case .all, .starred:
-                                EmptyView()
-                            case .folder(let folderId):
-                                Button {
-                                    selectedFeed = Int(folderId)
-                                    nodeFrame = preferences[item.id] ?? .zero
-                                    isShowingFolderRename = true
-                                } label: {
-                                    Label("Rename...", systemImage: "square.and.pencil")
-                                }
-                                Button(role: .destructive) {
-                                    //
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                .disabled(true)
-                            case .feed(let feedId):
-                                Button {
-                                    selectedFeed = Int(feedId)
-                                    modalSheet = .feedSettings
-                                    isShowingSheet = true
-                                } label: {
-                                    Label("Settings...", systemImage: "gearshape")
-                                }
-                                Button(role: .destructive) {
-                                    //
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                .disabled(true)
+            List {
+                ForEach(model.nodes) { node in
+                    if !node.children.isEmpty {
+                        DisclosureGroup {
+                            ForEach(node.children) { child in
+                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                             }
+                        } label: {
+                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                         }
-                        .anchorPreference(key: RectPreferences<ObjectIdentifier>.self, value: .bounds) {
-                            [item.id: geometry[$0]]
-                        }
-                        .onPreferenceChange(RectPreferences<ObjectIdentifier>.self) { rects in
-                            if let newPreference = rects.first {
-                                self.preferences[newPreference.key] = newPreference.value
-                            }
-                        }
+                    } else {
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                    }
                 }
             }
+            .listStyle(.sidebar)
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ProgressView()
@@ -121,7 +87,6 @@ struct SidebarView: View {
                     }
                 }
             })
-            .listStyle(.sidebar)
             .onReceive(publisher) { _ in
                 isSyncing = false
             }
@@ -161,11 +126,6 @@ struct SidebarView: View {
                     })
                 }
             })
-            .popover(isPresented: $isShowingFolderRename,
-                     attachmentAnchor: .rect(.rect(nodeFrame)),
-                     arrowEdge: .trailing) {
-                FolderRenameView(showModal: $isShowingFolderRename)
-            }
         }
     }
 }
