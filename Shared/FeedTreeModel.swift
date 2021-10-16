@@ -11,7 +11,7 @@ import SwiftUI
 
 final class Node<Value>: Identifiable, ObservableObject {
     @Published var value: Value
-    @Published var unreadCount: String?
+    @Published var unreadCount = ""
     @Published var title = ""
 
     private(set) var children: [Node]?

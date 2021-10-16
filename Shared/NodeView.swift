@@ -24,18 +24,18 @@ struct NodeView: View {
                 }
                 .labelStyle(.titleAndIcon)
                 Spacer(minLength: 12)
-                Text(node.value.unreadCount)
+                Text(node.unreadCount)
                     .font(.subheadline)
                     .colorInvert()
                     .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
                     .background(Capsule()
                                     .fill(.gray)
-                                    .opacity(node.value.unreadCount.isEmpty ? 0.0 : 1.0))
+                                    .opacity(node.unreadCount.isEmpty ? 0.0 : 1.0))
             }
             .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
         }
         .onReceive(node.$unreadCount) { newUnreadCount in
-            unreadCount = newUnreadCount ?? ""
+            unreadCount = newUnreadCount
         }
     }
 }
