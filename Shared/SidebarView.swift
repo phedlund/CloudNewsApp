@@ -21,7 +21,7 @@ extension ModalSheet: Identifiable {
 }
 
 struct SidebarView: View {
-    @EnvironmentObject private var model: FeedTreeModel
+    @EnvironmentObject private var model: FeedModel
     @AppStorage(StorageKeys.selectedFolder) private var selection: String?
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @State private var isShowingSheet = false

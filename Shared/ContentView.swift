@@ -11,7 +11,7 @@ import CoreData
 struct ContentView: View {
     @AppStorage(StorageKeys.isloggedIn) private var isLoggedIn = false
     @Environment(\.managedObjectContext) private var viewContext
-    @StateObject private var nodeTree = FeedTreeModel()
+    @StateObject private var nodeTree = FeedModel()
 
     @State private var isShowingLogin = false
 
@@ -37,7 +37,7 @@ struct ContentView: View {
         NavigationView {
             SidebarView()
                 .environmentObject(nodeTree)
-            ItemsView(node: Node<TreeNode>())
+            ItemsView(node: Node())
                 .environmentObject(nodeTree)
         }
         .onAppear {
@@ -46,7 +46,6 @@ struct ContentView: View {
         .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
             SettingsView(showModal: .constant(true))
         }
-        
     }
 
 }

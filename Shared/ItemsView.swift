@@ -11,10 +11,10 @@ import SwiftUI
 
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @EnvironmentObject private var model: FeedTreeModel
+    @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var settings: Preferences
     @StateObject var scrollViewHelper = ScrollViewHelper()
-    @ObservedObject var node: Node<TreeNode>
+    @ObservedObject var node: Node
     @State private var isMarkAllReadDisabled = true
     @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct NodeView: View {
-    @EnvironmentObject private var model: FeedTreeModel
-    @ObservedObject var node: Node<TreeNode>
+    @EnvironmentObject private var model: FeedModel
+    @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
     @Binding var isShowingSheet: Bool
@@ -40,7 +40,7 @@ struct NodeView: View {
                 }
                 .padding(.trailing, node.children.isEmpty ? 23 : 0)
                 .contextMenu {
-                    switch node.value.nodeType {
+                    switch node.nodeType {
                     case .all, .starred:
                         EmptyView()
                     case .folder(let folderId):
