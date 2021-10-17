@@ -17,9 +17,8 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
     
     static func all() -> [CDFolder]? {
         let request : NSFetchRequest<CDFolder> = self.fetchRequest()
-        //        let sortDescription = NSSortDescriptor(key: sortBy, ascending: ascending)
-        //        request.sortDescriptors = [sortDescription]
-        
+        let sortDescription = NSSortDescriptor(key: "id", ascending: false)
+        request.sortDescriptors = [sortDescription]
         var folderList = [CDFolder]()
         do {
             let results  = try NewsData.mainThreadContext.fetch(request)
