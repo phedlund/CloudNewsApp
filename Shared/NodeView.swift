@@ -7,8 +7,7 @@
 
 import SwiftUI
 
-struct NodeView: View {
-    @EnvironmentObject private var model: FeedModel
+struct NodeView<Content: View> : View {
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
@@ -17,10 +16,11 @@ struct NodeView: View {
     @State private var isShowingFolderRename = false
     @State private var unreadCount = ""
 
+    @ViewBuilder let content: Content
+
     var body: some View {
         GeometryReader { geometry in
-            NavigationLink(destination: ItemsView(node: node)
-                            .environmentObject(model)) {
+            NavigationLink(destination: content) {
                 HStack {
                     Label {
                         Text(node.title)
@@ -30,13 +30,7 @@ struct NodeView: View {
                     }
                     .labelStyle(.titleAndIcon)
                     Spacer(minLength: 12)
-                    Text(node.unreadCount)
-                        .font(.subheadline)
-                        .colorInvert()
-                        .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-                        .background(Capsule()
-                                        .fill(.gray)
-                                        .opacity(node.unreadCount.isEmpty ? 0.0 : 1.0))
+                    BadgeView(text: node.unreadCount)
                 }
                 .padding(.trailing, node.children.isEmpty ? 23 : 0)
                 .contextMenu {
@@ -88,3 +82,16 @@ struct NodeView: View {
 //        NodeView()
 //    }
 //}
+
+struct BadgeView: View {
+    var text: String
+
+    var body: some View {
+        Text(text)
+            .font(.subheadline)
+            .colorInvert()
+            .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
+            .background(Capsule()
+                            .fill(.gray)
+                            .opacity(text.isEmpty ? 0.0 : 1.0))    }
+}

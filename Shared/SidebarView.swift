@@ -32,6 +32,7 @@ struct SidebarView: View {
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
+    @ViewBuilder
     var body: some View {
         GeometryReader { geometry in
             List {
@@ -39,13 +40,22 @@ struct SidebarView: View {
                     if !node.children.isEmpty {
                         FolderDisclosureGroup(node) {
                             ForEach(node.children) { child in
-                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                                    ItemsView(node: child)
+                                        .environmentObject(model)
+                                }
                             }
                         } label: {
-                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                                ItemsView(node: node)
+                                    .environmentObject(model)
+                            }
                         }
                     } else {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                            ItemsView(node: node)
+                                .environmentObject(model)
+                        }
                     }
                 }
             }
