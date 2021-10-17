@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G80" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="CDFeed" representedClassName="CDFeed" versionHashModifier="Add index" syncable="YES">
         <attribute name="added" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="articleCount" optional="YES" attributeType="Integer 32" defaultValueString="250" usesScalarValueType="YES"/>
@@ -29,6 +29,7 @@
         <attribute name="starredCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <entity name="CDFolder" representedClassName="CDFolder" syncable="YES">
+        <attribute name="expanded" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastModified" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
@@ -80,7 +81,7 @@
     <elements>
         <element name="CDFeed" positionX="-342" positionY="-16.40625" width="128" height="283"/>
         <element name="CDFeeds" positionX="-612" positionY="-18" width="128" height="73"/>
-        <element name="CDFolder" positionX="-479" positionY="-18" width="128" height="103"/>
+        <element name="CDFolder" positionX="-479" positionY="-18" width="128" height="104"/>
         <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="284"/>
         <element name="CDRead" positionX="-625.546875" positionY="348.36328125" width="128" height="58"/>
         <element name="CDStarred" positionX="-623.70703125" positionY="278.30859375" width="128" height="58"/>

@@ -13,7 +13,8 @@ import SwiftSoup
 final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = ""
     @Published var title = ""
-    
+
+    fileprivate(set) var isExpanded = false
     private(set) var nodeType: NodeType
     private(set) var children = [Node]()
 
@@ -31,6 +32,17 @@ final class Node: Identifiable, ObservableObject {
         self.children = children
     }
 
+    func updateExpanded(_ isExpanded: Bool) {
+        switch nodeType {
+        case .folder(let id):
+            Task {
+                self.isExpanded = isExpanded
+                try? await CDFolder.markExpanded(folderId: id, state: isExpanded)
+            }
+        case _: ()
+        }
+    }
+
 }
 
 class FeedModel: ObservableObject {
@@ -41,7 +53,7 @@ class FeedModel: ObservableObject {
 
     private var folders = [CDFolder]() {
         willSet {
-            nodes = update()
+//            nodes = update()
         }
     }
     private var feeds = [CDFeed]()  {
@@ -201,10 +213,12 @@ class FeedModel: ObservableObject {
                 children.append(feedNode(feed: feed))
             }
             let node = Node(.folder(id: folder.id), children: children)
+            node.isExpanded = folder.expanded
             node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
             return node
         }
         let node = Node(.folder(id: folder.id))
+        node.isExpanded = folder.expanded
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }

@@ -83,4 +83,21 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
         return nil
     }
 
+    static func markExpanded(folderId: Int32, state: Bool) async throws {
+        try await NewsData.mainThreadContext.perform {
+            let request = CDFolder.fetchRequest()
+            do {
+                let predicate = NSPredicate(format:"id == %d", folderId)
+                request.predicate = predicate
+                let records = try NewsData.mainThreadContext.fetch(request)
+                records.forEach({ folder in
+                    folder.expanded = state
+                })
+                try NewsData.mainThreadContext.save()
+            } catch {
+                throw PBHError.databaseError("Error marking folder expanded")
+            }
+        }
+    }
+
 }

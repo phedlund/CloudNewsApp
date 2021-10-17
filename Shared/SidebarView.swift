@@ -22,7 +22,6 @@ extension ModalSheet: Identifiable {
 
 struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
-    @AppStorage(StorageKeys.selectedFolder) private var selection: String?
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @State private var isShowingSheet = false
     @State private var isShowingAddModal = false
@@ -38,7 +37,7 @@ struct SidebarView: View {
             List {
                 ForEach(model.nodes) { node in
                     if !node.children.isEmpty {
-                        DisclosureGroup {
+                        FolderDisclosureGroup(node) {
                             ForEach(node.children) { child in
                                 NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                             }
