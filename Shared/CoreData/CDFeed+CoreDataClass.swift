@@ -17,6 +17,10 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
     
     static func all() -> [CDFeed]? {
         let request: NSFetchRequest<CDFeed> = self.fetchRequest()
+        let idSortDescriptor = NSSortDescriptor(key: "id", ascending: false)
+        let pinnedSortDescriptor = NSSortDescriptor(key: "pinned", ascending: false)
+        request.sortDescriptors = [pinnedSortDescriptor, idSortDescriptor]
+
         var feedList = [CDFeed]()
         do {
             let results  = try NewsData.mainThreadContext.fetch(request)
