@@ -43,26 +43,14 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         return nil
     }
 
-    static func withoutFolder() -> [FeedProtocol]? {
-        let request: NSFetchRequest<CDFeed> = self.fetchRequest()
-        let predicate = NSPredicate(format: "folderId == 0")
-        request.predicate = predicate
-        var feedList = [FeedProtocol]()
-        do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
-            for record in results {
-                feedList.append(record)
-            }
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return feedList
-    }
-
     static func inFolder(folder: Int32) -> [CDFeed]? {
         let request: NSFetchRequest<CDFeed> = self.fetchRequest()
         let predicate = NSPredicate(format: "folderId == %d", folder)
         request.predicate = predicate
+        let idSortDescriptor = NSSortDescriptor(key: "id", ascending: false)
+        let pinnedSortDescriptor = NSSortDescriptor(key: "pinned", ascending: false)
+        request.sortDescriptors = [pinnedSortDescriptor, idSortDescriptor]
+
         var feedList = [CDFeed]()
         do {
             let results  = try NewsData.mainThreadContext.fetch(request)
