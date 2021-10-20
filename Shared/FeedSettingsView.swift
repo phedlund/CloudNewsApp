@@ -16,41 +16,54 @@ struct FeedSettingsView: View {
     @State private var title = ""
     @State private var folderName: String?
     @State private var preferWeb = false
-    @State private var stepperValue: Int32 = 250
+    @State private var pinned = false
     @State private var folderNames = [String]()
     @State private var folderSelection: String = "(No Folder)"
     @State private var currentFolderName = ""
+    @State private var updateErrorCount = ""
+    @State private var lastUpdateError = ""
 
     var body: some View {
         Form {
-            VStack(alignment: .leading) {
-                Text("URL")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                Text(verbatim: feed?.url ?? "")
-                    .lineLimit(2)
-                    .textSelection(.enabled)
-            }
-            VStack(alignment: .leading) {
-                Text("Title")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                TextField("Title", text: $title)
-            }
-            Picker("Folder", selection: $folderSelection) {
-                ForEach(folderNames, id: \.self) {
-                    Text($0)
+            Section("Settings") {
+                HStack(spacing: 15) {
+                    Text("Title")
+                    TextField("Title", text: $title)
                 }
-            }
-            Toggle("View web version", isOn: $preferWeb)
-            HStack {
-                Stepper(value: $stepperValue, in: 10...500, step: 10) {
-                    HStack {
-                        Text("Articles to keep")
-                        Spacer()
-                        Text("\(stepperValue)")
+                Picker("Folder", selection: $folderSelection) {
+                    ForEach(folderNames, id: \.self) {
+                        Text($0)
                     }
                 }
+                Toggle("View web version", isOn: $preferWeb)
+            }
+            Section {
+                HStack(alignment: .lastTextBaseline, spacing: 15) {
+                    Text("URL")
+                    Text(verbatim: feed?.url ?? "")
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                }
+                Toggle("Pinned", isOn: $pinned)
+                    .disabled(true)
+                HStack(spacing: 15) {
+                    Text("Update Error Count")
+                    Spacer()
+                    Text(verbatim: updateErrorCount)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.trailing)
+                }
+                HStack(spacing: 15) {
+                    Text("Last Update Error")
+                    Spacer()
+                    Text(verbatim: lastUpdateError)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.trailing)
+                }
+            } header: {
+                Text("Information")
+            } footer: {
+                Text("Use the web interface to change or correct this information.\nThe last 30 days of articles will be kept locally.")
             }
         }
         .onAppear {
@@ -60,13 +73,15 @@ struct FeedSettingsView: View {
                 let names = folders.compactMap( { $0.name } )
                 folderNames.append(contentsOf: names)
                 if let folder = CDFolder.folder(id: feed?.folderId ?? 0),
-                    let folderName = folder.name {
+                   let folderName = folder.name {
                     folderSelection = folderName
                     currentFolderName = folderName
                 }
-                stepperValue = feed?.articleCount ?? 250
                 title = feed?.title ?? "Untitled"
                 preferWeb = feed?.preferWeb ?? false
+                pinned = feed?.pinned ?? false
+                updateErrorCount = "\(feed?.updateErrorCount ?? 0)"
+                lastUpdateError = feed?.lastUpdateError ?? "No error"
             }
         }
         .navigationTitle("Feed Settings")

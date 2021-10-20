@@ -108,10 +108,6 @@ struct SidebarView: View {
                 }
             }
             .navigationTitle(Text("Feeds"))
-            //            .modal(isPresented: $isShowingAddModal) {
-            //                AddView()
-            //                    .padding(0)
-            //            }
             .sheet(item: $modalSheet, onDismiss: {
                 isShowingSheet = false
                 modalSheet = nil
