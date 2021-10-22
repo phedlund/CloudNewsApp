@@ -10,37 +10,68 @@ import SwiftUI
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-
-    @State private var feed: CDFeed?
     @State private var title = ""
     @State private var folderName: String?
     @State private var preferWeb = false
-    @State private var pinned = false
+
     @State private var folderNames = [String]()
     @State private var folderSelection: String = "(No Folder)"
     @State private var currentFolderName = ""
-    @State private var updateErrorCount = ""
-    @State private var lastUpdateError = ""
+    @State private var pinned = false
+
+    private var feed: CDFeed?
+    private var updateErrorCount = ""
+    private var lastUpdateError = ""
+    private var url = ""
+
+    init(_ selectedFeed: Int) {
+        if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
+            let folders = CDFolder.all() {
+            self.feed = theFeed
+            var fNames = ["(No Folder)"]
+            let names = folders.compactMap( { $0.name } )
+            fNames.append(contentsOf: names)
+            self._folderNames = State(initialValue: fNames)
+            if let folder = CDFolder.folder(id: theFeed.folderId),
+               let folderName = folder.name {
+                self._folderSelection = State(initialValue: folderName)
+                self._currentFolderName = State(initialValue: folderName)
+            }
+            self._title = State(initialValue: theFeed.title ?? "Untitled")
+            self._preferWeb = State(initialValue: theFeed.preferWeb)
+            self._pinned = State(initialValue: theFeed.pinned)
+            updateErrorCount = "\(theFeed.updateErrorCount)"
+            lastUpdateError = theFeed.lastUpdateError ?? "No error"
+            url = theFeed.url ?? ""
+        }
+    }
 
     var body: some View {
         Form {
             Section("Settings") {
                 HStack(spacing: 15) {
                     Text("Title")
-                    TextField("Title", text: $title)
+                    TextField("Title", text: $title) { isEditing in
+                        if !isEditing {
+                            onTitleCommit()
+                        }
+                    } onCommit: {
+                        onTitleCommit()
+                    }
                 }
                 Picker("Folder", selection: $folderSelection) {
                     ForEach(folderNames, id: \.self) {
                         Text($0)
                     }
+                    .navigationTitle("Folder")
                 }
                 Toggle("View web version", isOn: $preferWeb)
             }
+            .navigationTitle("Feed Settings")
             Section {
                 HStack(alignment: .lastTextBaseline, spacing: 15) {
                     Text("URL")
-                    Text(verbatim: feed?.url ?? "")
+                    Text(verbatim: url)
                         .lineLimit(2)
                         .textSelection(.enabled)
                 }
@@ -66,74 +97,60 @@ struct FeedSettingsView: View {
                 Text("Use the web interface to change or correct this information.\nThe last 30 days of articles will be kept locally.")
             }
         }
-        .onAppear {
-            if folderNames.isEmpty, let folders = CDFolder.all() {
-                self.feed = CDFeed.feed(id: Int32(selectedFeed))
-                folderNames.append("(No Folder)")
-                let names = folders.compactMap( { $0.name } )
-                folderNames.append(contentsOf: names)
-                if let folder = CDFolder.folder(id: feed?.folderId ?? 0),
-                   let folderName = folder.name {
-                    folderSelection = folderName
-                    currentFolderName = folderName
-                }
-                title = feed?.title ?? "Untitled"
-                preferWeb = feed?.preferWeb ?? false
-                pinned = feed?.pinned ?? false
-                updateErrorCount = "\(feed?.updateErrorCount ?? 0)"
-                lastUpdateError = feed?.lastUpdateError ?? "No error"
-            }
-        }
-        .navigationTitle("Feed Settings")
         .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    onSave()
-                    dismiss()
-                } label: {
-                    Text("Save")
-                }
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .cancellationAction) {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Cancel")
+                    Text("Done")
                 }
             }
         })
-    }
-
-    private func onSave() {
-        if let feed = self.feed {
-            if folderSelection != currentFolderName {
-                if let newFolder = CDFolder.folder(name: folderSelection) {
-                    feed.folderId = newFolder.id
-                    Task {
-                        do {
-                            try await NewsManager.shared.moveFeed(feed: feed, to: newFolder.id)
-                        } catch {
-                            //
-                        }
-                    }
+        .onChange(of: folderSelection) { _ in
+            onFolderSelection()
+        }
+        .onChange(of: preferWeb) { newValue in
+            if let feed = self.feed {
+                feed.preferWeb = preferWeb
+                do {
+                    try NewsData.mainThreadContext.save()
+                } catch {
+                    //
                 }
             }
+        }
+    }
+
+    private func onTitleCommit() {
+        if let feed = self.feed {
             if !title.isEmpty, title != feed.title {
-                feed.title = title
                 Task {
                     do {
                         try await NewsManager.shared.renameFeed(feed: feed, to: title)
+                        feed.title = title
+                        try NewsData.mainThreadContext.save()
                     } catch {
                         //
                     }
                 }
             }
-            feed.preferWeb = preferWeb
-            feed.articleCount = stepperValue
-            do {
-                try NewsData.mainThreadContext.save()
-            } catch {
-                //
+        }
+    }
+
+    private func onFolderSelection() {
+        if let feed = self.feed {
+            if folderSelection != currentFolderName {
+                if let newFolder = CDFolder.folder(name: folderSelection) {
+                    Task {
+                        do {
+                            try await NewsManager.shared.moveFeed(feed: feed, to: newFolder.id)
+                            feed.folderId = newFolder.id
+                            try NewsData.mainThreadContext.save()
+                        } catch {
+                            //
+                        }
+                    }
+                }
             }
         }
     }
@@ -142,6 +159,6 @@ struct FeedSettingsView: View {
 
 struct FeedSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        FeedSettingsView()
+        FeedSettingsView(-2)
     }
 }

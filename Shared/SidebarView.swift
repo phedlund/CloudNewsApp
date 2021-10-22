@@ -122,9 +122,9 @@ struct SidebarView: View {
                         SettingsView(showModal: $isShowingSheet)
                     })
                 case .feedSettings:
-                    NavigationView(content: {
-                        FeedSettingsView()
-                    })
+                    NavigationView() {
+                        FeedSettingsView(selectedFeed)
+                    }
                 case .login:
                     NavigationView(content: {
                         SettingsView(showModal: $isShowingSheet)
