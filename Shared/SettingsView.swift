@@ -16,6 +16,7 @@ enum KeepDuration: Int, CaseIterable, Identifiable {
 enum SettingsSheet {
     case login
     case add
+    case mail
 }
 
 extension SettingsSheet: Identifiable {
@@ -31,9 +32,6 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @Binding var showModal: Bool
-#if !os(macOS)
-    @State var result: Result<MFMailComposeResult, Error>? = nil
-#endif
     @State var isShowingMailView = false
     
     var body: some View {
@@ -77,6 +75,10 @@ struct SettingsForm: View {
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
     
+    private let email = "support@pbh.dev"
+    private let subject = NSLocalizedString("CloudNotes Support Request", comment: "Support email subject")
+    private let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
+
     var body: some View {
         Form {
 #if os(macOS)
@@ -146,14 +148,11 @@ struct SettingsForm: View {
                 }
             }
             Section(header: Text("Support")) {
-                Label("Contact", systemImage: "mail")
-                ////                    .onTapGesture {
-                ////                        self.isShowingMailView = true
-                ////                    }
-                //                    //                        .disabled(!MFMailComposeViewController.canSendMail())
-                //                    .sheet(isPresented: $isShowingMailView) {
-                //                        MailView(result: self.$result)
-                //                    }
+                Button {
+                    sendMail()
+                } label: {
+                    Label("Contact", systemImage: "mail")
+                }
             }
 #endif
         }
@@ -177,7 +176,7 @@ struct SettingsForm: View {
                         updateFooter()
                     }
                 }
-            case .add:
+            case .add, .mail:
                 break
             case .none:
                 break
@@ -194,6 +193,10 @@ struct SettingsForm: View {
                 NavigationView(content: {
                     LoginWebViewView(server: server)
                 })
+            case .mail:
+                MailComposeView(recipients: [email], subject: subject, message: message) {
+                    // Did finish action
+                }
             }
         })
     }
@@ -210,6 +213,25 @@ struct SettingsForm: View {
         footerLabel = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
     }
     
+    private func sendMail() {
+        if MFMailComposeViewController.canSendMail() {
+            settingsSheet = .mail
+            isShowingMailView = true
+        } else {
+            var components = URLComponents()
+            components.scheme = "mailto"
+            components.path = email
+            components.queryItems = [URLQueryItem(name: "subject", value: subject),
+                                     URLQueryItem(name: "body", value: message)]
+            if let mailURL = components.url {
+                if UIApplication.shared.canOpenURL(mailURL) {
+                    UIApplication.shared.open(mailURL, options: [:], completionHandler: nil)
+                } else {
+                    // No email client configured
+                }
+            }
+        }
+    }
 }
 
 struct SettingsView_Previews: PreviewProvider {
