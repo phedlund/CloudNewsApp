@@ -5,6 +5,23 @@
 //  Created by Peter Hedlund on 6/27/20.
 //
 
+enum KeepDuration: Int, CaseIterable, Identifiable {
+    case one = 1
+    case three = 3
+    case twelve = 12
+
+    var id: Int { self.rawValue }
+}
+
+enum SettingsSheet {
+    case login
+    case add
+}
+
+extension SettingsSheet: Identifiable {
+    var id: SettingsSheet { self }
+}
+
 #if !os(macOS)
 import MessageUI
 #endif
@@ -39,27 +56,30 @@ struct SettingsView: View {
 }
     
 struct SettingsForm: View {
-    @AppStorage(StorageKeys.server) var server: String = ""
-    @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn: Bool = false
-    @AppStorage(StorageKeys.syncOnStart) var syncOnStart: Bool = false
-    @AppStorage(StorageKeys.syncInBackground) var syncInBackground: Bool = false
-    @AppStorage(StorageKeys.productName) var productName: String = ""
-    @AppStorage(StorageKeys.productVersion) var productVersion: String = ""
-    @AppStorage(StorageKeys.newsVersion) var newsVersion: String = ""
-    @AppStorage(StorageKeys.showFavIcons) var showFavIcons: Bool = true
-    @AppStorage(StorageKeys.showThumbnails) var showThumbnails: Bool = true
-    @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst: Bool = false
-    @AppStorage(StorageKeys.compactView) var compactView: Bool = false
+    @AppStorage(StorageKeys.server) var server = ""
+    @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn = false
+    @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
+    @AppStorage(StorageKeys.syncInBackground) var syncInBackground = false
+    @AppStorage(StorageKeys.productName) var productName = ""
+    @AppStorage(StorageKeys.productVersion) var productVersion = ""
+    @AppStorage(StorageKeys.newsVersion) var newsVersion = ""
+    @AppStorage(StorageKeys.showFavIcons) var showFavIcons = true
+    @AppStorage(StorageKeys.showThumbnails) var showThumbnails = true
+    @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling = true
+    @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst = false
+    @AppStorage(StorageKeys.compactView) var compactView = false
+    @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
+    
     @State var isShowingMailView = false
-    @State var isShowingLogIn = false
+    @State var isShowingSheet = false
     @State private var footerLabel = "Hey, I am the footer"
-
+    
     @State private var preferences = Preferences()
-
+    @State private var settingsSheet: SettingsSheet?
+    
     var body: some View {
         Form {
-            #if os(macOS)
+#if os(macOS)
             Toggle(isOn: $syncOnStart) {
                 Text("Sync on Start")
             }
@@ -69,7 +89,7 @@ struct SettingsForm: View {
             }
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, idealHeight: 20, maxHeight: 20, alignment: .leading)
             Color(NSColor.clear)
-            #else
+#else
             Section(header: Text("Server"), footer: Text(footerLabel)) {
                 TextField("https://example.com/cloud", text: $server)
 #if !os(macOS)
@@ -77,7 +97,8 @@ struct SettingsForm: View {
                     .autocapitalization(.none)
 #endif
                 Button {
-                    isShowingLogIn = true
+                    settingsSheet = .login
+                    isShowingSheet = true
                 } label: {
                     Text("Log In")
                 }
@@ -113,39 +134,68 @@ struct SettingsForm: View {
                     Text("Comapct View")
                 }
             }
+            Section(header: Text("Maintenance")) {
+                Picker("Keep Articles For", selection: $keepDuration) {
+                    Text("1 month").tag(KeepDuration.one)
+                    Text("3 months").tag(KeepDuration.three)
+                    Text("12 months").tag(KeepDuration.twelve)
+                        .navigationTitle("Duration")
+                }
+                NavigationLink("Add Feed or Folder...") {
+                    AddView()
+                }
+            }
             Section(header: Text("Support")) {
                 Label("Contact", systemImage: "mail")
-////                    .onTapGesture {
-////                        self.isShowingMailView = true
-////                    }
-//                    //                        .disabled(!MFMailComposeViewController.canSendMail())
-//                    .sheet(isPresented: $isShowingMailView) {
-//                        MailView(result: self.$result)
-//                    }
+                ////                    .onTapGesture {
+                ////                        self.isShowingMailView = true
+                ////                    }
+                //                    //                        .disabled(!MFMailComposeViewController.canSendMail())
+                //                    .sheet(isPresented: $isShowingMailView) {
+                //                        MailView(result: self.$result)
+                //                    }
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             updateFooter()
         })
-        .sheet(isPresented: $isShowingLogIn) {
-            Task {
-                do {
-                    let status = try await NewsManager.shared.status()
-                    productName = status.name
-                    productVersion = status.version
-                    newsVersion = try await NewsManager.shared.version()
-                    updateFooter()
-                } catch {
-                    productName = ""
-                    productVersion = ""
-                    updateFooter()
+        .sheet(item: $settingsSheet,
+               onDismiss: {
+            switch settingsSheet {
+            case .login:
+                Task {
+                    do {
+                        let status = try await NewsManager.shared.status()
+                        productName = status.name
+                        productVersion = status.version
+                        newsVersion = try await NewsManager.shared.version()
+                        updateFooter()
+                    } catch {
+                        productName = ""
+                        productVersion = ""
+                        updateFooter()
+                    }
                 }
+            case .add:
+                break
+            case .none:
+                break
             }
-            isShowingLogIn = false
-        } content: {
-            LoginWebViewView(server: server)
-        }
+            settingsSheet = nil
+            isShowingSheet = false
+        }, content: { sheet in
+            switch sheet {
+            case .add:
+                NavigationView(content: {
+                    AddView()
+                })
+            case .login:
+                NavigationView(content: {
+                    LoginWebViewView(server: server)
+                })
+            }
+        })
     }
 
     private func updateFooter() {

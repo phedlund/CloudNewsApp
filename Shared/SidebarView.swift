@@ -83,14 +83,9 @@ struct SidebarView: View {
                     .disabled(isSyncing)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("Settings...", action: {
-                            modalSheet = .settings
-                            isShowingSheet = true
-                        })
-                        Button("Add...", action: {
-                            isShowingAddModal = true
-                        })
+                    Button {
+                        modalSheet = .settings
+                        isShowingSheet = true
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }

@@ -56,4 +56,5 @@ enum StorageKeys {
     static let itemsToMarkUnread = "ItemsToMarkUnread"
     static let itemsToStar = "ItemsToStar"
     static let itemsToUnstar = "ItemsToUnstar"
+    static let keepDuration = "KeepDuration"
 }

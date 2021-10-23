@@ -69,4 +69,5 @@ class Preferences: ObservableObject {
     @UserDefault(StorageKeys.lineHeight) var lineHeight = 1.4
     @UserDefault(StorageKeys.lastModified) var lastModified: Int32 = 0
     @UserDefault(StorageKeys.compactView) var compactView = false
+    @UserDefault(StorageKeys.keepDuration) var keepDuration = 3
 }

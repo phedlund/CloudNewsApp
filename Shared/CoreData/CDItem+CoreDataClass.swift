@@ -259,4 +259,31 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return result
     }
 
+    @discardableResult
+    static func deleteOldItems() async throws -> NSBatchDeleteResult? {
+        try await NewsData.mainThreadContext.perform {
+            let keepDuration = Preferences().keepDuration
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date())?.timeIntervalSince1970 {
+                let predicate1 = NSPredicate(format: "unread == false")
+                let predicate2 = NSPredicate(format: "starred == false")
+                let predicate3 = NSPredicate(format:"lastModified < %d", Int32(limitDate))
+                let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate1, predicate2, predicate3])
+
+                let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: Self.self))
+                request.predicate = predicate
+                let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
+                do {
+                    let result = try NewsData.mainThreadContext.execute(batchDeleteRequest)
+                    try NewsData.mainThreadContext.save()
+                    NewsData.mainThreadContext.reset()
+                    return result as? NSBatchDeleteResult
+                } catch let error as NSError {
+                    print("Could not perform deletion \(error), \(error.userInfo)")
+                    throw PBHError.databaseError("Error deleting old items")
+                }
+            }
+            return nil
+        }
+    }
+
 }

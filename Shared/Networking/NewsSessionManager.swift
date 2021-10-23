@@ -428,6 +428,7 @@ class NewsManager {
             if let items = items.items {
                 try await CDItem.update(items: items)
             }
+            try await CDItem.deleteOldItems()
             let articleImageFetcher = ItemImageFetcher()
             Task {
                 try? await articleImageFetcher.itemImages()

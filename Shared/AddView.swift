@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import CustomModalView
 
 enum AddType: Int {
     case feed
@@ -14,64 +13,33 @@ enum AddType: Int {
 }
 
 struct AddView: View {
-    @Environment(\.modalPresentationMode) var modalPresentationMode: Binding<ModalPresentationMode>
-
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 15) {
-                Picker("Add", selection: $selectedAdd) {
-                    Text("Feed").tag(AddType.feed)
-                    Text("Folder").tag(AddType.folder)
-                }
-                .pickerStyle(.segmented)
-                AddViewSegment(input: $input, addType: selectedAdd)
+        Form {
+            Picker("Add", selection: $selectedAdd) {
+                Text("Feed").tag(AddType.feed)
+                Text("Folder").tag(AddType.folder)
             }
-            .padding()
-            Divider()
-            HStack(spacing: 0) {
-                VStack(alignment: .center, spacing: 0) {
-                    HStack(spacing: 0) {
-                        Spacer()
-                        Button(role: .cancel) {
-                            self.modalPresentationMode.wrappedValue.dismiss()
-                        } label: {
-                            Text("Cancel")
-                        }
-                        .frame(width: 100)
-                        Spacer()
+            .pickerStyle(.segmented)
+            AddViewSegment(input: $input, addType: selectedAdd)
+            Button {
+                switch selectedAdd {
+                case .feed:
+                    Task {
+                        try await NewsManager.shared.addFeed(url: input)
+                    }
+                case .folder:
+                    Task {
+                        try await NewsManager.shared.addFolder(name: input)
                     }
                 }
-                Divider()
-                VStack(alignment: .center, spacing: 0) {
-                    HStack(spacing: 0) {
-                        Spacer()
-                        Button {
-                            switch selectedAdd {
-                            case .feed:
-                                Task {
-                                    try await NewsManager.shared.addFeed(url: input)
-                                }
-                            case .folder:
-                                Task {
-                                    try await NewsManager.shared.addFolder(name: input)
-                                }
-                            }
-                            self.modalPresentationMode.wrappedValue.dismiss()
-                        } label: {
-                            Text("Add")
-                        }
-                        .frame(width: 100)
-                        Spacer()
-                    }
-                }
+            } label: {
+                Text("Add")
             }
-            .frame(width: 280, height: 40)
         }
-        .frame(width: 280)
-        .padding(0)
+        .navigationTitle("Add Feed or Folder")
     }
 }
 
@@ -87,20 +55,16 @@ struct AddViewSegment: View {
     
     @ViewBuilder
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            switch addType {
-            case .feed:
-                Text("Feed URL")
-                TextField("", text: $input, prompt: Text("https://example.com/feed"))
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                    .textContentType(.URL)
-                    .textFieldStyle(.roundedBorder)
-            case .folder:
-                Text("Folder Name")
-                TextField("", text: $input, prompt: Text("Folder Name"))
-                    .textFieldStyle(.roundedBorder)
-            }
+        switch addType {
+        case .feed:
+            TextField("", text: $input, prompt: Text("https://example.com/feed"))
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .textContentType(.URL)
+                .textFieldStyle(.roundedBorder)
+        case .folder:
+            TextField("", text: $input, prompt: Text("Folder Name"))
+                .textFieldStyle(.roundedBorder)
         }
     }
 }
