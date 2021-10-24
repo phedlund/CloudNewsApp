@@ -99,4 +99,20 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
         }
     }
 
+    static func delete(id: Int32) async throws {
+        let request: NSFetchRequest<CDFolder> = self.fetchRequest()
+        let predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = predicate
+        request.fetchLimit = 1
+        do {
+            let results  = try NewsData.mainThreadContext.fetch(request)
+            if let folder = results.first {
+                NewsData.mainThreadContext.delete(folder)
+            }
+            try NewsData.mainThreadContext.save()
+        } catch {
+            throw PBHError.databaseError("Error deleting folder")
+        }
+    }
+
 }

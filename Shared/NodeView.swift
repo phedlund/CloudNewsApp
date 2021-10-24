@@ -12,8 +12,10 @@ struct NodeView<Content: View> : View {
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
     @Binding var isShowingSheet: Bool
+    let model: FeedModel
 
     @State private var isShowingFolderRename = false
+    @State private var isShowingConfirmation = false
     @State private var unreadCount = ""
 
     @ViewBuilder let content: Content
@@ -45,11 +47,10 @@ struct NodeView<Content: View> : View {
                             Label("Rename...", systemImage: "square.and.pencil")
                         }
                         Button(role: .destructive) {
-                            //
+                            isShowingConfirmation = true
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
-                        .disabled(true)
                     case .feed(let feedId):
                         Button {
                             selectedFeed = Int(feedId)
@@ -59,11 +60,10 @@ struct NodeView<Content: View> : View {
                             Label("Settings...", systemImage: "gearshape")
                         }
                         Button(role: .destructive) {
-                            //
+                            isShowingConfirmation = true
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
-                        .disabled(true)
                     }
                 }
                 .onReceive(node.$unreadCount) { newUnreadCount in
@@ -71,6 +71,27 @@ struct NodeView<Content: View> : View {
                 }
                 .popover(isPresented: $isShowingFolderRename) {
                     FolderRenameView(showModal: $isShowingFolderRename)
+                }
+                .confirmationDialog(
+                    "Are you sure you want to delete \"\(node.title)\"?",
+                    isPresented: $isShowingConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Yes", role: .destructive) {
+                        withAnimation {
+                            model.delete(node)
+                        }
+                    }.keyboardShortcut(.defaultAction)
+                    Button("No", role: .cancel) {}
+                } message: {
+                    switch node.nodeType {
+                    case .all, .starred:
+                        EmptyView()
+                    case .folder(_):
+                        Text("All feeds and articles in \"\(node.title)\" will also be deleted")
+                    case .feed(_):
+                        Text("All articles in \"\(node.title)\" will also be deleted")
+                    }
                 }
             }
         }

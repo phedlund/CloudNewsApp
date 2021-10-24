@@ -286,4 +286,24 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
+    @discardableResult
+    static func deleteItems(with feedId: Int32) async throws -> NSBatchDeleteResult? {
+        var result: NSPersistentStoreResult?
+        try await NewsData.mainThreadContext.perform {
+            let predicate = NSPredicate(format: "feedId == %d", feedId)
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: Self.self))
+            request.predicate = predicate
+            let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
+            do {
+                result = try NewsData.mainThreadContext.execute(batchDeleteRequest)
+                try NewsData.mainThreadContext.save()
+                NewsData.mainThreadContext.reset()
+            } catch let error as NSError {
+                print("Could not perform deletion \(error), \(error.userInfo)")
+                throw PBHError.databaseError("Error deleting items in feed \(feedId)")
+            }
+        }
+        return result as? NSBatchDeleteResult
+    }
+
 }

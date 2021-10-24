@@ -587,6 +587,24 @@ class NewsManager {
         }
     }
 
+    func deleteFeed(_ id: Int) async throws {
+        let deleteRouter = Router.deleteFeed(id: id)
+        do {
+            let (_, deleteResponse) = try await NewsManager.session.data(for: deleteRouter.urlRequest(), delegate: nil)
+            if let httpResponse = deleteResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 404:
+                    break // "The feed does not exist."
+                default:
+                    break
+                }
+            }
+        } catch {
+            throw PBHError.networkError("Error deleting feed")
+        }
+    }
+
     func renameFolder(folder: CDFolder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
         do {
@@ -617,6 +635,24 @@ class NewsManager {
         }
     }
 
+
+    func deleteFolder(_ id: Int) async throws {
+        let deleteRouter = Router.deleteFolder(id: id)
+        do {
+            let (_, deleteResponse) = try await NewsManager.session.data(for: deleteRouter.urlRequest(), delegate: nil)
+            if let httpResponse = deleteResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 404:
+                    break // "The folder does not exist."
+                default:
+                    break
+                }
+            }
+        } catch {
+            throw PBHError.networkError("Error deleting folder")
+        }
+    }
 
     func updateBadge() {
 //        let unreadCount = CDItem.unreadCount()

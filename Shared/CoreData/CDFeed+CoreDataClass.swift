@@ -118,4 +118,20 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
     }
 
+    static func delete(id: Int32) async throws {
+        let request: NSFetchRequest<CDFeed> = self.fetchRequest()
+        let predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = predicate
+        request.fetchLimit = 1
+        do {
+            let results  = try NewsData.mainThreadContext.fetch(request)
+            if let feed = results.first {
+                NewsData.mainThreadContext.delete(feed)
+            }
+            try NewsData.mainThreadContext.save()
+        } catch {
+            throw PBHError.databaseError("Error deleting feed")
+        }
+    }
+
 }

@@ -45,6 +45,12 @@ final class Node: Identifiable, ObservableObject {
 
 }
 
+extension Node: Equatable {
+    static func == (lhs: Node, rhs: Node) -> Bool {
+        return lhs.nodeType == rhs.nodeType
+    }
+}
+
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
 
@@ -181,6 +187,46 @@ class FeedModel: ObservableObject {
         }
         updateCounts(result)
         return result
+    }
+
+    func delete(_ node: Node) {
+        switch node.nodeType {
+        case .all, .starred:
+            break
+        case .folder(let id):
+            print("\(id)")
+            if let index = nodes.firstIndex(of: node) {
+                nodes.remove(at: index)
+            }
+            Task {
+                do {
+                    try await NewsManager.shared.deleteFolder(Int(id))
+                    if let feedIds = CDFeed.idsInFolder(folder: id) {
+                        for feedId in feedIds {
+                            try await CDItem.deleteItems(with: feedId)
+                            try await CDFeed.delete(id: feedId)
+                        }
+                    }
+                    try await CDFolder.delete(id: id)
+                } catch {
+                    //
+                }
+            }
+        case .feed(let id):
+            print("\(id)")
+            if let index = nodes.firstIndex(of: node) {
+                nodes.remove(at: index)
+            }
+            Task {
+                do {
+                    try await NewsManager.shared.deleteFeed(Int(id))
+                    try await CDItem.deleteItems(with: id)
+                    try await CDFeed.delete(id: id)
+                } catch {
+                    //
+                }
+            }
+        }
     }
 
     private func allItemsNode() -> Node {

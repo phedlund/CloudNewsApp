@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum NodeType {
+enum NodeType: Equatable {
     case all
     case starred
     case folder(id: Int32)

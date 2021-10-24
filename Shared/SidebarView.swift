@@ -40,19 +40,19 @@ struct SidebarView: View {
                     if !node.children.isEmpty {
                         FolderDisclosureGroup(node) {
                             ForEach(node.children) { child in
-                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
                                     ItemsView(node: child)
                                         .environmentObject(model)
                                 }
                             }
                         } label: {
-                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
                                 ItemsView(node: node)
                                     .environmentObject(model)
                             }
                         }
                     } else {
-                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet) {
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
                             ItemsView(node: node)
                                 .environmentObject(model)
                         }

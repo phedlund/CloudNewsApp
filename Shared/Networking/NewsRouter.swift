@@ -225,7 +225,8 @@ enum Router {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
-//        deleteFeed
+        case .deleteFeed(_):
+            break
         case .moveFeed( _, let folder):
             let parameters = ["folderId": folder] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
@@ -247,7 +248,8 @@ enum Router {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
-//            deleteFolder
+        case .deleteFolder( _):
+            break
         case .renameFolder( _, let name):
             let parameters = ["name": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
