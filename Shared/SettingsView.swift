@@ -54,6 +54,8 @@ struct SettingsView: View {
 }
     
 struct SettingsForm: View {
+    @Environment(\.openURL) var openURL
+
     @AppStorage(StorageKeys.server) var server = ""
     @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn = false
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
@@ -224,11 +226,7 @@ struct SettingsForm: View {
             components.queryItems = [URLQueryItem(name: "subject", value: subject),
                                      URLQueryItem(name: "body", value: message)]
             if let mailURL = components.url {
-                if UIApplication.shared.canOpenURL(mailURL) {
-                    UIApplication.shared.open(mailURL, options: [:], completionHandler: nil)
-                } else {
-                    // No email client configured
-                }
+                openURL(mailURL)
             }
         }
     }
