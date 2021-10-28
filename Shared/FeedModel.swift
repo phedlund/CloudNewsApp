@@ -105,8 +105,9 @@ class FeedModel: ObservableObject {
         .store(in: &cancellables)
     }
 
-    func nodeItems(_ nodeType: NodeType) -> [CDItem] {
+    func nodeItems(_ nodeType: NodeType) -> [ArticleModel] {
         var filteredItems = [CDItem]()
+        var result = [ArticleModel]()
 
         switch nodeType {
         case .all:
@@ -132,7 +133,10 @@ class FeedModel: ObservableObject {
                 return check1 && check2
             }
         }
-        return filteredItems.sorted(by: { isSortingOldestFirst ? $1.id > $0.id : $0.id > $1.id })
+        for filteredItem in filteredItems {
+            result.append(ArticleModel(item: filteredItem))
+        }
+        return result.sorted(by: { isSortingOldestFirst ? $1.item.id > $0.item.id : $0.item.id > $1.item.id })
     }
 
     private func updateCounts(_ nodes: [Node]) {

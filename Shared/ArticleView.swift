@@ -17,6 +17,7 @@ struct ArticleView: View {
         self.articleModel = articleModel
     }
 
+    @ViewBuilder
     var body: some View {
         GeometryReader { geometry in
             VStack {
@@ -28,14 +29,6 @@ struct ArticleView: View {
                 }
                 else {
                     EmptyView()
-//                    VStack {
-//                        Spacer()
-//                        Text(articleModel.item.title ?? "Untitled")
-//                            .navigationTitle(articleModel.item.title ?? "Untitled")
-//                            .navigationBarTitleDisplayMode(.inline)
-//                        .frame(alignment: .center)
-//                        Spacer()
-//                    }
                 }
             }
             .onAppear {

@@ -8,68 +8,48 @@
 import SwiftUI
 import WebKit
 
-class ArticleModel: ObservableObject, Identifiable {
-    var item: CDItem
-    var webView: WKWebView?
-    @Published var isShowingData: Bool
-
-    init(item: CDItem, isShowingData: Bool = false) {
-        self.item = item
-        self.isShowingData = isShowingData
-    }
-}
-
 struct ArticlesPageView: View {
     @ObservedObject var webViewManager = WebViewManager(type: .article)
-    @State var selectedIndex: Int32 = -1
+    @State var selectedIndex: Int = -1
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
     @State private var currentModel: ArticleModel
 
-    var items: [CDItem]
-    private var models = [ArticleModel]()
+    var items: [ArticleModel]
 
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
         var subject = ""
-        if let model = models.first(where: { $0.item.id == selectedIndex }) {
-            viewedUrl = webViewManager.webView.url
-            subject = webViewManager.webView.title ?? ""
-            if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
-                if let urlString = model.item.url {
-                    viewedUrl = URL(string: urlString) ?? nil
-                    subject = model.item.displayTitle
-                }
+        viewedUrl = webViewManager.webView.url
+        subject = webViewManager.webView.title ?? ""
+        if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
+            if let urlString = currentModel.item.url {
+                viewedUrl = URL(string: urlString) ?? nil
+                subject = currentModel.item.displayTitle
             }
-
-            if let url = viewedUrl {
-                return SharingProvider(placeholderItem: url, subject: subject)
-            }
+        }
+        
+        if let url = viewedUrl {
+            return SharingProvider(placeholderItem: url, subject: subject)
         }
         return nil
     }
 
-    init(items: [CDItem], selectedIndex: Int32) {
+    init(items: [ArticleModel], selectedIndex: Int) {
         self.items = items
-        currentModel = ArticleModel(item: items[0])
+        currentModel = items[selectedIndex]
         _selectedIndex = State(initialValue: selectedIndex)
-        for item in items {
-            models.append(ArticleModel(item: item))
-        }
-        if let model = models.first(where: { $0.item.id == selectedIndex }) {
-            currentModel = model
-            webViewManager.resetWebView()
-            model.webView = webViewManager.webView
-            model.isShowingData = true
-        }
+        webViewManager.resetWebView()
+        currentModel.webView = webViewManager.webView
+        currentModel.isShowingData = true
     }
 
     var body: some View {
         TabView(selection: $selectedIndex) {
-            ForEach(models) { model in
-               ArticleView(articleModel: model)
-                    .tag(model.item.id)
+            ForEach(items.indices, id: \.self) { index in
+                ArticleView(articleModel: items[index])
+                .tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -77,19 +57,16 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
         .onChange(of: selectedIndex) { newValue in
-            print("Selected Index \(newValue)")
             currentModel.isShowingData = false
             webViewManager.webView.stopLoading()
-            if let model = models.first(where: { $0.item.id == newValue }) {
-                currentModel = model
-                if let existingWebView = model.webView {
-                    webViewManager.webView = existingWebView
-                } else {
-                    webViewManager.resetWebView()
-                    model.webView = webViewManager.webView
-                }
-                model.isShowingData = true
+            currentModel = items[newValue]
+            if let existingWebView = currentModel.webView {
+                webViewManager.webView = existingWebView
+            } else {
+                webViewManager.resetWebView()
+                currentModel.webView = webViewManager.webView
             }
+            currentModel.isShowingData = true
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {

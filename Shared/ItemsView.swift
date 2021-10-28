@@ -19,7 +19,8 @@ struct ItemsView: View {
     @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0
     @State private var thumbnailWidth: CGFloat = 145.0
-    @State private var items = [CDItem]()
+    @State private var items = [ArticleModel]()
+    @State private var selectedIndex = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,9 +31,9 @@ struct ItemsView: View {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
-                        ForEach(items, id: \.objectID) { item in
-                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: item.id))) {
-                                ItemListItemViev(item: item)
+                        ForEach(items, id: \.item.objectID) { item in
+                            NavigationLink(destination: ArticlesPageView(items: items, selectedIndex: selectedIndex)) {
+                                ItemListItemViev(item: item.item)
                                     .tag(item.id)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             }
@@ -41,9 +42,10 @@ struct ItemsView: View {
                     .toolbar(content: {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
-                                let unreadItems = items.filter( { $0.unread == true })
+                                let unreadItems = items.filter( { $0.item.unread == true })
                                 Task {
-                                    try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                                    let myItems = unreadItems.map( { $0.item })
+                                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
                                 }
                             } label: {
                                 Image(systemName: "checkmark")
@@ -70,11 +72,12 @@ struct ItemsView: View {
                     let numberOfItems = ($0 / (cellHeight + 15.0)).rounded(.down)
                     print("Number of items \(numberOfItems)")
                     if numberOfItems > 0 {
-                        let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                        let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.item.unread })
                         print("Number of unread items \(itemsToMarkRead.count)")
                         if !itemsToMarkRead.isEmpty {
                             Task(priority: .userInitiated) {
-                                try? await NewsManager.shared.markRead(items: itemsToMarkRead, unread: false)
+                                let myItems = itemsToMarkRead.map( { $0.item })
+                                try? await NewsManager.shared.markRead(items: myItems, unread: false)
                             }
                         }
                     }
