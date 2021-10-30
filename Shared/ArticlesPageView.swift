@@ -14,7 +14,6 @@ struct ArticlesPageView: View {
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
     @State private var currentModel: ArticleModel
-    @State private var processedItems: [ArticleModel]
 
     private var items: [ArticleModel]
 
@@ -40,51 +39,12 @@ struct ArticlesPageView: View {
         self.items = items
         currentModel = items[selectedIndex]
         _selectedIndex = State(initialValue: selectedIndex)
-        var initialItems = [ArticleModel]()
-        var count = 0
-        while ((initialItems.count < 5) && (count < items.count)) {
-            print("Processed Count \(initialItems.count)")
-            switch selectedIndex {
-            case 0:
-                let isIndexValid = items.indices.contains(selectedIndex + count)
-                if isIndexValid {
-                    initialItems.append(items[selectedIndex + count])
-                }
-                count += 1
-            case items.count - 1:
-                let isIndexValid = items.indices.contains(items.count - 1 - count)
-                if isIndexValid {
-                    initialItems.append(items[items.count - 1 - count])
-                }
-                count += 1
-            default:
-                switch items.count {
-                case 3:
-                    initialItems = [items[0], items[1], items[2]]
-                case 4:
-                    initialItems = [items[0], items[1], items[2], items[3]]
-                case 5:
-                    initialItems = [items[0], items[1], items[2], items[3], items[4]]
-                default:
-                    var internalCount = selectedIndex + 4
-                    while initialItems.count < 5 {
-                        let isIndexValid = items.indices.contains(internalCount)
-                        if isIndexValid {
-                            initialItems.append(items[internalCount])
-                        }
-                        internalCount -= 1
-                    }
-                }
-                count = 5
-            }
-        }
-        _processedItems = State(initialValue: initialItems)
     }
 
     var body: some View {
         TabView(selection: $selectedIndex) {
-            ForEach(processedItems.indices, id: \.self) { index in
-                ArticleView(articleModel: processedItems[index])
+            ForEach(items.indices, id: \.self) { index in
+                ArticleView(articleModel: items[index])
                     .tag(index)
             }
         }
@@ -92,9 +52,10 @@ struct ArticlesPageView: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-        .onChange(of: selectedIndex) { newValue in
+        .onChange(of: selectedIndex) { [selectedIndex] newValue in
+            print("Old \(selectedIndex) New \(newValue)")
             currentModel.webView.stopLoading()
-            currentModel = processedItems[newValue]
+            currentModel = items[newValue]
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
