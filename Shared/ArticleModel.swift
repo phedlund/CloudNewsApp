@@ -10,12 +10,17 @@ import WebKit
 
 class ArticleModel: ObservableObject, Identifiable {
     var item: CDItem
-    var webView: WKWebView?
-    @Published var isShowingData: Bool
+    var webView: WKWebView {
+        if webViewManager == nil {
+            webViewManager = WebViewManager(type: .article)
+        }
+        return webViewManager!.webView
+    }
 
-    init(item: CDItem, isShowingData: Bool = false) {
+    private var webViewManager: WebViewManager?
+
+    init(item: CDItem) {
         self.item = item
-        self.isShowingData = isShowingData
     }
 }
 

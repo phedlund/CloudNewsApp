@@ -32,7 +32,7 @@ struct ItemsView: View {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
                         ForEach(items, id: \.item.objectID) { item in
-                            NavigationLink(destination: ArticlesPageView(items: items, selectedIndex: selectedIndex)) {
+                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: items.firstIndex(of: item) ?? 0))) {
                                 ItemListItemViev(item: item.item)
                                     .tag(item.id)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)

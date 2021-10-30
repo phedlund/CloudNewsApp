@@ -9,8 +9,6 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @State private var isShowingData = false
-
     var articleModel: ArticleModel
 
     init(articleModel: ArticleModel) {
@@ -21,15 +19,9 @@ struct ArticleView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                if isShowingData {
-                    ArticleWebView(webView: articleModel.webView!, item: articleModel.item, size: geometry.size)
-                        .navigationTitle(articleModel.item.displayTitle)
-                        .navigationBarTitleDisplayMode(.inline)
-                        .transition(AnyTransition.opacity.animation(.easeIn(duration: 0.3)))
-                }
-                else {
-                    EmptyView()
-                }
+                ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
+                    .navigationTitle(articleModel.item.displayTitle)
+                    .navigationBarTitleDisplayMode(.inline)
             }
             .onAppear {
                 delayMarkingRead()
@@ -37,9 +29,6 @@ struct ArticleView: View {
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
-            .onReceive(articleModel.$isShowingData, perform: { isShowingData in
-                self.isShowingData = isShowingData
-            })
         }
     }
 

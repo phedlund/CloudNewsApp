@@ -9,20 +9,20 @@ import SwiftUI
 import WebKit
 
 struct ArticlesPageView: View {
-    @ObservedObject var webViewManager = WebViewManager(type: .article)
-    @State var selectedIndex: Int = -1
+    @State private var selectedIndex: Int = -1
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentSize: CGSize = .zero
     @State private var currentModel: ArticleModel
+    @State private var processedItems: [ArticleModel]
 
-    var items: [ArticleModel]
+    private var items: [ArticleModel]
 
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
         var subject = ""
-        viewedUrl = webViewManager.webView.url
-        subject = webViewManager.webView.title ?? ""
+        viewedUrl = currentModel.webView.url
+        subject = currentModel.webView.title ?? ""
         if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
             if let urlString = currentModel.item.url {
                 viewedUrl = URL(string: urlString) ?? nil
@@ -40,16 +40,52 @@ struct ArticlesPageView: View {
         self.items = items
         currentModel = items[selectedIndex]
         _selectedIndex = State(initialValue: selectedIndex)
-        webViewManager.resetWebView()
-        currentModel.webView = webViewManager.webView
-        currentModel.isShowingData = true
+        var initialItems = [ArticleModel]()
+        var count = 0
+        while ((initialItems.count < 5) && (count < items.count)) {
+            print("Processed Count \(initialItems.count)")
+            switch selectedIndex {
+            case 0:
+                let isIndexValid = items.indices.contains(selectedIndex + count)
+                if isIndexValid {
+                    initialItems.append(items[selectedIndex + count])
+                }
+                count += 1
+            case items.count - 1:
+                let isIndexValid = items.indices.contains(items.count - 1 - count)
+                if isIndexValid {
+                    initialItems.append(items[items.count - 1 - count])
+                }
+                count += 1
+            default:
+                switch items.count {
+                case 3:
+                    initialItems = [items[0], items[1], items[2]]
+                case 4:
+                    initialItems = [items[0], items[1], items[2], items[3]]
+                case 5:
+                    initialItems = [items[0], items[1], items[2], items[3], items[4]]
+                default:
+                    var internalCount = selectedIndex + 4
+                    while initialItems.count < 5 {
+                        let isIndexValid = items.indices.contains(internalCount)
+                        if isIndexValid {
+                            initialItems.append(items[internalCount])
+                        }
+                        internalCount -= 1
+                    }
+                }
+                count = 5
+            }
+        }
+        _processedItems = State(initialValue: initialItems)
     }
 
     var body: some View {
         TabView(selection: $selectedIndex) {
-            ForEach(items.indices, id: \.self) { index in
-                ArticleView(articleModel: items[index])
-                .tag(index)
+            ForEach(processedItems.indices, id: \.self) { index in
+                ArticleView(articleModel: processedItems[index])
+                    .tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -57,16 +93,8 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
         .onChange(of: selectedIndex) { newValue in
-            currentModel.isShowingData = false
-            webViewManager.webView.stopLoading()
-            currentModel = items[newValue]
-            if let existingWebView = currentModel.webView {
-                webViewManager.webView = existingWebView
-            } else {
-                webViewManager.resetWebView()
-                currentModel.webView = webViewManager.webView
-            }
-            currentModel.isShowingData = true
+            currentModel.webView.stopLoading()
+            currentModel = processedItems[newValue]
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -74,29 +102,29 @@ struct ArticlesPageView: View {
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    webViewManager.webView.goBack()
+                    currentModel.webView.goBack()
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
-                .disabled(!webViewManager.canGoBack)
+                .disabled(!currentModel.webView.canGoBack)
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    webViewManager.webView.goForward()
+                    currentModel.webView.goForward()
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
-                .disabled(!webViewManager.canGoForward)
+                .disabled(!currentModel.webView.canGoForward)
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    if webViewManager.isLoading {
-                        webViewManager.webView.stopLoading()
+                    if currentModel.webView.isLoading {
+                        currentModel.webView.stopLoading()
                     } else {
-                        webViewManager.webView.reload()
+                        currentModel.webView.reload()
                     }
                 } label: {
-                    if webViewManager.isLoading  {
+                    if currentModel.webView.isLoading  {
                         Image(systemName: "xmark")
                     } else {
                         Image(systemName: "arrow.clockwise")
@@ -112,7 +140,7 @@ struct ArticlesPageView: View {
                 .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                     ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
                 }
-                .disabled(webViewManager.isLoading)
+                .disabled(currentModel.webView.isLoading)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
@@ -125,7 +153,7 @@ struct ArticlesPageView: View {
                         ArticleSettingsView(item: item)
                     }
                 }
-                .disabled(webViewManager.isLoading)
+                .disabled(currentModel.webView.isLoading)
             }
         })
     }
