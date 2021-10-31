@@ -12,7 +12,6 @@ struct ArticlesPageView: View {
     @State private var selectedIndex: Int = -1
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
-    @State private var currentSize: CGSize = .zero
     @State private var currentModel: ArticleModel
 
     private var items: [ArticleModel]
