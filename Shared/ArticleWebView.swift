@@ -52,7 +52,6 @@ struct ArticleWebView: UIViewRepresentable {
                let url = URL(string: urlString) {
                 webView.load(URLRequest(url: url))
             } else {
-//                content.update(treeModel)
                 let request = URLRequest(url: url)
                 webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
             }
@@ -60,6 +59,7 @@ struct ArticleWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         webView.navigationDelegate = context.coordinator
+        webView.scrollView.delegate = context.coordinator
         return webView
     }
 
@@ -73,19 +73,35 @@ struct ArticleWebView: UIViewRepresentable {
 }
 #endif
 
-class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate {
     private var content: ArticleWebContent
 
     private var cancellables = Set<AnyCancellable>()
     private var webView: WKWebView
     private var preferences = Preferences()
+    private var isUserScrolling = false
+    private var observations = [NSKeyValueObservation]()
 
     init(webView: WKWebView, content: ArticleWebContent) {
         self.webView = webView
         self.content = content
 
         super.init()
-        
+
+        observations.append(self.webView.scrollView.observe(\.contentOffset, options: .new, changeHandler: { [weak self] _, value in
+            guard let self = self else {
+                return
+            }
+            if self.isUserScrolling {
+                return
+            }
+            if !self.webView.isLoading {
+                if self.webView.url?.scheme == "file", self.webView.scrollView.contentOffset != .zero {
+                    self.webView.scrollView.setContentOffset(.zero, animated: false)
+                }
+            }
+        }))
+
         preferences.$marginPortrait.sink { [weak self] newMarginPortrait in
             self?.content.configure()
             self?.webView.reload()
@@ -113,14 +129,9 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                     decisionHandler(.cancel)
                     return
                 }
-                if navigationAction.navigationType != .other {
-//                    loadingSummary = url.scheme == "file" || url.scheme == "about"
-                }
             }
         }
         decisionHandler(.allow);
-//        loadingComplete = false
-
     }
 
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
@@ -132,6 +143,20 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print(webView.url?.absoluteString ?? "")
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.isDragging || scrollView.isDecelerating {
+            isUserScrolling = true
+        }
+    }
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        isUserScrolling = true
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        isUserScrolling = false
     }
 
 }

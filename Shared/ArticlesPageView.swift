@@ -51,8 +51,7 @@ struct ArticlesPageView: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-        .onChange(of: selectedIndex) { [selectedIndex] newValue in
-            print("Old \(selectedIndex) New \(newValue)")
+        .onChange(of: selectedIndex) { newValue in
             currentModel.webView.stopLoading()
             currentModel = items[newValue]
         }
