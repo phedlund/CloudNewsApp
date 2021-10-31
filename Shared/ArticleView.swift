@@ -11,24 +11,17 @@ import WebKit
 struct ArticleView: View {
     var articleModel: ArticleModel
 
-    init(articleModel: ArticleModel) {
-        self.articleModel = articleModel
-    }
-
-    @ViewBuilder
     var body: some View {
         GeometryReader { geometry in
-            VStack {
-                ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
-                    .navigationTitle(articleModel.item.displayTitle)
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-            .onAppear {
-                delayMarkingRead()
-            }
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-            }
+            ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
+                .navigationTitle(articleModel.item.displayTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear {
+                    delayMarkingRead()
+                }
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
         }
     }
 
@@ -43,13 +36,6 @@ struct ArticleView: View {
         }
     }
 
-}
-
-struct PopoverView: View {
-    var body: some View {
-        Text("Popover Content")
-            .padding()
-    }
 }
 
 struct StatefulPreviewWrapper<Value, Content: View>: View {
