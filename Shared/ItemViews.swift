@@ -67,6 +67,7 @@ struct ItemImageView: View {
                 .setProcessors([ResizingImageProcessor(referenceSize: CGSize(width: size.width, height: size.height), mode: .aspectFill),
                                 CroppingImageProcessor(size: CGSize(width: size.width, height: size.height), anchor: CGPoint(x: 0.5, y: 0.5)),
                                 OverlayImageProcessor(overlay: .white, fraction: item.unread ? 1.0 : 0.4)])
+                .frame(width: size.width, height: size.height)
         } else {
             Spacer(minLength: 2)
         }

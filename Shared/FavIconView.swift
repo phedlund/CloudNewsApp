@@ -55,6 +55,7 @@ struct FeedFavIconView: View {
                    let scheme = url.scheme,
                    FeedFavIconView.validSchemas.contains(scheme) {
                     KFImage(url)
+                        .cancelOnDisappear(true)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 16, height: 16, alignment: .center)
@@ -63,6 +64,7 @@ struct FeedFavIconView: View {
                        let host = feedUrl.host,
                        let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                         KFImage(url)
+                            .cancelOnDisappear(true)
                             .placeholder {
                                 Image("favicon")
                                     .resizable()

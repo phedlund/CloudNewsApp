@@ -20,40 +20,34 @@ struct ItemListItemViev: View {
 
     @ViewBuilder
     var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(Color(.white))
-                .edgesIgnoringSafeArea(.all)
-                .cornerRadius(4)
-            VStack {
-                HStack(alignment: .top, spacing: 10, content: {
-                    ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: cellHeight))
-                    HStack {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TitleView(item: item)
-                            FavIconDateAuthorView(item: item)
-                            if settings.compactView /*|| horizontalSizeClass == .compact*/ {
-                                EmptyView()
-                            } else {
-                                BodyView(item: item)
-                            }
-                            Spacer()
+        VStack {
+            HStack(alignment: .top, spacing: 10, content: {
+                ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: cellHeight))
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TitleView(item: item)
+                        FavIconDateAuthorView(item: item)
+                        if settings.compactView /*|| horizontalSizeClass == .compact*/ {
+                            EmptyView()
+                        } else {
+                            BodyView(item: item)
                         }
-                        .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
                         Spacer()
                     }
-                    .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
-                    ItemStarredView(item: item)
-                })
-                //                        if /*horizontalSizeClass == .compact &&*/ !isCompactView  {
-                //                            Text(transformedBody(provider.body))
-                //                                .font(.subheadline)
-                //                                .foregroundColor(Color(.black))
-                //                                .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 26))
-                //                        } else {
-                //                            EmptyView()
-                //                        }
-            }
+                    .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                    Spacer()
+                }
+                .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
+                ItemStarredView(item: item)
+            })
+            //                        if /*horizontalSizeClass == .compact &&*/ !isCompactView  {
+            //                            Text(transformedBody(provider.body))
+            //                                .font(.subheadline)
+            //                                .foregroundColor(Color(.black))
+            //                                .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 26))
+            //                        } else {
+            //                            EmptyView()
+            //                        }
         }
         .contextMenu {
             let isUnRead = item.unread
@@ -89,8 +83,6 @@ struct ItemListItemViev: View {
             cellHeight = newCompactView ? 85.0 : 160.0
             thumbnailWidth = newCompactView ? 66.0 : 145.0
         }
-
-        //            }
     }
     //        else {
     //            EmptyView()

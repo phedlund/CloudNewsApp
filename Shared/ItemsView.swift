@@ -18,9 +18,7 @@ struct ItemsView: View {
     @State private var isMarkAllReadDisabled = true
     @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0
-    @State private var thumbnailWidth: CGFloat = 145.0
     @State private var items = [ArticleModel]()
-    @State private var selectedIndex = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -31,10 +29,10 @@ struct ItemsView: View {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
-                        ForEach(items, id: \.item.objectID) { item in
-                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: items.firstIndex(of: item) ?? 0))) {
-                                ItemListItemViev(item: item.item)
-                                    .tag(item.id)
+                        ForEach(items.indices, id: \.self) { index in
+                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: index))) {
+                                ItemListItemViev(item: items[index].item)
+                                    .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             }
                         }
@@ -97,7 +95,6 @@ struct ItemsView: View {
             }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0
-                thumbnailWidth = newCompactView ? 66.0 : 145.0
             }
         }
     }
