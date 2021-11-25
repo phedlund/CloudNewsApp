@@ -18,6 +18,7 @@ extension CDItem {
 
     @NSManaged public var author: String?
     @NSManaged public var body: String?
+    @NSManaged public var displayBody: String?
     @NSManaged public var enclosureLink: String?
     @NSManaged public var enclosureMime: String?
     @NSManaged public var feedId: Int32

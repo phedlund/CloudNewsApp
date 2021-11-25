@@ -9,11 +9,12 @@ import Kingfisher
 import SwiftUI
 
 struct TitleView: View {
-    var item: CDItem
+    var title: String
+    var unread: Bool
 
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(item.displayTitle)
+        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(title)
             .multilineTextAlignment(.leading)
             .font(.headline)
             .foregroundColor(textColor)
@@ -23,13 +24,16 @@ struct TitleView: View {
 }
 
 struct FavIconDateAuthorView: View {
-    var item: CDItem
+    var dateAuthorFeed: String
+    var unread: Bool
+    var feedId: Int32
 
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         HStack {
-            ItemFavIconView(item: item)
-            Text(item.dateAuthorFeed)
+            ItemFavIconView(nodeType: .feed(id: feedId))
+                .opacity(unread ? 1.0 : 0.4)
+            Text(dateAuthorFeed)
                 .font(.subheadline)
                 .foregroundColor(textColor)
                 .italic()
@@ -39,11 +43,13 @@ struct FavIconDateAuthorView: View {
 }
 
 struct BodyView: View {
-    var item: CDItem
+    var bodyText: String
+    var unread: Bool
 
+    @ViewBuilder
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(item.displayBody)
+        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(bodyText)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.subheadline)
@@ -53,20 +59,20 @@ struct BodyView: View {
 
 struct ItemImageView: View {
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-
-    var item: CDItem
+    var imageLink: String?
+    var unread: Bool
     var size: CGSize
 
     @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
 
-        if isShowingThumbnails, let imageLink = item.imageLink, let thumbnailURL = URL(string: imageLink) {
+        if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(string: imageLink) {
             KFImage(thumbnailURL)
                 .cancelOnDisappear(true)
                 .setProcessors([ResizingImageProcessor(referenceSize: CGSize(width: size.width, height: size.height), mode: .aspectFill),
                                 CroppingImageProcessor(size: CGSize(width: size.width, height: size.height), anchor: CGPoint(x: 0.5, y: 0.5)),
-                                OverlayImageProcessor(overlay: .white, fraction: item.unread ? 1.0 : 0.4)])
+                                OverlayImageProcessor(overlay: .white, fraction: unread ? 1.0 : 0.4)])
                 .frame(width: size.width, height: size.height)
         } else {
             Spacer(minLength: 2)
@@ -75,13 +81,13 @@ struct ItemImageView: View {
 }
 
 struct ItemStarredView: View {
-
-    var item: CDItem
+    var starred: Bool
+    var unread: Bool
 
     @ViewBuilder
     var body: some View {
         VStack {
-            if item.starred {
+            if starred {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -94,5 +100,6 @@ struct ItemStarredView: View {
             }
         }
         .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+        .opacity(unread ? 1.0 : 0.4)
     }
 }

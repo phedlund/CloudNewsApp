@@ -10,7 +10,7 @@ import SwiftSoup
 
 extension CDItem {
 
-    dynamic var displayTitle: String {
+    func dynamicDisplayTitle(_ title: String?) -> String {
         guard let titleValue = title else {
             return "Untitled"
         }
@@ -18,7 +18,7 @@ extension CDItem {
         return plainSummary(raw: titleValue as String)
     }
 
-    dynamic var displayBody: String {
+    func dynamicDisplayBody(_ body: String?) -> String {
         guard let summaryValue = body else {
             return "No Summary"
         }

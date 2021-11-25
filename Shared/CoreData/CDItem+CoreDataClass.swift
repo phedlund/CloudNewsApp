@@ -202,6 +202,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     if let existingRecord = records.first {
                         existingRecord.author = item.author
                         existingRecord.body = item.body
+                        existingRecord.displayBody = existingRecord.dynamicDisplayBody(item.body)
                         existingRecord.enclosureLink = item.enclosureLink
                         existingRecord.enclosureMime = item.enclosureMime
                         existingRecord.feedId = item.feedId
@@ -212,7 +213,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         existingRecord.lastModified = item.lastModified
                         existingRecord.pubDate = item.pubDate
                         existingRecord.starred = item.starred
-                        existingRecord.title = item.title
+                        existingRecord.title = existingRecord.dynamicDisplayTitle(item.title)
                         existingRecord.unread = item.unread
                         existingRecord.url = item.url
 //                        let _ = existingRecord.thumbnail
@@ -220,6 +221,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: NewsData.mainThreadContext) as! CDItem
                         newRecord.author = item.author
                         newRecord.body = item.body
+                        newRecord.displayBody = newRecord.dynamicDisplayBody(item.body)
                         newRecord.enclosureLink = item.enclosureLink
                         newRecord.enclosureMime = item.enclosureMime
                         newRecord.feedId = item.feedId
@@ -230,7 +232,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                         newRecord.lastModified = item.lastModified
                         newRecord.pubDate = item.pubDate
                         newRecord.starred = item.starred
-                        newRecord.title = item.title
+                        newRecord.title = newRecord.dynamicDisplayTitle(item.title)
                         newRecord.unread = item.unread
                         newRecord.url = item.url
                         current += 1

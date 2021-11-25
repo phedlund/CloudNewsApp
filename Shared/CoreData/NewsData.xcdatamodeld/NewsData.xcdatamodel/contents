@@ -39,6 +39,7 @@
     <entity name="CDItem" representedClassName="CDItem" versionHashModifier="Add index" syncable="YES">
         <attribute name="author" optional="YES" attributeType="String"/>
         <attribute name="body" optional="YES" attributeType="String"/>
+        <attribute name="displayBody" optional="YES" attributeType="String" defaultValueString="No Summary"/>
         <attribute name="enclosureLink" optional="YES" attributeType="String"/>
         <attribute name="enclosureMime" optional="YES" attributeType="String"/>
         <attribute name="feedId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -83,7 +84,7 @@
         <element name="CDFeed" positionX="-342" positionY="-16.40625" width="128" height="284"/>
         <element name="CDFeeds" positionX="-612" positionY="-18" width="128" height="73"/>
         <element name="CDFolder" positionX="-479" positionY="-18" width="128" height="104"/>
-        <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="284"/>
+        <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="299"/>
         <element name="CDRead" positionX="-625.546875" positionY="348.36328125" width="128" height="58"/>
         <element name="CDStarred" positionX="-623.70703125" positionY="278.30859375" width="128" height="58"/>
         <element name="CDUnread" positionX="-621.51953125" positionY="207.77734375" width="128" height="58"/>

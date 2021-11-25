@@ -22,15 +22,15 @@ struct ItemListItemViev: View {
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 10, content: {
-                ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: cellHeight))
+                ItemImageView(imageLink: item.imageLink, unread: item.unread, size: CGSize(width: thumbnailWidth, height: cellHeight))
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
-                        TitleView(item: item)
-                        FavIconDateAuthorView(item: item)
+                        TitleView(title: item.title ?? "Untitled", unread: item.unread)
+                        FavIconDateAuthorView(dateAuthorFeed: item.dateAuthorFeed, unread: item.unread, feedId: item.feedId)
                         if settings.compactView /*|| horizontalSizeClass == .compact*/ {
                             EmptyView()
                         } else {
-                            BodyView(item: item)
+                            BodyView(bodyText: item.displayBody ?? "No Summqry", unread: item.unread)
                         }
                         Spacer()
                     }
@@ -38,7 +38,7 @@ struct ItemListItemViev: View {
                     Spacer()
                 }
                 .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
-                ItemStarredView(item: item)
+                ItemStarredView(starred: item.starred, unread: item.unread)
             })
             //                        if /*horizontalSizeClass == .compact &&*/ !isCompactView  {
             //                            Text(transformedBody(provider.body))

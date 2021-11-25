@@ -10,13 +10,12 @@ import SwiftUI
 struct ItemFavIconView: View {
     @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
 
-    var item: CDItem
+    var nodeType: NodeType
 
     @ViewBuilder
     var body: some View {
         if showFavIcons ?? true {
-            FeedFavIconView(nodeType: .feed(id: item.feedId))
-                .opacity(item.unread ? 1.0 : 0.4)
+            FeedFavIconView(nodeType: nodeType)
         } else {
             EmptyView()
         }

@@ -14,7 +14,7 @@ struct ArticleView: View {
     var body: some View {
         GeometryReader { geometry in
             ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
-                .navigationTitle(articleModel.item.displayTitle)
+                .navigationTitle(articleModel.item.title ?? "Untitled")
                 .navigationBarTitleDisplayMode(.inline)
                 .onAppear {
                     delayMarkingRead()
