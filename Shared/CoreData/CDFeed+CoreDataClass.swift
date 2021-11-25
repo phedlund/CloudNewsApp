@@ -118,6 +118,17 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
     }
 
+    static func addFavIcon(feed: CDFeed, iconData: Data) async throws {
+        try await NewsData.mainThreadContext.perform {
+            do {
+                feed.favicon = iconData
+                try NewsData.mainThreadContext.save()
+            } catch {
+                throw PBHError.databaseError("Error adding favicon")
+            }
+        }
+    }
+
     static func delete(id: Int32) async throws {
         let request: NSFetchRequest<CDFeed> = self.fetchRequest()
         let predicate = NSPredicate(format: "id == %d", id)

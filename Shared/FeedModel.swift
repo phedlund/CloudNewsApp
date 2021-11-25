@@ -10,47 +10,6 @@ import CoreData
 import SwiftUI
 import SwiftSoup
 
-final class Node: Identifiable, ObservableObject {
-    @Published var unreadCount = ""
-    @Published var title = ""
-
-    fileprivate(set) var isExpanded = false
-    private(set) var nodeType: NodeType
-    private(set) var children = [Node]()
-
-    init() {
-        nodeType = .all
-        title = "All Articles"
-    }
-
-    init(_ nodeType: NodeType) {
-        self.nodeType = nodeType
-    }
-
-    init(_ nodeType: NodeType, children: [Node]) {
-        self.nodeType = nodeType
-        self.children = children
-    }
-
-    func updateExpanded(_ isExpanded: Bool) {
-        switch nodeType {
-        case .folder(let id):
-            Task {
-                self.isExpanded = isExpanded
-                try? await CDFolder.markExpanded(folderId: id, state: isExpanded)
-            }
-        case _: ()
-        }
-    }
-
-}
-
-extension Node: Equatable {
-    static func == (lhs: Node, rhs: Node) -> Bool {
-        return lhs.nodeType == rhs.nodeType
-    }
-}
-
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
 
@@ -262,13 +221,11 @@ class FeedModel: ObservableObject {
             for feed in feeds {
                 children.append(feedNode(feed: feed))
             }
-            let node = Node(.folder(id: folder.id), children: children)
-            node.isExpanded = folder.expanded
+            let node = Node(.folder(id: folder.id), children: children, isExpanded: folder.expanded)
             node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
             return node
         }
-        let node = Node(.folder(id: folder.id))
-        node.isExpanded = folder.expanded
+        let node = Node(.folder(id: folder.id), isExpanded: folder.expanded)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }

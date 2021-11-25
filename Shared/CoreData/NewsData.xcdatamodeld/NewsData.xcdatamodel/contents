@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19461" systemVersion="21A559" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="CDFeed" representedClassName="CDFeed" versionHashModifier="Add index" syncable="YES">
         <attribute name="added" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="articleCount" optional="YES" attributeType="Integer 32" defaultValueString="250" usesScalarValueType="YES"/>
+        <attribute name="favicon" optional="YES" attributeType="Binary"/>
         <attribute name="faviconLink" optional="YES" attributeType="String"/>
         <attribute name="folderId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -79,7 +80,7 @@
         <attribute name="itemId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
-        <element name="CDFeed" positionX="-342" positionY="-16.40625" width="128" height="283"/>
+        <element name="CDFeed" positionX="-342" positionY="-16.40625" width="128" height="284"/>
         <element name="CDFeeds" positionX="-612" positionY="-18" width="128" height="73"/>
         <element name="CDFolder" positionX="-479" positionY="-18" width="128" height="104"/>
         <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="284"/>

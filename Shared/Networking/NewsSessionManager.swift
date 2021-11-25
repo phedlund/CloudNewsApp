@@ -430,7 +430,9 @@ class NewsManager {
             }
             try await CDItem.deleteOldItems()
             let articleImageFetcher = ItemImageFetcher()
+            let favIconFetcher = FavIconFetcher()
             Task {
+                try? await favIconFetcher.fetch()
                 try? await articleImageFetcher.itemImages()
             }
 

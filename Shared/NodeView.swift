@@ -28,74 +28,78 @@ struct NodeView<Content: View> : View {
                         Text(node.title)
                             .lineLimit(1)
                     } icon: {
-                        FeedFavIconView(nodeType: node.nodeType)
+                        Image(uiImage: node.icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 22, height: 22, alignment: .center)
                     }
                     .labelStyle(.titleAndIcon)
                     Spacer(minLength: 12)
                     BadgeView(text: node.unreadCount)
                 }
-                .padding(.trailing, node.children.isEmpty ? 23 : 0)
-                .contextMenu {
-                    switch node.nodeType {
-                    case .all, .starred:
-                        EmptyView()
-                    case .folder(let folderId):
-                        Button {
-                            selectedFeed = Int(folderId)
-                            isShowingFolderRename = true
-                        } label: {
-                            Label("Rename...", systemImage: "square.and.pencil")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    case .feed(let feedId):
-                        Button {
-                            selectedFeed = Int(feedId)
-                            modalSheet = .feedSettings
-                            isShowingSheet = true
-                        } label: {
-                            Label("Settings...", systemImage: "gearshape")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
+            }
+        }
+        .padding(.trailing, node.children.isEmpty ? 23 : 0)
+        .contextMenu {
+            switch node.nodeType {
+            case .all, .starred:
+                EmptyView()
+            case .folder(let folderId):
+                Button {
+                    selectedFeed = Int(folderId)
+                    isShowingFolderRename = true
+                } label: {
+                    Label("Rename...", systemImage: "square.and.pencil")
                 }
-                .onReceive(node.$unreadCount) { newUnreadCount in
-                    unreadCount = newUnreadCount
+                Button(role: .destructive) {
+                    isShowingConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
                 }
-                .popover(isPresented: $isShowingFolderRename) {
-                    FolderRenameView(showModal: $isShowingFolderRename)
+            case .feed(let feedId):
+                Button {
+                    selectedFeed = Int(feedId)
+                    modalSheet = .feedSettings
+                    isShowingSheet = true
+                } label: {
+                    Label("Settings...", systemImage: "gearshape")
                 }
-                .confirmationDialog(
-                    "Are you sure you want to delete \"\(node.title)\"?",
-                    isPresented: $isShowingConfirmation,
-                    titleVisibility: .visible
-                ) {
-                    Button("Yes", role: .destructive) {
-                        withAnimation {
-                            model.delete(node)
-                        }
-                    }.keyboardShortcut(.defaultAction)
-                    Button("No", role: .cancel) {}
-                } message: {
-                    switch node.nodeType {
-                    case .all, .starred:
-                        EmptyView()
-                    case .folder(_):
-                        Text("All feeds and articles in \"\(node.title)\" will also be deleted")
-                    case .feed(_):
-                        Text("All articles in \"\(node.title)\" will also be deleted")
-                    }
+                Button(role: .destructive) {
+                    isShowingConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
                 }
             }
         }
+        .onReceive(node.$unreadCount) { newUnreadCount in
+            unreadCount = newUnreadCount
+        }
+        .popover(isPresented: $isShowingFolderRename) {
+            FolderRenameView(showModal: $isShowingFolderRename)
+        }
+        .confirmationDialog(
+            "Are you sure you want to delete \"\(node.title)\"?",
+            isPresented: $isShowingConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Yes", role: .destructive) {
+                withAnimation {
+                    model.delete(node)
+                }
+            }.keyboardShortcut(.defaultAction)
+            Button("No", role: .cancel) {}
+        } message: {
+            switch node.nodeType {
+            case .all, .starred:
+                EmptyView()
+            case .folder(_):
+                Text("All feeds and articles in \"\(node.title)\" will also be deleted")
+            case .feed(_):
+                Text("All articles in \"\(node.title)\" will also be deleted")
+            }
+        }
     }
+
 }
 
 //struct NodeView_Previews: PreviewProvider {

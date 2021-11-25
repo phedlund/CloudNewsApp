@@ -19,6 +19,7 @@ extension CDFeed {
 
     @NSManaged public var added: Int32
     @NSManaged public var articleCount: Int32
+    @NSManaged public var favicon: Data?
     @NSManaged public var faviconLink: String?
     @NSManaged public var folderId: Int32
     @NSManaged public var id: Int32
