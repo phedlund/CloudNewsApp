@@ -8,6 +8,36 @@
 import Kingfisher
 import SwiftUI
 
+struct ContextMenuContent: View {
+    @ObservedObject var item: CDItem
+
+    var body: some View {
+        Button {
+            Task {
+                try? await NewsManager.shared.markRead(items: [item], unread: !item.unread)
+            }
+        } label: {
+            Label {
+                Text(item.unread ? "Read" : "Unread")
+            } icon: {
+                Image(systemName: item.unread ? "eye" : "eye.slash")
+            }
+        }
+        Button {
+            Task {
+                try? await NewsManager.shared.markStarred(item: item, starred: !item.starred)
+            }
+        } label: {
+            Label {
+                Text(item.starred ? "Unstar" : "Star")
+            } icon: {
+                Image(systemName: item.starred ? "star" : "star.fill")
+            }
+        }
+    }
+
+}
+
 struct TitleView: View {
     var title: String
     var unread: Bool

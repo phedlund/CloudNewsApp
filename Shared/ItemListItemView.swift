@@ -11,8 +11,8 @@ import SwiftUI
 import Kingfisher
 
 struct ItemListItemViev: View {
-//    @Environment(\.verticalSizeClass) var verticalSizeClass
-//    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    //    @Environment(\.verticalSizeClass) var verticalSizeClass
+    //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject private var settings: Preferences
     @ObservedObject var item: CDItem
     @State private var cellHeight: CGFloat = 160.0
@@ -21,7 +21,7 @@ struct ItemListItemViev: View {
     @ViewBuilder
     var body: some View {
         VStack {
-            HStack(alignment: .top, spacing: 10, content: {
+            HStack(alignment: .top, spacing: 10) {
                 ItemImageView(imageLink: item.imageLink, unread: item.unread, size: CGSize(width: thumbnailWidth, height: cellHeight))
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
@@ -39,7 +39,7 @@ struct ItemListItemViev: View {
                 }
                 .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
                 ItemStarredView(starred: item.starred, unread: item.unread)
-            })
+            }
             //                        if /*horizontalSizeClass == .compact &&*/ !isCompactView  {
             //                            Text(transformedBody(provider.body))
             //                                .font(.subheadline)
@@ -48,32 +48,6 @@ struct ItemListItemViev: View {
             //                        } else {
             //                            EmptyView()
             //                        }
-        }
-        .contextMenu {
-            let isUnRead = item.unread
-            let isStarred = item.starred
-            Button {
-                Task {
-                    try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
-                }
-            } label: {
-                Label {
-                    Text(isUnRead ? "Read" : "Unread")
-                } icon: {
-                    Image(systemName: isUnRead ? "eye" : "eye.slash")
-                }
-            }
-            Button {
-                Task {
-                    try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
-                }
-            } label: {
-                Label {
-                    Text(isStarred ? "Unstar" : "Star")
-                } icon: {
-                    Image(systemName: isStarred ? "star" : "star.fill")
-                }
-            }
         }
         .padding([.trailing], 10)
         .background(Color(.white) // any non-transparent background

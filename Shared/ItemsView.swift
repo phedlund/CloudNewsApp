@@ -30,10 +30,14 @@ struct ItemsView: View {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
                         ForEach(items.indices, id: \.self) { index in
+                            let item = items[index].item
                             NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: index))) {
-                                ItemListItemViev(item: items[index].item)
+                                ItemListItemViev(item: item)
                                     .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                            }
+                            .contextMenu {
+                                ContextMenuContent(item: item)
                             }
                         }
                     }
