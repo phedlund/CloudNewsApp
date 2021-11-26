@@ -44,7 +44,9 @@ struct ContentView: View {
             isShowingLogin = !isLoggedIn
         }
         .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
-            SettingsView(showModal: .constant(true))
+            NavigationView {
+                SettingsView(showModal: .constant(true))
+            }
         }
     }
 

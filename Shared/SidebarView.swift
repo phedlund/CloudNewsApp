@@ -60,7 +60,7 @@ struct SidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ProgressView()
                         .progressViewStyle(.circular)
@@ -90,7 +90,7 @@ struct SidebarView: View {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
-            })
+            }
             .onReceive(publisher) { _ in
                 isSyncing = false
             }
@@ -109,21 +109,21 @@ struct SidebarView: View {
             }, content: { sheet in
                 switch sheet {
                 case .settings:
-                    NavigationView(content: {
+                    NavigationView {
                         SettingsView(showModal: $isShowingSheet)
-                    })
+                    }
                 case .folders:
-                    NavigationView(content: {
+                    NavigationView {
                         SettingsView(showModal: $isShowingSheet)
-                    })
+                    }
                 case .feedSettings:
-                    NavigationView() {
+                    NavigationView {
                         FeedSettingsView(selectedFeed)
                     }
                 case .login:
-                    NavigationView(content: {
+                    NavigationView {
                         SettingsView(showModal: $isShowingSheet)
-                    })
+                    }
                 }
             })
         }

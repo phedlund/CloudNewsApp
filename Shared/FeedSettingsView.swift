@@ -97,7 +97,7 @@ struct FeedSettingsView: View {
                 Text("Use the web interface to change or correct this information.\nThe last 30 days of articles will be kept locally.")
             }
         }
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     dismiss()
@@ -105,7 +105,7 @@ struct FeedSettingsView: View {
                     Text("Done")
                 }
             }
-        })
+        }
         .onChange(of: folderSelection) { _ in
             onFolderSelection()
         }

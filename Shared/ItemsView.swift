@@ -41,7 +41,7 @@ struct ItemsView: View {
                             }
                         }
                     }
-                    .toolbar(content: {
+                    .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
                                 let unreadItems = items.filter( { $0.item.unread == true })
@@ -54,7 +54,7 @@ struct ItemsView: View {
                             }
                             .disabled(isMarkAllReadDisabled)
                         }
-                    })
+                    }
                     GeometryReader {
                         let offset = -$0.frame(in: .named("scroll")).minY
                         Color.clear.preference(key: ViewOffsetKey.self, value: offset)

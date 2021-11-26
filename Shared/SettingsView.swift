@@ -188,13 +188,11 @@ struct SettingsForm: View {
         }, content: { sheet in
             switch sheet {
             case .add:
-                NavigationView(content: {
+                NavigationView {
                     AddView()
-                })
+                }
             case .login:
-                NavigationView(content: {
-                    LoginWebViewView(server: server)
-                })
+                LoginWebViewView(server: server)
             case .mail:
                 MailComposeView(recipients: [email], subject: subject, message: message) {
                     // Did finish action
