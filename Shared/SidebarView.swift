@@ -23,6 +23,7 @@ extension ModalSheet: Identifiable {
 struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
+    @AppStorage(StorageKeys.selectedNode) private var selectedNode: String?
     @State private var isShowingSheet = false
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
@@ -35,8 +36,8 @@ struct SidebarView: View {
     @ViewBuilder
     var body: some View {
         GeometryReader { geometry in
-            List {
-                ForEach(model.nodes) { node in
+            List(model.nodes, id: \.self.id, selection: $selectedNode) { node in
+                let _ = print(node.id)
                     if !node.children.isEmpty {
                         FolderDisclosureGroup(node) {
                             ForEach(node.children) { child in
@@ -44,20 +45,23 @@ struct SidebarView: View {
                                     ItemsView(node: child)
                                         .environmentObject(model)
                                 }
+                                .tag(node.id)
                             }
                         } label: {
                             NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
                                 ItemsView(node: node)
                                     .environmentObject(model)
                             }
+                            .tag(node.id)
                         }
                     } else {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
                             ItemsView(node: node)
                                 .environmentObject(model)
                         }
+                        .tag(node.id)
                     }
-                }
+
             }
             .listStyle(.sidebar)
             .toolbar {
@@ -87,12 +91,15 @@ struct SidebarView: View {
                         modalSheet = .settings
                         isShowingSheet = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "ellipsis")
                     }
                 }
             }
             .onReceive(publisher) { _ in
                 isSyncing = false
+            }
+            .onChange(of: selectedNode) { newSelection in
+                print(newSelection)
             }
             .refreshable {
                 do {

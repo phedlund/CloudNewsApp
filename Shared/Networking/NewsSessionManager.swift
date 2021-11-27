@@ -299,9 +299,13 @@ class NewsManager {
             }
             updateBadge()
             let articleImageFetcher = ItemImageFetcher()
+            let favIconFetcher = FavIconFetcher()
             Task {
+                try? await favIconFetcher.fetch()
                 try? await articleImageFetcher.itemImages()
             }
+
+            NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
             print(error.localizedDescription)
         }

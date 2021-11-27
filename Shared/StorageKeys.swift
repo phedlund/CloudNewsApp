@@ -27,6 +27,7 @@ enum StorageKeys {
     static let category = "category"
     static let selectedFolder = "SelectedFolder"
     static let selectedFeed = "SelectedFeed"
+    static let selectedNode = "SelectedNode"
     static let compactView = "CompactView"
     static let showThumbnails = "ShowThumbnails"
     static let fontSize = "FontSize"

@@ -6,11 +6,17 @@
 //
 
 import UIKit
+import CloudKit
+
+let AllNodeGuid = "72137d96-4ef2-11ec-81d3-0242ac130003"
+let StarNodeGuid = "967917a4-4ef2-11ec-81d3-0242ac130003"
 
 final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = ""
     @Published var title = ""
     @Published var icon = UIImage()
+
+    let id: String
 
     fileprivate(set) var isExpanded = false
     private(set) var nodeType: NodeType
@@ -19,18 +25,21 @@ final class Node: Identifiable, ObservableObject {
     init() {
         nodeType = .all
         title = "All Articles"
+        id = AllNodeGuid
         retrieveIcon()
     }
 
-    init(_ nodeType: NodeType, isExpanded: Bool = false) {
+    init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {
         self.nodeType = nodeType
+        self.id = id
         self.isExpanded = isExpanded
         retrieveIcon()
     }
 
-    init(_ nodeType: NodeType, children: [Node], isExpanded: Bool) {
+    init(_ nodeType: NodeType, children: [Node], id: String, isExpanded: Bool) {
         self.nodeType = nodeType
         self.children = children
+        self.id = id
         self.isExpanded = isExpanded
         retrieveIcon()
     }
@@ -70,6 +79,12 @@ final class Node: Identifiable, ObservableObject {
 
 extension Node: Equatable {
     static func == (lhs: Node, rhs: Node) -> Bool {
-        return lhs.nodeType == rhs.nodeType
+        return lhs.id == rhs.id
+    }
+}
+
+extension Node: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

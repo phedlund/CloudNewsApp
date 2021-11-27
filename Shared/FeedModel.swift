@@ -194,14 +194,14 @@ class FeedModel: ObservableObject {
 
     private func allItemsNode() -> Node {
         let unreadCount = CDItem.unreadCount(nodeType: .all)
-        let node = Node(.all)
+        let node = Node(.all, id: AllNodeGuid)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 
     private func starredItemsNode() -> Node {
         let unreadCount = CDItem.unreadCount(nodeType: .starred)
-        let node = Node(.starred)
+        let node = Node(.starred, id: StarNodeGuid)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
@@ -221,19 +221,18 @@ class FeedModel: ObservableObject {
             for feed in feeds {
                 children.append(feedNode(feed: feed))
             }
-            let node = Node(.folder(id: folder.id), children: children, isExpanded: folder.expanded)
+            let node = Node(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.expanded)
             node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
             return node
         }
-        let node = Node(.folder(id: folder.id), isExpanded: folder.expanded)
+        let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.expanded)
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 
     private func feedNode(feed: CDFeed) -> Node {
         let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
-
-        let node = Node(.feed(id: feed.id))
+        let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
         node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
