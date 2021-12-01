@@ -189,6 +189,34 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
+    static func add(items: [ItemProtocol], using context: NSManagedObjectContext) async throws {
+        await context.perform {
+            let itemCount = items.count
+            var current = 0
+            for item in items {
+                let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: context) as! CDItem
+                newRecord.author = item.author
+                newRecord.body = item.body
+                newRecord.displayBody = newRecord.dynamicDisplayBody(item.body)
+                newRecord.enclosureLink = item.enclosureLink
+                newRecord.enclosureMime = item.enclosureMime
+                newRecord.feedId = item.feedId
+                newRecord.fingerprint = item.fingerprint
+                newRecord.guid = item.guid
+                newRecord.guidHash = item.guidHash
+                newRecord.id = item.id
+                newRecord.lastModified = item.lastModified
+                newRecord.pubDate = item.pubDate
+                newRecord.starred = item.starred
+                newRecord.title = newRecord.dynamicDisplayTitle(item.title)
+                newRecord.unread = item.unread
+                newRecord.url = item.url
+                current += 1
+                print("Count \(itemCount), Current \(current)")
+            }
+        }
+    }
+
     static func update(items: [ItemProtocol]) async throws {
         try await NewsData.mainThreadContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()

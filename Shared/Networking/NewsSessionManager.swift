@@ -399,39 +399,9 @@ class NewsManager {
                 }
             }
 
-            let newestKnownLastModified = CDItem.lastModified()
-            Preferences().lastModified = newestKnownLastModified
-
-            async let (folderData, _ /*folderResponse*/) = NewsManager.session.data(for: Router.folders.urlRequest(), delegate: nil)
-            // 4.
-            async let (feedsData, _ /*feedsResponse*/) = NewsManager.session.data(for: Router.feeds.urlRequest(), delegate: nil)
-            
-            let updatedParameters: ParameterDict = ["type": 3,
-                                                    "lastModified": newestKnownLastModified,
-                                                    "id": 0]
-            
-            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-            async let (updatedItemsData, _ /*feedsResponse*/) = NewsManager.session.data(for: updatedItemRouter.urlRequest(), delegate: nil)
-            
-            let foldersData = try await folderData
-            let allFeedsData = try await feedsData
-            let allItemsData = try await updatedItemsData
-            
-            let folders: Folders = try getType(from: foldersData)
-            let feeds: Feeds = try getType(from: allFeedsData)
-            let items: Items = try getType(from: allItemsData)
-            
-            if let folders = folders.folders {
-                CDFolder.update(folders: folders)
-            }
-            
-            if let feeds = feeds.feeds {
-                CDFeed.update(feeds: feeds)
-            }
-            
-            if let items = items.items {
-                try await CDItem.update(items: items)
-            }
+            try await FolderImporter(persistentContainer: NewsData.persistentContainer).performImport()
+            try await FeedImporter(persistentContainer: NewsData.persistentContainer).performImport()
+            try await ItemImporter(persistentContainer: NewsData.persistentContainer).performImport()
             try await CDItem.deleteOldItems()
             let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()

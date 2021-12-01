@@ -30,6 +30,17 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
         }
         return folderList
     }
+
+
+    static func add(folders: [FolderProtocol], using context: NSManagedObjectContext) async throws {
+        await context.perform {
+            for folder in folders {
+                let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDFolder.entityName, into: context) as! CDFolder
+                newRecord.id = Int32(folder.id)
+                newRecord.name = folder.name
+            }
+        }
+    }
     
     static func update(folders: [FolderProtocol]) {
         NewsData.mainThreadContext.performAndWait {

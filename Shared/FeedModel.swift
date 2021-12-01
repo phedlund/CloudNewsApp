@@ -23,7 +23,7 @@ class FeedModel: ObservableObject {
     }
     private var feeds = [CDFeed]()  {
         willSet {
-            nodes = update()
+            update()
         }
     }
     private var items = [CDItem]()
@@ -62,6 +62,10 @@ class FeedModel: ObservableObject {
             self.isSortingOldestFirst = newSortOldestFirst
         }
         .store(in: &cancellables)
+
+        nodes.insert(starredItemsNode(), at: 0)
+        nodes.insert(allItemsNode(), at: 0)
+        updateCounts(nodes)
     }
 
     func nodeItems(_ nodeType: NodeType) -> [ArticleModel] {
@@ -132,24 +136,37 @@ class FeedModel: ObservableObject {
         }
     }
 
-    func update() -> [Node] {
-        var result = [Node]()
-
-        result.append(allItemsNode())
-        result.append(starredItemsNode())
+    func update() {
+        var folderNodes = [Node]()
+        var feedNodes = [Node]()
 
         if let folders = CDFolder.all() {
             for folder in folders {
-                result.append(folderNode(folder: folder))
+                folderNodes.append(folderNode(folder: folder))
             }
         }
+
         if let feeds = CDFeed.inFolder(folder: 0) {
             for feed in feeds {
-                result.append(feedNode(feed: feed))
+                feedNodes.append(feedNode(feed: feed))
             }
         }
-        updateCounts(result)
-        return result
+
+        let firstFolderIndex = 2
+        if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+            nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
+        } else {
+            nodes.append(contentsOf: folderNodes)
+        }
+
+        if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+           let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+            nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+        } else {
+            nodes.append(contentsOf: feedNodes)
+        }
+
+        updateCounts(nodes)
     }
 
     func delete(_ node: Node) {

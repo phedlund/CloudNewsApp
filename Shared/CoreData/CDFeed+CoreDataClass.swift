@@ -73,7 +73,27 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
         return nil
     }
-    
+
+    static func add(feeds: [FeedProtocol], using context: NSManagedObjectContext) async throws {
+        await context.perform {
+            for feed in feeds {
+                let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDFeed.entityName, into: context) as! CDFeed
+                newRecord.added = Int32(feed.added)
+                newRecord.faviconLink = feed.faviconLink
+                newRecord.folderId = Int32(feed.folderId)
+                newRecord.id = Int32(feed.id)
+                newRecord.lastUpdateError = feed.lastUpdateError
+                newRecord.link = feed.link
+                newRecord.ordering = Int32(feed.ordering)
+                newRecord.pinned = feed.pinned
+                newRecord.title = feed.title
+                newRecord.unreadCount = Int32(feed.unreadCount)
+                newRecord.updateErrorCount = Int32(feed.updateErrorCount)
+                newRecord.url = feed.url
+            }
+        }
+    }
+
     static func update(feeds: [FeedProtocol]) {
         NewsData.mainThreadContext.performAndWait {
             let request: NSFetchRequest<CDFeed> = CDFeed.fetchRequest()

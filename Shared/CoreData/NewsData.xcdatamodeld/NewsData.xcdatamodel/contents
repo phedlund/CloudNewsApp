@@ -24,6 +24,11 @@
         <fetchIndex name="byFolderId">
             <fetchIndexElement property="folderId" type="Binary" order="ascending"/>
         </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="CDFeeds" representedClassName="CDFeeds" syncable="YES">
         <attribute name="newestItemId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -35,6 +40,11 @@
         <attribute name="lastModified" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="CDItem" representedClassName="CDItem" versionHashModifier="Add index" syncable="YES">
         <attribute name="author" optional="YES" attributeType="String"/>
@@ -67,6 +77,11 @@
         <fetchIndex name="byUnread">
             <fetchIndexElement property="unread" type="Binary" order="ascending"/>
         </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="CDRead" representedClassName="CDRead" syncable="YES">
         <attribute name="itemId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>

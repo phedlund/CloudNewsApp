@@ -19,6 +19,8 @@
 		D0103C74271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D027487A26A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
+		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
+		D02DE6C42754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
 		D02F44B6265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
 		D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44A0265C86BE00A3505B /* ContentView.swift */; };
@@ -171,6 +173,7 @@
 		D00AFA1D2693872800BAED44 /* KeychainStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainStorage.swift; sourceTree = "<group>"; };
 		D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderDisclosureGroup.swift; sourceTree = "<group>"; };
 		D027487826A9D2A10000FB47 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
+		D02DE6C22754691800533EB0 /* ItemImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImporter.swift; sourceTree = "<group>"; };
 		D02F449F265C86BE00A3505B /* CloudNewsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudNewsApp.swift; sourceTree = "<group>"; };
 		D02F44A0265C86BE00A3505B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D02F44A2265C86BF00A3505B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -417,6 +420,7 @@
 			children = (
 				D02F44D2265C89F700A3505B /* NewsRouter.swift */,
 				D02F44C5265C89F700A3505B /* NewsSessionManager.swift */,
+				D02DE6C22754691800533EB0 /* ItemImporter.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -591,6 +595,7 @@
 				D0B0B2F3267D7DC000A997DB /* NewsData.xcdatamodeld in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D02F4517265C8CB900A3505B /* Feeds.swift in Sources */,
+				D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */,
 				D06D0730274F236800325770 /* FavIconFetcher.swift in Sources */,
 				D00AFA1826937C9700BAED44 /* LoginView.swift in Sources */,
@@ -639,6 +644,7 @@
 				D02F4534265C8D0000A3505B /* CDUnread+CoreDataProperties.swift in Sources */,
 				D0B0B2F7267ED1C600A997DB /* SidebarView.swift in Sources */,
 				D0FEBD64268AC83F00AC0618 /* ItemImageFetcher.swift in Sources */,
+				D02DE6C42754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0EBDB5F269D29D10066A2AD /* WebViewManager.swift in Sources */,
 				D02F4512265C8CAE00A3505B /* Item.swift in Sources */,
 				D0B0B2FD267ED1E800A997DB /* ArticleView.swift in Sources */,

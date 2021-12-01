@@ -10,13 +10,13 @@ import CoreData
 
 class NewsData {
 
-    static var mainThreadContext: NSManagedObjectContext = {
+    static var persistentContainer: NSPersistentContainer = {
         let persistentContainer = NSPersistentContainer(name: "NewsData")
         persistentContainer.loadPersistentStores(completionHandler: { (_, error) in
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
                 // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                
+
                 /*
                  Typical reasons for an error here include:
                  * The parent directory does not exist, cannot be created, or disallows writing.
@@ -29,7 +29,11 @@ class NewsData {
             }
         })
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        return persistentContainer.viewContext
+        return persistentContainer
+    }()
+
+    static var mainThreadContext: NSManagedObjectContext = {
+        return NewsData.persistentContainer.viewContext
     }()
 
 }
