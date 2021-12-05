@@ -105,7 +105,7 @@ class NewsManager {
                             case 200:
                                 if let items: Items = try getType(from: data),
                                    let itemsArray = items.items {
-                                    try await CDItem.update(items: itemsArray)
+                                    try await CDItem.add(items: itemsArray, using: NewsData.mainThreadContext)
                                 }
                                 break
                             default:
@@ -282,18 +282,18 @@ class NewsManager {
             let feeds: Feeds = try getType(from: allFeedsData)
 
             if let items = unreadItems.items {
-                try await CDItem.update(items: items)
+                try await CDItem.add(items: items, using: NewsData.mainThreadContext)
             }
             if let itemsStarred = starredItems.items {
-                try await CDItem.update(items: itemsStarred)
+                try await CDItem.add(items: itemsStarred, using: NewsData.mainThreadContext)
             }
             if let folders = folders.folders {
                 CDFolder.update(folders: folders)
             }
 
-            if let newestItemId = feeds.newestItemId, let starredCount = feeds.starredCount {
-                CDFeeds.update(starredCount: starredCount, newestItemId: newestItemId)
-            }
+//            if let newestItemId = feeds.newestItemId, let starredCount = feeds.starredCount {
+//                CDFeeds.update(starredCount: starredCount, newestItemId: newestItemId)
+//            }
             if let feeds = feeds.feeds {
                 CDFeed.update(feeds: feeds)
             }

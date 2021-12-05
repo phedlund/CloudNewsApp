@@ -7,39 +7,32 @@
 
 import Combine
 import CoreData
-import SwiftUI
-import SwiftSoup
 
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
 
-    private var isHidingRead = false
-    private var isSortingOldestFirst = false
-
     private var folders = [CDFolder]() {
-        willSet {
-//            nodes = update()
+        didSet {
+            if !isInInit {
+                update()
+            }
         }
     }
     private var feeds = [CDFeed]()  {
-        willSet {
-            update()
+        didSet {
+            if !isInInit {
+                update()
+            }
         }
     }
-    private var items = [CDItem]()
 
-    private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
+    private var isInInit = false
 
     init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),
-         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher(),
-         itemPublisher: AnyPublisher<[CDItem], Never> = ItemStorage.shared.items.eraseToAnyPublisher()) {
-        itemPublisher.sink { items in
-            print("Updating in Tree Model")
-            self.items = items
-            self.updateCounts(self.nodes)
-        }
-        .store(in: &cancellables)
+         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher()) {
+
+        isInInit = true
         feedPublisher.sink { feeds in
             print("Updating Feeds")
             self.feeds = feeds
@@ -51,61 +44,15 @@ class FeedModel: ObservableObject {
         }
         .store(in: &cancellables)
 
-        preferences.$hideRead.sink { [weak self] newHideRead in
-            guard let self = self else { return }
-            self.isHidingRead = newHideRead
-        }
-        .store(in: &cancellables)
-
-        preferences.$sortOldestFirst.sink { [weak self] newSortOldestFirst in
-            guard let self = self else { return }
-            self.isSortingOldestFirst = newSortOldestFirst
-        }
-        .store(in: &cancellables)
-
         nodes.insert(starredItemsNode(), at: 0)
         nodes.insert(allItemsNode(), at: 0)
-        updateCounts(nodes)
-    }
-
-    func nodeItems(_ nodeType: NodeType) -> [ArticleModel] {
-        var filteredItems = [CDItem]()
-        var result = [ArticleModel]()
-
-        switch nodeType {
-        case .all:
-            filteredItems = items.filter({ isHidingRead ? $0.unread : true })
-        case .starred:
-            filteredItems = items.filter { item in
-                let check1 = item.starred == true
-                let check2 = isHidingRead ? item.unread : true
-                return check1 && check2
-            }
-        case .folder(let id):
-            if let feedIds = CDFeed.idsInFolder(folder: id) {
-                filteredItems = items.filter { item in
-                    let check1 = feedIds.contains(item.feedId)
-                    let check2 = isHidingRead ? item.unread : true
-                    return check1 && check2
-                }
-            }
-        case .feed(let id):
-            filteredItems = items.filter { item in
-                let check1 = item.feedId == id
-                let check2 = isHidingRead ? item.unread : true
-                return check1 && check2
-            }
-        }
-        for filteredItem in filteredItems {
-            result.append(ArticleModel(item: filteredItem))
-        }
-        return result.sorted(by: { isSortingOldestFirst ? $1.item.id > $0.item.id : $0.item.id > $1.item.id })
+        update()
+        isInInit = false
     }
 
     private func updateCounts(_ nodes: [Node]) {
 
         func update(_ node: Node) {
-            node.unreadCount = nodeUnreadCount(node.nodeType)
             node.title = nodeTitle(node.nodeType)
         }
 
@@ -118,11 +65,6 @@ class FeedModel: ObservableObject {
         }
     }
     
-    private func nodeUnreadCount(_ nodeType: NodeType) -> String {
-        let count = CDItem.unreadCount(nodeType: nodeType)
-        return count > 0 ? "\(count)" : ""
-    }
-
     private func nodeTitle(_ nodeType: NodeType) -> String {
         switch nodeType {
         case .all:
@@ -210,21 +152,16 @@ class FeedModel: ObservableObject {
     }
 
     private func allItemsNode() -> Node {
-        let unreadCount = CDItem.unreadCount(nodeType: .all)
         let node = Node(.all, id: AllNodeGuid)
-        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 
     private func starredItemsNode() -> Node {
-        let unreadCount = CDItem.unreadCount(nodeType: .starred)
         let node = Node(.starred, id: StarNodeGuid)
-        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 
     private func folderNode(folder: CDFolder) -> Node {
-        let unreadCount = CDItem.unreadCount(nodeType: .folder(id: folder.id))
 
         var basePredicate: NSPredicate {
             if let feedIds = CDFeed.idsInFolder(folder: folder.id) {
@@ -239,18 +176,14 @@ class FeedModel: ObservableObject {
                 children.append(feedNode(feed: feed))
             }
             let node = Node(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.expanded)
-            node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
             return node
         }
         let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.expanded)
-        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 
     private func feedNode(feed: CDFeed) -> Node {
-        let unreadCount = CDItem.unreadCount(nodeType: .feed(id: feed.id))
         let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
-        node.unreadCount = unreadCount > 0 ? "\(unreadCount)" : ""
         return node
     }
 

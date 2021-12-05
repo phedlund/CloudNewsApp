@@ -85,17 +85,20 @@ struct ItemsView: View {
                     }
                 }
             }
-            .onReceive(settings.$hideRead) { _ in
-                items = model.nodeItems(node.nodeType)
-            }
-            .onReceive(settings.$sortOldestFirst) { _ in
-                items = model.nodeItems(node.nodeType)
-            }
+//            .onReceive(settings.$hideRead) { _ in
+//                items = model.nodeItems(node.nodeType)
+//            }
+//            .onReceive(settings.$sortOldestFirst) { _ in
+//                items = model.nodeItems(node.nodeType)
+//            }
             .onReceive(node.$unreadCount) { unreadCount in
                 isMarkAllReadDisabled = unreadCount.isEmpty
             }
             .onReceive(node.$title) { title in
                 navTitle = title
+            }
+            .onReceive(node.$items) { newItems in
+                items = newItems
             }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0

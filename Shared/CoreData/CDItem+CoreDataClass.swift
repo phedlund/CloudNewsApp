@@ -217,63 +217,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
-    static func update(items: [ItemProtocol]) async throws {
-        try await NewsData.mainThreadContext.perform {
-            let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
-            do {
-                let itemCount = items.count
-                var current = 0
-                for item in items {
-                    let predicate = NSPredicate(format: "id == %d", item.id)
-                    request.predicate = predicate
-                    let records = try NewsData.mainThreadContext.fetch(request)
-                    if let existingRecord = records.first {
-                        existingRecord.author = item.author
-                        existingRecord.body = item.body
-                        existingRecord.displayBody = existingRecord.dynamicDisplayBody(item.body)
-                        existingRecord.enclosureLink = item.enclosureLink
-                        existingRecord.enclosureMime = item.enclosureMime
-                        existingRecord.feedId = item.feedId
-                        existingRecord.fingerprint = item.fingerprint
-                        existingRecord.guid = item.guid
-                        existingRecord.guidHash = item.guidHash
-//                        existingRecord.id = item.id
-                        existingRecord.lastModified = item.lastModified
-                        existingRecord.pubDate = item.pubDate
-                        existingRecord.starred = item.starred
-                        existingRecord.title = existingRecord.dynamicDisplayTitle(item.title)
-                        existingRecord.unread = item.unread
-                        existingRecord.url = item.url
-//                        let _ = existingRecord.thumbnail
-                    } else {
-                        let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: NewsData.mainThreadContext) as! CDItem
-                        newRecord.author = item.author
-                        newRecord.body = item.body
-                        newRecord.displayBody = newRecord.dynamicDisplayBody(item.body)
-                        newRecord.enclosureLink = item.enclosureLink
-                        newRecord.enclosureMime = item.enclosureMime
-                        newRecord.feedId = item.feedId
-                        newRecord.fingerprint = item.fingerprint
-                        newRecord.guid = item.guid
-                        newRecord.guidHash = item.guidHash
-                        newRecord.id = item.id
-                        newRecord.lastModified = item.lastModified
-                        newRecord.pubDate = item.pubDate
-                        newRecord.starred = item.starred
-                        newRecord.title = newRecord.dynamicDisplayTitle(item.title)
-                        newRecord.unread = item.unread
-                        newRecord.url = item.url
-                        current += 1
-                        print("Count \(itemCount), Current \(current)")
-                    }
-                }
-                try NewsData.mainThreadContext.save()
-            } catch {
-                throw PBHError.databaseError("Error updating items")
-            }
-        }
-    }
-
     static func lastModified() -> Int32 {
         var result: Int32 = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
