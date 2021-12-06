@@ -13,7 +13,7 @@ import CoreData
 @objc(CDFeed)
 public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
 
-    static private let entityName = "CDFeed"
+    static let entityName = "CDFeed"
     
     static func all() -> [CDFeed]? {
         let request: NSFetchRequest<CDFeed> = self.fetchRequest()
@@ -141,8 +141,13 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
     static func addFavIcon(feed: CDFeed, iconData: Data) async throws {
         try await NewsData.mainThreadContext.perform {
             do {
-                feed.favicon = iconData
-                try NewsData.mainThreadContext.save()
+                let currentData = feed.favicon
+                if iconData == currentData {
+                    print("Same icon data")
+                } else {
+                    feed.favicon = iconData
+                    try NewsData.mainThreadContext.save()
+                }
             } catch {
                 throw PBHError.databaseError("Error adding favicon")
             }

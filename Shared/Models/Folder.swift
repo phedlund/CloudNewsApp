@@ -23,5 +23,11 @@ struct Folder: Codable, FolderProtocol {
         id = try values.decode(Int32.self, forKey: .id)
         name = try values.decodeIfPresent(String.self, forKey: .name)
     }
-    
+
+    func asDictionary() -> [String: Any] {
+        return [CodingKeys.id.stringValue: self.id,
+                CodingKeys.name.stringValue: self.name as Any
+        ]
+    }
+
 }

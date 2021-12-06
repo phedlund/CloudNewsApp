@@ -19,7 +19,10 @@ struct Item: Codable, ItemProtocol {
     var guidHash : String?
     var id : Int32
     var lastModified : Int32
+    var mediaThumbnail: String?
+    var mediaDescription: String?
     var pubDate : Int32
+    var rtl: Bool
     var starred : Bool
     var title : String?
     var unread : Bool
@@ -36,7 +39,10 @@ struct Item: Codable, ItemProtocol {
         case guidHash = "guidHash"
         case id = "id"
         case lastModified = "lastModified"
+        case mediaThumbnail = "mediaThumbnail"
+        case mediaDescription = "mediaDescription"
         case pubDate = "pubDate"
+        case rtl = "rtl"
         case starred = "starred"
         case title = "title"
         case unread = "unread"
@@ -55,11 +61,35 @@ struct Item: Codable, ItemProtocol {
         guidHash = try values.decodeIfPresent(String.self, forKey: .guidHash)
         id = try values.decode(Int32.self, forKey: .id)
         lastModified = try values.decode(Int32.self, forKey: .lastModified)
+        mediaThumbnail = try values.decodeIfPresent(String.self, forKey: .mediaThumbnail)
+        mediaDescription = try values.decodeIfPresent(String.self, forKey: .mediaDescription)
         pubDate = try values.decode(Int32.self, forKey: .pubDate)
+        rtl = try values.decode(Bool.self, forKey: .rtl)
         starred = try values.decode(Bool.self, forKey: .starred)
         title = try values.decodeIfPresent(String.self, forKey: .title)
         unread = try values.decode(Bool.self, forKey: .unread)
         url = try values.decodeIfPresent(String.self, forKey: .url)
+    }
+
+    func asDictionary() -> [String: Any] {
+        return [CodingKeys.author.stringValue: self.author as Any,
+                CodingKeys.body.stringValue: self.body as Any,
+                CodingKeys.enclosureLink.stringValue: self.enclosureLink as Any,
+                CodingKeys.enclosureMime.stringValue: self.enclosureMime as Any,
+                CodingKeys.feedId.stringValue: self.feedId as Any,
+                CodingKeys.guid.stringValue: self.guid as Any,
+                CodingKeys.guidHash.stringValue: self.guidHash as Any,
+                CodingKeys.id.stringValue: self.id,
+                CodingKeys.lastModified.stringValue: self.lastModified as Any,
+                CodingKeys.mediaThumbnail.stringValue: self.mediaThumbnail as Any,
+                CodingKeys.mediaDescription.stringValue: self.mediaDescription as Any,
+                CodingKeys.pubDate.stringValue: self.pubDate,
+                CodingKeys.rtl.stringValue: self.rtl as Any,
+                CodingKeys.starred.stringValue: self.starred,
+                CodingKeys.title.stringValue: self.title as Any,
+                CodingKeys.unread.stringValue: self.unread,
+                CodingKeys.url.stringValue: self.url as Any
+        ]
     }
     
 }

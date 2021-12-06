@@ -26,5 +26,8 @@ struct Feeds : Codable {
         newestItemId = try values.decodeIfPresent(Int.self, forKey: .newestItemId)
         starredCount = try values.decodeIfPresent(Int.self, forKey: .starredCount)
     }
-    
+
+    func feedsAsDictionaries() -> [[String: Any]]? {
+        return feeds?.map({ $0.asDictionary() })
+    }
 }

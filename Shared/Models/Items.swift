@@ -20,5 +20,9 @@ struct Items : Codable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         items = try values.decodeIfPresent([Item].self, forKey: .items)
     }
-    
+
+    func itemsAsDictionaries() -> [[String: Any]]? {
+        return items?.map({ $0.asDictionary() })
+    }
+
 }

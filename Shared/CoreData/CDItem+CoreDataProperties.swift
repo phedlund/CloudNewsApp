@@ -28,7 +28,10 @@ extension CDItem {
     @NSManaged public var id: Int32
     @NSManaged public var imageLink: String?
     @NSManaged public var lastModified: Int32
+    @NSManaged public var mediaThumbnail: String?
+    @NSManaged public var mediaDescription: String?
     @NSManaged public var pubDate: Int32
+    @NSManaged public var rtl: Bool
     @NSManaged public var readable: String?
     @NSManaged public var starred: Bool
     @NSManaged public var title: String?

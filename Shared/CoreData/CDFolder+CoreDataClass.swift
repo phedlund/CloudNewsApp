@@ -13,7 +13,7 @@ import CoreData
 @objc(CDFolder)
 public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
 
-    static private let entityName = "CDFolder"
+    static let entityName = "CDFolder"
     
     static func all() -> [CDFolder]? {
         let request : NSFetchRequest<CDFolder> = self.fetchRequest()

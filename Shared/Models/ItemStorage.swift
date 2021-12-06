@@ -41,6 +41,9 @@ class ItemStorage: NSObject, ObservableObject {
 extension ItemStorage: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard let items = controller.fetchedObjects as? [CDItem] else { return }
+        for item in items {
+            print("Item change \(item.changedValues())")
+        }
         self.items.value = items
     }
 }
@@ -77,6 +80,9 @@ class FeedStorage: NSObject, ObservableObject {
 extension FeedStorage: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard let feeds = controller.fetchedObjects as? [CDFeed] else { return }
+        for feed in feeds {
+            print("Feed change \(feed.changedValues())")
+        }
         self.feeds.value = feeds
     }
 }
@@ -113,6 +119,9 @@ class FolderStorage: NSObject, ObservableObject {
 extension FolderStorage: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard let folders = controller.fetchedObjects as? [CDFolder] else { return }
+        for folder in folders {
+            print("Folder change \(folder.changedValues())")
+        }
         self.folders.value = folders
     }
 }

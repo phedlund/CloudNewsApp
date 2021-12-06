@@ -61,5 +61,21 @@ struct Feed: Codable, FeedProtocol {
         updateErrorCount = try values.decode(Int32.self, forKey: .updateErrorCount)
         url = try values.decodeIfPresent(String.self, forKey: .url)
     }
+
+    func asDictionary() -> [String: Any] {
+        return [CodingKeys.added.stringValue: self.added,
+                CodingKeys.faviconLink.stringValue: self.faviconLink as Any,
+                CodingKeys.folderId.stringValue: self.folderId,
+                CodingKeys.id.stringValue: self.id,
+                CodingKeys.lastUpdateError.stringValue: self.lastUpdateError as Any,
+                CodingKeys.link.stringValue: self.link as Any,
+                CodingKeys.ordering.stringValue: self.ordering,
+                CodingKeys.pinned.stringValue: self.pinned,
+                CodingKeys.title.stringValue: self.title as Any,
+                CodingKeys.unreadCount.stringValue: self.unreadCount,
+                CodingKeys.updateErrorCount.stringValue: self.updateErrorCount,
+                CodingKeys.url.stringValue: self.url as Any
+        ]
+    }
     
 }

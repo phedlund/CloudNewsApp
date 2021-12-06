@@ -29,7 +29,7 @@ struct FeedFavIconView: View {
     var body: some View {
         switch nodeType {
         case .all:
-            Image("favicon")
+            Image("rss")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16, alignment: .center)
@@ -52,7 +52,7 @@ struct FeedFavIconView: View {
     }
 
     private func favIconImage(_ feedId: Int32) -> UIImage {
-        var result = UIImage(named: "favicon") ?? UIImage()
+        var result = UIImage(named: "rss") ?? UIImage()
         if let feed = CDFeed.feed(id: feedId) {
             if let data = feed.favicon {
                 result = UIImage(data: data) ?? UIImage()

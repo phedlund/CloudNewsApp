@@ -16,11 +16,11 @@ actor FavIconFetcher {
     private let validSchemas = ["http", "https", "file"]
 
     func fetch() async throws {
-        var result = UIImage(named: "favicon")?.pngData() ?? UIImage().pngData()
+        var result = UIImage(named: "rss")?.pngData() ?? UIImage().pngData()
         if let feeds = CDFeed.all() {
             for feed in feeds {
                 if let link = feed.faviconLink,
-                   link != "favicon",
+                   link != "rss",
                    let url = URL(string: link),
                    let scheme = url.scheme,
                    validSchemas.contains(scheme) {

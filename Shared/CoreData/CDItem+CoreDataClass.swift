@@ -14,7 +14,7 @@ import SwiftUI
 @objc(CDItem)
 public class CDItem: NSManagedObject, ItemProtocol {
 
-    static private let entityName = "CDItem"
+    static let entityName = "CDItem"
 
     @objc dynamic var dateAuthorFeed: String {
         let dateFormatter = DateFormatter()

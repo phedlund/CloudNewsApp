@@ -52,7 +52,10 @@ protocol ItemProtocol {
     var guidHash: String? { get set }
     var id: Int32 { get set }
     var lastModified: Int32 { get set }
+    var mediaThumbnail: String? { get set }
+    var mediaDescription: String? { get set }
     var pubDate: Int32 { get set }
+    var rtl: Bool { get set }
     var starred: Bool { get set }
     var title: String? { get set }
     var unread: Bool { get set }

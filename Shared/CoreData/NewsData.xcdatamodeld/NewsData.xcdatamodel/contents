@@ -59,9 +59,12 @@
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="imageLink" optional="YES" attributeType="String"/>
         <attribute name="lastModified" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mediaDescription" optional="YES" attributeType="String"/>
+        <attribute name="mediaThumbnail" optional="YES" attributeType="String"/>
         <attribute name="pubDate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="readable" optional="YES" attributeType="String"/>
-        <attribute name="starred" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="rtl" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="starred" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="unread" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="String"/>
@@ -99,7 +102,7 @@
         <element name="CDFeed" positionX="-342" positionY="-16.40625" width="128" height="284"/>
         <element name="CDFeeds" positionX="-612" positionY="-18" width="128" height="73"/>
         <element name="CDFolder" positionX="-479" positionY="-18" width="128" height="104"/>
-        <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="299"/>
+        <element name="CDItem" positionX="-100.8203125" positionY="-14.671875" width="128" height="344"/>
         <element name="CDRead" positionX="-625.546875" positionY="348.36328125" width="128" height="58"/>
         <element name="CDStarred" positionX="-623.70703125" positionY="278.30859375" width="128" height="58"/>
         <element name="CDUnread" positionX="-621.51953125" positionY="207.77734375" width="128" height="58"/>

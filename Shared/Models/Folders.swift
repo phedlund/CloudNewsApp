@@ -20,5 +20,9 @@ struct Folders : Codable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         folders = try values.decodeIfPresent([Folder].self, forKey: .folders)
     }
-    
+
+    func foldersAsDictionaries() -> [[String: Any]]? {
+        return folders?.map({ $0.asDictionary() })
+    }
+
 }
