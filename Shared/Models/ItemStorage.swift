@@ -14,8 +14,13 @@ class ItemStorage: NSObject, ObservableObject {
     private let itemFetchController: NSFetchedResultsController<CDItem>
     static let shared = ItemStorage()
 
+    private let savePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
+    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: NewsData.mainThreadContext).eraseToAnyPublisher()
+    private let fetchRequest = CDItem.fetchRequest()
+
+    private var cancellables = Set<AnyCancellable>()
+
     private override init() {
-        let fetchRequest = CDItem.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
         fetchRequest.predicate = NSPredicate(value: true)
         itemFetchController = NSFetchedResultsController(
@@ -27,6 +32,18 @@ class ItemStorage: NSObject, ObservableObject {
         super.init()
 
         itemFetchController.delegate = self
+
+        savePublisher
+            .merge(with: syncPublisher)
+            .sink { [weak self]  _ in
+                guard let self = self else { return }
+                do {
+                    self.items.value = try NewsData.mainThreadContext.fetch(self.fetchRequest)
+                } catch {
+                    //
+                }
+            }
+            .store(in: &cancellables)
 
         do {
             try itemFetchController.performFetch()

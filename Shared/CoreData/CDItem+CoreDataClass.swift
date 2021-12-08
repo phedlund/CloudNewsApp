@@ -279,4 +279,17 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return result as? NSBatchDeleteResult
     }
 
+    static func reset() {
+        NewsData.mainThreadContext.performAndWait {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
+            do {
+                try NewsData.mainThreadContext.executeAndMergeChanges(using: deleteRequest)
+            } catch {
+                let updateError = error as NSError
+                print("\(updateError), \(updateError.userInfo)")
+            }
+        }
+    }
+    
 }

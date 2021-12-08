@@ -69,7 +69,7 @@ actor ItemImageFetcher {
                 if let imageUrl = itemImageUrl {
                     do {
                         if let _ = try await retrieve(imageUrl) {
-                            item.imageLink = itemImageUrl?.absoluteString
+                            item.setPrimitiveValue(itemImageUrl?.absoluteString, forKey: "imageLink")
                         }
                     } catch let error {
                         print(error.localizedDescription)

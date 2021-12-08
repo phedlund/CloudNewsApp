@@ -259,44 +259,16 @@ class NewsManager {
         let starredParameters: ParameterDict = ["type": 2,
                                                 "getRead": true,
                                                 "batchSize": -1]
-        let starredItemRouter = Router.items(parameters: starredParameters)
+        let starredRouter = Router.items(parameters: starredParameters)
 
         do {
-            // 1.
-            async let (unreadData, _ /*unreadResponse*/) = NewsManager.session.data(for: unreadRouter.urlRequest(), delegate: nil)
-            // 2.
-            async let (starredData, _ /*starredResponse*/) = NewsManager.session.data(for: starredItemRouter.urlRequest(), delegate: nil)
-            // 3.
-            async let (folderData, _ /*folderResponse*/) = NewsManager.session.data(for: Router.folders.urlRequest(), delegate: nil)
-            // 4.
-            async let (feedsData, _ /*feedsResponse*/) = NewsManager.session.data(for: Router.feeds.urlRequest(), delegate: nil)
 
-            let unreadItemsData = try await unreadData
-            let starredItemsData = try await starredData
-            let foldersData = try await folderData
-            let allFeedsData = try await feedsData
+            try await FolderImporter(persistentContainer: NewsData.persistentContainer).download(Router.folders.urlRequest())
+            try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
+            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(unreadRouter.urlRequest())
+            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(starredRouter.urlRequest())
+            try await CDItem.deleteOldItems()
 
-            let unreadItems: Items = try getType(from: unreadItemsData)
-            let starredItems: Items = try getType(from: starredItemsData)
-            let folders: Folders = try getType(from: foldersData)
-            let feeds: Feeds = try getType(from: allFeedsData)
-
-            if let items = unreadItems.items {
-                try await CDItem.add(items: items, using: NewsData.mainThreadContext)
-            }
-            if let itemsStarred = starredItems.items {
-                try await CDItem.add(items: itemsStarred, using: NewsData.mainThreadContext)
-            }
-            if let folders = folders.folders {
-                CDFolder.update(folders: folders)
-            }
-
-//            if let newestItemId = feeds.newestItemId, let starredCount = feeds.starredCount {
-//                CDFeeds.update(starredCount: starredCount, newestItemId: newestItemId)
-//            }
-            if let feeds = feeds.feeds {
-                CDFeed.update(feeds: feeds)
-            }
             updateBadge()
             let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()
@@ -304,7 +276,6 @@ class NewsManager {
                 try? await favIconFetcher.fetch()
                 try? await articleImageFetcher.itemImages()
             }
-
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
             print(error.localizedDescription)
@@ -327,6 +298,11 @@ class NewsManager {
 
      */
     func sync() async throws {
+//        CDFeeds.reset()
+//        CDFeed.reset()
+//        CDFolder.reset()
+//        CDItem.reset()
+//
         do {
             let count = try NewsData.mainThreadContext.count(for: CDItem.fetchRequest())
             if count == 0 {
@@ -399,9 +375,17 @@ class NewsManager {
                 }
             }
 
-            try await FolderImporter(persistentContainer: NewsData.persistentContainer).performImport()
-            try await FeedImporter(persistentContainer: NewsData.persistentContainer).performImport()
-            try await ItemImporter(persistentContainer: NewsData.persistentContainer).performImport()
+            let newestKnownLastModified = CDItem.lastModified()
+            Preferences().lastModified = newestKnownLastModified
+
+            let updatedParameters: ParameterDict = ["type": 3,
+                                                    "lastModified": newestKnownLastModified,
+                                                    "id": 0]
+            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
+
+            try await FolderImporter(persistentContainer: NewsData.persistentContainer).download(Router.folders.urlRequest())
+            try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
+            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
             try await CDItem.deleteOldItems()
             let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()

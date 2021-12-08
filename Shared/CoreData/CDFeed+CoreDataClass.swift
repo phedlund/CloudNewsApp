@@ -170,4 +170,17 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
     }
 
+    static func reset() {
+        NewsData.mainThreadContext.performAndWait {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
+            do {
+                try NewsData.mainThreadContext.executeAndMergeChanges(using: deleteRequest)
+            } catch {
+                let updateError = error as NSError
+                print("\(updateError), \(updateError.userInfo)")
+            }
+        }
+    }
+
 }

@@ -57,6 +57,7 @@ final class Node: Identifiable, ObservableObject {
         .store(in: &cancellables)
 
         itemPublisher
+            .receive(on: DispatchQueue.main)
             .map { rawItems in
                 rawItems.filter { [weak self] item in
                     guard let self = self else { return false }
