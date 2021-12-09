@@ -16,23 +16,9 @@ struct ArticleView: View {
             ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
                 .navigationTitle(articleModel.item.title ?? "Untitled")
                 .navigationBarTitleDisplayMode(.inline)
-                .onAppear {
-                    delayMarkingRead()
-                }
                 .background {
                     Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                 }
-        }
-    }
-
-    private func delayMarkingRead() {
-        // The delay prevents the view from jumping back to the items list
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            if articleModel.item.unread {
-                Task {
-                    try? await NewsManager.shared.markRead(items: [articleModel.item], unread: false)
-                }
-            }
         }
     }
 

@@ -35,7 +35,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         savePublisher
             .merge(with: syncPublisher)
-            .sink { [weak self]  _ in
+            .sink { [weak self] _ in
                 guard let self = self else { return }
                 do {
                     self.items.value = try NewsData.mainThreadContext.fetch(self.fetchRequest)
@@ -51,7 +51,6 @@ class ItemStorage: NSObject, ObservableObject {
         } catch {
             print("Error: could not fetch items")
         }
-
     }
 }
 
@@ -90,7 +89,6 @@ class FeedStorage: NSObject, ObservableObject {
         } catch {
             print("Error: could not fetch feeds")
         }
-
     }
 }
 
@@ -129,7 +127,6 @@ class FolderStorage: NSObject, ObservableObject {
         } catch {
             print("Error: could not fetch feeds")
         }
-
     }
 }
 

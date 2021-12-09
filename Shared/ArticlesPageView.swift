@@ -38,6 +38,7 @@ struct ArticlesPageView: View {
         self.items = items
         currentModel = items[selectedIndex]
         _selectedIndex = State(initialValue: selectedIndex)
+        markItemRead()
     }
 
     var body: some View {
@@ -54,6 +55,7 @@ struct ArticlesPageView: View {
         .onChange(of: selectedIndex) { newValue in
             currentModel.webView.stopLoading()
             currentModel = items[newValue]
+            markItemRead()
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -117,6 +119,13 @@ struct ArticlesPageView: View {
         })
     }
 
+    private func markItemRead() {
+        if currentModel.item.unread {
+            Task {
+                try? await NewsManager.shared.markRead(items: [currentModel.item], unread: false)
+            }
+        }
+    }
 }
 
 //struct ArticlesPageView_Previews: PreviewProvider {
