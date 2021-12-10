@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftSoup
 
 struct Item: Codable, ItemProtocol {
     var author : String?
@@ -66,7 +67,7 @@ struct Item: Codable, ItemProtocol {
         pubDate = try values.decode(Int32.self, forKey: .pubDate)
         rtl = try values.decode(Bool.self, forKey: .rtl)
         starred = try values.decode(Bool.self, forKey: .starred)
-        title = try values.decodeIfPresent(String.self, forKey: .title)
+        title = itemDisplayTitle(try values.decodeIfPresent(String.self, forKey: .title))
         unread = try values.decode(Bool.self, forKey: .unread)
         url = try values.decodeIfPresent(String.self, forKey: .url)
     }
@@ -74,6 +75,7 @@ struct Item: Codable, ItemProtocol {
     func asDictionary() -> [String: Any] {
         return [CodingKeys.author.stringValue: self.author as Any,
                 CodingKeys.body.stringValue: self.body as Any,
+                "displayBody": itemDisplayBody(self.body),
                 CodingKeys.enclosureLink.stringValue: self.enclosureLink as Any,
                 CodingKeys.enclosureMime.stringValue: self.enclosureMime as Any,
                 CodingKeys.feedId.stringValue: self.feedId as Any,
@@ -91,5 +93,41 @@ struct Item: Codable, ItemProtocol {
                 CodingKeys.url.stringValue: self.url as Any
         ]
     }
-    
+
+}
+
+func itemDisplayTitle(_ title: String?) -> String {
+    guard let titleValue = title else {
+        return "Untitled"
+    }
+
+    return plainSummary(raw: titleValue as String)
+}
+
+func itemDisplayBody(_ body: String?) -> String {
+    guard let summaryValue = body else {
+        return "No Summary"
+    }
+
+    var summary: String = summaryValue as String
+    if summary.range(of: "<style>", options: .caseInsensitive) != nil {
+        if summary.range(of: "</style>", options: .caseInsensitive) != nil {
+            if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
+                let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
+                let sub = summary[start..<end]
+                summary = summary.replacingOccurrences(of: sub, with: "")
+            }
+        }
+    }
+    return  plainSummary(raw: summary)
+}
+
+private func plainSummary(raw: String) -> String {
+    guard let doc: Document = try? SwiftSoup.parse(raw) else {
+        return raw
+    } // parse html
+    guard let txt = try? doc.text() else {
+        return raw
+    }
+    return txt
 }

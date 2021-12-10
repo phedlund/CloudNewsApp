@@ -8,8 +8,6 @@
 //
 
 import CoreData
-import SwiftSoup
-import SwiftUI
 
 @objc(CDItem)
 public class CDItem: NSManagedObject, ItemProtocol {
@@ -197,7 +195,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: context) as! CDItem
                 newRecord.author = item.author
                 newRecord.body = item.body
-                newRecord.displayBody = newRecord.dynamicDisplayBody(item.body)
+                newRecord.displayBody = itemDisplayBody(item.body)
                 newRecord.enclosureLink = item.enclosureLink
                 newRecord.enclosureMime = item.enclosureMime
                 newRecord.feedId = item.feedId
@@ -208,7 +206,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 newRecord.lastModified = item.lastModified
                 newRecord.pubDate = item.pubDate
                 newRecord.starred = item.starred
-                newRecord.title = newRecord.dynamicDisplayTitle(item.title)
+                newRecord.title = itemDisplayTitle(item.title)
                 newRecord.unread = item.unread
                 newRecord.url = item.url
                 current += 1

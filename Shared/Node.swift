@@ -81,7 +81,7 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .sink { items in
-                print("Updating \(self.nodeType)")
+                print("Updating \(self.nodeType) with \(items.count) items")
                 self.items = items
                     .sorted(by: { self.sortOldestFirst ? $1.id > $0.id : $0.id > $1.id } )
                     .map { ArticleModel(item: $0) }

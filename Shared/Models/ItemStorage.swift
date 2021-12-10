@@ -15,7 +15,7 @@ class ItemStorage: NSObject, ObservableObject {
     static let shared = ItemStorage()
 
     private let savePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
-    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: NewsData.mainThreadContext).eraseToAnyPublisher()
+    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let fetchRequest = CDItem.fetchRequest()
 
     private var cancellables = Set<AnyCancellable>()
@@ -33,8 +33,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         itemFetchController.delegate = self
 
-        savePublisher
-            .merge(with: syncPublisher)
+        Publishers.Merge(syncPublisher, savePublisher)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 do {
