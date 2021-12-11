@@ -34,10 +34,26 @@ class ItemStorage: NSObject, ObservableObject {
         itemFetchController.delegate = self
 
         Publishers.Merge(syncPublisher, savePublisher)
-            .sink { [weak self] _ in
+            .sink { [weak self] notification in
                 guard let self = self else { return }
                 do {
-                    self.items.value = try NewsData.mainThreadContext.fetch(self.fetchRequest)
+//                    print(notification.userInfo)
+                    if let userInfo = notification.userInfo {
+                        var objectIDs = [NSManagedObjectID]()
+                        if let updatedObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
+                            objectIDs.append(contentsOf: updatedObjects.map( { $0.objectID } ))
+                        }
+                        if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
+                            objectIDs.append(contentsOf: deletedObjects.map( { $0.objectID } ))
+                        }
+                        if let insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
+                            objectIDs.append(contentsOf: insertedObjects.map( { $0.objectID } ))
+                        }
+                        let entityNames = objectIDs.map( { $0.entity.name })
+                        if entityNames.contains(CDItem.entityName) {
+                            self.items.value = try NewsData.mainThreadContext.fetch(self.fetchRequest)
+                        }
+                    }
                 } catch {
                     //
                 }
@@ -132,9 +148,16 @@ class FolderStorage: NSObject, ObservableObject {
 extension FolderStorage: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard let folders = controller.fetchedObjects as? [CDFolder] else { return }
+        let expandedFolders = folders.filter( {
+            let filteredKeys = $0.changedValues().filter( { $0.key == "expanded" })
+            return !filteredKeys.isEmpty
+        } )
         for folder in folders {
             print("Folder change \(folder.changedValues())")
         }
-        self.folders.value = folders
+        // Don't trigger an update if the only change was expanding a folder
+        if expandedFolders.isEmpty {
+            self.folders.value = folders
+        }
     }
 }
