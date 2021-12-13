@@ -124,6 +124,17 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
+    static func starredItems() -> [CDItem]? {
+        let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        let predicate = NSPredicate(format: "starred == true")
+        request.predicate = predicate
+        do {
+            return try NewsData.mainThreadContext.fetch(request)
+        } catch {
+            return nil
+        }
+    }
+
     static func items(lastModified: Int32) -> [CDItem]? {
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
         let sortDescription = NSSortDescriptor(key: "id", ascending: false)

@@ -31,7 +31,14 @@ struct FolderDisclosureGroup<Label: View, Content: View> : View {
         }
         .onChange(of: isExpanded) { newExpanded in
             print("Expanded: \(isExpanded)")
-            node.updateExpanded(newExpanded)
+            switch node.nodeType {
+            case .folder(let id):
+                Task {
+                    try? await CDFolder.markExpanded(folderId: id, state: newExpanded)
+                }
+            default:
+                break
+            }
         }
     }
 

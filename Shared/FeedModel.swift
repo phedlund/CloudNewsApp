@@ -29,8 +29,8 @@ class FeedModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
 
-    init(feedPublisher: AnyPublisher<[CDFeed], Never> = FeedStorage.shared.feeds.eraseToAnyPublisher(),
-         folderPublisher: AnyPublisher<[CDFolder], Never> = FolderStorage.shared.folders.eraseToAnyPublisher()) {
+    init(feedPublisher: AnyPublisher<[CDFeed], Never> = ItemStorage.shared.feeds.eraseToAnyPublisher(),
+         folderPublisher: AnyPublisher<[CDFolder], Never> = ItemStorage.shared.folders.eraseToAnyPublisher()) {
 
         isInInit = true
         feedPublisher.sink { feeds in
@@ -48,34 +48,6 @@ class FeedModel: ObservableObject {
         nodes.insert(allItemsNode(), at: 0)
         update()
         isInInit = false
-    }
-
-    private func updateCounts(_ nodes: [Node]) {
-
-        func update(_ node: Node) {
-            node.title = nodeTitle(node.nodeType)
-        }
-
-        for node in nodes {
-            for childNode in node.children {
-                update(childNode)
-            }
-
-            update(node)
-        }
-    }
-    
-    private func nodeTitle(_ nodeType: NodeType) -> String {
-        switch nodeType {
-        case .all:
-            return "All Articles"
-        case .starred:
-            return "Starred Articles"
-        case .folder(let id):
-            return CDFolder.folder(id: id)?.name ?? "Untitled Folder"
-        case .feed(let id):
-            return CDFeed.feed(id: id)?.title ?? "Untitled Feed"
-        }
     }
 
     func update() {
@@ -107,8 +79,6 @@ class FeedModel: ObservableObject {
         } else {
             nodes.append(contentsOf: feedNodes)
         }
-
-        updateCounts(nodes)
     }
 
     func delete(_ node: Node) {

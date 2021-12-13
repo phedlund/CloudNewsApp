@@ -16,7 +16,8 @@ struct NodeView<Content: View> : View {
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
-    @State private var unreadCount = ""
+    @State private var unreadCount = 0
+    @State private var title = ""
 
     @ViewBuilder let content: Content
 
@@ -25,7 +26,7 @@ struct NodeView<Content: View> : View {
             NavigationLink(destination: content) {
                 HStack {
                     Label {
-                        Text(node.title)
+                        Text(title)
                             .lineLimit(1)
                     } icon: {
                         Image(uiImage: node.icon)
@@ -35,7 +36,7 @@ struct NodeView<Content: View> : View {
                     }
                     .labelStyle(.titleAndIcon)
                     Spacer(minLength: 12)
-                    BadgeView(text: node.unreadCount)
+                    BadgeView(text: unreadCount > 0 ? "\(unreadCount)" : "")
                 }
             }
         }
@@ -71,8 +72,11 @@ struct NodeView<Content: View> : View {
                 }
             }
         }
-        .onReceive(node.$unreadCount) { newUnreadCount in
-            unreadCount = newUnreadCount
+        .onReceive(node.$unreadCount) {
+            unreadCount = $0
+        }
+        .onReceive(node.$title) {
+            title = $0
         }
         .popover(isPresented: $isShowingFolderRename) {
             FolderRenameView(showModal: $isShowingFolderRename)

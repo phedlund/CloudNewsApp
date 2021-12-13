@@ -92,7 +92,7 @@ struct ItemsView: View {
 //                items = model.nodeItems(node.nodeType)
 //            }
             .onReceive(node.$unreadCount) { unreadCount in
-                isMarkAllReadDisabled = unreadCount.isEmpty
+                isMarkAllReadDisabled = unreadCount == 0
             }
             .onReceive(node.$title) { title in
                 navTitle = title
