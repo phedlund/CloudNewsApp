@@ -44,16 +44,15 @@ final class Node: Identifiable, ObservableObject {
         self.children = children
         self.id = id
         self.isExpanded = isExpanded
-        self.title = nodeTitle(nodeType)
+        self.title = nodeTitle()
+        self.icon = nodeIcon()
         preferences.$hideRead.sink { [weak self] hideRead in
             self?.hideRead = hideRead
-            self?.configureItems()
         }
         .store(in: &cancellables)
 
         preferences.$sortOldestFirst.sink { [weak self] sortOldestFirst in
             self?.sortOldestFirst = sortOldestFirst
-            self?.configureItems()
         }
         .store(in: &cancellables)
 
@@ -120,14 +119,9 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .store(in: &cancellables)
-        
-        retrieveIcon()
     }
 
-    func configureItems() {
-    }
-
-    private func nodeTitle(_ nodeType: NodeType) -> String {
+    private func nodeTitle() -> String {
         switch nodeType {
         case .all:
             return "All Articles"
@@ -140,19 +134,19 @@ final class Node: Identifiable, ObservableObject {
         }
     }
 
-    private func retrieveIcon() {
+    private func nodeIcon() -> UIImage {
         switch nodeType {
         case .all:
-            icon = UIImage(named: "rss")!
+            return UIImage(named: "rss")!
         case .starred:
-            icon = UIImage(systemName: "star.fill")!
+            return UIImage(systemName: "star.fill")!
         case .folder( _):
-            icon = UIImage(systemName: "folder")!
+            return UIImage(systemName: "folder")!
         case .feed(let id):
             if let feed = CDFeed.feed(id: id), let data = feed.favicon {
-                icon = UIImage(data: data) ?? UIImage(named: "rss") ?? UIImage()
+                return UIImage(data: data) ?? UIImage(named: "rss") ?? UIImage()
             } else {
-                icon = UIImage(named: "rss")!
+                return UIImage(named: "rss")!
             }
         }
     }
