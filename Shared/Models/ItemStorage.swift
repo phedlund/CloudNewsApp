@@ -22,6 +22,7 @@ class ItemStorage: NSObject, ObservableObject {
     var items = CurrentValueSubject<[CDItem], Never>([])
     static let shared = ItemStorage()
 
+    private let preferences = Preferences()
     private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
     private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
@@ -32,6 +33,8 @@ class ItemStorage: NSObject, ObservableObject {
     private var updatedObjects: Set<NSManagedObject>?
     private var deletedObjects: Set<NSManagedObject>?
     private var insertedObjects: Set<NSManagedObject>?
+    private var hideRead = false
+    private var sortOldestFirst = false
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -42,10 +45,21 @@ class ItemStorage: NSObject, ObservableObject {
         feedsFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
         feedsFetchRequest.predicate = NSPredicate(value: true)
 
-        itemsFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
-        itemsFetchRequest.predicate = NSPredicate(value: true)
-
         super.init()
+
+        preferences.$hideRead
+            .sink { [weak self] hideRead in
+                self?.hideRead = hideRead
+                self?.publishItems()
+            }
+            .store(in: &cancellables)
+
+        preferences.$sortOldestFirst
+            .sink { [weak self] sortOldestFirst in
+                self?.sortOldestFirst = sortOldestFirst
+                self?.publishItems()
+            }
+            .store(in: &cancellables)
 
         willSavePublisher
             .sink { [weak self] _ in
@@ -101,7 +115,7 @@ class ItemStorage: NSObject, ObservableObject {
                                 self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Deleted Item")
-                                self.items.value = try NewsData.mainThreadContext.fetch(self.itemsFetchRequest)
+                                self.publishItems()
                             default:
                                 break
                             }
@@ -119,7 +133,7 @@ class ItemStorage: NSObject, ObservableObject {
                                 self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Inserted Item")
-                                self.items.value = try NewsData.mainThreadContext.fetch(self.itemsFetchRequest)
+                                self.publishItems()
                             default:
                                 break
                             }
@@ -134,9 +148,22 @@ class ItemStorage: NSObject, ObservableObject {
         do {
             self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
             self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
-            self.items.value = try NewsData.mainThreadContext.fetch(self.itemsFetchRequest)
+            self.publishItems()
         } catch {
             print("Error: could not fetch items")
+        }
+    }
+
+    private func publishItems() {
+        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.lastModified, ascending: sortOldestFirst ? true : false),
+                               NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
+        let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+        itemsFetchRequest.sortDescriptors = sortDescriptors
+        itemsFetchRequest.predicate = predicate
+        do {
+            self.items.value = try NewsData.mainThreadContext.fetch(self.itemsFetchRequest)
+        } catch {
+            //
         }
     }
 }

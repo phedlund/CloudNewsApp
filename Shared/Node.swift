@@ -21,15 +21,12 @@ final class Node: Identifiable, ObservableObject {
     let id: String
     private let itemPublisher = ItemStorage.shared.items.eraseToAnyPublisher()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
-    private let preferences = Preferences()
 
     fileprivate(set) var isExpanded = false
     private(set) var nodeType: NodeType
     private(set) var children = [Node]()
 
     private var cancellables = Set<AnyCancellable>()
-    private var hideRead = false
-    private var sortOldestFirst = false
 
     convenience init() {
         self.init(.all, id: AllNodeGuid, isExpanded: false)
@@ -46,15 +43,6 @@ final class Node: Identifiable, ObservableObject {
         self.isExpanded = isExpanded
         self.title = nodeTitle()
         self.icon = nodeIcon()
-        preferences.$hideRead.sink { [weak self] hideRead in
-            self?.hideRead = hideRead
-        }
-        .store(in: &cancellables)
-
-        preferences.$sortOldestFirst.sink { [weak self] sortOldestFirst in
-            self?.sortOldestFirst = sortOldestFirst
-        }
-        .store(in: &cancellables)
 
         itemPublisher
             .receive(on: DispatchQueue.main)
@@ -63,19 +51,15 @@ final class Node: Identifiable, ObservableObject {
                     guard let self = self else { return false }
                     switch self.nodeType {
                     case .all:
-                        return self.hideRead ? item.unread : true
+                        return true
                     case .starred:
                         return item.starred
                     case .folder(let id):
                         if let feedIds = CDFeed.idsInFolder(folder: id) {
-                            let check1 = feedIds.contains(item.feedId)
-                            let check2 = self.hideRead ? item.unread : true
-                            return check1 && check2
+                            return feedIds.contains(item.feedId)
                         }
                     case .feed(let id):
-                        let check1 = item.feedId == id
-                        let check2 = self.hideRead ? item.unread : true
-                        return check1 && check2
+                        return item.feedId == id
                     }
                     return false
                 }
@@ -83,7 +67,6 @@ final class Node: Identifiable, ObservableObject {
             .sink { items in
                 print("Updating \(self.nodeType) with \(items.count) items")
                 self.items = items
-                    .sorted(by: { self.sortOldestFirst ? $1.id > $0.id : $0.id > $1.id } )
                     .map { ArticleModel(item: $0) }
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
             }
