@@ -14,6 +14,30 @@ struct NodeChange {
     var key: String
 }
 
+extension NodeChange: Identifiable {
+
+    var id: String {
+        switch nodeType {
+        case .all:
+            return "all"
+        case .starred:
+            return "starred"
+        case .folder(id: let id):
+            return "folder_\(id)"
+        case .feed(id: let id):
+            return "feed\(id)"
+        }
+    }
+
+}
+
+extension NodeChange: Hashable {
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+}
 
 class ItemStorage: NSObject, ObservableObject {
     var changes = CurrentValueSubject<[NodeChange], Never>([])
@@ -65,35 +89,35 @@ class ItemStorage: NSObject, ObservableObject {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.updatedObjects = NewsData.mainThreadContext.updatedObjects
-                var localChanges = [NodeChange]()
+                var localChanges = Set<NodeChange>()
                 if let updatedFolders = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
                     for updatedFolder in updatedFolders {
                         for change in updatedFolder.changedValues() {
-                            localChanges.append(NodeChange(nodeType: .folder(id: updatedFolder.id), key: change.key))
+                            localChanges.insert(NodeChange(nodeType: .folder(id: updatedFolder.id), key: change.key))
                         }
                     }
                 }
                 if let updatedFeeds = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFeed.entity() }) as? Set<CDFeed> {
                     for updatedFeed in updatedFeeds {
                         for change in updatedFeed.changedValues() {
-                            localChanges.append(NodeChange(nodeType: .feed(id: updatedFeed.id), key: change.key))
+                            localChanges.insert(NodeChange(nodeType: .feed(id: updatedFeed.id), key: change.key))
                         }
                     }
                 }
                 if let updatedItems = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDItem.entity() }) as? Set<CDItem> {
                     for updatedItem in updatedItems {
                         for change in updatedItem.changedValues() {
-                            localChanges.append(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
-                            if updatedItem.feedId > 0, let folder = CDFolder.folder(id: updatedItem.feedId) {
-                                localChanges.append(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
+                            localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
+                            if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
+                                localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
                             }
-                            localChanges.append(NodeChange(nodeType: .all, key: change.key))
-                            localChanges.append(NodeChange(nodeType: .starred, key: change.key))
+                            localChanges.insert(NodeChange(nodeType: .all, key: change.key))
+                            localChanges.insert(NodeChange(nodeType: .starred, key: change.key))
                         }
                     }
                 }
                 if !localChanges.isEmpty {
-                    self.changes.value = localChanges
+                    self.changes.value = Array(localChanges)
                 }
             }
             .store(in: &cancellables)
@@ -137,21 +161,21 @@ class ItemStorage: NSObject, ObservableObject {
                         }
                     }
                     if let updatedObjects = self.updatedObjects {
-                        var localChanges = [NodeChange]()
+                        var localChanges = Set<NodeChange>()
                         for updatedObject in updatedObjects {
                             if updatedObject.entity == CDItem.entity(), let updatedItem = updatedObject as? CDItem {
                                 for change in updatedItem.changedValues() {
-                                    localChanges.append(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
-                                    if updatedItem.feedId > 0, let folder = CDFolder.folder(id: updatedItem.feedId) {
-                                        localChanges.append(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
+                                    localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
+                                    if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
+                                        localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
                                     }
-                                    localChanges.append(NodeChange(nodeType: .all, key: change.key))
-                                    localChanges.append(NodeChange(nodeType: .starred, key: change.key))
+                                    localChanges.insert(NodeChange(nodeType: .all, key: change.key))
+                                    localChanges.insert(NodeChange(nodeType: .starred, key: change.key))
                                 }
                             }
                         }
                         if !localChanges.isEmpty {
-                            self.changes.value = localChanges
+                            self.changes.value = Array(localChanges)
                         }
                     }
                 } catch {
