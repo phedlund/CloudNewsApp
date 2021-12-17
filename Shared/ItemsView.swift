@@ -36,6 +36,7 @@ struct ItemsView: View {
                                     .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             }
+                            .buttonStyle(.plain)
                             .contextMenu {
                                 ContextMenuContent(item: item)
                             }
