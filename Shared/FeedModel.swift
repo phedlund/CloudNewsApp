@@ -11,6 +11,9 @@ import CoreData
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
 
+    private let allNode: Node
+    private let starNode: Node
+
     private var folders = [CDFolder]() {
         didSet {
             if !isInInit {
@@ -26,13 +29,20 @@ class FeedModel: ObservableObject {
         }
     }
 
+    private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
+    private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
+    private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
+
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
 
-    init(feedPublisher: AnyPublisher<[CDFeed], Never> = ItemStorage.shared.feeds.eraseToAnyPublisher(),
-         folderPublisher: AnyPublisher<[CDFolder], Never> = ItemStorage.shared.folders.eraseToAnyPublisher()) {
-
+    init() {
         isInInit = true
+        allNode = Node(.all, id: AllNodeGuid)
+        starNode = Node(.starred, id: StarNodeGuid)
+        nodes.append(allNode)
+        nodes.append(starNode)
+
         feedPublisher.sink { feeds in
             print("Updating Feeds")
             self.feeds = feeds
@@ -44,8 +54,15 @@ class FeedModel: ObservableObject {
         }
         .store(in: &cancellables)
 
-        nodes.insert(starredItemsNode(), at: 0)
-        nodes.insert(allItemsNode(), at: 0)
+        changePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.allNode.unreadCount = CDItem.unreadCount(nodeType: .all)
+                self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
+            }
+            .store(in: &cancellables)
+
         update()
         isInInit = false
     }
@@ -119,16 +136,6 @@ class FeedModel: ObservableObject {
                 }
             }
         }
-    }
-
-    private func allItemsNode() -> Node {
-        let node = Node(.all, id: AllNodeGuid)
-        return node
-    }
-
-    private func starredItemsNode() -> Node {
-        let node = Node(.starred, id: StarNodeGuid)
-        return node
     }
 
     private func folderNode(folder: CDFolder) -> Node {

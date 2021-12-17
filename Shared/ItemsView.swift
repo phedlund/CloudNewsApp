@@ -91,15 +91,9 @@ struct ItemsView: View {
 //            .onReceive(settings.$sortOldestFirst) { _ in
 //                items = model.nodeItems(node.nodeType)
 //            }
-            .onReceive(node.$unreadCount) { unreadCount in
-                isMarkAllReadDisabled = unreadCount == 0
-            }
-            .onReceive(node.$title) { title in
-                navTitle = title
-            }
-            .onReceive(node.$items) { newItems in
-                items = newItems
-            }
+            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(node.$title) { navTitle = $0 }
+            .onReceive(node.$items) { items = $0 }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0
             }

@@ -102,9 +102,7 @@ class ItemStorage: NSObject, ObservableObject {
             .sink { [weak self] notification in
                 guard let self = self else { return }
                 do {
-                    var objectIDs = [NSManagedObjectID]()
                     if let deletedObjects = self.deletedObjects {
-                        objectIDs.append(contentsOf: deletedObjects.map( { $0.objectID } ))
                         for deletedObject in deletedObjects {
                             switch deletedObject.entity {
                             case CDFolder.entity():
@@ -122,7 +120,6 @@ class ItemStorage: NSObject, ObservableObject {
                         }
                     }
                     if let insertedObjects = self.insertedObjects {
-                        objectIDs.append(contentsOf: insertedObjects.map( { $0.objectID } ))
                         for insertedObject in insertedObjects {
                             switch insertedObject.entity {
                             case CDFolder.entity():
@@ -137,6 +134,24 @@ class ItemStorage: NSObject, ObservableObject {
                             default:
                                 break
                             }
+                        }
+                    }
+                    if let updatedObjects = self.updatedObjects {
+                        var localChanges = [NodeChange]()
+                        for updatedObject in updatedObjects {
+                            if updatedObject.entity == CDItem.entity(), let updatedItem = updatedObject as? CDItem {
+                                for change in updatedItem.changedValues() {
+                                    localChanges.append(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
+                                    if updatedItem.feedId > 0, let folder = CDFolder.folder(id: updatedItem.feedId) {
+                                        localChanges.append(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
+                                    }
+                                    localChanges.append(NodeChange(nodeType: .all, key: change.key))
+                                    localChanges.append(NodeChange(nodeType: .starred, key: change.key))
+                                }
+                            }
+                        }
+                        if !localChanges.isEmpty {
+                            self.changes.value = localChanges
                         }
                     }
                 } catch {

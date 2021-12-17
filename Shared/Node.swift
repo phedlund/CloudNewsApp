@@ -46,28 +46,11 @@ final class Node: Identifiable, ObservableObject {
 
         itemPublisher
             .receive(on: DispatchQueue.main)
-            .map { rawItems in
-                rawItems.filter { [weak self] item in
-                    guard let self = self else { return false }
-                    switch self.nodeType {
-                    case .all:
-                        return true
-                    case .starred:
-                        return item.starred
-                    case .folder(let id):
-                        if let feedIds = CDFeed.idsInFolder(folder: id) {
-                            return feedIds.contains(item.feedId)
-                        }
-                    case .feed(let id):
-                        return item.feedId == id
-                    }
-                    return false
-                }
-            }
             .sink { items in
                 print("Updating \(self.nodeType) with \(items.count) items")
-                self.items = items
-                    .map { ArticleModel(item: $0) }
+                if let cdItems = CDItem.items(nodeType: self.nodeType) {
+                    self.items = cdItems.map( { ArticleModel(item: $0) } )
+                }
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
             }
             .store(in: &cancellables)
@@ -96,6 +79,7 @@ final class Node: Identifiable, ObservableObject {
                         case .feed(let id):
                             if let feed = CDFeed.feed(id: id) {
                                 self.title = feed.title ?? "Untitled"
+                                self.icon = self.nodeIcon()
                             }
                         }
                     }
