@@ -273,6 +273,22 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return result
     }
 
+    static func addImageLink(item: CDItem, imageLink: String) async throws {
+        try await NewsData.mainThreadContext.perform {
+            do {
+                let currentData = item.imageLink
+                if imageLink == currentData {
+                    print("Same icon data")
+                } else {
+                    item.imageLink = imageLink
+                    try NewsData.mainThreadContext.save()
+                }
+            } catch {
+                throw PBHError.databaseError("Error adding imageLink")
+            }
+        }
+    }
+
     @discardableResult
     static func deleteOldItems() async throws -> NSBatchDeleteResult? {
         try await NewsData.mainThreadContext.perform {

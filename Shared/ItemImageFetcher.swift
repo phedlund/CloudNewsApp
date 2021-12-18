@@ -69,7 +69,7 @@ actor ItemImageFetcher {
                 if let imageUrl = itemImageUrl {
                     do {
                         if let _ = try await retrieve(imageUrl) {
-                            item.setPrimitiveValue(itemImageUrl?.absoluteString, forKey: "imageLink")
+                            try await CDItem.addImageLink(item: item, imageLink: itemImageUrl?.absoluteString ?? "")
                         }
                     } catch let error {
                         print(error.localizedDescription)
