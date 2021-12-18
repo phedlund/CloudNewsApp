@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var settings = Preferences()
 
     var body: some Scene {

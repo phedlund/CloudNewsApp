@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct NodeView<Content: View> : View {
+    @EnvironmentObject var appDelegate: AppDelegate
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
@@ -74,6 +75,9 @@ struct NodeView<Content: View> : View {
         }
         .onReceive(node.$unreadCount) {
             unreadCount = $0
+            if node.nodeType == .all {
+                appDelegate.updateBadge($0)
+            }
         }
         .onReceive(node.$title) {
             title = $0
