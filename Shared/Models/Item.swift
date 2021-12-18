@@ -75,7 +75,7 @@ struct Item: Codable, ItemProtocol {
     func asDictionary() -> [String: Any] {
         return [CodingKeys.author.stringValue: self.author as Any,
                 CodingKeys.body.stringValue: self.body as Any,
-                "displayBody": itemDisplayBody(self.body),
+                "displayBody": itemDisplayBody(self.body, mediaDescription: self.mediaDescription),
                 CodingKeys.enclosureLink.stringValue: self.enclosureLink as Any,
                 CodingKeys.enclosureMime.stringValue: self.enclosureMime as Any,
                 CodingKeys.feedId.stringValue: self.feedId as Any,
@@ -104,22 +104,28 @@ func itemDisplayTitle(_ title: String?) -> String {
     return plainSummary(raw: titleValue as String)
 }
 
-func itemDisplayBody(_ body: String?) -> String {
-    guard let summaryValue = body else {
-        return "No Summary"
+func itemDisplayBody(_ body: String?, mediaDescription: String?) -> String {
+    var displayBody = ""
+    if let summaryBody = body {
+        displayBody = summaryBody
+    } else if let summaryBody = mediaDescription {
+        displayBody = summaryBody
     }
 
-    var summary: String = summaryValue as String
-    if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-        if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-            if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                let sub = summary[start..<end]
-                summary = summary.replacingOccurrences(of: sub, with: "")
+    if !displayBody.isEmpty {
+        if displayBody.range(of: "<style>", options: .caseInsensitive) != nil {
+            if displayBody.range(of: "</style>", options: .caseInsensitive) != nil {
+                if let start = displayBody.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
+                   let end = displayBody.range(of: "</style>", options: .caseInsensitive)?.upperBound {
+                    let sub = displayBody[start..<end]
+                    displayBody = displayBody.replacingOccurrences(of: sub, with: "")
+                }
             }
         }
+        return  plainSummary(raw: displayBody)
+    } else {
+        return "No Summary"
     }
-    return  plainSummary(raw: summary)
 }
 
 private func plainSummary(raw: String) -> String {

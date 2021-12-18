@@ -238,7 +238,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: context) as! CDItem
                 newRecord.author = item.author
                 newRecord.body = item.body
-                newRecord.displayBody = itemDisplayBody(item.body)
+                newRecord.displayBody = itemDisplayBody(item.body, mediaDescription: nil)
                 newRecord.enclosureLink = item.enclosureLink
                 newRecord.enclosureMime = item.enclosureMime
                 newRecord.feedId = item.feedId

@@ -41,7 +41,9 @@ actor ItemImageFetcher {
         if let items = CDItem.items(lastModified: oldLastModified) {
             for item in items {
                 var itemImageUrl: URL?
-                if let summary = item.body {
+                if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
+                    itemImageUrl = imgUrl
+                } else if let summary = item.body {
                     do {
                         let doc: Document = try SwiftSoup.parse(summary)
                         let srcs: Elements = try doc.select("img[src]")
