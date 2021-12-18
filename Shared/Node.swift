@@ -14,6 +14,7 @@ let StarNodeGuid = "967917a4-4ef2-11ec-81d3-0242ac130003"
 
 final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = 0
+    @Published var errorCount = 0
     @Published var title = ""
     @Published var icon = UIImage()
     @Published var items = [ArticleModel]()
@@ -80,6 +81,7 @@ final class Node: Identifiable, ObservableObject {
                             if let feed = CDFeed.feed(id: id) {
                                 self.title = feed.title ?? "Untitled"
                                 self.icon = self.nodeIcon()
+                                self.errorCount = Int(feed.updateErrorCount)
                             }
                         }
                     }

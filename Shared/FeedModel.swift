@@ -161,6 +161,7 @@ class FeedModel: ObservableObject {
 
     private func feedNode(feed: CDFeed) -> Node {
         let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
+        node.errorCount = Int(feed.updateErrorCount)
         return node
     }
 

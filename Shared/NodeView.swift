@@ -36,7 +36,7 @@ struct NodeView<Content: View> : View {
                     }
                     .labelStyle(.titleAndIcon)
                     Spacer(minLength: 12)
-                    BadgeView(text: unreadCount > 0 ? "\(unreadCount)" : "")
+                    BadgeView(node: node)
                 }
             }
         }
@@ -111,16 +111,3 @@ struct NodeView<Content: View> : View {
 //        NodeView()
 //    }
 //}
-
-struct BadgeView: View {
-    var text: String
-
-    var body: some View {
-        Text(text)
-            .font(.subheadline)
-            .colorInvert()
-            .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-            .background(Capsule()
-                            .fill(.gray)
-                            .opacity(text.isEmpty ? 0.0 : 1.0))    }
-}
