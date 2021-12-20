@@ -23,6 +23,7 @@ struct FeedSettingsView: View {
     private var updateErrorCount = ""
     private var lastUpdateError = ""
     private var url = ""
+    private var added = ""
 
     init(_ selectedFeed: Int) {
         if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
@@ -43,6 +44,10 @@ struct FeedSettingsView: View {
             updateErrorCount = "\(theFeed.updateErrorCount)"
             lastUpdateError = theFeed.lastUpdateError ?? "No error"
             url = theFeed.url ?? ""
+            let dateAdded = Date(timeIntervalSince1970: TimeInterval(theFeed.added))
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .long
+            added = dateFormatter.string(from: dateAdded)
         }
     }
 
@@ -66,17 +71,25 @@ struct FeedSettingsView: View {
                     .navigationTitle("Folder")
                 }
                 Toggle("View web version", isOn: $preferWeb)
+                Toggle("Pinned", isOn: $pinned)
+                    .disabled(true)
             }
             .navigationTitle("Feed Settings")
             Section {
                 HStack(alignment: .lastTextBaseline, spacing: 15) {
                     Text("URL")
+                    Spacer()
                     Text(verbatim: url)
                         .lineLimit(2)
                         .textSelection(.enabled)
                 }
-                Toggle("Pinned", isOn: $pinned)
-                    .disabled(true)
+                HStack(spacing: 15) {
+                    Text("Date Added")
+                    Spacer()
+                    Text(verbatim: added)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.trailing)
+                }
                 HStack(spacing: 15) {
                     Text("Update Error Count")
                     Spacer()
