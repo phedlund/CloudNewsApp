@@ -11,6 +11,7 @@ import CoreData
 struct ContentView: View {
     @AppStorage(StorageKeys.isloggedIn) private var isLoggedIn = false
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var appDelegate: AppDelegate
     @StateObject private var nodeTree = FeedModel()
 
     @State private var isShowingLogin = false
@@ -47,6 +48,10 @@ struct ContentView: View {
             NavigationView {
                 SettingsView(showModal: .constant(true))
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+            print("Moving to the background!")
+            appDelegate.scheduleAppRefresh()
         }
     }
 
