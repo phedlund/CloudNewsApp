@@ -7,6 +7,10 @@
 
 import Foundation
 
+extension TimeInterval {
+    static let fiveMinutes: TimeInterval = 300
+}
+
 func tempDirectory() -> URL? {
     let tempDirURL = FileManager.default.temporaryDirectory.appendingPathComponent("CloudNews", isDirectory: true)
     do {

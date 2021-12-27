@@ -17,9 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: appRefreshTaskId, using: nil) { task in
             Task {
                 do {
-                    //                    isSyncing = true
                     try await NewsManager().sync()
-                    //                    model.update()
                     task.setTaskCompleted(success: true)
                 } catch {
                     task.setTaskCompleted(success: false)
@@ -28,8 +26,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             }
         }
 
-        UNUserNotificationCenter.current().requestAuthorization(options: .badge) { (granted, error) in
-            if error != nil {
+        UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
+            if error == nil {
                 // success!
             }
         }
@@ -45,7 +43,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     func scheduleAppRefresh() {
         let request = BGAppRefreshTaskRequest(identifier: appRefreshTaskId)
 
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 0) // Refresh after 5 minutes.
+        request.earliestBeginDate = Date(timeIntervalSinceNow: .fiveMinutes)
 
         do {
             try BGTaskScheduler.shared.submit(request)
