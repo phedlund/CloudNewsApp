@@ -81,6 +81,7 @@ class ArticleWebContent: ObservableObject {
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
+            <meta name="viewport" content="width=\(size.width), initial-scale=1, shrink-to-fit=no">
                 <style>
                     \(self.updateCss(size: size))
                 </style>
