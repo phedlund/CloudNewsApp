@@ -52,7 +52,6 @@ class ItemStorage: NSObject, ObservableObject {
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let foldersFetchRequest = CDFolder.fetchRequest()
     private let feedsFetchRequest = CDFeed.fetchRequest()
-    private let itemsFetchRequest = CDItem.fetchRequest()
 
     private var updatedObjects: Set<NSManagedObject>?
     private var deletedObjects: Set<NSManagedObject>?
@@ -122,7 +121,7 @@ class ItemStorage: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
 
-        Publishers.Merge(syncPublisher, didSavePublisher)
+        didSavePublisher
             .sink { [weak self] notification in
                 guard let self = self else { return }
                 do {
@@ -184,6 +183,12 @@ class ItemStorage: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
 
+        syncPublisher
+            .sink { [weak self] _ in
+                self?.publishItems()
+            }
+            .store(in: &cancellables)
+
         do {
             self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
             self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
@@ -194,15 +199,17 @@ class ItemStorage: NSObject, ObservableObject {
     }
 
     private func publishItems() {
-        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.lastModified, ascending: sortOldestFirst ? true : false),
-                               NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
+        let itemsFetchRequest = CDItem.fetchRequest()
+        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
+                                                ascending: sortOldestFirst ? true : false)]
         let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
         itemsFetchRequest.sortDescriptors = sortDescriptors
         itemsFetchRequest.predicate = predicate
         do {
-            self.items.value = try NewsData.mainThreadContext.fetch(self.itemsFetchRequest)
+            let items = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
+            self.items.value = items
         } catch {
-            //
+            print("Failed to fetch items")
         }
     }
 }
