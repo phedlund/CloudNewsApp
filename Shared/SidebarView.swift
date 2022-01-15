@@ -64,6 +64,7 @@ struct SidebarView: View {
 
             }
             .listStyle(.sidebar)
+            .accentColor(.pbh.darkIcon)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ProgressView()

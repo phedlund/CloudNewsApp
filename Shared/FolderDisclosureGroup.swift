@@ -29,6 +29,7 @@ struct FolderDisclosureGroup<Label: View, Content: View> : View {
         } label: {
             label
         }
+        .accentColor(.pbh.whiteIcon)
         .onChange(of: isExpanded) { newExpanded in
             print("Expanded: \(isExpanded)")
             switch node.nodeType {
