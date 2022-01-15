@@ -72,7 +72,7 @@ struct ItemsView: View {
             }.onReceive(scrollViewHelper.$offsetAtScrollEnd) {
                 if markReadWhileScrolling {
                     print($0)
-                    let numberOfItems = ($0 / (cellHeight + 15.0)).rounded(.down)
+                    let numberOfItems = max(($0 / (cellHeight + 15.0)) - 1, 0)
                     print("Number of items \(numberOfItems)")
                     if numberOfItems > 0 {
                         let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.item.unread })
@@ -86,12 +86,6 @@ struct ItemsView: View {
                     }
                 }
             }
-//            .onReceive(settings.$hideRead) { _ in
-//                items = model.nodeItems(node.nodeType)
-//            }
-//            .onReceive(settings.$sortOldestFirst) { _ in
-//                items = model.nodeItems(node.nodeType)
-//            }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
             .onReceive(node.$title) { navTitle = $0 }
             .onReceive(node.$items) { items = $0 }
