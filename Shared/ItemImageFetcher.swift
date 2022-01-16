@@ -37,8 +37,7 @@ actor ItemImageFetcher {
             return nil
         }
 
-        let oldLastModified = Preferences().lastModified
-        if let items = CDItem.items(lastModified: oldLastModified) {
+        if let items = CDItem.itemsWithoutImageLink() {
             for item in items {
                 var itemImageUrl: URL?
                 if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
@@ -69,13 +68,9 @@ actor ItemImageFetcher {
                 }
 
                 if let imageUrl = itemImageUrl {
-                    do {
-                        if let _ = try await retrieve(imageUrl) {
-                            try await CDItem.addImageLink(item: item, imageLink: itemImageUrl?.absoluteString ?? "")
-                        }
-                    } catch let error {
-                        print(error.localizedDescription)
-                    }
+                    await retrieve(imageUrl, item: item)
+                } else {
+                    try await CDItem.addImageLink(item: item, imageLink: "/dev/null")
                 }
             }
         }
@@ -85,20 +80,28 @@ actor ItemImageFetcher {
 
 extension ItemImageFetcher {
 
-    func retrieve(_ url: URL) async throws -> KFCrossPlatformImage? {
-
-        let manager = KingfisherManager.shared
+    func retrieve(_ url: URL, item: CDItem) async {
+        let retrieveTask = Task { () -> KFCrossPlatformImage in
+            let manager = KingfisherManager.shared
             let resource = ImageResource(downloadURL: url)
             print(resource.downloadURL.absoluteString)
             let sizeProcessor = SizeProcessor()
+            let image = try await manager.retrieveImage(with: resource, options: [.processor(sizeProcessor)], progressBlock: nil, downloadTaskUpdated: nil)
+            print("Image with key \(image.source.cacheKey)")
+            return image.image
+        }
+
+        let result = await retrieveTask.result
+        switch result {
+        case .success( _):
             do {
-                let image = try await manager.retrieveImage(with: resource, options: [.processor(sizeProcessor)], progressBlock: nil, downloadTaskUpdated: nil)
-                print("Image with key \(image.source.cacheKey)")
-                return image.image
-            } catch let error {
-                print(error.localizedDescription)
-            }
-        return nil
+                try await CDItem.addImageLink(item: item, imageLink: url.absoluteString)
+            } catch { }
+        case .failure( _):
+            do {
+                try await CDItem.addImageLink(item: item, imageLink: "/dev/null")
+            } catch { }
+        }
     }
 
 }

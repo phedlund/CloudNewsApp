@@ -13,8 +13,7 @@ struct ArticleView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ArticleWebView(webView: articleModel.webView, item: articleModel.item, size: geometry.size)
-                .navigationTitle(articleModel.item.title ?? "Untitled")
+            ArticleWebView(articleModel: articleModel, size: geometry.size)
                 .navigationBarTitleDisplayMode(.inline)
                 .background {
                     Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)

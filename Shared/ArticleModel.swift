@@ -9,20 +9,50 @@ import Foundation
 import WebKit
 
 class ArticleModel: ObservableObject, Identifiable {
-    var item: CDItem
-    var webView: WKWebView {
-        if webViewManager == nil {
-            webViewManager = WebViewManager(type: .article)
-        }
-        return webViewManager!.webView
-    }
+    @Published public var canGoBack = false
+    @Published public var canGoForward = false
+    @Published public var isLoading = false
+    @Published public var title = ""
 
-    private var webViewManager: WebViewManager?
+    private var observations = [NSKeyValueObservation]()
+    private var internalWebView: WKWebView?
+
+    var webView: WKWebView {
+        get {
+            if internalWebView == nil {
+                let webConfig = WKWebViewConfiguration()
+                webConfig.allowsInlineMediaPlayback = true
+                webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
+                //        webConfig.userContentController = userContentController
+
+                internalWebView = WKWebView(frame: .zero, configuration: webConfig)
+                setupObservations()
+            }
+            return internalWebView!
+        }
+    }
+    var item: CDItem
 
     init(item: CDItem) {
         self.item = item
     }
+
+    private func setupObservations() {
+        observations.append(webView.observe(\.canGoBack, options: .new, changeHandler: {[weak self] _, value in
+            self?.canGoBack = value.newValue ?? false
+        }))
+        observations.append(webView.observe(\.canGoForward, options: .new, changeHandler: { [weak self] _, value in
+            self?.canGoForward = value.newValue ?? false
+        }))
+        observations.append(webView.observe(\.isLoading, options: .new, changeHandler: { [weak self] _, value in
+            self?.isLoading = value.newValue ?? false
+        }))
+        observations.append(webView.observe(\.title, options: .new, changeHandler: {[weak self] _, value in
+            self?.title = (value.newValue ?? "") ?? ""
+        }))
+    }
 }
+
 
 extension ArticleModel: Hashable {
 

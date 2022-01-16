@@ -17,11 +17,7 @@ struct ArticleSettingsConstants {
 }
 
 struct ArticleSettingsView: View {
-    @AppStorage(StorageKeys.fontSize) var fontSize: Int = UIDevice().userInterfaceIdiom == .pad ? 16 : 13
-    @AppStorage(StorageKeys.marginPortrait) private var marginPortrait: Int = 70
-    @AppStorage(StorageKeys.marginLandscape) private var marginLandscape: Int = 70
-    @AppStorage(StorageKeys.lineHeight) private var lineHeight: Double = 1.4
-
+    @EnvironmentObject private var settings: Preferences
     var item: CDItem
 
     var body: some View {
@@ -68,8 +64,9 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    if fontSize > ArticleSettingsConstants.minFontSize {
-                        fontSize -= 1
+                    if settings.fontSize > ArticleSettingsConstants.minFontSize {
+                        settings.fontSize -= 1
+                        print("Font size \(settings.fontSize)")
                     }
                 } label: {
                     Image(systemName: "textformat.size.smaller")
@@ -81,8 +78,9 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    if fontSize < ArticleSettingsConstants.maxFontSize {
-                        fontSize += 1
+                    if settings.fontSize < ArticleSettingsConstants.maxFontSize {
+                        settings.fontSize += 1
+                        print("Font size \(settings.fontSize)")
                     }
                 } label: {
                     Image(systemName: "textformat.size.larger")
@@ -96,8 +94,8 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    if lineHeight > ArticleSettingsConstants.minLineHeight {
-                        lineHeight -= 0.2
+                    if settings.lineHeight > ArticleSettingsConstants.minLineHeight {
+                        settings.lineHeight -= 0.2
                     }
                 } label: {
                     Image("lineheight")
@@ -109,8 +107,8 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    if lineHeight < ArticleSettingsConstants.maxLineHeight {
-                        lineHeight += 0.2
+                    if settings.lineHeight < ArticleSettingsConstants.maxLineHeight {
+                        settings.lineHeight += 0.2
                     }
                 } label: {
                     Image("lineheight")
@@ -124,8 +122,8 @@ struct ArticleSettingsView: View {
             .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
             HStack {
                 Button {
-                    if marginPortrait > ArticleSettingsConstants.minMarginWidth {
-                        marginPortrait -= 5
+                    if settings.marginPortrait > ArticleSettingsConstants.minMarginWidth {
+                        settings.marginPortrait -= 5
                     }
                 } label: {
                     Image(systemName: "increase.indent")
@@ -137,8 +135,8 @@ struct ArticleSettingsView: View {
                     )
                 Spacer(minLength: 30)
                 Button {
-                    if marginPortrait < ArticleSettingsConstants.maxMarginWidth {
-                        marginPortrait += 5
+                    if settings.marginPortrait < ArticleSettingsConstants.maxMarginWidth {
+                        settings.marginPortrait += 5
                     }
                 } label: {
                     Image(systemName: "decrease.indent")

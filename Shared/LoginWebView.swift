@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct LoginWebViewView: View {
-    @StateObject var webViewManager = WebViewManager(type: .login)
+    @StateObject var webViewManager = WebViewManager()
     var server: String
 
     var body: some View {

@@ -11,35 +11,60 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent: ObservableObject {
+    @Published var userScriptSource = ""
     public let item: CDItem
     public let size: CGSize
 
     private var feed: CDFeed?
     private var preferences = Preferences()
+    private var cancellables = Set<AnyCancellable>()
+
+    lazy private var videoSize: CGSize = {
+        let ratio = CGFloat(preferences.marginPortrait) / 100.0
+        let width = min(700.0, size.width * ratio)
+        let height = width * 0.5625
+        return CGSize(width: width, height: height)
+    }()
 
     init(item: CDItem, size: CGSize) {
         self.item = item
         self.feed = CDFeed.feed(id: item.feedId)
         self.size = size
+        preferences.$marginPortrait.sink { [weak self] _ in
+            self?.configure()
+            self?.updateUserScriptSource()
+        }
+        .store(in: &cancellables)
+
+        preferences.$fontSize.sink { [weak self] newSize in
+            print("Font size new \(newSize)")
+            self?.configure()
+            self?.updateUserScriptSource()
+        }
+        .store(in: &cancellables)
+
+        preferences.$lineHeight.sink { [weak self] _ in
+            self?.configure()
+            self?.updateUserScriptSource()
+        }
+        .store(in: &cancellables)
+
         configure()
+        updateUserScriptSource()
     }
 
-    func configure() {
+    private func configure() {
         if var html = item.body,
            let urlString = item.url,
            let url = URL(string: urlString) {
             let baseString = "\(url.scheme ?? "")://\(url.host ?? "")"
-            if baseString.range(of: "youtu", options: .caseInsensitive) != nil {
-                if html.range(of: "iframe", options: .caseInsensitive) != nil {
+            if baseString.lowercased().contains("youtu") {
+                if html.lowercased().contains("iframe") {
                     html = createYoutubeItem(html: html, urlString: urlString)
-                } else if let urlString = item.url, urlString.contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+                } else if let urlString = item.url, urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
                     let videoIdStartIndex = urlString.index(after: equalIndex)
                     let videoId = String(urlString[videoIdStartIndex...])
-                    let screenSize = UIScreen.main.nativeBounds.size
-                    let margin = preferences.marginPortrait
-                    let currentWidth = Double(screenSize.width / UIScreen.main.scale) * (Double(margin) / 100.0)
-                    let newheight = currentWidth * 0.5625
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(currentWidth))px\" height=\"\(Int(newheight))px\"></embed>"
+                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
                     html = embed
                 }
             }
@@ -48,15 +73,14 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) {
+    private func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) {
         var summary = replaceVideoIframe(html: html)
-        var dateText = "";
         let dateNumber = TimeInterval(item.pubDate)
         let date = Date(timeIntervalSince1970: dateNumber)
         let dateFormat = DateFormatter()
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;
-        dateText += dateFormat.string(from: date)
+        let dateText = dateFormat.string(from: date)
         let feedTitle = feedTitle ?? ""
         let title = item.title ?? "Untitled"
         let url = item.url ?? ""
@@ -65,7 +89,7 @@ class ArticleWebContent: ObservableObject {
             author = "By \(itemAuthor)"
         }
 
-        if let urlString = item.url,  let url = URL(string: urlString), let scheme = url.scheme, let host = url.host {
+        if let urlString = item.url, let url = URL(string: urlString), let scheme = url.scheme, let host = url.host {
             let baseString = "\(scheme)://\(host)"
             if baseString.contains("youtu") {
                 if summary.contains("iframe") {
@@ -81,11 +105,7 @@ class ArticleWebContent: ObservableObject {
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
-            <meta name="viewport" content="width=\(size.width), initial-scale=1, shrink-to-fit=no">
-                <style>
-                    \(self.updateCss(size: size))
-                </style>
-                <link rel="stylesheet" type="text/css" href="rss.css" />
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
                 <title>
                     \(title)
                 </title>
@@ -141,24 +161,8 @@ class ArticleWebContent: ObservableObject {
             print(error.localizedDescription)
         }
     }
-    
-    private func updateCss(size: CGSize) -> String {
-        let currentWidth = Int((size.width) * CGFloat((Double(preferences.marginPortrait) / 100.0)))
-        let currentWidthLandscape = (size.height) * CGFloat((Double(preferences.marginPortrait) / 100.0))
 
-        return ":root {" +
-        "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
-        "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
-        "--font-size: \(preferences.fontSize)px;" +
-        "--body-width-portrait: \(currentWidth)px;" +
-        "--body-width-landscape: \(currentWidthLandscape)px;" +
-        "--line-height: \(preferences.lineHeight)em;" +
-        "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
-        "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
-        "}"
-    }
-
-    func fixRelativeUrl(html: String, baseUrlString: String) -> String {
+    private func fixRelativeUrl(html: String, baseUrlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html), let baseURL = URL(string: baseUrlString) else {
             return html
         }
@@ -188,7 +192,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
     
-    func replaceVideoIframe(html: String) -> String {
+    private func replaceVideoIframe(html: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
             return html
         }
@@ -198,17 +202,11 @@ class ArticleWebContent: ObservableObject {
             for iframe in iframes {
                 if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
                     if src.contains("youtu"), let videoId = src.youtubeVideoID {
-                        let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(preferences.marginPortrait / 100);
-                        let newheight = currentWidth * 0.5625;
-                        let embed = String(format: "<embed id=\"yt\" src=\"http://www.youtube.com/embed/%@?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></embed>", videoId, currentWidth, newheight)
+                        let embed = String(format: "<embed id=\"yt\" src=\"http://www.youtube.com/embed/%@?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></embed>", videoId, Int(videoSize.width), Int(videoSize.height))
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)
                     }
                     if src.contains("vimeo"), let videoId = src.vimeoID {
-                        let screenSize = UIScreen.main.nativeBounds.size
-                        let currentWidth = (screenSize.width / UIScreen.main.scale) * CGFloat(preferences.marginPortrait / 100);
-                        let newheight = currentWidth * 0.5625;
-                        let embed = String(format:"<iframe id=\"vimeo\" src=\"http://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, currentWidth, newheight)
+                        let embed = String(format:"<iframe id=\"vimeo\" src=\"http://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, Int(videoSize.width), Int(videoSize.height))
                         result = result.replacingOccurrences(of: try iframe.html(), with: embed)
                     }
                 }
@@ -218,7 +216,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-    func createYoutubeItem(html: String, urlString: String) -> String {
+    private func createYoutubeItem(html: String, urlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
             return html
         }
@@ -227,9 +225,7 @@ class ArticleWebContent: ObservableObject {
             let iframes: Elements = try doc.select("iframe")
             for iframe in iframes {
                 if let videoId = urlString.youtubeVideoID {
-                    let width = 700
-                    let height = 700 * 0.5625
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(width)px\" height=\"\(height)px\"></embed>"
+                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
                     result = try result.replacingOccurrences(of: iframe.outerHtml(), with: embed)
                 }
             }
@@ -237,7 +233,51 @@ class ArticleWebContent: ObservableObject {
         
         return result
     }
-    
+
+    func updateUserScriptSource() {
+        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
+           let bundle = Bundle(url: bundleUrl),
+           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
+            let cssString = updateCssVariables()
+
+            userScriptSource = """
+            javascript:(function() {
+            var parent = document.getElementsByTagName('head').item(0);
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = window.atob('\(encodeStringTo64(fromString: cssString)!)');
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = '\(path)';
+            link.media = 'all';
+            parent.appendChild(style)
+            parent.appendChild(link)})()
+            """
+        }
+    }
+
+    private func updateCssVariables() -> String {
+        let currentWidth = Int((size.width) * CGFloat((Double(preferences.marginPortrait) / 100.0)))
+        let currentWidthLandscape = (size.height) * CGFloat((Double(preferences.marginPortrait) / 100.0))
+        print("Font size for css \(preferences.fontSize)")
+
+        return ":root {" +
+        "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
+        "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
+        "--font-size: \(preferences.fontSize)px;" +
+        "--body-width-portrait: \(currentWidth)px;" +
+        "--body-width-landscape: \(currentWidthLandscape)px;" +
+        "--line-height: \(preferences.lineHeight)em;" +
+        "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
+        "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
+        "}"
+    }
+
+    private func encodeStringTo64(fromString: String) -> String? {
+        let plainData = fromString.data(using: .utf8)
+        return plainData?.base64EncodedString(options: [])
+    }
 }
 
 extension String {

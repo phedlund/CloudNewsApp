@@ -136,12 +136,25 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func items(lastModified: Int32) -> [CDItem]? {
-        let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        let request: NSFetchRequest<CDItem> = self.fetchRequest()
         let sortDescription = NSSortDescriptor(key: "id", ascending: false)
         request.sortDescriptors = [sortDescription]
         let predicate = NSPredicate(format:"lastModified > %d", lastModified)
         request.predicate = predicate
 
+        do {
+            let results  = try NewsData.mainThreadContext.fetch(request)
+            return results
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+
+    static func itemsWithoutImageLink() -> [CDItem]? {
+        let request: NSFetchRequest<CDItem> = self.fetchRequest()
+        let predicate = NSPredicate(format: "imageLink == nil")
+        request.predicate = predicate
         do {
             let results  = try NewsData.mainThreadContext.fetch(request)
             return results

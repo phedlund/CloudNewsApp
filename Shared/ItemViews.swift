@@ -97,7 +97,7 @@ struct ItemImageView: View {
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
 
-        if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(string: imageLink) {
+        if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(withCheck: imageLink) {
             KFImage(thumbnailURL)
                 .cancelOnDisappear(true)
                 .setProcessors([ResizingImageProcessor(referenceSize: CGSize(width: size.width, height: size.height), mode: .aspectFill),

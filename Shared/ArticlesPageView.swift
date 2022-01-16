@@ -13,6 +13,10 @@ struct ArticlesPageView: View {
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
     @State private var currentModel: ArticleModel
+    @State private var canGoBack = false
+    @State private var canGoForward = false
+    @State private var isLoading = false
+    @State private var title = ""
 
     private var items: [ArticleModel]
 
@@ -49,6 +53,7 @@ struct ArticlesPageView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
@@ -56,6 +61,18 @@ struct ArticlesPageView: View {
             currentModel.webView.stopLoading()
             currentModel = items[newValue]
             markItemRead()
+        }
+        .onReceive(currentModel.$canGoBack) {
+            canGoBack = $0
+        }
+        .onReceive(currentModel.$canGoForward) {
+            canGoForward = $0
+        }
+        .onReceive(currentModel.$isLoading) {
+            isLoading = $0
+        }
+        .onReceive(currentModel.$title) {
+            title = $0
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -67,7 +84,7 @@ struct ArticlesPageView: View {
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
-                .disabled(!currentModel.webView.canGoBack)
+                .disabled(!canGoBack)
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -75,17 +92,17 @@ struct ArticlesPageView: View {
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
-                .disabled(!currentModel.webView.canGoForward)
+                .disabled(!canGoForward)
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    if currentModel.webView.isLoading {
+                    if isLoading {
                         currentModel.webView.stopLoading()
                     } else {
                         currentModel.webView.reload()
                     }
                 } label: {
-                    if currentModel.webView.isLoading  {
+                    if isLoading {
                         Image(systemName: "xmark")
                     } else {
                         Image(systemName: "arrow.clockwise")
@@ -101,7 +118,7 @@ struct ArticlesPageView: View {
                 .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                     ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
                 }
-                .disabled(currentModel.webView.isLoading)
+                .disabled(isLoading)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
@@ -114,7 +131,7 @@ struct ArticlesPageView: View {
                         ArticleSettingsView(item: item)
                     }
                 }
-                .disabled(currentModel.webView.isLoading)
+                .disabled(isLoading)
             }
         })
     }

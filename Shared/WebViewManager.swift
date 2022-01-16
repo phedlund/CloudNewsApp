@@ -9,16 +9,9 @@ import Combine
 import SwiftUI
 import WebKit
 
-enum WebViewType {
-    case article
-    case login
-}
-
 @dynamicMemberLookup
 class WebViewManager: ObservableObject, Identifiable, Equatable {
     var id = UUID()
-    var type: WebViewType
-
 
     @Published public var webView: WKWebView {
         didSet {
@@ -28,30 +21,11 @@ class WebViewManager: ObservableObject, Identifiable, Equatable {
 
     private var observers: [NSKeyValueObservation] = []
 
-    public init(type: WebViewType) {
-        self.type = type
+    public init() {
         let webConfig = WKWebViewConfiguration()
-        switch type {
-        case .article:
-            webConfig.allowsInlineMediaPlayback = true
-            webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
-        case .login:
-            webConfig.websiteDataStore = .nonPersistent()
-        }
+        webConfig.websiteDataStore = .nonPersistent()
         self.webView = WKWebView(frame: .zero, configuration: webConfig)
         setupObservers()
-    }
-
-    func resetWebView() {
-        let webConfig = WKWebViewConfiguration()
-        switch type {
-        case .article:
-            webConfig.allowsInlineMediaPlayback = true
-            webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
-        case .login:
-            webConfig.websiteDataStore = .nonPersistent()
-        }
-        self.webView = WKWebView(frame: .zero, configuration: webConfig)
     }
 
     static func == (lhs: WebViewManager, rhs: WebViewManager) -> Bool {
@@ -60,6 +34,7 @@ class WebViewManager: ObservableObject, Identifiable, Equatable {
 
     private func setupObservers() {
         func observer<Value>(of keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
+            print("Keypath \(keyPath)")
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
                     self.objectWillChange.send()

@@ -1,0 +1,173 @@
+html {
+    -webkit-text-size-adjust: none; /* Never autoresize text */
+}
+
+@media only screen
+and (orientation: portrait) {
+    body {
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        align: center;
+        width: var(--body-width-portrait);
+        margin-top: 40px;
+        margin-bottom: 40px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    div.header {
+        width: var(--body-width-portrait);
+        margin-left:auto;
+        margin-right:auto;
+        margin-top:30px;
+    }
+
+}
+
+@media only screen
+and (orientation: landscape) {
+    body {
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        align: center;
+        width: var(--body-width-landscape);
+        margin-top: 40px;
+        margin-bottom: 40px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    div.header {
+        width: var(--body-width-landscape);
+        margin-left:auto;
+        margin-right:auto;
+        margin-top:30px;
+    }
+
+}
+
+h1 {
+   font-family: "HelveticaNeue";
+   font-size: 150%;
+   line-height: var(--line-height);
+   clear: both;
+}
+
+h2 {
+    font-family:"HelveticaNeue";
+    font-size:110%;
+    /*margin-top:-0.8em;*/
+    line-height: var(--line-height);
+}
+
+h3 {
+    font-family:"HelveticaNeue";
+    font-size:100%;
+    line-height: var(--line-height);
+}
+
+h4 {
+    font-family:"Arial";
+    font-size:80%;
+    line-height: var(--line-height);
+}
+
+p {
+    font-family:"Palatino";
+    font-size:100%;
+    line-height: var(--line-height);
+    clear:both;
+}
+
+a {
+    text-decoration: none;
+    color:var(--link-color);
+}
+
+/* make sure sub and superscript don't mess up line height */
+sub, sup { 
+    font-size: 75%;
+    line-height: 0; 
+    position: relative; 
+    vertical-align: baseline; 
+}
+
+sup { 
+    top: -0.5em; 
+}
+
+sub {
+    bottom: -0.25em; 
+}
+
+div.articleTitle {
+    background: var(--bg-color);
+    font-size: 175%;
+    font-family: HelveticaNeue;
+    color: var(--text-color);
+    margin-top:10px;
+}
+
+a.articleTitleLink {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+div.feedTitle {
+    font-size: 90%;
+    font-family: Palatino;
+    color: DimGray;
+    margin-bottom:10px;
+}
+
+div.articleDate {
+    font-size: 80%;
+    font-family: Palatino;
+    color: Gray;
+    text-align:right;
+    margin-bottom:10px;
+}
+
+div.titleHeader {
+    border-bottom-style: groove;
+    border-bottom-color: var(--footer-link);
+    border-bottom-width: 2px;
+}
+
+div.articleAuthor {
+    font-size: 90%;
+    font-family: Palatino;
+    color: Gray;
+    margin-bottom:10px;
+}
+
+div.content {
+    margin-top: 30px;
+    line-height: var(--line-height);
+}
+
+div.footer {
+
+}
+
+a.footerLink {
+    border:2px solid var(--footer-link);
+    background: var(--footer-link);
+    border-radius:3px;
+    text-align:center;
+    font-family:HelveticaNeue;
+    font-size:90%;
+    text-decoration: none;
+    color:Gray;
+    display:block;
+    width:100%;
+    height:50px;
+    line-height:1.0em;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}

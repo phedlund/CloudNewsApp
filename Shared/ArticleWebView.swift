@@ -28,27 +28,28 @@ struct ArticleWebView: NSViewRepresentable {
 #else
 struct ArticleWebView: UIViewRepresentable {
     public let webView: WKWebView
-    public let item: CDItem
     public let size: CGSize
 
     private var feed: CDFeed?
     private var url = URL(fileURLWithPath: "")
+    private var model: ArticleModel
     private var content: ArticleWebContent
-
+    private let preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
-    public init(webView: WKWebView, item: CDItem, size: CGSize) {
-        self.webView = webView
-        self.item = item
-        self.feed = CDFeed.feed(id: item.feedId)
+    public init(articleModel: ArticleModel, size: CGSize) {
+        self.model = articleModel
+        self.webView = articleModel.webView
+        self.feed = CDFeed.feed(id: model.item.feedId)
         self.size = size
-        self.content = ArticleWebContent(item: item, size: size)
+        self.content = ArticleWebContent(item: model.item, size: size)
+
         url = tempDirectory()?
             .appendingPathComponent("summary")
             .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
 
             if feed?.preferWeb == true,
-               let urlString = item.url,
+               let urlString = model.item.url,
                let url = URL(string: urlString) {
                 webView.load(URLRequest(url: url))
             } else {
@@ -74,18 +75,16 @@ struct ArticleWebView: UIViewRepresentable {
 #endif
 
 class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate {
-    private var content: ArticleWebContent
+    @ObservedObject private var content: ArticleWebContent
 
     private var cancellables = Set<AnyCancellable>()
     private var webView: WKWebView
-    private var preferences = Preferences()
     private var isUserScrolling = false
     private var observations = [NSKeyValueObservation]()
 
     init(webView: WKWebView, content: ArticleWebContent) {
         self.webView = webView
         self.content = content
-
         super.init()
 
         observations.append(self.webView.scrollView.observe(\.contentOffset, options: .new, changeHandler: { [weak self] _, value in
@@ -102,23 +101,21 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScroll
             }
         }))
 
-        preferences.$marginPortrait.sink { [weak self] newMarginPortrait in
-            self?.content.configure()
-            self?.webView.reload()
+        content.$userScriptSource.sink { [weak self] _ in
+            guard let self = self else { return }
+            self.webView.reload()
+            self.injectCss()
         }
         .store(in: &cancellables)
+    }
 
-        preferences.$fontSize.sink { [weak self] newFontSize in
-            self?.content.configure()
-            self?.webView.reload()
-        }
-        .store(in: &cancellables)
+    func injectCss() {
+        let userScript = WKUserScript(source: content.userScriptSource,
+                                      injectionTime: .atDocumentEnd,
+                                      forMainFrameOnly: false)
 
-        preferences.$lineHeight.sink { [weak self] newLineHeight in
-            self?.content.configure()
-            self?.webView.reload()
-        }
-        .store(in: &cancellables)
+        webView.configuration.userContentController.removeAllUserScripts()
+        webView.configuration.userContentController.addUserScript(userScript)
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -144,6 +141,14 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScroll
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print(webView.url?.absoluteString ?? "")
     }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        webView.evaluateJavaScript("document.documentElement.outerHTML.toString()",
+                                   completionHandler: { (html: Any?, error: Error?) in
+//            print(html)
+        })
+    }
+
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView.isDragging || scrollView.isDecelerating {

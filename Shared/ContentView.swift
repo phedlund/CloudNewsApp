@@ -52,6 +52,7 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             print("Moving to the background!")
             appDelegate.scheduleAppRefresh()
+            appDelegate.scheduleImageFetch()
         }
     }
 
