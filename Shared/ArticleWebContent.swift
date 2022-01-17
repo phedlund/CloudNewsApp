@@ -11,93 +11,59 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent: ObservableObject {
-    @Published var userScriptSource = ""
-    public let item: CDItem
+    @Published var refreshToken = ""
     public let size: CGSize
 
-    private var feed: CDFeed?
+    private let author: String
+    private let title: String
+    private let feedTitle: String
+    private let dateText: String
+    private let urlString: String
+    private let summary: String
+
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
-    lazy private var videoSize: CGSize = {
-        let ratio = CGFloat(preferences.marginPortrait) / 100.0
-        let width = min(700.0, size.width * ratio)
-        let height = width * 0.5625
-        return CGSize(width: width, height: height)
-    }()
+    private var cssPath: String {
+        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
+           let bundle = Bundle(url: bundleUrl),
+           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
+            return path
+        } else {
+            return ""
+        }
+    }
 
     init(item: CDItem, size: CGSize) {
-        self.item = item
-        self.feed = CDFeed.feed(id: item.feedId)
+        let feed = CDFeed.feed(id: item.feedId)
         self.size = size
+        title = Self.itemTitle(item: item)
+        summary = Self.output(item: item, size: size)
+        urlString = Self.itemUrl(item: item)
+        dateText = Self.dateText(item: item)
+        author = Self.itemAuthor(item: item)
+        feedTitle = feed?.title ?? "Untitled"
+
         preferences.$marginPortrait.sink { [weak self] _ in
-            self?.configure()
-            self?.updateUserScriptSource()
+            self?.saveItemSummary()
         }
         .store(in: &cancellables)
 
         preferences.$fontSize.sink { [weak self] newSize in
             print("Font size new \(newSize)")
-            self?.configure()
-            self?.updateUserScriptSource()
+            self?.saveItemSummary()
         }
         .store(in: &cancellables)
 
         preferences.$lineHeight.sink { [weak self] _ in
-            self?.configure()
-            self?.updateUserScriptSource()
+            self?.saveItemSummary()
         }
         .store(in: &cancellables)
 
-        configure()
-        updateUserScriptSource()
+        saveItemSummary()
     }
 
-    private func configure() {
-        if var html = item.body,
-           let urlString = item.url,
-           let url = URL(string: urlString) {
-            let baseString = "\(url.scheme ?? "")://\(url.host ?? "")"
-            if baseString.lowercased().contains("youtu") {
-                if html.lowercased().contains("iframe") {
-                    html = createYoutubeItem(html: html, urlString: urlString)
-                } else if let urlString = item.url, urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
-                    let videoIdStartIndex = urlString.index(after: equalIndex)
-                    let videoId = String(urlString[videoIdStartIndex...])
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
-                    html = embed
-                }
-            }
-            html = fixRelativeUrl(html: html, baseUrlString: baseString)
-            saveItemSummary(html: html, item: item, feedTitle: feed?.title, size: size)
-        }
-    }
-
-    private func saveItemSummary(html: String, item: CDItem, feedTitle: String? = nil, size: CGSize = .zero) {
-        var summary = replaceVideoIframe(html: html)
-        let dateNumber = TimeInterval(item.pubDate)
-        let date = Date(timeIntervalSince1970: dateNumber)
-        let dateFormat = DateFormatter()
-        dateFormat.dateStyle = .medium;
-        dateFormat.timeStyle = .short;
-        let dateText = dateFormat.string(from: date)
-        let feedTitle = feedTitle ?? ""
-        let title = item.title ?? "Untitled"
-        let url = item.url ?? ""
-        var author = ""
-        if let itemAuthor = item.author, !itemAuthor.isEmpty {
-            author = "By \(itemAuthor)"
-        }
-
-        if let urlString = item.url, let url = URL(string: urlString), let scheme = url.scheme, let host = url.host {
-            let baseString = "\(scheme)://\(host)"
-            if baseString.contains("youtu") {
-                if summary.contains("iframe") {
-                    summary = createYoutubeItem(html: summary, urlString: urlString)
-                }
-            }
-            summary = fixRelativeUrl(html: summary, baseUrlString: baseString)
-        }
+    private func saveItemSummary() {
 
         let htmlTemplate = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -109,6 +75,8 @@ class ArticleWebContent: ObservableObject {
                 <title>
                     \(title)
                 </title>
+            <style>\(updateCssVariables())</style>
+            <link rel="stylesheet" href="\(cssPath)" media="all">
             </head>
             <body>
                 <div class="header">
@@ -129,7 +97,7 @@ class ArticleWebContent: ObservableObject {
                         </table>
                     </div>
                     <div class="articleTitle">
-                        <a class="articleTitleLink" href="\(url)">\(title)</a>
+                        <a class="articleTitleLink" href="\(urlString)">\(title)</a>
                     </div>
                     <div class="articleAuthor">
                         <p>
@@ -143,7 +111,7 @@ class ArticleWebContent: ObservableObject {
                     </div>
                     <div class="footer">
                         <p>
-                            <a class="footerLink" href="\(url)"><br />View Full Article</a>
+                            <a class="footerLink" href="\(urlString)"><br />View Full Article</a>
                         </p>
                     </div>
                 </div>
@@ -156,13 +124,78 @@ class ArticleWebContent: ObservableObject {
                 .appendingPathComponent("summary")
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
+                refreshToken = UUID().uuidString
             }
         } catch(let error) {
             print(error.localizedDescription)
         }
     }
 
-    private func fixRelativeUrl(html: String, baseUrlString: String) -> String {
+    private static func output(item: CDItem, size: CGSize) -> String {
+        var summary = ""
+
+        if let html = item.body,
+           let urlString = item.url,
+           let url = URL(string: urlString),
+           let scheme = url.scheme,
+           let host = url.host {
+
+            let baseString = "\(scheme)://\(host)"
+            let videoSize = videoSize(size: size)
+            if baseString.lowercased().contains("youtu") {
+                if html.lowercased().contains("iframe") {
+                    summary = createYoutubeItem(html: html, urlString: urlString, videoSize: videoSize)
+                } else if urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+                    let videoIdStartIndex = urlString.index(after: equalIndex)
+                    let videoId = String(urlString[videoIdStartIndex...])
+                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
+                    summary = embed
+                }
+            } else {
+                summary = html
+            }
+
+            summary = fixRelativeUrl(html: summary, baseUrlString: baseString)
+            summary = replaceVideoIframe(html: summary, videoSize: videoSize)
+        }
+
+        return summary
+    }
+
+    private static func itemTitle(item: CDItem) -> String {
+        return item.title ?? "Untitled"
+    }
+
+    private static func itemUrl(item: CDItem) -> String {
+        return item.url ?? ""
+    }
+
+    private static func itemAuthor(item: CDItem) -> String {
+        var author = ""
+        if let itemAuthor = item.author, !itemAuthor.isEmpty {
+            author = "By \(itemAuthor)"
+        }
+        return author
+    }
+
+    private static func dateText(item: CDItem) -> String {
+        let dateNumber = TimeInterval(item.pubDate)
+        let date = Date(timeIntervalSince1970: dateNumber)
+        let dateFormat = DateFormatter()
+        dateFormat.dateStyle = .medium;
+        dateFormat.timeStyle = .short;
+        return dateFormat.string(from: date)
+    }
+
+    private static func videoSize(size: CGSize) -> CGSize {
+        let preferences = Preferences()
+        let ratio = CGFloat(preferences.marginPortrait) / 100.0
+        let width = min(700.0, size.width * ratio)
+        let height = width * 0.5625
+        return CGSize(width: width, height: height)
+    }
+
+    private static func fixRelativeUrl(html: String, baseUrlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html), let baseURL = URL(string: baseUrlString) else {
             return html
         }
@@ -192,7 +225,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
     
-    private func replaceVideoIframe(html: String) -> String {
+    private static func replaceVideoIframe(html: String, videoSize: CGSize) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
             return html
         }
@@ -216,7 +249,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-    private func createYoutubeItem(html: String, urlString: String) -> String {
+    private static func createYoutubeItem(html: String, urlString: String, videoSize: CGSize) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
             return html
         }
@@ -234,29 +267,29 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-    func updateUserScriptSource() {
-        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
-           let bundle = Bundle(url: bundleUrl),
-           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
-            let cssString = updateCssVariables()
-
-            userScriptSource = """
-            javascript:(function() {
-            var parent = document.getElementsByTagName('head').item(0);
-            var style = document.createElement('style');
-            style.type = 'text/css';
-            style.innerHTML = window.atob('\(encodeStringTo64(fromString: cssString)!)');
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.type = 'text/css';
-            link.href = '\(path)';
-            link.media = 'all';
-            parent.appendChild(style)
-            parent.appendChild(link)})()
-            """
-        }
-    }
-
+//    func updateUserScriptSource() {
+//        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
+//           let bundle = Bundle(url: bundleUrl),
+//           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
+//            let cssString = updateCssVariables()
+//
+//            userScriptSource = """
+//            javascript:(function() {
+//            var parent = document.getElementsByTagName('head').item(0);
+//            var style = document.createElement('style');
+//            style.type = 'text/css';
+//            style.innerHTML = window.atob('\(encodeStringTo64(fromString: cssString)!)');
+//            var link = document.createElement('link');
+//            link.rel = 'stylesheet';
+//            link.type = 'text/css';
+//            link.href = '\(path)';
+//            link.media = 'all';
+//            parent.appendChild(style)
+//            parent.appendChild(link)})()
+//            """
+//        }
+//    }
+//
     private func updateCssVariables() -> String {
         let currentWidth = Int((size.width) * CGFloat((Double(preferences.marginPortrait) / 100.0)))
         let currentWidthLandscape = (size.height) * CGFloat((Double(preferences.marginPortrait) / 100.0))

@@ -23,7 +23,7 @@ class ArticleModel: ObservableObject, Identifiable {
                 let webConfig = WKWebViewConfiguration()
                 webConfig.allowsInlineMediaPlayback = true
                 webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
-                //        webConfig.userContentController = userContentController
+                webConfig.preferences.setValue(true, forKey: "fullScreenEnabled")
 
                 internalWebView = WKWebView(frame: .zero, configuration: webConfig)
                 setupObservations()

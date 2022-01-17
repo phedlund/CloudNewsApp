@@ -101,21 +101,11 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScroll
             }
         }))
 
-        content.$userScriptSource.sink { [weak self] _ in
+        content.$refreshToken.sink { [weak self] _ in
             guard let self = self else { return }
             self.webView.reload()
-            self.injectCss()
         }
         .store(in: &cancellables)
-    }
-
-    func injectCss() {
-        let userScript = WKUserScript(source: content.userScriptSource,
-                                      injectionTime: .atDocumentEnd,
-                                      forMainFrameOnly: false)
-
-        webView.configuration.userContentController.removeAllUserScripts()
-        webView.configuration.userContentController.addUserScript(userScript)
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -143,10 +133,10 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScroll
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        webView.evaluateJavaScript("document.documentElement.outerHTML.toString()",
-                                   completionHandler: { (html: Any?, error: Error?) in
+//        webView.evaluateJavaScript("document.documentElement.outerHTML.toString()",
+//                                   completionHandler: { (html: Any?, error: Error?) in
 //            print(html)
-        })
+//        })
     }
 
 
