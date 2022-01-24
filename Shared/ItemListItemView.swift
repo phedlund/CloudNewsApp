@@ -30,7 +30,7 @@ struct ItemListItemViev: View {
                         if settings.compactView /*|| horizontalSizeClass == .compact*/ {
                             EmptyView()
                         } else {
-                            BodyView(bodyText: item.displayBody ?? "No Summary", unread: item.unread)
+                            BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
                         }
                         Spacer()
                     }

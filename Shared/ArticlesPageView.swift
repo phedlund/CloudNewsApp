@@ -46,7 +46,8 @@ struct ArticlesPageView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedIndex) {
+        print(Self._printChanges())
+        return TabView(selection: $selectedIndex) {
             ForEach(items.indices, id: \.self) { index in
                 ArticleView(articleModel: items[index])
                     .tag(index)
@@ -72,7 +73,9 @@ struct ArticlesPageView: View {
             isLoading = $0
         }
         .onReceive(currentModel.$title) {
-            title = $0
+            if $0 != title {
+                title = $0
+            }
         }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {

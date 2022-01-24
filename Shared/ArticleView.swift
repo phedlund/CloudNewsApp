@@ -10,17 +10,27 @@ import WebKit
 
 struct ArticleView: View {
     var articleModel: ArticleModel
+    @State var frameHeight: CGFloat = .zero
 
     var body: some View {
         GeometryReader { geometry in
-            ArticleWebView(articleModel: articleModel, size: geometry.size)
-                .navigationBarTitleDisplayMode(.inline)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
+            ScrollView(.vertical) {
+                ArticleWebView(articleModel: articleModel)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .background {
+                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                    }
+                    .frame(width: geometry.size.width, height: max(geometry.size.height, frameHeight))
+            }
+        }
+        .onReceive(articleModel.$contentHeight) { newHeight in
+            print("Got new height \(newHeight)")
+            if newHeight > 0 {
+                frameHeight = newHeight
+            }
         }
     }
-
+    
 }
 
 struct StatefulPreviewWrapper<Value, Content: View>: View {

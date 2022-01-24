@@ -12,7 +12,6 @@ import SwiftUI
 
 class ArticleWebContent: ObservableObject {
     @Published var refreshToken = ""
-    public let size: CGSize
 
     private let author: String
     private let title: String
@@ -20,7 +19,7 @@ class ArticleWebContent: ObservableObject {
     private let dateText: String
     private let urlString: String
     private let summary: String
-
+    private let fileName: String
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
@@ -34,15 +33,15 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    init(item: CDItem, size: CGSize) {
+    init(item: CDItem) {
         let feed = CDFeed.feed(id: item.feedId)
-        self.size = size
         title = Self.itemTitle(item: item)
-        summary = Self.output(item: item, size: size)
+        summary = Self.output(item: item)
         urlString = Self.itemUrl(item: item)
         dateText = Self.dateText(item: item)
         author = Self.itemAuthor(item: item)
         feedTitle = feed?.title ?? "Untitled"
+        fileName = "summary_\(item.id)"
 
         preferences.$marginPortrait.sink { [weak self] _ in
             self?.saveItemSummary()
@@ -50,7 +49,6 @@ class ArticleWebContent: ObservableObject {
         .store(in: &cancellables)
 
         preferences.$fontSize.sink { [weak self] newSize in
-            print("Font size new \(newSize)")
             self?.saveItemSummary()
         }
         .store(in: &cancellables)
@@ -121,7 +119,7 @@ class ArticleWebContent: ObservableObject {
         
         do {
             if let saveUrl = tempDirectory()?
-                .appendingPathComponent("summary")
+                .appendingPathComponent(fileName)
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
                 refreshToken = UUID().uuidString
@@ -131,7 +129,7 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    private static func output(item: CDItem, size: CGSize) -> String {
+    private static func output(item: CDItem) -> String {
         var summary = ""
 
         if let html = item.body,
@@ -141,25 +139,33 @@ class ArticleWebContent: ObservableObject {
            let host = url.host {
 
             let baseString = "\(scheme)://\(host)"
-            let videoSize = videoSize(size: size)
             if baseString.lowercased().contains("youtu") {
                 if html.lowercased().contains("iframe") {
-                    summary = createYoutubeItem(html: html, urlString: urlString, videoSize: videoSize)
+                    summary = createYoutubeItem(html: html, urlString: urlString)
                 } else if urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
                     let videoIdStartIndex = urlString.index(after: equalIndex)
                     let videoId = String(urlString[videoIdStartIndex...])
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
-                    summary = embed
+                    summary = embedYTString(videoId)
                 }
             } else {
                 summary = html
             }
 
             summary = fixRelativeUrl(html: summary, baseUrlString: baseString)
-            summary = replaceVideoIframe(html: summary, videoSize: videoSize)
+//            summary = replaceVideoIframe(html: summary, videoSize: videoSize)
         }
 
         return summary
+    }
+
+    private static func embedYTString(_ videoId: String) -> String {
+        return """
+            <div class="container">
+                <div class="articleVideo">
+                    <iframe id="yt" src="https://www.youtube.com/embed/\(videoId)" type="text/html" frameborder="0" width="100%%" height="100%%" allowfullscreen></iframe>
+                </div>"
+            </div>
+            """
     }
 
     private static func itemTitle(item: CDItem) -> String {
@@ -187,14 +193,14 @@ class ArticleWebContent: ObservableObject {
         return dateFormat.string(from: date)
     }
 
-    private static func videoSize(size: CGSize) -> CGSize {
-        let preferences = Preferences()
-        let ratio = CGFloat(preferences.marginPortrait) / 100.0
-        let width = min(700.0, size.width * ratio)
-        let height = width * 0.5625
-        return CGSize(width: width, height: height)
-    }
-
+//    private static func videoSize(size: CGSize) -> CGSize {
+//        let preferences = Preferences()
+//        let ratio = CGFloat(preferences.marginPortrait) / 100.0
+//        let width = min(700.0, size.width * ratio)
+//        let height = width * 0.5625
+//        return CGSize(width: width, height: height)
+//    }
+//
     private static func fixRelativeUrl(html: String, baseUrlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html), let baseURL = URL(string: baseUrlString) else {
             return html
@@ -225,31 +231,31 @@ class ArticleWebContent: ObservableObject {
         return result
     }
     
-    private static func replaceVideoIframe(html: String, videoSize: CGSize) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(html) else {
-            return html
-        }
-        var result = html
-        do {
-            let iframes: Elements = try doc.select("iframe")
-            for iframe in iframes {
-                if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
-                    if src.contains("youtu"), let videoId = src.youtubeVideoID {
-                        let embed = String(format: "<embed id=\"yt\" src=\"http://www.youtube.com/embed/%@?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></embed>", videoId, Int(videoSize.width), Int(videoSize.height))
-                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
-                    }
-                    if src.contains("vimeo"), let videoId = src.vimeoID {
-                        let embed = String(format:"<iframe id=\"vimeo\" src=\"http://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, Int(videoSize.width), Int(videoSize.height))
-                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
-                    }
-                }
-            }
-        } catch { }
+//    private static func replaceVideoIframe(html: String, videoSize: CGSize) -> String {
+//        guard let doc: Document = try? SwiftSoup.parse(html) else {
+//            return html
+//        }
+//        var result = html
+//        do {
+//            let iframes: Elements = try doc.select("iframe")
+//            for iframe in iframes {
+//                if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
+//                    if src.contains("youtu"), let videoId = src.youtubeVideoID {
+//                        let embed = embedYTString(videoId)
+//                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
+//                    }
+//                    if src.contains("vimeo"), let videoId = src.vimeoID {
+//                        let embed = String(format:"<iframe id=\"vimeo\" src=\"https://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, Int(videoSize.width), Int(videoSize.height))
+//                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
+//                    }
+//                }
+//            }
+//        } catch { }
+//
+//        return result
+//    }
 
-        return result
-    }
-
-    private static func createYoutubeItem(html: String, urlString: String, videoSize: CGSize) -> String {
+    private static func createYoutubeItem(html: String, urlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
             return html
         }
@@ -258,7 +264,7 @@ class ArticleWebContent: ObservableObject {
             let iframes: Elements = try doc.select("iframe")
             for iframe in iframes {
                 if let videoId = urlString.youtubeVideoID {
-                    let embed = "<embed id=\"yt\" src=\"http://www.youtube.com/embed/\(videoId)?playsinline=1\" type=\"text/html\" frameborder=\"0\" width=\"\(Int(videoSize.width))px\" height=\"\(Int(videoSize.height))px\"></embed>"
+                    let embed = embedYTString(videoId)
                     result = try result.replacingOccurrences(of: iframe.outerHtml(), with: embed)
                 }
             }
@@ -267,40 +273,13 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-//    func updateUserScriptSource() {
-//        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
-//           let bundle = Bundle(url: bundleUrl),
-//           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
-//            let cssString = updateCssVariables()
-//
-//            userScriptSource = """
-//            javascript:(function() {
-//            var parent = document.getElementsByTagName('head').item(0);
-//            var style = document.createElement('style');
-//            style.type = 'text/css';
-//            style.innerHTML = window.atob('\(encodeStringTo64(fromString: cssString)!)');
-//            var link = document.createElement('link');
-//            link.rel = 'stylesheet';
-//            link.type = 'text/css';
-//            link.href = '\(path)';
-//            link.media = 'all';
-//            parent.appendChild(style)
-//            parent.appendChild(link)})()
-//            """
-//        }
-//    }
-//
     private func updateCssVariables() -> String {
-        let currentWidth = Int((size.width) * CGFloat((Double(preferences.marginPortrait) / 100.0)))
-        let currentWidthLandscape = (size.height) * CGFloat((Double(preferences.marginPortrait) / 100.0))
-        print("Font size for css \(preferences.fontSize)")
-
         return ":root {" +
         "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
         "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
         "--font-size: \(preferences.fontSize)px;" +
-        "--body-width-portrait: \(currentWidth)px;" +
-        "--body-width-landscape: \(currentWidthLandscape)px;" +
+        "--body-width-portrait: \(preferences.marginPortrait)%;" +
+        "--body-width-landscape: \(preferences.marginPortrait)%;" +
         "--line-height: \(preferences.lineHeight)em;" +
         "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
         "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +

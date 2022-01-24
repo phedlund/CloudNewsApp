@@ -10,6 +10,7 @@ and (orientation: portrait) {
         font-size: var(--font-size);
         align: center;
         width: var(--body-width-portrait);
+        max-width: 700px;
         margin-top: 40px;
         margin-bottom: 40px;
         margin-left: auto;
@@ -18,6 +19,7 @@ and (orientation: portrait) {
     
     div.header {
         width: var(--body-width-portrait);
+        max-width: 700px;
         margin-left:auto;
         margin-right:auto;
         margin-top:30px;
@@ -33,6 +35,7 @@ and (orientation: landscape) {
         font-size: var(--font-size);
         align: center;
         width: var(--body-width-landscape);
+        max-width: 700px;
         margin-top: 40px;
         margin-bottom: 40px;
         margin-left: auto;
@@ -41,6 +44,7 @@ and (orientation: landscape) {
     
     div.header {
         width: var(--body-width-landscape);
+        max-width: 700px;
         margin-left:auto;
         margin-right:auto;
         margin-top:30px;
@@ -150,6 +154,20 @@ div.content {
 
 div.footer {
 
+}
+
+div.container {
+  width: 100%;
+  padding-top: 56.25%;
+  position: relative;
+}
+
+div.articleVideo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
 }
 
 a.footerLink {

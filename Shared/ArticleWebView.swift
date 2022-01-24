@@ -27,25 +27,22 @@ struct ArticleWebView: NSViewRepresentable {
 }
 #else
 struct ArticleWebView: UIViewRepresentable {
-    public let webView: WKWebView
-    public let size: CGSize
+    let webView: WKWebView
 
     private var feed: CDFeed?
     private var url = URL(fileURLWithPath: "")
-    private var model: ArticleModel
-    private var content: ArticleWebContent
-    private let preferences = Preferences()
-    private var cancellables = Set<AnyCancellable>()
+    var model: ArticleModel
+    var content: ArticleWebContent
 
-    public init(articleModel: ArticleModel, size: CGSize) {
+    public init(articleModel: ArticleModel) {
+        print(articleModel.item.title ?? "")
         self.model = articleModel
         self.webView = articleModel.webView
         self.feed = CDFeed.feed(id: model.item.feedId)
-        self.size = size
-        self.content = ArticleWebContent(item: model.item, size: size)
+        self.content = ArticleWebContent(item: model.item)
 
         url = tempDirectory()?
-            .appendingPathComponent("summary")
+            .appendingPathComponent("summary_\(articleModel.item.id)")
             .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
 
             if feed?.preferWeb == true,
@@ -60,55 +57,47 @@ struct ArticleWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         webView.navigationDelegate = context.coordinator
-        webView.scrollView.delegate = context.coordinator
+        webView.uiDelegate = context.coordinator
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
+        print("Update WebView called")
     }
 
     func makeCoordinator() -> WebViewCoordinator {
-        WebViewCoordinator(webView: webView, content: content)
+        WebViewCoordinator(self)
     }
 
 }
 #endif
 
-class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate {
+class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     @ObservedObject private var content: ArticleWebContent
 
+    private let parent: ArticleWebView
     private var cancellables = Set<AnyCancellable>()
-    private var webView: WKWebView
     private var isUserScrolling = false
-    private var observations = [NSKeyValueObservation]()
+    private var requestUrl = URL(string: "")
 
-    init(webView: WKWebView, content: ArticleWebContent) {
-        self.webView = webView
-        self.content = content
+    init(_ parent: ArticleWebView) {
+        self.parent = parent
+        self.content = parent.content
         super.init()
-
-        observations.append(self.webView.scrollView.observe(\.contentOffset, options: .new, changeHandler: { [weak self] _, value in
-            guard let self = self else {
-                return
-            }
-            if self.isUserScrolling {
-                return
-            }
-            if !self.webView.isLoading {
-                if self.webView.url?.scheme == "file", self.webView.scrollView.contentOffset != .zero {
-                    self.webView.scrollView.setContentOffset(.zero, animated: false)
-                }
-            }
-        }))
 
         content.$refreshToken.sink { [weak self] _ in
             guard let self = self else { return }
-            self.webView.reload()
+            self.parent.webView.reload()
         }
         .store(in: &cancellables)
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        print("View url: \(webView.url?.absoluteString ?? "")")
+        print("Action url: \(navigationAction.request.url?.absoluteString ?? "")")
+
         if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
             if let url = navigationAction.request.url {
                 if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
@@ -122,6 +111,7 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, UIScroll
     }
 
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        // uiDelegate needed to open target="_blank" links
         if !(navigationAction.targetFrame?.isMainFrame ?? false) {
             webView.load(navigationAction.request)
         }

@@ -124,7 +124,7 @@ func itemDisplayBody(_ body: String?, mediaDescription: String?) -> String {
         }
         return  plainSummary(raw: displayBody)
     } else {
-        return "No Summary"
+        return ""
     }
 }
 
