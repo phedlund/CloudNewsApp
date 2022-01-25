@@ -23,7 +23,8 @@ struct BadgeView: View {
                 let text = node.unreadCount > 0 ? "\(node.unreadCount)" : ""
                 Text(text)
                     .font(.subheadline)
-                    .colorInvert()
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
                     .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
                     .background(Capsule()
                                     .fill(.gray)
