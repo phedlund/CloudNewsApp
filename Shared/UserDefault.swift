@@ -70,4 +70,5 @@ class Preferences: ObservableObject {
     @UserDefault(StorageKeys.lastModified) var lastModified: Int32 = 0
     @UserDefault(StorageKeys.compactView) var compactView = false
     @UserDefault(StorageKeys.keepDuration) var keepDuration = 3
+    @UserDefault(StorageKeys.selectedNode) var selectedNode = ""
 }

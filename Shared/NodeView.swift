@@ -41,7 +41,7 @@ struct NodeView<Content: View> : View {
                 }
             }
         }
-        .padding(.trailing, node.children.isEmpty ? 23 : 0)
+        .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
         .contextMenu {
             switch node.nodeType {
             case .all, .starred:

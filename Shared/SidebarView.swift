@@ -33,109 +33,90 @@ struct SidebarView: View {
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
-    @ViewBuilder
     var body: some View {
-        GeometryReader { geometry in
-            List(model.nodes, id: \.self.id, selection: $selectedNode) { node in
-                let _ = print(node.id)
-                    if !node.children.isEmpty {
-                        FolderDisclosureGroup(node) {
-                            ForEach(node.children) { child in
-                                NodeView(node: child, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
-                                    ItemsView(node: child)
-                                        .environmentObject(model)
-                                }
-                                .tag(node.id)
-                            }
-                        } label: {
-                            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
-                                ItemsView(node: node)
-                                    .environmentObject(model)
-                            }
-                            .tag(node.id)
-                        }
-                    } else {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
-                            ItemsView(node: node)
-                                .environmentObject(model)
-                        }
-                        .tag(node.id)
-                    }
-
-            }
-            .listStyle(.sidebar)
-            .accentColor(.pbh.darkIcon)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .opacity(isSyncing ? 1.0 : 0.0)
+        List(selection: $selectedNode) {
+            OutlineGroup(model.nodes, children: \.children) { node in
+                NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
+                    ItemsView(node: node)
+                        .environmentObject(model)
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task {
-                            do {
-                                isSyncing = true
-                                try await NewsManager().sync()
-                                model.update()
-                            } catch {
-                                isSyncing = false
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .disabled(isSyncing)
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        modalSheet = .settings
-                        isShowingSheet = true
-                    } label: {
-                        Image(systemName: "ellipsis")
-                    }
-                }
+                .tag(node.id)
             }
-            .onReceive(publisher) { _ in
-                isSyncing = false
-            }
-            .onChange(of: selectedNode) { newSelection in
-                print(newSelection)
-            }
-            .refreshable {
-                do {
-                    try await NewsManager().sync()
-                    model.update()
-                } catch {
-                    //
-                }
-            }
-            .navigationTitle(Text("Feeds"))
-            .sheet(item: $modalSheet, onDismiss: {
-                isShowingSheet = false
-                modalSheet = nil
-            }, content: { sheet in
-                switch sheet {
-                case .settings:
-                    NavigationView {
-                        SettingsView(showModal: $isShowingSheet)
-                    }
-                case .folders:
-                    NavigationView {
-                        SettingsView(showModal: $isShowingSheet)
-                    }
-                case .feedSettings:
-                    NavigationView {
-                        FeedSettingsView(selectedFeed)
-                    }
-                case .login:
-                    NavigationView {
-                        SettingsView(showModal: $isShowingSheet)
-                    }
-                }
-            })
+            .accentColor(.pbh.whiteIcon)
         }
+        .listStyle(.sidebar)
+        .accentColor(.pbh.darkIcon)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .opacity(isSyncing ? 1.0 : 0.0)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    Task {
+                        do {
+                            isSyncing = true
+                            try await NewsManager().sync()
+                            model.update()
+                        } catch {
+                            isSyncing = false
+                        }
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isSyncing)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    modalSheet = .settings
+                    isShowingSheet = true
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+            }
+        }
+        .onReceive(publisher) { _ in
+            isSyncing = false
+        }
+        .onChange(of: selectedNode) {
+            print($0 ?? "")
+        }
+        .refreshable {
+            do {
+                try await NewsManager().sync()
+                model.update()
+            } catch {
+                //
+            }
+        }
+        .navigationTitle(Text("Feeds"))
+        .sheet(item: $modalSheet, onDismiss: {
+            isShowingSheet = false
+            modalSheet = nil
+        }, content: { sheet in
+            switch sheet {
+            case .settings:
+                NavigationView {
+                    SettingsView(showModal: $isShowingSheet)
+                }
+            case .folders:
+                NavigationView {
+                    SettingsView(showModal: $isShowingSheet)
+                }
+            case .feedSettings:
+                NavigationView {
+                    FeedSettingsView(selectedFeed)
+                }
+            case .login:
+                NavigationView {
+                    SettingsView(showModal: $isShowingSheet)
+                }
+            }
+        })
     }
+
 }
 
 struct SidebarView_Previews: PreviewProvider {

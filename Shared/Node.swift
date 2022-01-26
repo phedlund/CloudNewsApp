@@ -19,13 +19,13 @@ final class Node: Identifiable, ObservableObject {
     @Published var icon = UIImage()
     @Published var items = [ArticleModel]()
 
-    let id: String
+    var id: String
     private let itemPublisher = ItemStorage.shared.items.eraseToAnyPublisher()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 
     fileprivate(set) var isExpanded = false
     private(set) var nodeType: NodeType
-    private(set) var children = [Node]()
+    private(set) var children: [Node]?
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -34,10 +34,10 @@ final class Node: Identifiable, ObservableObject {
     }
 
     convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {
-        self.init(nodeType, children: [], id: id, isExpanded: isExpanded)
+        self.init(nodeType, children: nil, id: id, isExpanded: isExpanded)
     }
 
-    init(_ nodeType: NodeType, children: [Node], id: String, isExpanded: Bool) {
+    init(_ nodeType: NodeType, children: [Node]? = nil, id: String, isExpanded: Bool) {
         self.nodeType = nodeType
         self.children = children
         self.id = id
