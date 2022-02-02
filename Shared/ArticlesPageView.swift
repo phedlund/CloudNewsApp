@@ -25,7 +25,7 @@ struct ArticlesPageView: View {
         var subject = ""
         viewedUrl = currentModel.webView.url
         subject = currentModel.webView.title ?? ""
-        if viewedUrl?.absoluteString.hasSuffix("summary.html") ?? false {
+        if viewedUrl?.scheme?.hasPrefix("file") ?? false {
             if let urlString = currentModel.item.url {
                 viewedUrl = URL(string: urlString) ?? nil
                 subject = currentModel.item.title ?? "Untitled"
