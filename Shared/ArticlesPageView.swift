@@ -9,6 +9,9 @@ import SwiftUI
 import WebKit
 
 struct ArticlesPageView: View {
+    @ObservedObject var node: Node
+    @Binding private var fullScreenView: Bool
+
     @State private var selectedIndex: Int = -1
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
@@ -17,8 +20,6 @@ struct ArticlesPageView: View {
     @State private var canGoForward = false
     @State private var isLoading = false
     @State private var title = ""
-
-    private var items: [ArticleModel]
 
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
@@ -38,18 +39,19 @@ struct ArticlesPageView: View {
         return nil
     }
 
-    init(items: [ArticleModel], selectedIndex: Int) {
-        self.items = items
-        currentModel = items[selectedIndex]
-        _selectedIndex = State(initialValue: selectedIndex)
+    init(node: Node, selectedIndex: Int, fullScreenView: Binding<Bool>) {
+        self.node = node
+        currentModel = node.items[selectedIndex]
+        _selectedIndex = State(initialValue: node.selectedItem)
+        self._fullScreenView = fullScreenView
         markItemRead()
     }
 
     var body: some View {
         print(Self._printChanges())
         return TabView(selection: $selectedIndex) {
-            ForEach(items.indices, id: \.self) { index in
-                ArticleView(articleModel: items[index])
+            ForEach(node.items.indices, id: \.self) { index in
+                ArticleView(model: node.items[index])
                     .tag(index)
             }
         }
@@ -58,11 +60,11 @@ struct ArticlesPageView: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-        .onChange(of: selectedIndex) { newValue in
-            currentModel.webView.stopLoading()
-            currentModel = items[newValue]
-            markItemRead()
-        }
+//        .onChange(of: node.$selectedItem) { newValue in
+//            currentModel.webView.stopLoading()
+//            currentModel = node.items[newValue]
+//            markItemRead()
+//        }
         .onReceive(currentModel.$canGoBack) {
             canGoBack = $0
         }
@@ -77,7 +79,20 @@ struct ArticlesPageView: View {
                 title = $0
             }
         }
+        .onReceive(node.$selectedItem) {
+            selectedIndex = $0
+        }
         .toolbar(content: {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Spacer(minLength: 10)
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    fullScreenView = false
+                } label: {
+                    Image(systemName: "xmark")
+                }
+            }
             ToolbarItem(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)
             }

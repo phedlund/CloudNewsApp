@@ -27,44 +27,42 @@ struct ArticleWebView: NSViewRepresentable {
 }
 #else
 struct ArticleWebView: UIViewRepresentable {
+    private let item: CDItem
+
     let webView: WKWebView
+    let content: ArticleWebContent
 
-    private var feed: CDFeed?
-    private var url = URL(fileURLWithPath: "")
-    var model: ArticleModel
-    var content: ArticleWebContent
-
-    public init(articleModel: ArticleModel) {
-        print(articleModel.item.title ?? "")
-        self.model = articleModel
-        self.webView = articleModel.webView
-        self.feed = CDFeed.feed(id: model.item.feedId)
-        self.content = ArticleWebContent(item: model.item)
-
-        url = tempDirectory()?
-            .appendingPathComponent("summary_\(articleModel.item.id)")
-            .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
-
-            if feed?.preferWeb == true,
-               let urlString = model.item.url,
-               let url = URL(string: urlString) {
-                webView.load(URLRequest(url: url))
-            } else {
-                let request = URLRequest(url: url)
-                webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
-            }
+    public init(webView: WKWebView, item: CDItem) {
+        print(item.title ?? "")
+        self.webView = webView
+        self.item = item
+        self.content = ArticleWebContent(item: item)
     }
 
     func makeUIView(context: Context) -> WKWebView {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
-        webView.scrollView.isScrollEnabled = false
+        webView.allowsBackForwardNavigationGestures = false
+//        webView.scrollView.isScrollEnabled = false
         webView.scrollView.showsHorizontalScrollIndicator = false
+        let feed = CDFeed.feed(id: item.feedId)
+        if feed?.preferWeb == true,
+           let urlString = item.url,
+           let url = URL(string: urlString) {
+            webView.load(URLRequest(url: url))
+        } else {
+            let url = tempDirectory()?
+                .appendingPathComponent("summary_\(item.id)")
+                .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+
+            let request = URLRequest(url: url)
+            webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
+        }
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        print("Update WebView called")
+//        print("Update WebView called")
     }
 
     func makeCoordinator() -> WebViewCoordinator {

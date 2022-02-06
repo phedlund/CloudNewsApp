@@ -18,6 +18,7 @@ final class Node: Identifiable, ObservableObject {
     @Published var title = ""
     @Published var icon = UIImage()
     @Published var items = [ArticleModel]()
+    @Published var selectedItem = 0
 
     var id: String
     private let itemPublisher = ItemStorage.shared.items.eraseToAnyPublisher()

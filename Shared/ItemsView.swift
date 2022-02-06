@@ -11,7 +11,6 @@ import SwiftUI
 
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var settings: Preferences
     @StateObject var scrollViewHelper = ScrollViewHelper()
     @ObservedObject var node: Node
@@ -19,26 +18,38 @@ struct ItemsView: View {
     @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0
     @State private var items = [ArticleModel]()
+    @State private var fullScreenView = false
 
     var body: some View {
-        GeometryReader { geometry in
+        print(Self._printChanges())
+        return GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
-            let _ = print("Redrawing list")
             ScrollView {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
                         ForEach(items.indices, id: \.self) { index in
                             let item = items[index].item
-                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: index))) {
+//                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: index))) {
                                 ItemListItemViev(item: item)
                                     .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            }
+//                            }
                             .buttonStyle(.plain)
+                            .onTapGesture {
+                                node.selectedItem = index
+                                fullScreenView = true
+                            }
                             .contextMenu {
                                 ContextMenuContent(item: item)
+                            }
+                            .fullScreenCover(isPresented: $fullScreenView) {
+                                //
+                            } content: {
+                                NavigationView {
+                                    ArticlesPageView(node: node, selectedIndex: index, fullScreenView: $fullScreenView)
+                                }
                             }
                         }
                     }

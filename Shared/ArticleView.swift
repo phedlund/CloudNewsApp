@@ -8,26 +8,20 @@
 import SwiftUI
 import WebKit
 
-struct ArticleView: View {
-    var articleModel: ArticleModel
-    @State var frameHeight: CGFloat = .zero
+struct ArticleView: View, Equatable {
+    static func == (lhs: ArticleView, rhs: ArticleView) -> Bool {
+        return lhs.model.item == rhs.model.item
+    }
+
+    @ObservedObject var model: ArticleModel
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView(.vertical) {
-                ArticleWebView(articleModel: articleModel)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                    }
-                    .frame(width: geometry.size.width, height: max(geometry.size.height, frameHeight))
-            }
-        }
-        .onReceive(articleModel.$contentHeight) { newHeight in
-            print("Got new height \(newHeight)")
-            if newHeight > 0 {
-                frameHeight = newHeight
-            }
+        GeometryReader { _ in
+            ArticleWebView(webView: model.webView, item: model.item)
+                .navigationBarTitleDisplayMode(.inline)
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
         }
     }
     
