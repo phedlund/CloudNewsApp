@@ -7,9 +7,11 @@
 
 import Combine
 import CoreData
+import SwiftUI
 
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
+    @Published var selectedNode: String?
 
     private let allNode: Node
     private let starNode: Node
@@ -63,8 +65,26 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        $selectedNode.sink {
+            if let id = $0 {
+                print("Selected node with id \(id)")
+            }
+        }
+        .store(in: &cancellables)
+
         update()
         isInInit = false
+    }
+
+    func selectionBindingForId(id: String) -> Binding<Bool> {
+        Binding<Bool> { () -> Bool in
+            self.selectedNode == id
+        } set: { (newValue) in
+            if newValue {
+                self.selectedNode = id
+            }
+        }
+
     }
 
     func update() {

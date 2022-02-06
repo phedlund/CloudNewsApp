@@ -36,11 +36,11 @@ struct SidebarView: View {
     var body: some View {
         List(selection: $selectedNode) {
             OutlineGroup(model.nodes, children: \.children) { node in
-                NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet, model: model) {
-                    ItemsView(node: node)
-                        .environmentObject(model)
+                NavigationLink(destination: ItemsView(node: node),
+                               isActive: model.selectionBindingForId(id: node.id))
+                {
+                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                 }
-                .tag(node.id)
             }
             .accentColor(.pbh.whiteIcon)
         }
@@ -80,8 +80,8 @@ struct SidebarView: View {
         .onReceive(publisher) { _ in
             isSyncing = false
         }
-        .onChange(of: selectedNode) {
-            print($0 ?? "")
+        .onChange(of: selectedNode) { newSelection in
+            print(newSelection)
         }
         .refreshable {
             do {

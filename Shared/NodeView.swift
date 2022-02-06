@@ -7,39 +7,33 @@
 
 import SwiftUI
 
-struct NodeView<Content: View> : View {
+struct NodeView: View {
     @EnvironmentObject var appDelegate: AppDelegate
+    @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
     @Binding var isShowingSheet: Bool
-    let model: FeedModel
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
     @State private var unreadCount = 0
     @State private var title = ""
 
-    @ViewBuilder let content: Content
-
     var body: some View {
-        GeometryReader { geometry in
-            NavigationLink(destination: content) {
-                HStack {
-                    Label {
-                        Text(title)
-                            .lineLimit(1)
-                    } icon: {
-                        Image(uiImage: node.icon)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 22, height: 22, alignment: .center)
-                    }
-                    .labelStyle(.titleAndIcon)
-                    Spacer(minLength: 12)
-                    BadgeView(node: node)
-                }
+        HStack {
+            Label {
+                Text(title)
+                    .lineLimit(1)
+            } icon: {
+                Image(uiImage: node.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22, alignment: .center)
             }
+            .labelStyle(.titleAndIcon)
+            Spacer(minLength: 12)
+            BadgeView(node: node)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
         .contextMenu {
