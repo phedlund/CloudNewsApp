@@ -12,6 +12,14 @@ import SwiftUI
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var selectedNode: String?
+    private let preferences = Preferences()
+
+    var currentNode: Node {
+        if let selectedNode = selectedNode, let node = nodes.first(where: { $0.id == selectedNode }) {
+            return node
+        }
+        return allNode
+    }
 
     private let allNode: Node
     private let starNode: Node
@@ -65,13 +73,19 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        $selectedNode.sink {
+        $selectedNode.sink { [weak self] in
             if let id = $0 {
                 print("Selected node with id \(id)")
+                self?.preferences.selectedNode = id
             }
         }
         .store(in: &cancellables)
 
+        if !preferences.selectedNode.isEmpty {
+            selectedNode = preferences.selectedNode
+        } else {
+            selectedNode = allNode.id
+        }
         update()
         isInInit = false
     }
