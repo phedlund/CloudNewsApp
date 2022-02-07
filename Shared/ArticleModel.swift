@@ -14,7 +14,6 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
     @Published public var canGoForward = false
     @Published public var isLoading = false
     @Published public var title = ""
-    @Published public var contentHeight: CGFloat = .zero
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -25,30 +24,10 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
     var webView: WKWebView {
         get {
             if internalWebView == nil {
-                //Javascript string
-                let source = "window.onload=function () {window.webkit.messageHandlers.sizeNotification.postMessage({justLoaded:true,height: document.documentElement.getBoundingClientRect().height});};"
-                let source2 = "document.body.addEventListener( 'resize', incrementCounter); function incrementCounter() {window.webkit.messageHandlers.sizeNotification.postMessage({height: document.documentElement.getBoundingClientRect().height});};"
-
-                //UserScript object
-                let script = WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-
-                let script2 = WKUserScript(source: source2, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-
-                //Content Controller object
-                let controller = WKUserContentController()
-
-                //Add script to controller
-                controller.addUserScript(script)
-                controller.addUserScript(script2)
-
-                //Add message handler reference
-                controller.add(self, name: "sizeNotification")
-
                 let webConfig = WKWebViewConfiguration()
                 webConfig.preferences.setValue(true, forKey: "fullScreenEnabled")
                 webConfig.allowsInlineMediaPlayback = true
                 webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
-                webConfig.userContentController = controller
 
                 internalWebView = WKWebView(frame: .zero, configuration: webConfig)
                 setupObservations()
@@ -82,27 +61,4 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
         }
         .store(in: &cancellables)
     }
-}
-
-extension ArticleModel: WKScriptMessageHandler {
-
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let responseDict = message.body as? [String:Any],
-              let height = responseDict["height"] as? Float,
-                height > .zero else {
-                  return
-              }
-        if contentHeight != CGFloat(height) {
-            if let _ = responseDict["justLoaded"] {
-                print("just loaded with height \(height)")
-                shouldListenToResizeNotification = true
-                contentHeight = CGFloat(height)
-            }
-            else if shouldListenToResizeNotification {
-                print("height is \(height)")
-                contentHeight = CGFloat(height)
-            }
-        }
-    }
-
 }
