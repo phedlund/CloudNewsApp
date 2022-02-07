@@ -39,9 +39,9 @@ struct ArticlesPageView: View {
         return nil
     }
 
-    init(node: Node, selectedIndex: Int, fullScreenView: Binding<Bool>) {
+    init(node: Node, fullScreenView: Binding<Bool>) {
         self.node = node
-        currentModel = node.items[selectedIndex]
+        currentModel = node.items[node.selectedItem]
         _selectedIndex = State(initialValue: node.selectedItem)
         self._fullScreenView = fullScreenView
         markItemRead()
@@ -60,11 +60,11 @@ struct ArticlesPageView: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-//        .onChange(of: node.$selectedItem) { newValue in
-//            currentModel.webView.stopLoading()
-//            currentModel = node.items[newValue]
-//            markItemRead()
-//        }
+        .onChange(of: selectedIndex) { newValue in
+            currentModel.webView.stopLoading()
+            currentModel = node.items[newValue]
+            markItemRead()
+        }
         .onReceive(currentModel.$canGoBack) {
             canGoBack = $0
         }

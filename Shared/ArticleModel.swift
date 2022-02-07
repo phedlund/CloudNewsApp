@@ -71,20 +71,16 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             self?.canGoForward = newValue
             }
         .store(in: &cancellables)
-//        webView.publisher(for: \.isLoading).sink { [weak self] newValue in
-//            self?.isLoading = newValue
-//            }
-//        .store(in: &cancellables)
+        webView.publisher(for: \.isLoading).sink { [weak self] newValue in
+            self?.isLoading = newValue
+            }
+        .store(in: &cancellables)
         webView.publisher(for: \.title).sink { [weak self] newValue in
             if let newTitle = newValue, !newTitle.isEmpty {
                 self?.title = newTitle
             }
         }
         .store(in: &cancellables)
-//        webView.scrollView.publisher(for: \.contentSize).sink { [weak self] newValue in
-//            self?.contentHeight = newValue.height
-//        }
-//        .store(in: &cancellables)
     }
 }
 

@@ -48,7 +48,7 @@ struct ItemsView: View {
                                 //
                             } content: {
                                 NavigationView {
-                                    ArticlesPageView(node: node, selectedIndex: index, fullScreenView: $fullScreenView)
+                                    ArticlesPageView(node: node, fullScreenView: $fullScreenView)
                                 }
                             }
                         }

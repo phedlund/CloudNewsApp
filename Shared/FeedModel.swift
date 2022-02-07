@@ -98,7 +98,6 @@ class FeedModel: ObservableObject {
                 self.selectedNode = id
             }
         }
-
     }
 
     func update() {
