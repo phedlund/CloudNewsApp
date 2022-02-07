@@ -71,8 +71,6 @@ struct FeedSettingsView: View {
                     .navigationTitle("Folder")
                 }
                 Toggle("View web version", isOn: $preferWeb)
-                Toggle("Pinned", isOn: $pinned)
-                    .disabled(true)
             }
             .navigationTitle("Feed Settings")
             Section {
@@ -90,6 +88,8 @@ struct FeedSettingsView: View {
                         .lineLimit(1)
                         .multilineTextAlignment(.trailing)
                 }
+                Toggle("Pinned", isOn: $pinned)
+                    .disabled(true)
                 HStack(spacing: 15) {
                     Text("Update Error Count")
                     Spacer()
