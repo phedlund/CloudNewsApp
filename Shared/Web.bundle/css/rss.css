@@ -1,5 +1,6 @@
 html {
-    -webkit-text-size-adjust: none; /* Never autoresize text */
+    -webkit-text-size-adjust: none;
+    font: -apple-system-body;
 }
 
 @media only screen
@@ -7,7 +8,6 @@ and (orientation: portrait) {
     body {
         background: var(--bg-color);
         color: var(--text-color);
-        font-size: var(--font-size);
         align: center;
         width: var(--body-width-portrait);
         max-width: 700px;
@@ -17,7 +17,7 @@ and (orientation: portrait) {
         margin-right: auto;
     }
     
-    div.header {
+    article {
         width: var(--body-width-portrait);
         max-width: 700px;
         margin-left:auto;
@@ -32,7 +32,6 @@ and (orientation: landscape) {
     body {
         background: var(--bg-color);
         color: var(--text-color);
-        font-size: var(--font-size);
         align: center;
         width: var(--body-width-landscape);
         max-width: 700px;
@@ -42,7 +41,7 @@ and (orientation: landscape) {
         margin-right: auto;
     }
     
-    div.header {
+    article {
         width: var(--body-width-landscape);
         max-width: 700px;
         margin-left:auto;
@@ -53,34 +52,26 @@ and (orientation: landscape) {
 }
 
 h1 {
-   font-family: "HelveticaNeue";
-   font-size: 150%;
+   font-size:  calc(var(--font-size) * 1.5rem);
    line-height: var(--line-height);
    clear: both;
 }
 
 h2 {
-    font-family:"HelveticaNeue";
-    font-size:110%;
-    /*margin-top:-0.8em;*/
+    font-size: calc(var(--font-size) * 1.1rem);
     line-height: var(--line-height);
 }
 
 h3 {
-    font-family:"HelveticaNeue";
-    font-size:100%;
     line-height: var(--line-height);
 }
 
 h4 {
-    font-family:"Arial";
-    font-size:80%;
+    font-size: calc(var(--font-size) * 0.8rem);
     line-height: var(--line-height);
 }
 
 p {
-    font-family:"Palatino";
-    font-size:100%;
     line-height: var(--line-height);
     clear:both;
 }
@@ -92,7 +83,7 @@ a {
 
 /* make sure sub and superscript don't mess up line height */
 sub, sup { 
-    font-size: 75%;
+    font-size:  calc(var(--font-size) * 0.75rem);
     line-height: 0; 
     position: relative; 
     vertical-align: baseline; 
@@ -106,10 +97,15 @@ sub {
     bottom: -0.25em; 
 }
 
+pre {
+    overflow: auto;
+    border: 1px solid lightgray;
+    padding: 5px;
+}
+
 div.articleTitle {
     background: var(--bg-color);
-    font-size: 175%;
-    font-family: HelveticaNeue;
+    font-size:  calc(var(--font-size) * 1.75rem);
     color: var(--text-color);
     margin-top:10px;
 }
@@ -120,16 +116,14 @@ a.articleTitleLink {
 }
 
 div.feedTitle {
-    font-size: 90%;
-    font-family: Palatino;
+    font-size:  calc(var(--font-size) * 0.9rem);
     color: DimGray;
     margin-bottom:10px;
 }
 
 div.articleDate {
-    font-size: 80%;
-    font-family: Palatino;
-    color: Gray;
+    font-size:  calc(var(--font-size) * 0.8rem);
+    color: DimGray;
     text-align:right;
     margin-bottom:10px;
 }
@@ -141,13 +135,13 @@ div.titleHeader {
 }
 
 div.articleAuthor {
-    font-size: 90%;
-    font-family: Palatino;
+    font-size:  calc(var(--font-size) * 0.9rem);
     color: Gray;
     margin-bottom:10px;
 }
 
 div.content {
+    font-size: calc(var(--font-size) * 1.0rem);
     margin-top: 30px;
     line-height: var(--line-height);
 }
@@ -175,8 +169,7 @@ a.footerLink {
     background: var(--footer-link);
     border-radius:3px;
     text-align:center;
-    font-family:HelveticaNeue;
-    font-size:90%;
+    font-size:  calc(var(--font-size) * 0.9rem);
     text-decoration: none;
     color:Gray;
     display:block;

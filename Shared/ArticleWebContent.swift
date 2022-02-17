@@ -77,7 +77,7 @@ class ArticleWebContent: ObservableObject {
             <link rel="stylesheet" href="\(cssPath)" media="all">
             </head>
             <body>
-                <div class="header">
+                <article>
                     <div class="titleHeader">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
@@ -112,7 +112,7 @@ class ArticleWebContent: ObservableObject {
                             <a class="footerLink" href="\(urlString)"><br />View Full Article</a>
                         </p>
                     </div>
-                </div>
+                </article>
             </body>
         </html>
         """
@@ -274,12 +274,13 @@ class ArticleWebContent: ObservableObject {
     }
 
     private func updateCssVariables() -> String {
+        let fontSize: Double = Double(preferences.fontSize) / 14.0
         return ":root {" +
         "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
         "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
-        "--font-size: \(preferences.fontSize)px;" +
-        "--body-width-portrait: \(preferences.marginPortrait)%;" +
-        "--body-width-landscape: \(preferences.marginPortrait)%;" +
+        "--font-size: \(fontSize);" +
+        "--body-width-portrait: \(preferences.marginPortrait)vw;" +
+        "--body-width-landscape: \(preferences.marginPortrait)vw;" +
         "--line-height: \(preferences.lineHeight)em;" +
         "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
         "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
