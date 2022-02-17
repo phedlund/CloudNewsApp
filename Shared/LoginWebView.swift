@@ -16,7 +16,8 @@ struct LoginWebViewView: View {
         VStack {
         LoginWebView(webView: webViewManager.webView)
             .onAppear {
-                var serverAddress = server.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                let characterSet = CharacterSet(charactersIn:"/").union(.whitespacesAndNewlines)
+                var serverAddress = server.trimmingCharacters(in: characterSet)
                 if !serverAddress.contains("://"),
                    !serverAddress.hasPrefix("http") {
                     serverAddress = "https://\(serverAddress)"

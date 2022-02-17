@@ -36,10 +36,15 @@ struct SidebarView: View {
     var body: some View {
         List(selection: $selectedNode) {
             OutlineGroup(model.nodes, children: \.children) { node in
-                NavigationLink(destination: ItemsView(node: node),
-                               isActive: model.selectionBindingForId(id: node.id))
-                {
-                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    NavigationLink(destination: ItemsView(node: node)) {
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                    }
+                } else {
+                    NavigationLink(destination: ItemsView(node: node),
+                                   isActive: model.selectionBindingForId(id: node.id)) {
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                    }
                 }
             }
             .accentColor(.pbh.whiteIcon)

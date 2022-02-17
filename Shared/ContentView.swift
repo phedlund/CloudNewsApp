@@ -16,31 +16,14 @@ struct ContentView: View {
 
     @State private var isShowingLogin = false
 
-    init() {
-        if let cssTemplateURL = Bundle.main.url(forResource: "rss", withExtension: "css") {
-            do {
-                let cssTemplate = try String(contentsOf: cssTemplateURL, encoding: .utf8)
-                if let tempDir = tempDirectory() {
-                    try cssTemplate.write(to: tempDir.appendingPathComponent("rss.css"), atomically: true, encoding: .utf8)
-                }
-            } catch { }
-        }
-//        async {
-//            do {
-//                try await NewsManager().initialSync()
-//            } catch  {
-////
-//            }
-//        }
-    }
-
     var body: some View {
-        NavigationView {
-            SidebarView()
-                .environmentObject(nodeTree)
-            ItemsView(node: Node())
-                .environmentObject(nodeTree)
-        }
+//        NavigationView {
+//            SidebarView()
+//                .environmentObject(nodeTree)
+//            ItemsView(node: Node())
+//                .environmentObject(nodeTree)
+//        }
+        NodesView()
         .onAppear {
             isShowingLogin = !isLoggedIn
         }
@@ -71,4 +54,28 @@ struct ContentView_Previews: PreviewProvider {
             .environment(\.managedObjectContext, NewsData.mainThreadContext)
             .previewInterfaceOrientation(.landscapeLeft)
     }
+}
+
+struct NodesView: View {
+    @StateObject private var nodeTree = FeedModel()
+
+    @ViewBuilder
+    var body: some View {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            NavigationView {
+                SidebarView()
+                    .environmentObject(nodeTree)
+            }
+            .navigationViewStyle(.stack)
+        } else {
+            NavigationView {
+                SidebarView()
+                    .environmentObject(nodeTree)
+                ItemsView(node: Node())
+                    .environmentObject(nodeTree)
+            }
+            .navigationViewStyle(.automatic)
+        }
+    }
+
 }

@@ -76,7 +76,8 @@ struct SettingsForm: View {
     
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
-    
+    @State private var currentSettingsSheet: SettingsSheet = .login
+
     private let email = "support@pbh.dev"
     private let subject = NSLocalizedString("CloudNotes Support Request", comment: "Support email subject")
     private let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
@@ -101,6 +102,7 @@ struct SettingsForm: View {
                     .autocapitalization(.none)
 #endif
                 Button {
+                    currentSettingsSheet = .login
                     settingsSheet = .login
                     isShowingSheet = true
                 } label: {
@@ -162,30 +164,8 @@ struct SettingsForm: View {
             updateFooter()
         })
         .sheet(item: $settingsSheet,
-               onDismiss: {
-            switch settingsSheet {
-            case .login:
-                Task {
-                    do {
-                        let status = try await NewsManager.shared.status()
-                        productName = status.name
-                        productVersion = status.version
-                        newsVersion = try await NewsManager.shared.version()
-                        updateFooter()
-                    } catch {
-                        productName = ""
-                        productVersion = ""
-                        updateFooter()
-                    }
-                }
-            case .add, .mail:
-                break
-            case .none:
-                break
-            }
-            settingsSheet = nil
-            isShowingSheet = false
-        }, content: { sheet in
+               onDismiss: { onDismiss() },
+               content: { sheet in
             switch sheet {
             case .add:
                 NavigationView {
@@ -199,6 +179,30 @@ struct SettingsForm: View {
                 }
             }
         })
+    }
+
+    private func onDismiss() {
+        print($currentSettingsSheet.wrappedValue)
+        switch currentSettingsSheet {
+        case .login:
+            Task {
+                do {
+                    let status = try await NewsManager.shared.status()
+                    productName = status.name
+                    productVersion = status.version
+                    newsVersion = try await NewsManager.shared.version()
+                    updateFooter()
+                } catch {
+                    productName = ""
+                    productVersion = ""
+                    updateFooter()
+                }
+            }
+        case .add, .mail:
+            break
+        }
+        settingsSheet = nil
+        isShowingSheet = false
     }
 
     private func updateFooter() {

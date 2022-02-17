@@ -21,8 +21,8 @@ struct ItemsView: View {
     @State private var fullScreenView = false
 
     var body: some View {
-        print(Self._printChanges())
-        return GeometryReader { geometry in
+//        print(Self._printChanges())
+        GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
             ScrollView {
@@ -31,25 +31,36 @@ struct ItemsView: View {
                         Spacer(minLength: 1.0)
                         ForEach(items.indices, id: \.self) { index in
                             let item = items[index].item
-//                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(items: items, selectedIndex: index))) {
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                NavigationLink(destination: NavigationLazyView(ArticlesPageView(node: node, fullScreenView: .constant(false)))) {
+                                    ItemListItemViev(item: item)
+                                        .tag(index)
+                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
+
+                                        .buttonStyle(.plain)
+                                        .contextMenu {
+                                            ContextMenuContent(item: item)
+                                        }
+                                }
+                            } else {
                                 ItemListItemViev(item: item)
                                     .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
-//                            }
-                            .buttonStyle(.plain)
-                            .onTapGesture {
-                                node.selectedItem = index
-                                fullScreenView = true
-                            }
-                            .contextMenu {
-                                ContextMenuContent(item: item)
-                            }
-                            .fullScreenCover(isPresented: $fullScreenView) {
-                                //
-                            } content: {
-                                NavigationView {
-                                    ArticlesPageView(node: node, fullScreenView: $fullScreenView)
-                                }
+                                    .buttonStyle(.plain)
+                                    .onTapGesture {
+                                        node.selectedItem = index
+                                        fullScreenView = true
+                                    }
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
+                                    }
+                                    .fullScreenCover(isPresented: $fullScreenView) {
+                                        //
+                                    } content: {
+                                        NavigationView {
+                                            ArticlesPageView(node: node, fullScreenView: $fullScreenView)
+                                        }
+                                    }
                             }
                         }
                     }

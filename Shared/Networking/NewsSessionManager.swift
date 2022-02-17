@@ -3,24 +3,13 @@
 //  CloudNews
 //
 //  Created by Peter Hedlund on 10/20/18.
-//  Copyright © 2018 Peter Hedlund. All rights reserved.
+//  Copyright © 2018-2022 Peter Hedlund. All rights reserved.
 //
 
 import Foundation
 
 typealias SyncCompletionBlock = () -> Void
 typealias SyncCompletionBlockNewItems = (_ newItems: [ItemProtocol]) -> Void
-
-//class NewsSessionM: URLSession {
-//
-////    static let shared = NewsSessionManager()
-//
-//    override init() {
-//        let configuration = URLSessionConfiguration.background(withIdentifier: "com.peterandlinda.CloudNews.background")
-//        super.init(configuration: configuration)
-//    }
-//
-//}
 
 struct ProductStatus {
     var name: String
@@ -30,7 +19,7 @@ struct ProductStatus {
 class NewsManager {
 
     static let shared = NewsManager()
-    static let session = URLSession.shared //(configuration: URLSessionConfiguration.background(withIdentifier: "com.peterandlinda.CloudNews.background"))
+    static let session = URLSession.shared
     var syncTimer: Timer?
     
     init() {
@@ -38,6 +27,7 @@ class NewsManager {
     }
     
     func setupSyncTimer() {
+#if os(macOS)
         self.syncTimer?.invalidate()
         self.syncTimer = nil
         let interval = UserDefaults.standard.integer(forKey: "interval")
@@ -55,6 +45,7 @@ class NewsManager {
                 }
             }
         }
+#endif
     }
 
     func status() async throws -> ProductStatus {
