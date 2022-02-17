@@ -60,5 +60,21 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             }
         }
         .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification, object: nil).sink { [weak self] _ in
+            self?.webView.reload()
+        }
+        .store(in: &cancellables)
+
+        Task {
+            do {
+                if let rules = try await ContentBlocker.ruleList() {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.webView.configuration.userContentController.add(rules)
+                    }
+                }
+            } catch {
+                //
+            }
+        }
     }
 }
