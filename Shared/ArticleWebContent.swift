@@ -102,14 +102,14 @@ class ArticleWebContent: ObservableObject {
                             \(author)
                         </p>
                     </div>
-                    <div class="content">
+                    <section>
                         <p>
                             \(summary)
                         </p>
-                    </div>
+                    </section>
                     <div class="footer">
                         <p>
-                            <a class="footerLink" href="\(urlString)"><br />View Full Article</a>
+                            <a class="footerLink" href="\(urlString)"><br />\(urlString)</a>
                         </p>
                     </div>
                 </article>
@@ -275,16 +275,19 @@ class ArticleWebContent: ObservableObject {
 
     private func updateCssVariables() -> String {
         let fontSize: Double = Double(preferences.fontSize) / 14.0
-        return ":root {" +
-        "--bg-color: \(Color.pbh.whiteBackground.hexaRGB!);" +
-        "--text-color: \(Color.pbh.whiteText.hexaRGB!);" +
-        "--font-size: \(fontSize);" +
-        "--body-width-portrait: \(preferences.marginPortrait)vw;" +
-        "--body-width-landscape: \(preferences.marginPortrait)vw;" +
-        "--line-height: \(preferences.lineHeight)em;" +
-        "--link-color: \(Color.pbh.whiteLink.hexaRGB!);" +
-        "--footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);" +
-        "}"
+        return """
+            :root {
+                font: -apple-system-body;
+                --bg-color: \(Color.pbh.whiteBackground.hexaRGB!);
+                --text-color: \(Color.pbh.whiteText.hexaRGB!);
+                --font-size: \(fontSize);
+                --body-width-portrait: \(preferences.marginPortrait)vw;
+                --body-width-landscape: \(preferences.marginPortrait)vw;
+                --line-height: \(preferences.lineHeight)em;
+                --link-color: \(Color.pbh.whiteLink.hexaRGB!);
+                --footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);
+            }
+        """
     }
 
     private func encodeStringTo64(fromString: String) -> String? {
