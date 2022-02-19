@@ -131,7 +131,7 @@ div.titleHeader {
 }
 
 div.articleAuthor {
-    font-family: -apple-system-body;
+    font-family: -apple-system;
     font-size: calc(var(--font-size) * 0.9rem);
     color: DimGray;
     margin-bottom: 10px;
@@ -150,13 +150,13 @@ div.footer {
     border-top-style: groove;
     border-top-color: var(--footer-link);
     border-top-width: 1px;
-    font-family: -apple-system-body;
-    font-size: calc(var(--font-size) * 0.9rem);
+    font-family: -apple-system;
+    font-size: calc(var(--font-size) * 0.75rem);
     text-align: left;
     text-decoration: none;
-    display: block;
+    margin-top: 0;
     width: 100%;
-    line-height: 1.0em;
+    line-height: calc(var(--line-height) * 0.85);
 }
 
 div.container {
@@ -171,9 +171,6 @@ div.articleVideo {
     left: 0;
     bottom: 0;
     right: 0;
-}
-
-a.footerLink {
 }
 
 img {
