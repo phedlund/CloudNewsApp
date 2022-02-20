@@ -132,7 +132,8 @@ div.titleHeader {
 
 div.articleAuthor {
     font-family: -apple-system;
-    font-size: calc(var(--font-size) * 0.9rem);
+    font-size: calc(var(--font-size) * 0.8rem);
+    font-style: italic;
     color: DimGray;
     margin-bottom: 10px;
 }

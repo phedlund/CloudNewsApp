@@ -108,9 +108,15 @@ class ArticleWebContent: ObservableObject {
                         </p>
                     </section>
                     <div class="footer">
-                        <p>
-                            <a class="footerLink" href="\(urlString)"><br />\(urlString)</a>
-                        </p>
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td>
+                                    <div>
+                                        <a class="footerLink" href="\(urlString)"><br />\(urlString)</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </article>
             </body>
