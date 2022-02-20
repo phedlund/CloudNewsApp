@@ -94,7 +94,7 @@ sub {
 pre {
     overflow: auto;
     padding: 5px;
-    background-color: #ebebeb;
+    background-color: #f0f0f0;
     font-size: calc(var(--font-size) * 0.75rem);
     line-height: calc(var(--line-height) * 0.85);
 }
