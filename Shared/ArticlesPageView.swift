@@ -5,15 +5,18 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
+import PartialSheet
 import SwiftUI
 import WebKit
 
 struct ArticlesPageView: View {
+    @EnvironmentObject private var partialSheetManager: PartialSheetManager
     @ObservedObject var node: Node
     @Binding private var fullScreenView: Bool
 
     @State private var selectedIndex: Int = -1
     @State private var isShowingPopover = false
+    @State private var isShowingPartialSheet = false
     @State private var isShowingSharePopover = false
     @State private var currentModel: ArticleModel
     @State private var canGoBack = false
@@ -55,6 +58,7 @@ struct ArticlesPageView: View {
                     .tag(index)
             }
         }
+        .addPartialSheet(style: .defaultStyle())
         .tabViewStyle(.page(indexDisplayMode: .never))
         .navigationTitle(title)
         .background {
@@ -87,10 +91,12 @@ struct ArticlesPageView: View {
                 Spacer(minLength: 10)
             }
             ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    fullScreenView = false
-                } label: {
-                    Image(systemName: "xmark")
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    Button {
+                        fullScreenView = false
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
                 }
             }
             ToolbarItem(placement: .navigationBarLeading) {
@@ -140,7 +146,17 @@ struct ArticlesPageView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    isShowingPopover = true
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        self.partialSheetManager.showPartialSheet({
+                            print("Partial sheet dismissed")
+                        }) {
+                            if let item = currentModel.item {
+                                ArticleSettingsView(item: item)
+                            }
+                        }
+                    } else {
+                        isShowingPopover = true
+                    }
                 } label: {
                     Image(systemName: "textformat.size")
                 }

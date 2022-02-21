@@ -104,6 +104,7 @@
 		D050B31527B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
 		D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
 		D050B31827B0C0C200442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
+		D050B31E27C332D500442584 /* PartialSheet in Frameworks */ = {isa = PBXBuildFile; productRef = D050B31D27C332D500442584 /* PartialSheet */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
 		D064CAEF26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
 		D0698979268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
@@ -265,6 +266,7 @@
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
 				D0AFBC4526B041C500A75C05 /* CustomModalView in Frameworks */,
+				D050B31E27C332D500442584 /* PartialSheet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -454,6 +456,7 @@
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
 				D0AFBC4426B041C500A75C05 /* CustomModalView */,
 				D04A49642701278F003FD659 /* Kingfisher */,
+				D050B31D27C332D500442584 /* PartialSheet */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -511,6 +514,7 @@
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */,
 				D04A49632701278F003FD659 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -975,6 +979,14 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AndreaMiotto/PartialSheet";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jankaltoun/CustomModalView";
@@ -1010,6 +1022,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D04A49632701278F003FD659 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		D050B31D27C332D500442584 /* PartialSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */;
+			productName = PartialSheet;
 		};
 		D0AFBC4426B041C500A75C05 /* CustomModalView */ = {
 			isa = XCSwiftPackageProductDependency;
