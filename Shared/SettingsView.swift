@@ -100,6 +100,7 @@ struct SettingsForm: View {
 #if !os(macOS)
                     .textContentType(.URL)
                     .autocapitalization(.none)
+                    .disableAutocorrection(true)
 #endif
                 Button {
                     currentSettingsSheet = .login
