@@ -56,8 +56,8 @@ class NewsManager {
             let result = try decoder.decode(CloudStatus.self, from: data)
             let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
             return productStatus
-        } catch {
-            throw PBHError.networkError("Unknown login error")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -68,8 +68,8 @@ class NewsManager {
             let decoder = JSONDecoder()
             let result = try decoder.decode(Status.self, from: data)
             return result.version ?? ""
-        } catch {
-            throw PBHError.networkError("Unknown login error")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -118,8 +118,8 @@ class NewsManager {
                     throw PBHError.networkError("Error adding feed")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error adding feed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
     
@@ -146,8 +146,8 @@ class NewsManager {
                     throw PBHError.networkError("Error adding folder")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error adding folder")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -187,8 +187,8 @@ class NewsManager {
                     break
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error marking items read")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -220,8 +220,8 @@ class NewsManager {
                     break
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error marking item starred")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -261,7 +261,7 @@ class NewsManager {
             }
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
-            print(error.localizedDescription)
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
     
@@ -398,8 +398,8 @@ class NewsManager {
                     throw PBHError.networkError("Error moving feed")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error moving feed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -420,8 +420,8 @@ class NewsManager {
                     throw PBHError.networkError("Error renaming feed")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error renaming feed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -440,8 +440,8 @@ class NewsManager {
                     throw PBHError.networkError("Error deleting feed")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error deleting feed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -464,8 +464,8 @@ class NewsManager {
                     throw PBHError.networkError("Error renaming folder")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error renaming folder")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
@@ -484,8 +484,8 @@ class NewsManager {
                     throw PBHError.networkError("Error deleting folder")
                 }
             }
-        } catch {
-            throw PBHError.networkError("Error deleting folder")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 
