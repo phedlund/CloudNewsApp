@@ -18,17 +18,26 @@ class FolderImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (folderData, _ /*folderResponse*/) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
-            let folders: Folders = try getType(from: folderData)
-            if let folderDicts = folders.foldersAsDictionaries() {
-                let request = NSBatchInsertRequest(entityName: CDFolder.entityName, objects: folderDicts)
-                request.resultType = NSBatchInsertRequestResultType.count
-                let result = try importContext.execute(request) as? NSBatchInsertResult
-                print("Folders imported \(result?.result ?? -1)")
-                try importContext.save()
+            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8) ?? "")
+                switch httpResponse.statusCode {
+                case 200:
+                    let folders: Folders = try getType(from: data)
+                    if let folderDicts = folders.foldersAsDictionaries() {
+                        let request = NSBatchInsertRequest(entityName: CDFolder.entityName, objects: folderDicts)
+                        request.resultType = NSBatchInsertRequestResultType.count
+                        let result = try importContext.execute(request) as? NSBatchInsertResult
+                        print("Folders imported \(result?.result ?? -1)")
+                        try importContext.save()
+                    }
+                default:
+                    throw PBHError.networkError("Error getting folders")
+                }
             }
-        } catch {
-            print("Folder Importer failed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 }
@@ -43,17 +52,26 @@ class FeedImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (feedsData, _ /*feedsResponse*/) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
-            let feeds: Feeds = try getType(from: feedsData)
-            if let feedDicts = feeds.feedsAsDictionaries() {
-                let request = NSBatchInsertRequest(entityName: CDFeed.entityName, objects: feedDicts)
-                request.resultType = NSBatchInsertRequestResultType.count
-                let result = try importContext.execute(request) as? NSBatchInsertResult
-                print("Feeds imported \(result?.result ?? -1)")
-                try importContext.save()
+            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8) ?? "")
+                switch httpResponse.statusCode {
+                case 200:
+                    let feeds: Feeds = try getType(from: data)
+                    if let feedDicts = feeds.feedsAsDictionaries() {
+                        let request = NSBatchInsertRequest(entityName: CDFeed.entityName, objects: feedDicts)
+                        request.resultType = NSBatchInsertRequestResultType.count
+                        let result = try importContext.execute(request) as? NSBatchInsertResult
+                        print("Feeds imported \(result?.result ?? -1)")
+                        try importContext.save()
+                    }
+                default:
+                    throw PBHError.networkError("Error getting feeds")
+                }
             }
-        } catch {
-            print("Feed Importer failed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 }
@@ -68,17 +86,26 @@ class ItemImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (updatedItemsData, _ /*feedsResponse*/) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
-            let items: Items = try getType(from: updatedItemsData)
-            if let itemDicts = items.itemsAsDictionaries() {
-                let request = NSBatchInsertRequest(entityName: CDItem.entityName, objects: itemDicts)
-                request.resultType = NSBatchInsertRequestResultType.count
-                let result = try importContext.execute(request) as? NSBatchInsertResult
-                print("Items imported \(result?.result ?? -1)")
-                try importContext.save()
+            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8) ?? "")
+                switch httpResponse.statusCode {
+                case 200:
+                    let items: Items = try getType(from: data)
+                    if let itemDicts = items.itemsAsDictionaries() {
+                        let request = NSBatchInsertRequest(entityName: CDItem.entityName, objects: itemDicts)
+                        request.resultType = NSBatchInsertRequestResultType.count
+                        let result = try importContext.execute(request) as? NSBatchInsertResult
+                        print("Items imported \(result?.result ?? -1)")
+                        try importContext.save()
+                    }
+                default:
+                    throw PBHError.networkError("Error getting items")
+                }
             }
-        } catch {
-            print("Item Importer failed")
+        } catch(let error) {
+            throw PBHError.networkError(error.localizedDescription)
         }
     }
 }

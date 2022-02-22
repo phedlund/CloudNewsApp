@@ -50,11 +50,15 @@ class NewsManager {
 
     func status() async throws -> ProductStatus {
         let router = StatusRouter.status
-        let (data, _ /*response*/) = try await URLSession.shared.data(for: router.urlRequest(), delegate: nil)
-        let decoder = JSONDecoder()
-        let result = try decoder.decode(CloudStatus.self, from: data)
-        let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
-        return productStatus
+        do {
+            let (data, _) = try await URLSession.shared.data(for: router.urlRequest(), delegate: nil)
+            let decoder = JSONDecoder()
+            let result = try decoder.decode(CloudStatus.self, from: data)
+            let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
+            return productStatus
+        } catch {
+            throw PBHError.networkError("Unknown login error")
+        }
     }
 
     func version() async throws -> String {
@@ -148,16 +152,21 @@ class NewsManager {
     }
 
     func markRead(items: [CDItem], unread: Bool) async throws {
+        guard !items.isEmpty else {
+            return
+        }
         do {
-            if items.isEmpty {
-                return
-            }
             if items.count > 1 {
                 try await CDItem.markRead(items: items, unread: unread)
             } else {
                 try await CDItem.markRead(item: items[0], unread: unread)
             }
             let itemIds = items.map( { $0.id } )
+            if unread {
+                CDUnread.update(items: itemIds)
+            } else {
+                CDRead.update(items: itemIds)
+            }
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
             if unread {
@@ -190,12 +199,13 @@ class NewsManager {
                                                         "guidHash": item.guidHash as Any]]]
             var router: Router
             if starred {
+                CDStarred.update(items: [item.id])
                 router = Router.itemsStarred(parameters: parameters)
             } else {
+                CDUnstarred.update(items: [item.id])
                 router = Router.itemsUnstarred(parameters: parameters)
             }
             let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
-            //(for: request, from: body ?? Data(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -210,23 +220,6 @@ class NewsManager {
                     break
                 }
             }
-
-
-    //            NewsSessionManager.shared.request(router).responseData { response in
-    //                switch response.result {
-    //                case .success:
-    //                    if starred {
-    //                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
-    //                    } else {
-    //                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
-    //                    }
-    //                default:
-    //                    break
-    //                }
-    //                completion()
-    //            }
-
-
         } catch {
             throw PBHError.networkError("Error marking item starred")
         }
@@ -260,7 +253,6 @@ class NewsManager {
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(starredRouter.urlRequest())
             try await CDItem.deleteOldItems()
 
-            updateBadge()
             let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()
             Task {
@@ -387,111 +379,8 @@ class NewsManager {
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
-            print(error.localizedDescription)
+            throw PBHError.networkError(error.localizedDescription)
         }
-
-/*
-        //5
-        func folders(completion: @escaping SyncCompletionBlock) {
-//            NewsSessionManager.shared.request(Router.folders).responseDecodable(completionHandler: { (response: DataResponse<Folders>) in
-//                if let folders = response.value?.folders {
-//                    var addedFolders = [FolderSync]()
-//                    var deletedFolders = [FolderSync]()
-//                    let ids = folders.map({ FolderSync.init(id: $0.id, name: $0.name ?? "Untitled") })
-//                    if let knownFolders = CDFolder.all() {
-//                        let knownIds = knownFolders.map({ FolderSync.init(id: $0.id, name: $0.name ?? "Untitled") })
-//                        addedFolders = ids.filter({
-//                            return !knownIds.contains($0)
-//                        })
-//                        deletedFolders = knownIds.filter({
-//                            return !ids.contains($0)
-//                        })
-//                    }
-//                    CDFolder.update(folders: folders)
-//                    NotificationCenter.default.post(name: .folderSync, object: self, userInfo: ["added": addedFolders, "deleted": deletedFolders])
-//                    CDFolder.delete(ids: deletedFolders.map( { $0.id }), in: NewsData.mainThreadContext)
-//                }
-//                completion()
-//            })
-        }
-        
-        //6
-        func feeds(completion: @escaping SyncCompletionBlock) {
-//            NewsSessionManager.shared.request(Router.feeds).responseDecodable(completionHandler: { (response: DataResponse<Feeds>) in
-//                if let newestItemId = response.value?.newestItemId, let starredCount = response.value?.starredCount {
-//                    CDFeeds.update(starredCount: starredCount, newestItemId: newestItemId)
-//                }
-//                if let feeds = response.value?.feeds {
-//                    var addedFeeds = [FeedSync]()
-//                    var deletedFeeds = [FeedSync]()
-//                    let ids = feeds.map({ FeedSync.init(id: $0.id, title: $0.title ?? "Untitled", folderId: $0.folderId) })
-//                    if let knownFeeds = CDFeed.all() {
-//                        let knownIds = knownFeeds.map({ FeedSync.init(id: $0.id, title: $0.title ?? "Untitled", folderId: $0.folderId) })
-//                        addedFeeds = ids.filter({
-//                            return !knownIds.contains($0)
-//                        })
-//                        deletedFeeds = knownIds.filter({
-//                            return !ids.contains($0)
-//                        })
-//                    }
-//                    CDFeed.delete(ids: deletedFeeds.map( { $0.id }), in: NewsData.mainThreadContext)
-//                    if let allItems = CDItem.all() {
-//                        let deletedFeedItems = allItems.filter({
-//                            return deletedFeeds.map( { $0.id } ).contains($0.feedId) &&
-//                                !addedFeeds.map( { $0.id }).contains($0.feedId)
-//                        })
-//                        let deletedFeedItemIds = deletedFeedItems.map({ $0.id })
-//                        CDItem.delete(ids: deletedFeedItemIds, in: NewsData.mainThreadContext)
-//                    }
-//                    CDFeed.update(feeds: feeds)
-//                    NotificationCenter.default.post(name: .feedSync, object: self, userInfo: ["added": addedFeeds, "deleted": deletedFeeds])
-//                }
-//                completion()
-//            })
-        }
-        
-        //7
-        func items(completion: @escaping SyncCompletionBlock) {
-            let updatedParameters: ParameterDict = ["type": 3,
-                                                 "lastModified": CDItem.lastModified(),
-                                                 "id": 0]
-            
-            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-//            NewsSessionManager.shared.request(updatedItemRouter).responseDecodable(completionHandler: { (response: DataResponse<Items>) in
-//                if let items = response.value?.items {
-//                    CDItem.update(items: items, completion: { (newItems) in
-//                        for newItem in newItems {
-//                            let feed = CDFeed.feed(id: newItem.feedId)
-//                            let notification = NSUserNotification()
-//                            notification.identifier = NSUUID().uuidString
-//                            notification.title = "CloudNews"
-//                            notification.subtitle = feed?.title ?? "New article"
-//                            notification.informativeText = newItem.title ?? ""
-//                            notification.soundName = NSUserNotificationDefaultSoundName
-//                            let notificationCenter = NSUserNotificationCenter.default
-//                            notificationCenter.deliver(notification)
-//                        }
-//                    })
-//                }
-//                completion()
-//            })
-        }
-        
-//        localRead {
-//            localStarred {
-//                localUnstarred {
-//                    folders {
-//                        feeds {
-//                            items {
-//                                self.updateBadge()
-//                                completion()
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-        */
     }
 
     func moveFeed(feed: CDFeed, to folder: Int32) async throws {
@@ -501,12 +390,16 @@ class NewsManager {
             if let httpResponse = moveResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
-                case 404:
-                    break // handle error
-                default:
+                case 200:
                     break
+                case 404:
+                    throw PBHError.networkError("The feed does not exist")
+                default:
+                    throw PBHError.networkError("Error moving feed")
                 }
             }
+        } catch {
+            throw PBHError.networkError("Error moving feed")
         }
     }
 
@@ -517,24 +410,18 @@ class NewsManager {
             if let httpResponse = renameResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
-                case 404:
-                    break // handle error
-                default:
+                case 200:
                     break
+                case 404:
+                    throw PBHError.networkError("The feed does not exist")
+                case 405:
+                    throw PBHError.networkError("Please update the News app on the server to enable feed renaming.")
+                default:
+                    throw PBHError.networkError("Error renaming feed")
                 }
-                //                        case 404:
-                //                            message = @"The feed does not exist.";
-                //                            break;
-                //                        case 405:
-                //                            message = @"Please update the News app on the server to enable feed renaming.";
-                //                            break;
-                //                        default:
-                //                            message = [NSString stringWithFormat:@"The server responded '%@' and the error reported was '%@'.", [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], [error localizedDescription]];
-                //                            break;
-
             }
         } catch {
-            //
+            throw PBHError.networkError("Error renaming feed")
         }
     }
 
@@ -545,10 +432,12 @@ class NewsManager {
             if let httpResponse = deleteResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
-                case 404:
-                    break // "The feed does not exist."
-                default:
+                case 200:
                     break
+                case 404:
+                    throw PBHError.networkError("The feed does not exist")
+                default:
+                    throw PBHError.networkError("Error deleting feed")
                 }
             }
         } catch {
@@ -563,29 +452,22 @@ class NewsManager {
             if let httpResponse = renameResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
-                case 404:
-                    break // handle error
-                default:
+                case 200:
                     break
+                case 404:
+                    throw PBHError.networkError("The folder does not exist")
+                case 409:
+                    throw PBHError.networkError("The folder already exists")
+                case 422:
+                    throw PBHError.networkError("The folder name is invalid.")
+                default:
+                    throw PBHError.networkError("Error renaming folder")
                 }
-//                    case 404:
-//                        message = @"The folder does not exist.";
-//                        break;
-//                    case 409:
-//                        message = @"A folder with this name already exists.";
-//                        break;
-//                    case 422:
-//                        message = @"The folder name is invalid";
-//                        break;
-//                    default:
-//                        message = [NSString stringWithFormat:@"The server responded '%@' and the error reported was '%@'.", [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], [error localizedDescription]];
-//                        break;
             }
         } catch {
-            //
+            throw PBHError.networkError("Error renaming folder")
         }
     }
-
 
     func deleteFolder(_ id: Int) async throws {
         let deleteRouter = Router.deleteFolder(id: id)
@@ -594,24 +476,17 @@ class NewsManager {
             if let httpResponse = deleteResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
-                case 404:
-                    break // "The folder does not exist."
-                default:
+                case 200:
                     break
+                case 404:
+                    throw PBHError.networkError("The folder does not exist")
+                default:
+                    throw PBHError.networkError("Error deleting folder")
                 }
             }
         } catch {
             throw PBHError.networkError("Error deleting folder")
         }
-    }
-
-    func updateBadge() {
-//        let unreadCount = CDItem.unreadCount()
-//        if unreadCount > 0 {
-////            App.dockTile.badgeLabel = "\(unreadCount)"
-//        } else {
-////            App.dockTile.badgeLabel = nil
-//        }
     }
 
 }
