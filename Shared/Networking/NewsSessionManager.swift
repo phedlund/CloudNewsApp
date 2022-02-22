@@ -85,7 +85,8 @@ class NewsManager {
                     if let feeds: Feeds = try getType(from: data),
                        let feedArray = feeds.feeds, let newFeed = feedArray.first {
                         let newFeedId = newFeed.id
-                        CDFeed.update(feeds: feedArray)
+                        try await CDFeed.add(feeds: feedArray, using: NewsData.mainThreadContext)
+                        try NewsData.mainThreadContext.save()
                         let parameters: ParameterDict = ["batchSize": 200,
                                                          "offset": 0,
                                                          "type": 0,
@@ -101,8 +102,8 @@ class NewsManager {
                                 if let items: Items = try getType(from: data),
                                    let itemsArray = items.items {
                                     try await CDItem.add(items: itemsArray, using: NewsData.mainThreadContext)
+                                    try NewsData.mainThreadContext.save()
                                 }
-                                break
                             default:
                                 throw PBHError.networkError("Error adding feed")
                             }
@@ -134,7 +135,8 @@ class NewsManager {
                 case 200:
                     if let folders: Folders = try getType(from: data),
                         let folderArray = folders.folders {
-                        CDFolder.update(folders: folderArray)
+                        try await CDFolder.add(folders: folderArray, using: NewsData.mainThreadContext)
+                        try NewsData.mainThreadContext.save()
                     }
                 case 405:
                     throw PBHError.networkError("Method not allowed")

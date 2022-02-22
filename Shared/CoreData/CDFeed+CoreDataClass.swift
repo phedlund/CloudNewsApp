@@ -94,50 +94,6 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
     }
 
-    static func update(feeds: [FeedProtocol]) {
-        NewsData.mainThreadContext.performAndWait {
-            let request: NSFetchRequest<CDFeed> = CDFeed.fetchRequest()
-            do {
-                for feed in feeds {
-                    let predicate = NSPredicate(format: "id == %d", feed.id)
-                    request.predicate = predicate
-                    let records = try NewsData.mainThreadContext.fetch(request)
-                    if let existingRecord = records.first {
-                        existingRecord.added = Int32(feed.added)
-                        existingRecord.faviconLink = feed.faviconLink
-                        existingRecord.folderId = Int32(feed.folderId)
-//                        existingRecord.id = Int32(feed.id)
-                        existingRecord.lastUpdateError = feed.lastUpdateError
-                        existingRecord.link = feed.link
-                        existingRecord.ordering = Int32(feed.ordering)
-                        existingRecord.pinned = feed.pinned
-                        existingRecord.title = feed.title
-                        existingRecord.unreadCount = Int32(feed.unreadCount)
-                        existingRecord.updateErrorCount = Int32(feed.updateErrorCount)
-                        existingRecord.url = feed.url
-                    } else {
-                        let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDFeed.entityName, into: NewsData.mainThreadContext) as! CDFeed
-                        newRecord.added = Int32(feed.added)
-                        newRecord.faviconLink = feed.faviconLink
-                        newRecord.folderId = Int32(feed.folderId) 
-                        newRecord.id = Int32(feed.id)
-                        newRecord.lastUpdateError = feed.lastUpdateError
-                        newRecord.link = feed.link
-                        newRecord.ordering = Int32(feed.ordering)
-                        newRecord.pinned = feed.pinned
-                        newRecord.title = feed.title
-                        newRecord.unreadCount = Int32(feed.unreadCount)
-                        newRecord.updateErrorCount = Int32(feed.updateErrorCount)
-                        newRecord.url = feed.url
-                    }
-                }
-                try NewsData.mainThreadContext.save()
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-    }
-
     static func addFavIcon(feed: CDFeed, iconData: Data) async throws {
         try await NewsData.mainThreadContext.perform {
             do {

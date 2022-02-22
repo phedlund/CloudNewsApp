@@ -56,27 +56,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return dateLabelText
     }
 
-    @objc override public class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
-//        print("Debug: called for:", key)
-
-        switch key {
-        case "dateAuthorFeed" :
-            return Set(["pubDate", "author", "feedId"])
-        case "favIcon" :
-            return Set(["feedId", "unread"])
-        case "starIcon" :
-            return Set(["starred"])
-        case "thumbnail" :
-            return Set(["body"])
-        case "thumbnailURL" :
-            return Set(["body"])
-        case "labelTextColor" :
-            return Set(["unread"])
-        default :
-            return super.keyPathsForValuesAffectingValue(forKey: key)
-        }
-    }
-
     static func unreadCount(nodeType: NodeType) -> Int {
         var result = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
@@ -167,12 +146,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
     static func markRead(items: [CDItem], unread: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
             do {
-//                let request = NSBatchUpdateRequest(entityName: CDItem.entityName)
-//                let itemIds = items.map( { $0.id })
-//                request.predicate = NSPredicate(format: "id IN %@", itemIds)
-//                request.propertiesToUpdate = ["unread": NSNumber(value: unread)]
-//                request.resultType = .updatedObjectsCountResultType
-//                try NewsData.mainThreadContext.executeAndMergeChanges(using: request)
                 for item in items {
                     item.unread = unread
                 }

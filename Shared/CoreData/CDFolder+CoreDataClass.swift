@@ -42,29 +42,6 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
         }
     }
     
-    static func update(folders: [FolderProtocol]) {
-        NewsData.mainThreadContext.performAndWait {
-            let request: NSFetchRequest<CDFolder> = CDFolder.fetchRequest()
-            do {
-                for folder in folders {
-                    let predicate = NSPredicate(format: "id == %d", folder.id)
-                    request.predicate = predicate
-                    let records = try NewsData.mainThreadContext.fetch(request)
-                    if let existingRecord = records.first {
-                        existingRecord.name = folder.name
-                    } else {
-                        let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDFolder.entityName, into: NewsData.mainThreadContext) as! CDFolder
-                        newRecord.id = Int32(folder.id)
-                        newRecord.name = folder.name
-                    }
-                }
-                try NewsData.mainThreadContext.save()
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-    }
-
     static func folder(id: Int32) -> CDFolder? {
         let request: NSFetchRequest<CDFolder> = self.fetchRequest()
         let predicate = NSPredicate(format: "id == %d", id)
