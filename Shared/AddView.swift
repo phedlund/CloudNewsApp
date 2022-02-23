@@ -38,6 +38,7 @@ struct AddView: View {
             } label: {
                 Text("Add")
             }
+            .disabled(input.isEmpty)
         }
         .navigationTitle("Add Feed or Folder")
     }
