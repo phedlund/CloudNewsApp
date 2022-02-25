@@ -117,18 +117,20 @@ class FeedModel: ObservableObject {
             }
         }
 
-        let firstFolderIndex = 2
-        if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
-            nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
-        } else {
-            nodes.append(contentsOf: folderNodes)
-        }
-
-        if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
-           let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
-            nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
-        } else {
-            nodes.append(contentsOf: feedNodes)
+        DispatchQueue.main.async { [weak self] in
+            let firstFolderIndex = 2
+            if let lastFolderIndex = self?.nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+                self?.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
+            } else {
+                self?.nodes.append(contentsOf: folderNodes)
+            }
+            
+            if let firstFeedIndex = self?.nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+               let lastFeedIndex = self?.nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+                self?.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+            } else {
+                self?.nodes.append(contentsOf: feedNodes)
+            }
         }
     }
 
