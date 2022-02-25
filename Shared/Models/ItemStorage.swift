@@ -88,6 +88,8 @@ class ItemStorage: NSObject, ObservableObject {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.updatedObjects = NewsData.mainThreadContext.updatedObjects
+                self.insertedObjects = NewsData.mainThreadContext.insertedObjects
+//                self.deletedObjects = NewsData.mainThreadContext.deletedObjects
                 var localChanges = Set<NodeChange>()
                 if let updatedFolders = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
                     for updatedFolder in updatedFolders {
