@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+let noFolderName = "(No Folder)"
+
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
@@ -15,7 +17,7 @@ struct FeedSettingsView: View {
     @State private var preferWeb = false
 
     @State private var folderNames = [String]()
-    @State private var folderSelection: String = "(No Folder)"
+    @State private var folderSelection = noFolderName
     @State private var currentFolderName = ""
     @State private var pinned = false
 
@@ -29,7 +31,7 @@ struct FeedSettingsView: View {
         if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
             let folders = CDFolder.all() {
             self.feed = theFeed
-            var fNames = ["(No Folder)"]
+            var fNames = [noFolderName]
             let names = folders.compactMap( { $0.name } )
             fNames.append(contentsOf: names)
             self._folderNames = State(initialValue: fNames)
@@ -119,8 +121,10 @@ struct FeedSettingsView: View {
                 }
             }
         }
-        .onChange(of: folderSelection) { _ in
-            onFolderSelection()
+        .onChange(of: folderSelection) { [folderSelection] newFolder in
+            if newFolder != folderSelection {
+                onFolderSelection(newFolder == noFolderName ? "" : newFolder)
+            }
         }
         .onChange(of: preferWeb) { newValue in
             if let feed = self.feed {
@@ -150,19 +154,19 @@ struct FeedSettingsView: View {
         }
     }
 
-    private func onFolderSelection() {
+    private func onFolderSelection(_ newFolderName: String) {
         if let feed = self.feed {
-            if folderSelection != currentFolderName {
-                if let newFolder = CDFolder.folder(name: folderSelection) {
-                    Task {
-                        do {
-                            try await NewsManager.shared.moveFeed(feed: feed, to: newFolder.id)
-                            feed.folderId = newFolder.id
-                            try NewsData.mainThreadContext.save()
-                        } catch {
-                            //
-                        }
-                    }
+            Task {
+                var newFolderId: Int32 = 0
+                if let newFolder = CDFolder.folder(name: newFolderName) {
+                    newFolderId = newFolder.id
+                }
+                do {
+                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
+                    feed.folderId = newFolderId
+                    try NewsData.mainThreadContext.save()
+                } catch {
+                    //
                 }
             }
         }

@@ -66,8 +66,11 @@ class FeedModel: ObservableObject {
 
         changePublisher
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] changes in
                 guard let self = self else { return }
+                if changes.contains(where: { $0.id.hasPrefix("f") }) { // Feed or folder
+                    self.update()
+                }
                 self.allNode.unreadCount = CDItem.unreadCount(nodeType: .all)
                 self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
             }
