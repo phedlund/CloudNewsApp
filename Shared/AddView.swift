@@ -15,30 +15,64 @@ enum AddType: Int {
 struct AddView: View {
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
-    
+    @State private var isAdding = false
+    @State private var footerLabel = ""
+
     var body: some View {
         Form {
-            Picker("Add", selection: $selectedAdd) {
-                Text("Feed").tag(AddType.feed)
-                Text("Folder").tag(AddType.folder)
-            }
-            .pickerStyle(.segmented)
-            AddViewSegment(input: $input, addType: selectedAdd)
-            Button {
-                switch selectedAdd {
-                case .feed:
-                    Task {
-                        try await NewsManager.shared.addFeed(url: input)
-                    }
-                case .folder:
-                    Task {
-                        try await NewsManager.shared.addFolder(name: input)
-                    }
+            Section(footer: Text(footerLabel)) {
+                Picker("Add", selection: $selectedAdd) {
+                    Text("Feed").tag(AddType.feed)
+                    Text("Folder").tag(AddType.folder)
                 }
-            } label: {
-                Text("Add")
+                .pickerStyle(.segmented)
+                AddViewSegment(input: $input, addType: selectedAdd)
+                HStack {
+                    Button {
+                        switch selectedAdd {
+                        case .feed:
+                            Task {
+                                isAdding = true
+                                do {
+                                    try await NewsManager.shared.addFeed(url: input)
+                                    footerLabel = "Feed '\(input)' added"
+                                } catch(let error as PBHError) {
+                                    switch error {
+                                    case .networkError(let message):
+                                        footerLabel = message
+                                    default:
+                                        break
+                                    }
+                                }
+                                isAdding = false
+                            }
+                        case .folder:
+                            Task {
+                                isAdding = true
+                                do {
+                                    try await NewsManager.shared.addFolder(name: input)
+                                    footerLabel = "Folder '\(input)' added"
+                                } catch(let error as PBHError) {
+                                    switch error {
+                                    case .networkError(let message):
+                                        footerLabel = message
+                                    default:
+                                        break
+                                    }
+                                }
+                                isAdding = false
+                            }
+                        }
+                    } label: {
+                        Text("Add")
+                    }
+                    .disabled(input.isEmpty)
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .opacity(isAdding ? 1.0 : 0.0)
+                }
             }
-            .disabled(input.isEmpty)
         }
         .navigationTitle("Add Feed or Folder")
     }

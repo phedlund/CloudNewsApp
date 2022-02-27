@@ -72,7 +72,7 @@ struct SettingsForm: View {
     
     @State var isShowingMailView = false
     @State var isShowingSheet = false
-    @State private var footerLabel = "Hey, I am the footer"
+    @State private var footerLabel = ""
     
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
