@@ -220,7 +220,7 @@ enum Router {
         case .folders, .feeds:
             break
         case .addFeed(let url, let folder):
-            let parameters = ["url": url, "folderId": NSNull()] as [String : Any]
+            let parameters = ["url": url, "folderId": folder == 0 ? NSNull() : folder] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")

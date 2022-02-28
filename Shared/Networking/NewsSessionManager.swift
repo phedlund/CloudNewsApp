@@ -73,8 +73,8 @@ class NewsManager {
         }
     }
 
-    func addFeed(url: String) async throws {
-        let router = Router.addFeed(url: url, folder: 0)
+    func addFeed(url: String, folderId: Int) async throws {
+        let router = Router.addFeed(url: url, folder: folderId)
         do {
             let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {

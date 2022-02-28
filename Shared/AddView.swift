@@ -17,6 +17,9 @@ struct AddView: View {
     @State private var input = ""
     @State private var isAdding = false
     @State private var footerLabel = ""
+    @State private var folderSelection = noFolderName
+    @State private var folderNames = [String]()
+    @State private var folderId = 0
 
     var body: some View {
         Form {
@@ -27,6 +30,14 @@ struct AddView: View {
                 }
                 .pickerStyle(.segmented)
                 AddViewSegment(input: $input, addType: selectedAdd)
+                if selectedAdd == .feed {
+                    Picker("Folder", selection: $folderSelection) {
+                        ForEach(folderNames, id: \.self) {
+                            Text($0)
+                        }
+                        .navigationTitle("Folder")
+                    }
+                }
                 HStack {
                     Button {
                         switch selectedAdd {
@@ -34,7 +45,7 @@ struct AddView: View {
                             Task {
                                 isAdding = true
                                 do {
-                                    try await NewsManager.shared.addFeed(url: input)
+                                    try await NewsManager.shared.addFeed(url: input, folderId: folderId)
                                     footerLabel = "Feed '\(input)' added"
                                 } catch(let error as PBHError) {
                                     switch error {
@@ -75,6 +86,21 @@ struct AddView: View {
             }
         }
         .navigationTitle("Add Feed or Folder")
+        .onAppear {
+            if let folders = CDFolder.all() {
+                var fNames = [noFolderName]
+                let names = folders.compactMap( { $0.name } )
+                fNames.append(contentsOf: names)
+                folderNames = fNames
+            }
+        }
+        .onChange(of: folderSelection) { [folderSelection] newFolder in
+            if newFolder != folderSelection {
+                if let newFolder = CDFolder.folder(name: newFolder) {
+                    folderId = Int(newFolder.id)
+                }
+            }
+        }
     }
 }
 
