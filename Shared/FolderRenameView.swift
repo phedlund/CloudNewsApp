@@ -10,37 +10,48 @@ import SwiftUI
 struct FolderRenameView: View {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-
-    @Binding var showModal: Bool
+    @Binding var selectedFeed: Int
 
     @State private var folder: CDFolder?
     @State private var folderName = ""
+    @State private var footerLabel = ""
 
     var body: some View {
-        VStack {
-            Text("Rename Folder")
-                .font(.headline)
-            Text("Enter the new name of the folder")
-                .font(.subheadline)
-            TextField("Name", text: $folderName)
-                .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-            Spacer()
-            Divider()
-            Button {
-                onSave()
-                dismiss()
-            } label: {
-                Text("Rename")
+        Form {
+            Section {
+                TextField("Name", text: $folderName)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    .listRowSeparator(.hidden)
+                Button {
+                    onSave()
+                    dismiss()
+                } label: {
+                    Text("Rename")
+                }
+                .buttonStyle(.bordered)
+                .disabled(folderName.isEmpty)
+            } header: {
+                Text("Rename Folder")
+            } footer: {
+                Text(footerLabel)
             }
         }
-        .padding()
-        .textFieldStyle(.roundedBorder)
-        .buttonStyle(.bordered)
-        .frame(width: 250, height: 200)
+        .navigationTitle("Folder Name")
         .onAppear {
-            folder = CDFolder.folder(id: Int32(selectedFeed))
-            folderName = folder?.name ?? "Untitled"
+            DispatchQueue.main.async {
+                folder = CDFolder.folder(id: Int32(selectedFeed))
+                folderName = folder?.name ?? "Untitled"
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Done")
+                }
+            }
         }
     }
 
@@ -52,8 +63,13 @@ struct FolderRenameView: View {
                         folder.name = folderName
                         try NewsData.mainThreadContext.save()
                         try await NewsManager.shared.renameFolder(folder: folder, to: folderName)
-                    } catch {
-                        //
+                    } catch(let error as PBHError) {
+                        switch error {
+                        case .networkError(let message):
+                            footerLabel = message
+                        default:
+                            break
+                        }
                     }
                 }
             }
@@ -63,6 +79,6 @@ struct FolderRenameView: View {
 
 struct FolderRenameView_Previews: PreviewProvider {
     static var previews: some View {
-        FolderRenameView(showModal: .constant(true))
+        FolderRenameView(selectedFeed: .constant(0))
     }
 }

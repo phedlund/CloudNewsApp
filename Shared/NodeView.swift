@@ -43,7 +43,8 @@ struct NodeView: View {
             case .folder(let folderId):
                 Button {
                     selectedFeed = Int(folderId)
-                    isShowingFolderRename = true
+                    modalSheet = .folderRename
+                    isShowingSheet = true
                 } label: {
                     Label("Rename...", systemImage: "square.and.pencil")
                 }
@@ -76,9 +77,9 @@ struct NodeView: View {
         .onReceive(node.$title) {
             title = $0
         }
-        .popover(isPresented: $isShowingFolderRename) {
-            FolderRenameView(showModal: $isShowingFolderRename)
-        }
+//        .popover(isPresented: $isShowingFolderRename) {
+//            FolderRenameView(showModal: $isShowingFolderRename)
+//        }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
             isPresented: $isShowingConfirmation,

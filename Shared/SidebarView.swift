@@ -11,7 +11,7 @@ import CustomModalView
 
 enum ModalSheet {
     case login
-    case folders
+    case folderRename
     case settings
     case feedSettings
 }
@@ -51,6 +51,14 @@ struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .accentColor(.pbh.darkIcon)
+        .refreshable {
+            do {
+                try await NewsManager().sync()
+                model.update()
+            } catch {
+                //
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 ProgressView()
@@ -86,15 +94,7 @@ struct SidebarView: View {
             isSyncing = false
         }
         .onChange(of: selectedNode) { newSelection in
-            print(newSelection)
-        }
-        .refreshable {
-            do {
-                try await NewsManager().sync()
-                model.update()
-            } catch {
-                //
-            }
+            print(newSelection ?? "")
         }
         .navigationTitle(Text("Feeds"))
         .sheet(item: $modalSheet, onDismiss: {
@@ -106,9 +106,9 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView(showModal: $isShowingSheet)
                 }
-            case .folders:
+            case .folderRename:
                 NavigationView {
-                    SettingsView(showModal: $isShowingSheet)
+                    FolderRenameView(selectedFeed: $selectedFeed)
                 }
             case .feedSettings:
                 NavigationView {

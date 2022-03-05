@@ -41,13 +41,16 @@ struct SettingsView: View {
         SettingsForm()
             .listStyle(GroupedListStyle())
             .navigationTitle("Settings")
-            .navigationBarItems(trailing:
-                                    Button(action: {
-                showModal = false
-                dismiss()
-            }, label: {
-                Text("Done")
-            }))
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        showModal = false
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
 #endif
     }
 
@@ -101,6 +104,8 @@ struct SettingsForm: View {
                     .textContentType(.URL)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
+                    .listRowSeparator(.hidden)
+                    .textFieldStyle(.roundedBorder)
 #endif
                 Button {
                     currentSettingsSheet = .login
@@ -109,6 +114,7 @@ struct SettingsForm: View {
                 } label: {
                     Text("Log In")
                 }
+                .buttonStyle(.bordered)
                 .disabled(server.isEmpty)
             }
             Section(header: Text("Syncing")) {

@@ -15,10 +15,10 @@ struct FeedSettingsView: View {
     @State private var title = ""
     @State private var folderName: String?
     @State private var preferWeb = false
+    @State private var footerLabel = ""
 
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
-    @State private var currentFolderName = ""
     @State private var pinned = false
 
     private var feed: CDFeed?
@@ -38,7 +38,6 @@ struct FeedSettingsView: View {
             if let folder = CDFolder.folder(id: theFeed.folderId),
                let folderName = folder.name {
                 self._folderSelection = State(initialValue: folderName)
-                self._currentFolderName = State(initialValue: folderName)
             }
             self._title = State(initialValue: theFeed.title ?? "Untitled")
             self._preferWeb = State(initialValue: theFeed.preferWeb)
@@ -55,7 +54,7 @@ struct FeedSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Settings") {
+            Section(header: Text("Settings"), footer: Text(footerLabel)) {
                 HStack(spacing: 15) {
                     Text("Title")
                     TextField("Title", text: $title) { isEditing in
@@ -113,7 +112,7 @@ struct FeedSettingsView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button {
                     dismiss()
                 } label: {
@@ -146,8 +145,13 @@ struct FeedSettingsView: View {
                         try await NewsManager.shared.renameFeed(feed: feed, to: title)
                         feed.title = title
                         try NewsData.mainThreadContext.save()
-                    } catch {
-                        //
+                    } catch(let error as PBHError) {
+                        switch error {
+                        case .networkError(let message):
+                            footerLabel = message
+                        default:
+                            break
+                        }
                     }
                 }
             }
@@ -165,8 +169,13 @@ struct FeedSettingsView: View {
                     try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
                     feed.folderId = newFolderId
                     try NewsData.mainThreadContext.save()
-                } catch {
-                    //
+                } catch(let error as PBHError) {
+                    switch error {
+                    case .networkError(let message):
+                        footerLabel = message
+                    default:
+                        break
+                    }
                 }
             }
         }

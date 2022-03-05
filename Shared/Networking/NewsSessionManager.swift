@@ -8,9 +8,6 @@
 
 import Foundation
 
-typealias SyncCompletionBlock = () -> Void
-typealias SyncCompletionBlockNewItems = (_ newItems: [ItemProtocol]) -> Void
-
 struct ProductStatus {
     var name: String
     var version: String
@@ -51,7 +48,7 @@ class NewsManager {
     func status() async throws -> ProductStatus {
         let router = StatusRouter.status
         do {
-            let (data, _) = try await URLSession.shared.data(for: router.urlRequest(), delegate: nil)
+            let (data, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
             let decoder = JSONDecoder()
             let result = try decoder.decode(CloudStatus.self, from: data)
             let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
