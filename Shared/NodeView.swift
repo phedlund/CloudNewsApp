@@ -68,18 +68,15 @@ struct NodeView: View {
                 }
             }
         }
-        .onReceive(node.$unreadCount) {
-            unreadCount = $0
-            if node.nodeType == .all {
-                appDelegate.updateBadge($0)
+        .onReceive(node.$unreadCount) { [unreadCount] newUnreadCount in
+            self.unreadCount = newUnreadCount
+            if node.nodeType == .all, unreadCount != newUnreadCount {
+                appDelegate.updateBadge(newUnreadCount)
             }
         }
         .onReceive(node.$title) {
             title = $0
         }
-//        .popover(isPresented: $isShowingFolderRename) {
-//            FolderRenameView(showModal: $isShowingFolderRename)
-//        }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
             isPresented: $isShowingConfirmation,
