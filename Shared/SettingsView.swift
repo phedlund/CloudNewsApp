@@ -47,7 +47,10 @@ struct SettingsView: View {
                         showModal = false
                         dismiss()
                     } label: {
-                        Text("Done")
+                        Image(systemName: "xmark")
+                            .font(.title2)
+                            .symbolVariant(.circle.fill)
+                            .foregroundStyle(Color(white: 0.50), .white, Color(white: 0.88))
                     }
                 }
             }
