@@ -24,7 +24,7 @@ struct ItemsView: View {
 //        print(Self._printChanges())
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
-            let cellWidth: CGFloat = min(viewWidth * 0.95, 700.0)
+            let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
             ScrollView {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
