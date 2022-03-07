@@ -16,6 +16,7 @@ struct ArticleView: View, Equatable {
     @ObservedObject var model: ArticleModel
 
     var body: some View {
+//        ArticleDetailView(item: model.item)
         GeometryReader { _ in
             ArticleWebView(webView: model.webView, item: model.item)
                 .navigationBarTitleDisplayMode(.inline)
