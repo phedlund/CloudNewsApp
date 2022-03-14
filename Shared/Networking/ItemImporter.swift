@@ -37,7 +37,7 @@ class FolderImporter {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw error
         }
     }
 }
@@ -71,7 +71,7 @@ class FeedImporter {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw error
         }
     }
 }
@@ -105,7 +105,7 @@ class ItemImporter {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw error
         }
     }
 }

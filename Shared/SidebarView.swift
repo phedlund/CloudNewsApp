@@ -28,6 +28,8 @@ struct SidebarView: View {
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
+    @State private var isShowingError = false
+    @State private var errorMessage = ""
 
     private var publisher = NotificationCenter.default
         .publisher(for: .syncComplete)
@@ -35,6 +37,22 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: $selectedNode) {
+            if isShowingError {
+                HStack {
+                    Text(errorMessage)
+                    Button {
+                        isShowingError = false
+                    } label: {
+                        Text("Dismiss")
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.red.opacity(0.75))
+                .cornerRadius(10.0)
+                .transition(.move(edge: .top))
+            }
             OutlineGroup(model.nodes, children: \.children) { node in
                 if UIDevice.current.userInterfaceIdiom == .phone {
                     NavigationLink(destination: ItemsView(node: node)) {
@@ -52,12 +70,7 @@ struct SidebarView: View {
         .listStyle(.sidebar)
         .accentColor(.pbh.darkIcon)
         .refreshable {
-            do {
-                try await NewsManager().sync()
-                model.update()
-            } catch {
-                //
-            }
+            sync()
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -67,15 +80,7 @@ struct SidebarView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    Task {
-                        do {
-                            isSyncing = true
-                            try await NewsManager().sync()
-                            model.update()
-                        } catch {
-                            isSyncing = false
-                        }
-                    }
+                    sync()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -122,6 +127,26 @@ struct SidebarView: View {
         })
     }
 
+    private func sync() {
+        Task {
+            do {
+                isSyncing = true
+                try await NewsManager().sync()
+                isShowingError = false
+                errorMessage = ""
+                model.update()
+            } catch(let error as PBHError) {
+                switch error {
+                case .networkError(let message):
+                    errorMessage = message
+                default:
+                    errorMessage = error.localizedDescription
+                }
+                isShowingError = true
+                isSyncing = false
+            }
+        }
+    }
 }
 
 struct SidebarView_Previews: PreviewProvider {
