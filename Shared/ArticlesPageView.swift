@@ -11,7 +11,6 @@ import WebKit
 
 struct ArticlesPageView: View {
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
-    @ObservedObject var node: Node
     @Binding private var fullScreenView: Bool
 
     @State private var selectedIndex: Int = -1
@@ -23,6 +22,8 @@ struct ArticlesPageView: View {
     @State private var canGoForward = false
     @State private var isLoading = false
     @State private var title = ""
+
+    private var node: Node
 
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
