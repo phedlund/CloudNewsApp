@@ -79,4 +79,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         }
     }
 
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        Task {
+            do {
+                try await ItemImageFetcher().itemImages()
+            } catch {
+                print("Could not complete image fetch task \(error.localizedDescription)")
+            }
+        }
+    }
+
 }

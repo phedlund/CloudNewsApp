@@ -232,7 +232,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
             do {
                 let currentData = item.imageLink
                 if imageLink == currentData {
-                    print("Same icon data")
+                    print("Same image link")
                 } else {
                     item.imageLink = imageLink
                     try NewsData.mainThreadContext.save()
