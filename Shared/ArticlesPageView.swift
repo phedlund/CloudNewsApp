@@ -96,7 +96,7 @@ struct ArticlesPageView: View {
                     Button {
                         fullScreenView = false
                     } label: {
-                        Image(systemName: "xmark")
+                        Image(systemName: "arrow.backward")
                     }
                 }
             }
