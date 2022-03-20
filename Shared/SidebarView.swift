@@ -113,7 +113,7 @@ struct SidebarView: View {
                 }
             case .folderRename:
                 NavigationView {
-                    FolderRenameView(selectedFeed: $selectedFeed)
+                    FolderRenameView(selectedFeed)
                 }
             case .feedSettings:
                 NavigationView {

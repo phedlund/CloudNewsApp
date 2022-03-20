@@ -10,39 +10,36 @@ import SwiftUI
 struct FolderRenameView: View {
     @Environment(\.dismiss) var dismiss
 
-    @Binding var selectedFeed: Int
-
-    @State private var folder: CDFolder?
     @State private var folderName = ""
-    @State private var footerLabel = ""
+    @State private var footerMessage = ""
+
+    private var folder: CDFolder?
+    private var initialName = ""
+
+    init(_ selectedFeed: Int) {
+        if let theFolder = CDFolder.folder(id: Int32(selectedFeed)) {
+            self.folder = theFolder
+            initialName = theFolder.name ?? "Untitled"
+            self._folderName = State(initialValue: initialName)
+        }
+    }
 
     var body: some View {
         Form {
-            Section {
+            Section(header: Text("Rename Folder"), footer: ErrorLabel(message: $footerMessage)) {
                 TextField("Name", text: $folderName)
                     .textFieldStyle(.roundedBorder)
                     .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     .listRowSeparator(.hidden)
                 Button {
                     onSave()
-                    dismiss()
                 } label: {
                     Text("Rename")
                 }
                 .buttonStyle(.bordered)
                 .disabled(folderName.isEmpty)
-            } header: {
-                Text("Rename Folder")
-            } footer: {
-                Text(footerLabel)
             }
-        }
-        .navigationTitle("Folder Name")
-        .onAppear {
-            DispatchQueue.main.async {
-                folder = CDFolder.folder(id: Int32(selectedFeed))
-                folderName = folder?.name ?? "Untitled"
-            }
+            .navigationTitle("Folder Name")
         }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -60,16 +57,18 @@ struct FolderRenameView: View {
 
     private func onSave() {
         if let folder = folder {
-            if folderName != folder.name {
+            if folderName != initialName {
                 Task {
                     do {
+                        try await NewsManager.shared.renameFolder(folder: folder, to: folderName)
                         folder.name = folderName
                         try NewsData.mainThreadContext.save()
-                        try await NewsManager.shared.renameFolder(folder: folder, to: folderName)
+                        dismiss()
                     } catch(let error as PBHError) {
                         switch error {
                         case .networkError(let message):
-                            footerLabel = message
+                            folderName = initialName
+                            footerMessage = message
                         default:
                             break
                         }
@@ -82,6 +81,6 @@ struct FolderRenameView: View {
 
 struct FolderRenameView_Previews: PreviewProvider {
     static var previews: some View {
-        FolderRenameView(selectedFeed: .constant(0))
+        FolderRenameView(0)
     }
 }

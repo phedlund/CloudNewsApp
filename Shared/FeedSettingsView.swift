@@ -15,7 +15,7 @@ struct FeedSettingsView: View {
     @State private var title = ""
     @State private var folderName: String?
     @State private var preferWeb = false
-    @State private var footerLabel = ""
+    @State private var footerMessage = ""
 
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
@@ -26,6 +26,8 @@ struct FeedSettingsView: View {
     private var lastUpdateError = ""
     private var url = ""
     private var added = ""
+    private var initialTitle = ""
+    private var initialFolderSelection = noFolderName
 
     init(_ selectedFeed: Int) {
         if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
@@ -38,8 +40,10 @@ struct FeedSettingsView: View {
             if let folder = CDFolder.folder(id: theFeed.folderId),
                let folderName = folder.name {
                 self._folderSelection = State(initialValue: folderName)
+                initialFolderSelection = folderName
             }
-            self._title = State(initialValue: theFeed.title ?? "Untitled")
+            initialTitle = theFeed.title ?? "Untitled"
+            self._title = State(initialValue: initialTitle)
             self._preferWeb = State(initialValue: theFeed.preferWeb)
             self._pinned = State(initialValue: theFeed.pinned)
             updateErrorCount = "\(theFeed.updateErrorCount)"
@@ -54,7 +58,7 @@ struct FeedSettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Settings"), footer: Text(footerLabel)) {
+            Section(header: Text("Settings"), footer: ErrorLabel(message: $footerMessage)) {
                 HStack(spacing: 15) {
                     Text("Title")
                     TextField("Title", text: $title) { isEditing in
@@ -151,7 +155,8 @@ struct FeedSettingsView: View {
                     } catch(let error as PBHError) {
                         switch error {
                         case .networkError(let message):
-                            footerLabel = message
+                            title = initialTitle
+                            footerMessage = message
                         default:
                             break
                         }
@@ -175,7 +180,8 @@ struct FeedSettingsView: View {
                 } catch(let error as PBHError) {
                     switch error {
                     case .networkError(let message):
-                        footerLabel = message
+                        folderSelection = initialFolderSelection
+                        footerMessage = message
                     default:
                         break
                     }
