@@ -63,7 +63,6 @@ struct SettingsForm: View {
     @Environment(\.openURL) var openURL
 
     @AppStorage(StorageKeys.server) var server = ""
-    @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn = false
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
     @AppStorage(StorageKeys.syncInBackground) var syncInBackground = false
     @AppStorage(StorageKeys.productName) var productName = ""
@@ -76,10 +75,9 @@ struct SettingsForm: View {
     @AppStorage(StorageKeys.compactView) var compactView = false
     @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
     
-    @State var isShowingMailView = false
-    @State var isShowingSheet = false
-    @State private var footerLabel = ""
-    
+    @State private var isShowingMailView = false
+    @State private var isShowingSheet = false
+    @State private var footerMessage = ""
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
@@ -101,7 +99,7 @@ struct SettingsForm: View {
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, idealHeight: 20, maxHeight: 20, alignment: .leading)
             Color(NSColor.clear)
 #else
-            Section(header: Text("Server"), footer: Text(footerLabel)) {
+            Section(header: Text("Server"), footer: Text(footerMessage)) {
                 TextField("https://example.com/cloud", text: $server)
 #if !os(macOS)
                     .textContentType(.URL)
@@ -219,12 +217,12 @@ struct SettingsForm: View {
         guard !productName.isEmpty,
               !productVersion.isEmpty
         else {
-            footerLabel = NSLocalizedString("Not logged in", comment: "Message about not being logged in")
+            footerMessage = NSLocalizedString("Not logged in", comment: "Message about not being logged in")
             return
         }
         let newsVersionString = newsVersion.isEmpty ? "" : "\(newsVersion) "
         let format = NSLocalizedString("Using News %@on %@ %@.", comment:"Message with News version, product name and version")
-        footerLabel = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
+        footerMessage = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
     }
     
     private func sendMail() {

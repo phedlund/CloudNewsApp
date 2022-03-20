@@ -69,7 +69,7 @@ struct LoginWebView: UIViewRepresentable {
     @Environment(\.dismiss) var dismiss
 
     @AppStorage(StorageKeys.server) var server: String = ""
-    @AppStorage(StorageKeys.isLoggedIn) var isLoggedIn: Bool = false
+    @AppStorage(StorageKeys.productVersion) var productVersion = ""
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
 
@@ -94,6 +94,10 @@ struct LoginWebView: UIViewRepresentable {
 #endif
 
 class LoginWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    private let serverPrefix = "/server:"
+    private let userPrefix = "user:"
+    private let passwordPrefix = "password:"
+
     var parent: LoginWebView
 
     init(_ parent: LoginWebView) {
@@ -105,116 +109,52 @@ class LoginWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         guard let url = webView.url else { return }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        print(components?.scheme ?? "")
-        print(components?.path ?? "")
-        print(components?.fragment ?? "")
-        print(components?.user ?? "")
         if components?.scheme == "nc", let path = components?.path {
             let pathItems = path.components(separatedBy: "&")
             print(pathItems)
-            if let serverItem = pathItems.first(where: { $0.hasPrefix("/server:") }) {
-                parent.server = String(serverItem.dropFirst(8))
-            }
-            if let userItem = pathItems.first(where: { $0.hasPrefix("user:") }) {
-                parent.username = String(userItem.dropFirst(5))
-            }
-            if let passwordItem = pathItems.first(where: { $0.hasPrefix("password:") }) {
-                parent.password = String(passwordItem.dropFirst(9))
-            }
-            if !parent.server.isEmpty, !parent.username.isEmpty, !parent.password.isEmpty {
-                parent.isLoggedIn = true
+            if let serverItem = pathItems.first(where: { $0.hasPrefix(serverPrefix) }),
+               let userItem = pathItems.first(where: { $0.hasPrefix(userPrefix) }),
+               let passwordItem = pathItems.first(where: { $0.hasPrefix(passwordPrefix) }) {
+                parent.server = String(serverItem.dropFirst(serverPrefix.count))
+                parent.username = String(userItem.dropFirst(userPrefix.count))
+                parent.password = String(passwordItem.dropFirst(passwordPrefix.count))
+            } else {
+                parent.productVersion = ""
             }
             parent.dismiss()
         }
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-
+        print("didCommit")
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-//        parent.server = ""
-//        parent.username = ""
-//        parent.password = ""
-//        parent.isLoggedIn = false
-
-//        var errorMessage = error.localizedDescription
-//
-//        for (key, value) in (error as NSError).userInfo {
-//            let message = "\(key) \(value)\n"
-//            errorMessage = errorMessage + message
-//        }
-//
-//        let alertController = UIAlertController(title: NSLocalizedString("_error_", comment: ""), message: errorMessage, preferredStyle: .alert)
-//
-//        alertController.addAction(UIAlertAction(title: NSLocalizedString("_ok_", comment: ""), style: .default, handler: { action in }))
-//
-//        self.present(alertController, animated: true)
+        if let urlError = error as? URLError {
+            webView.loadHTMLString(urlError.localizedDescription, baseURL: urlError.failingURL)
+        } else {
+            webView.loadHTMLString(error.localizedDescription, baseURL: URL(string: "data:text/html"))
+        }
     }
 
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         if let serverTrust = challenge.protectionSpace.serverTrust {
             completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: serverTrust))
         } else {
-            completionHandler(URLSession.AuthChallengeDisposition.useCredential, nil);
+            completionHandler(URLSession.AuthChallengeDisposition.useCredential, nil)
         }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-
         decisionHandler(.allow)
-
-        /* TEST NOT GOOD DON'T WORKS
-
-         if let data = navigationAction.request.httpBody {
-             let str = String(decoding: data, as: UTF8.self)
-             print(str)
-         }
-
-         guard let url = navigationAction.request.url else {
-            decisionHandler(.allow)
-            return
-        }
-
-        if String(describing: url).hasPrefix(NCBrandOptions.shared.webLoginAutenticationProtocol) {
-            decisionHandler(.allow)
-            return
-        } else if navigationAction.request.httpMethod != "GET" || navigationAction.request.value(forHTTPHeaderField: "OCS-APIRequest") != nil {
-            decisionHandler(.allow)
-            return
-        }
-
-        decisionHandler(.cancel)
-
-        let language = NSLocale.preferredLanguages[0] as String
-        var request = URLRequest(url: url)
-
-        request.setValue(CCUtility.getUserAgent(), forHTTPHeaderField: "User-Agent")
-        request.addValue("true", forHTTPHeaderField: "OCS-APIRequest")
-        request.addValue(language, forHTTPHeaderField: "Accept-Language")
-
-        webView.load(request)
-        */
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        print("didStartProvisionalNavigation");
+        print("didStartProvisionalNavigation")
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-//        activityIndicator.stopAnimating()
-//        print("didFinishProvisionalNavigation");
-//
-//        if loginFlowV2Available {
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//                NCCommunication.shared.getLoginFlowV2Poll(token: self.loginFlowV2Token, endpoint: self.loginFlowV2Endpoint) { (server, loginName, appPassword, errorCode, errorDescription) in
-//                    if errorCode == 0 && server != nil && loginName != nil && appPassword != nil {
-//                        self.createAccount(server: server!, username: loginName!, password: appPassword!)
-//                    }
-//                }
-//            }
-//        }
+        print("didFinish")
     }
-
 
 }
