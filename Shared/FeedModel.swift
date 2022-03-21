@@ -95,7 +95,7 @@ class FeedModel: ObservableObject {
 
     func selectionBindingForId(id: String) -> Binding<Bool> {
         Binding<Bool> { () -> Bool in
-            print("Selected node is \(self.selectedNode) comparing to \(id)")
+            print("Selected node is \(self.selectedNode ?? "") comparing to \(id)")
             return self.selectedNode == id
         } set: { (newValue) in
             if newValue {
