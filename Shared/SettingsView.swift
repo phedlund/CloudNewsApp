@@ -78,6 +78,7 @@ struct SettingsForm: View {
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
     @State private var footerMessage = ""
+    @State private var footerSuccess = true
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
@@ -99,7 +100,7 @@ struct SettingsForm: View {
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, idealHeight: 20, maxHeight: 20, alignment: .leading)
             Color(NSColor.clear)
 #else
-            Section(header: Text("Server"), footer: Text(footerMessage)) {
+            Section(header: Text("Server"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
                 TextField("https://example.com/cloud", text: $server)
 #if !os(macOS)
                     .textContentType(.URL)
@@ -155,8 +156,10 @@ struct SettingsForm: View {
                     Text("12 months").tag(KeepDuration.twelve)
                         .navigationTitle("Duration")
                 }
-                NavigationLink("Add Feed or Folder...") {
+                NavigationLink {
                     AddView()
+                } label: {
+                    Text("Add Feed or Folder...")
                 }
             }
             Section(header: Text("Support")) {
@@ -218,11 +221,13 @@ struct SettingsForm: View {
               !productVersion.isEmpty
         else {
             footerMessage = NSLocalizedString("Not logged in", comment: "Message about not being logged in")
+            footerSuccess = false
             return
         }
         let newsVersionString = newsVersion.isEmpty ? "" : "\(newsVersion) "
         let format = NSLocalizedString("Using News %@on %@ %@.", comment:"Message with News version, product name and version")
         footerMessage = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
+        footerSuccess = true
     }
     
     private func sendMail() {

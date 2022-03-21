@@ -13,17 +13,19 @@ enum AddType: Int {
 }
 
 struct AddView: View {
+    @Environment(\.dismiss) var dismiss
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
     @State private var isAdding = false
-    @State private var footerLabel = ""
+    @State private var footerMessage = ""
+    @State private var footerSuccess = true
     @State private var folderSelection = noFolderName
     @State private var folderNames = [String]()
     @State private var folderId = 0
 
     var body: some View {
         Form {
-            Section(footer: Text(footerLabel)) {
+            Section(footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
                 Picker("Add", selection: $selectedAdd) {
                     Text("Feed").tag(AddType.feed)
                     Text("Folder").tag(AddType.folder)
@@ -37,6 +39,7 @@ struct AddView: View {
                         }
                         .navigationTitle("Folder")
                     }
+                    .disabled(input.isEmpty)
                 }
                 HStack {
                     Button {
@@ -46,11 +49,13 @@ struct AddView: View {
                                 isAdding = true
                                 do {
                                     try await NewsManager.shared.addFeed(url: input, folderId: folderId)
-                                    footerLabel = "Feed '\(input)' added"
+                                    footerMessage = "Feed '\(input)' added"
+                                    footerSuccess = true
                                 } catch(let error as PBHError) {
                                     switch error {
                                     case .networkError(let message):
-                                        footerLabel = message
+                                        footerMessage = message
+                                        footerSuccess = false
                                     default:
                                         break
                                     }
@@ -62,11 +67,13 @@ struct AddView: View {
                                 isAdding = true
                                 do {
                                     try await NewsManager.shared.addFolder(name: input)
-                                    footerLabel = "Folder '\(input)' added"
+                                    footerMessage = "Folder '\(input)' added"
+                                    footerSuccess = true
                                 } catch(let error as PBHError) {
                                     switch error {
                                     case .networkError(let message):
-                                        footerLabel = message
+                                        footerMessage = message
+                                        footerSuccess = false
                                     default:
                                         break
                                     }
@@ -77,6 +84,7 @@ struct AddView: View {
                     } label: {
                         Text("Add")
                     }
+                    .buttonStyle(.bordered)
                     .disabled(input.isEmpty)
                     Spacer()
                     ProgressView()
@@ -84,8 +92,8 @@ struct AddView: View {
                         .opacity(isAdding ? 1.0 : 0.0)
                 }
             }
+            .navigationTitle("Add Feed or Folder")
         }
-        .navigationTitle("Add Feed or Folder")
         .onAppear {
             if let folders = CDFolder.all() {
                 var fNames = [noFolderName]
@@ -123,9 +131,13 @@ struct AddViewSegment: View {
                 .disableAutocorrection(true)
                 .textContentType(.URL)
                 .textFieldStyle(.roundedBorder)
+                .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                .listRowSeparator(.hidden)
         case .folder:
             TextField("", text: $input, prompt: Text("Folder Name"))
                 .textFieldStyle(.roundedBorder)
+                .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                .listRowSeparator(.hidden)
         }
     }
 }

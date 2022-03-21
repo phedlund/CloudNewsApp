@@ -16,6 +16,7 @@ struct FeedSettingsView: View {
     @State private var folderName: String?
     @State private var preferWeb = false
     @State private var footerMessage = ""
+    @State private var footerSuccess = true
 
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
@@ -58,7 +59,7 @@ struct FeedSettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Settings"), footer: ErrorLabel(message: $footerMessage)) {
+            Section(header: Text("Settings"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
                 HStack(spacing: 15) {
                     Text("Title")
                     TextField("Title", text: $title) { isEditing in
@@ -157,6 +158,7 @@ struct FeedSettingsView: View {
                         case .networkError(let message):
                             title = initialTitle
                             footerMessage = message
+                            footerSuccess = false
                         default:
                             break
                         }
@@ -182,6 +184,7 @@ struct FeedSettingsView: View {
                     case .networkError(let message):
                         folderSelection = initialFolderSelection
                         footerMessage = message
+                        footerSuccess = false
                     default:
                         break
                     }

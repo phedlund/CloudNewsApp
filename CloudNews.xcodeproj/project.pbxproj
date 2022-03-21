@@ -125,8 +125,8 @@
 		D081F85626CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D08C5F8A272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
 		D08C5F8B272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
-		D0A1005927E6B963005D7D70 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* ErrorLabel.swift */; };
-		D0A1005A27E6B963005D7D70 /* ErrorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* ErrorLabel.swift */; };
+		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
+		D0A1005A27E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
 		D0AFBC4526B041C500A75C05 /* CustomModalView in Frameworks */ = {isa = PBXBuildFile; productRef = D0AFBC4426B041C500A75C05 /* CustomModalView */; };
 		D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */; };
 		D0B0B2F2267C2B0500A997DB /* StorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */; };
@@ -240,7 +240,7 @@
 		D081F85126CB483E00511B60 /* SafariActivity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SafariActivity.swift; sourceTree = "<group>"; };
 		D081F85426CB489300511B60 /* SharingProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharingProvider.swift; sourceTree = "<group>"; };
 		D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
-		D0A1005827E6B963005D7D70 /* ErrorLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLabel.swift; sourceTree = "<group>"; };
+		D0A1005827E6B963005D7D70 /* FooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterLabel.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageKeys.swift; sourceTree = "<group>"; };
 		D0B0B2F5267ED1C600A997DB /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		D0B0B2F8267ED1D900A997DB /* ItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsView.swift; sourceTree = "<group>"; };
@@ -321,7 +321,7 @@
 				D0B0B2F5267ED1C600A997DB /* SidebarView.swift */,
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
 				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
-				D0A1005827E6B963005D7D70 /* ErrorLabel.swift */,
+				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D0B0B2F8267ED1D900A997DB /* ItemsView.swift */,
@@ -624,7 +624,7 @@
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D02F4517265C8CB900A3505B /* Feeds.swift in Sources */,
-				D0A1005927E6B963005D7D70 /* ErrorLabel.swift in Sources */,
+				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */,
 				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
@@ -685,7 +685,7 @@
 				D04A49732702AE62003FD659 /* FavIconView.swift in Sources */,
 				D02F452C265C8CEC00A3505B /* NewsData.swift in Sources */,
 				D0FEBD70268D529600AC0618 /* ArticleSettingsView.swift in Sources */,
-				D0A1005A27E6B963005D7D70 /* ErrorLabel.swift in Sources */,
+				D0A1005A27E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D02F4516265C8CB600A3505B /* User.swift in Sources */,
 				D02F4530265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
 				D0C77C4427D4509800086A96 /* ArticleDetailView.swift in Sources */,

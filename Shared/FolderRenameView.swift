@@ -12,6 +12,7 @@ struct FolderRenameView: View {
 
     @State private var folderName = ""
     @State private var footerMessage = ""
+    @State private var footerSuccess = true
 
     private var folder: CDFolder?
     private var initialName = ""
@@ -26,7 +27,7 @@ struct FolderRenameView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Rename Folder"), footer: ErrorLabel(message: $footerMessage)) {
+            Section(header: Text("Rename Folder"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
                 TextField("Name", text: $folderName)
                     .textFieldStyle(.roundedBorder)
                     .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
@@ -69,6 +70,7 @@ struct FolderRenameView: View {
                         case .networkError(let message):
                             folderName = initialName
                             footerMessage = message
+                            footerSuccess = false
                         default:
                             break
                         }
