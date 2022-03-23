@@ -10,7 +10,8 @@ import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @StateObject var settings = Preferences()
     let sheetManager: PartialSheetManager = PartialSheetManager()
 

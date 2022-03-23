@@ -6,12 +6,42 @@
 //
 
 import BackgroundTasks
+import Combine
 import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
 
     let appRefreshTaskId = "dev.pbh.cloudnews.sync"
     let appImageFetchTaskId = "dev.pbh.cloudnews.imagefetch"
+
+    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
+    private let didBecomActivePublisher = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification, object: nil).eraseToAnyPublisher()
+
+    private var cancellables = Set<AnyCancellable>()
+
+    override init() {
+        super.init()
+        
+        syncPublisher
+            .sink { [weak self] _ in
+                let unreadCount = CDItem.unreadCount(nodeType: .all)
+                self?.updateBadge(unreadCount)
+            }
+            .store(in: &cancellables)
+
+        didBecomActivePublisher
+            .sink { _ in
+                Task {
+                    do {
+                        try await ItemImageFetcher().itemImages()
+                    } catch {
+                        print("Could not complete image fetch task \(error.localizedDescription)")
+                    }
+                }
+            }
+            .store(in: &cancellables)
+
+    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
 
@@ -50,7 +80,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
 
     func updateBadge(_ badgeValue: Int) {
         print("Badge updated")
-        UIApplication.shared.applicationIconBadgeNumber = badgeValue
+        DispatchQueue.main.async {
+            UIApplication.shared.applicationIconBadgeNumber = badgeValue
+        }
     }
 
     func scheduleAppRefresh() {
@@ -76,16 +108,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             print("Submit called")
         } catch {
             print("Could not schedule image fetch task \(error.localizedDescription)")
-        }
-    }
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        Task {
-            do {
-                try await ItemImageFetcher().itemImages()
-            } catch {
-                print("Could not complete image fetch task \(error.localizedDescription)")
-            }
         }
     }
 

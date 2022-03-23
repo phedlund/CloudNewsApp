@@ -27,17 +27,19 @@ actor ItemImageFetcher {
                 do {
                     let html = try String(contentsOf: url)
                     let doc: Document = try SwiftSoup.parse(html)
-                    let meta: Element? = try doc.head()?.select("meta[property=og:image]").first()
-                    if let ogImage = try meta?.attr("content"), let ogUrl = URL(string: ogImage) {
+                    if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                        let ogImage = try meta.attr("content")
+                        let ogUrl = URL(string: ogImage)
                         return ogUrl
+                    } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                        let twImage = try meta.attr("content")
+                        let twUrl = URL(string: twImage)
+                        return twUrl
                     } else {
-                        let twMeta: Element? = try doc.head()?.select("meta[property=twitter:image]").first()
-                        if let twImage = try twMeta?.attr("content"), let twUrl = URL(string: twImage) {
-                            return twUrl
-                        }
+                        return nil
                     }
-                } catch {
-                    print("error")
+                } catch(let error) {
+                    print(error.localizedDescription)
                 }
             }
             return nil
@@ -62,8 +64,8 @@ actor ItemImageFetcher {
                         }
                         if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
                             itemImageUrl = imgUrl
-                        } else {
-                            itemImageUrl = stepTwo(item)
+                        } else if let stepTwoUrl = stepTwo(item) {
+                            itemImageUrl = stepTwoUrl
                         }
                     } catch Exception.Error(_, let message) {
                         print(message)
@@ -76,6 +78,8 @@ actor ItemImageFetcher {
 
                 if let imageUrl = itemImageUrl {
                     itemUrlsToRetrieve.append(ItemURLContainer(item: item, url: imageUrl))
+                } else {
+                    try await CDItem.addImageLink(item: item, imageLink: "data:null")
                 }
             }
             await retrieve(itemUrlsToRetrieve)
@@ -104,7 +108,23 @@ extension ItemImageFetcher {
                 do {
                     try await CDItem.addImageLink(item: itemUrlContainer.item, imageLink: itemUrlContainer.url.absoluteString)
                 } catch { }
-            case .failure( _):
+            case .failure(let error as KingfisherError):
+                switch error {
+                case .processorError(reason: let reason):
+                    print(reason)
+                    switch reason {
+                    case .processingFailed(processor: let processor, item: _):
+                        if processor.identifier == SizeProcessor().identifier {
+                            print("size failure")
+                            do {
+                                try await CDItem.addImageLink(item: itemUrlContainer.item, imageLink: "data:null")
+                            } catch { }
+                        }
+                    }
+                default:
+                    break
+                }
+            case .failure(_):
                 break
             }
         }
