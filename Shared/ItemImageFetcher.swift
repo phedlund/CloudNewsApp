@@ -56,21 +56,16 @@ actor ItemImageFetcher {
                         let doc: Document = try SwiftSoup.parse(summary)
                         let srcs: Elements = try doc.select("img[src]")
                         let images = try srcs.array().map({ try $0.attr("src") })
-                        let filteredImages = images.filter { src in
-                            if !validSchemas.contains(String(src.prefix(4))) {
-                                return false
-                            }
-                            return true
-                        }
+                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
                         if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
                             itemImageUrl = imgUrl
                         } else if let stepTwoUrl = stepTwo(item) {
                             itemImageUrl = stepTwoUrl
                         }
-                    } catch Exception.Error(_, let message) {
+                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
                         print(message)
-                    } catch {
-                        print("error")
+                    } catch(let error) {
+                        print(error.localizedDescription)
                     }
                 } else {
                     itemImageUrl = stepTwo(item)

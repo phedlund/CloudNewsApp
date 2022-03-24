@@ -54,12 +54,10 @@ class FeedModel: ObservableObject {
         nodes.append(starNode)
 
         feedPublisher.sink { feeds in
-            print("Updating Feeds")
             self.feeds = feeds
         }
         .store(in: &cancellables)
         folderPublisher.sink { folders in
-            print("Updating Folders")
             self.folders = folders
         }
         .store(in: &cancellables)
@@ -95,8 +93,7 @@ class FeedModel: ObservableObject {
 
     func selectionBindingForId(id: String) -> Binding<Bool> {
         Binding<Bool> { () -> Bool in
-            print("Selected node is \(self.selectedNode ?? "") comparing to \(id)")
-            return self.selectedNode == id
+            self.selectedNode == id
         } set: { (newValue) in
             if newValue {
                 self.selectedNode = id

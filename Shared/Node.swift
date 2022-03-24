@@ -49,7 +49,6 @@ final class Node: Identifiable, ObservableObject {
         itemPublisher
             .receive(on: DispatchQueue.main)
             .sink { items in
-                print("Updating \(self.nodeType) with \(items.count) items")
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
                 switch nodeType {
                 case .all:
