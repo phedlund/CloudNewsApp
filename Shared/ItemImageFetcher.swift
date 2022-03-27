@@ -11,7 +11,7 @@ import Kingfisher
 import SwiftSoup
 import SwiftUI
 
-actor ItemImageFetcher {
+class ItemImageFetcher {
 
     private struct ItemURLContainer {
         let item: CDItem
@@ -20,30 +20,43 @@ actor ItemImageFetcher {
 
     private let validSchemas = ["http", "https", "file"]
 
-    func itemImages() async throws {
-
-        func stepTwo(_ item: CDItem) -> URL? {
-            if let urlString = item.url, let url = URL(string: urlString) {
+    func itemURL(_ item: CDItem) {
+        Task(priority: .userInitiated) {
+            if let imageLink = item.imageLink, !imageLink.isEmpty {
+                return
+            }
+            var itemImageUrl: String?
+            if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
+                itemImageUrl = imgUrl.absoluteString
+            } else if let summary = item.body {
                 do {
-                    let html = try String(contentsOf: url)
-                    let doc: Document = try SwiftSoup.parse(html)
-                    if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                        let ogImage = try meta.attr("content")
-                        let ogUrl = URL(string: ogImage)
-                        return ogUrl
-                    } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                        let twImage = try meta.attr("content")
-                        let twUrl = URL(string: twImage)
-                        return twUrl
-                    } else {
-                        return nil
+                    let doc: Document = try SwiftSoup.parse(summary)
+                    let srcs: Elements = try doc.select("img[src]")
+                    let images = try srcs.array().map({ try $0.attr("src") })
+                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                        itemImageUrl = imgUrl.absoluteString
+                    } else if let stepTwoUrl = stepTwo(item) {
+                        itemImageUrl = stepTwoUrl.absoluteString
                     }
+                } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                    print(message)
                 } catch(let error) {
                     print(error.localizedDescription)
                 }
+            } else {
+                itemImageUrl = stepTwo(item)?.absoluteString
             }
-            return nil
+
+            if let imageUrlString = itemImageUrl, let imageUrl = URL(string: imageUrlString) {
+                await retrieve([ItemURLContainer(item: item, url: imageUrl)])
+            } else {
+                try await CDItem.addImageLink(item: item, imageLink: "data:null")
+            }
         }
+    }
+
+    func itemImages() async throws {
 
         if let items = CDItem.itemsWithoutImageLink() {
             var itemUrlsToRetrieve = [ItemURLContainer]()
@@ -80,7 +93,30 @@ actor ItemImageFetcher {
             await retrieve(itemUrlsToRetrieve)
         }
     }
-    
+
+    private func stepTwo(_ item: CDItem) -> URL? {
+        if let urlString = item.url, let url = URL(string: urlString) {
+            do {
+                let html = try String(contentsOf: url)
+                let doc: Document = try SwiftSoup.parse(html)
+                if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                    let ogImage = try meta.attr("content")
+                    let ogUrl = URL(string: ogImage)
+                    return ogUrl
+                } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                    let twImage = try meta.attr("content")
+                    let twUrl = URL(string: twImage)
+                    return twUrl
+                } else {
+                    return nil
+                }
+            } catch(let error) {
+                print(error.localizedDescription)
+            }
+        }
+        return nil
+    }
+
 }
 
 extension ItemImageFetcher {

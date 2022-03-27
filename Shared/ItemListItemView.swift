@@ -59,6 +59,9 @@ struct ItemListItemViev: View {
         .background(Color(.white) // any non-transparent background
                         .cornerRadius(4)
                         .shadow(color: Color(white: 0.4, opacity: 0.35), radius: 2, x: 0, y: 2))
+        .onAppear() {
+            ItemImageFetcher().itemURL(item)
+        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 85.0 : 160.0
             thumbnailWidth = newCompactView ? 66.0 : horizontalSizeClass == .compact ? 66.0 : 145.0
