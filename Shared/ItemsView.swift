@@ -36,11 +36,11 @@ struct ItemsView: View {
                                     ItemListItemViev(item: item)
                                         .tag(index)
                                         .frame(width: cellWidth, height: cellHeight, alignment: .center)
-
                                         .buttonStyle(.plain)
-                                        .contextMenu {
-                                            ContextMenuContent(item: item)
-                                        }
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu {
+                                    ContextMenuContent(item: item)
                                 }
                             } else {
                                 ItemListItemViev(item: item)
