@@ -21,9 +21,12 @@ struct ItemListItemViev: View {
 
     @ViewBuilder
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             HStack(alignment: .top, spacing: 10) {
                     ItemImageView(imageLink: item.imageLink, unread: item.unread, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
+                    .alignmentGuide(.top) { d in
+                        (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
+                    }
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
                             TitleView(title: item.title ?? "Untitled", unread: item.unread)
@@ -32,21 +35,21 @@ struct ItemListItemViev: View {
                                 EmptyView()
                             } else {
                                 BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
-                                Spacer()
                             }
-
+                            Spacer()
                         }
-                        .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                        .padding(.zero)
                         Spacer()
                     }
-                    .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
+                    .padding([.top], 6)
+                    .padding([.leading], settings.compactView || horizontalSizeClass == .compact ? 0 : 6)
                     ItemStarredView(starred: item.starred, unread: item.unread)
             }
             if horizontalSizeClass == .compact && !settings.compactView  {
                 HStack {
                     VStack {
                         BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
-                            .padding([.leading], 8)
+                            .padding([.leading], 12)
                         Spacer()
                     }
                     Spacer(minLength: 26) // 16 (star view width) + 10 (HStack spacing above)
@@ -58,6 +61,7 @@ struct ItemListItemViev: View {
         .padding([.trailing], 10)
         .background(Color(.white) // any non-transparent background
                         .cornerRadius(4)
+                        .frame(height: cellHeight)
                         .shadow(color: Color(white: 0.4, opacity: 0.35), radius: 2, x: 0, y: 2))
         .onAppear() {
             ItemImageFetcher().itemURL(item)
