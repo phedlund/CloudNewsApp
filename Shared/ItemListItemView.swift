@@ -13,6 +13,7 @@ import Kingfisher
 struct ItemListItemViev: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var settings: Preferences
     @ObservedObject var item: CDItem
     @State private var cellHeight: CGFloat = 160.0
@@ -59,10 +60,10 @@ struct ItemListItemViev: View {
             }
         }
         .padding([.trailing], 10)
-        .background(Color(.white) // any non-transparent background
+        .background(Color.pbh.whiteCellBackground
                         .cornerRadius(4)
                         .frame(height: cellHeight)
-                        .shadow(color: Color(white: 0.4, opacity: 0.35), radius: 2, x: 0, y: 2))
+                        .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
         .onAppear() {
             ItemImageFetcher().itemURL(item)
         }
