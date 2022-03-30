@@ -9,23 +9,23 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @AppStorage(StorageKeys.isloggedIn) private var isLoggedIn = false
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var appDelegate: AppDelegate
+    @KeychainStorage(StorageKeys.username) var username: String = ""
+    @KeychainStorage(StorageKeys.password) var password: String = ""
+
     @StateObject private var nodeTree = FeedModel()
 
     @State private var isShowingLogin = false
 
+    private var isNotLoggedIn: Bool {
+        return username.isEmpty || password.isEmpty
+    }
+
     var body: some View {
-//        NavigationView {
-//            SidebarView()
-//                .environmentObject(nodeTree)
-//            ItemsView(node: Node())
-//                .environmentObject(nodeTree)
-//        }
         NodesView()
         .onAppear {
-            isShowingLogin = !isLoggedIn
+            isShowingLogin = isNotLoggedIn
         }
         .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
             NavigationView {
