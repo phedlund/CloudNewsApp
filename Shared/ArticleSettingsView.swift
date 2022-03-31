@@ -25,7 +25,6 @@ struct ArticleSettingsView: View {
         HStack(alignment: .center) {
             Spacer()
             VStack(alignment: .center) {
-//                Spacer()
                 HStack {
                     let isUnRead = item.unread
                     let isStarred = item.starred
@@ -157,6 +156,7 @@ struct ArticleSettingsView: View {
                 .padding(EdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15))
                 .fixedSize()
             }
+            .frame(width: 300)
             Spacer()
         }
     }
