@@ -102,11 +102,11 @@ class ArticleWebContent: ObservableObject {
                             \(author)
                         </p>
                     </div>
-                    <section>
+                    <div class="articleBody">
                         <p>
                             \(summary)
                         </p>
-                    </section>
+                    </div>
                     <div class="footer">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
