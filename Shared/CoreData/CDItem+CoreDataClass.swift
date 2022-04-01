@@ -28,29 +28,29 @@ public class CDItem: NSManagedObject, ItemProtocol {
         dateFormat.dateFormat = dateFormatString
         dateLabelText = dateLabelText + dateFormat.string(from: date)
 
-        if dateLabelText.count > 0 {
-            dateLabelText = dateLabelText  + " | "
+        if !dateLabelText.isEmpty {
+            dateLabelText.append(" | ")
         }
 
-        if let author = author {
-            if author.count > 0 {
-                let clipLength =  50
-                if author.count > clipLength {
-                    dateLabelText = dateLabelText + author.prefix(clipLength) + "…"
-                } else {
-                    dateLabelText = dateLabelText + author
-                }
+        if let author = author, !author.isEmpty {
+            let clipLength = 50
+            if author.count > clipLength {
+                dateLabelText.append(contentsOf: author.replacingOccurrences(of: "\n", with: "").prefix(clipLength))
+                dateLabelText.append("…")
+            } else {
+                dateLabelText.append(author)
             }
         }
 
         if let feed = CDFeed.feed(id: feedId) {
             if let title = feed.title {
-                if let author = author, author.count > 0 {
+                if let author = author, !author.isEmpty {
                     if title != author {
-                        dateLabelText = dateLabelText + " | "
+                        dateLabelText.append(" | \(title)")
                     }
+                } else {
+                    dateLabelText.append(title)
                 }
-                dateLabelText = dateLabelText + title
             }
         }
         return dateLabelText
