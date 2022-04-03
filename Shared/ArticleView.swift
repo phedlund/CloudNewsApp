@@ -17,13 +17,11 @@ struct ArticleView: View, Equatable {
 
     var body: some View {
 //        ArticleDetailView(item: model.item)
-        GeometryReader { _ in
-            ArticleWebView(webView: model.webView, item: model.item)
-                .navigationBarTitleDisplayMode(.inline)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-        }
+        ArticleWebView(webView: model.webView, item: model.item)
+            .navigationBarTitleDisplayMode(.inline)
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
     }
     
 }

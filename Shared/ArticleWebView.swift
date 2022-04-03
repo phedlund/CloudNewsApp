@@ -45,6 +45,7 @@ struct ArticleWebView: UIViewRepresentable {
         webView.allowsBackForwardNavigationGestures = false
 //        webView.scrollView.isScrollEnabled = false
         webView.scrollView.showsHorizontalScrollIndicator = false
+        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0) 
         let feed = CDFeed.feed(id: item.feedId)
         if feed?.preferWeb == true,
            let urlString = item.url,

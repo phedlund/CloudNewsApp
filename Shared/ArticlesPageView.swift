@@ -11,9 +11,8 @@ import WebKit
 
 struct ArticlesPageView: View {
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
-    @Binding private var fullScreenView: Bool
 
-    @State private var selectedIndex: Int = -1
+    @State private var selectedIndex: Int
     @State private var isShowingPopover = false
     @State private var isShowingPartialSheet = false
     @State private var isShowingSharePopover = false
@@ -43,11 +42,10 @@ struct ArticlesPageView: View {
         return nil
     }
 
-    init(node: Node, fullScreenView: Binding<Bool>) {
+    init(node: Node, selectedIndex: Int) {
         self.node = node
-        currentModel = node.items[node.selectedItem]
-        _selectedIndex = State(initialValue: node.selectedItem)
-        self._fullScreenView = fullScreenView
+        _currentModel = State(initialValue: node.items[selectedIndex])
+        _selectedIndex = State(initialValue: selectedIndex)
         markItemRead()
     }
 
@@ -59,8 +57,8 @@ struct ArticlesPageView: View {
                     .tag(index)
             }
         }
-        .addPartialSheet(style: .defaultStyle())
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .addPartialSheet(style: .defaultStyle())
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -84,21 +82,9 @@ struct ArticlesPageView: View {
                 title = $0
             }
         }
-        .onReceive(node.$selectedItem) {
-            selectedIndex = $0
-        }
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
-                if UIDevice.current.userInterfaceIdiom == .pad {
-                    Button {
-                        fullScreenView = false
-                    } label: {
-                        Image(systemName: "arrow.backward")
-                    }
-                }
             }
             ToolbarItem(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)

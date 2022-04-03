@@ -21,8 +21,8 @@ struct ItemsView: View {
     @State private var fullScreenView = false
 
     var body: some View {
-//        print(Self._printChanges())
-        GeometryReader { geometry in
+        print(Self._printChanges())
+        return GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
             ScrollView {
@@ -31,36 +31,15 @@ struct ItemsView: View {
                         Spacer(minLength: 1.0)
                         ForEach(items.indices, id: \.self) { index in
                             let item = items[index].item
-                            if UIDevice.current.userInterfaceIdiom == .phone {
-                                NavigationLink(destination: NavigationLazyView(ArticlesPageView(node: node, fullScreenView: .constant(false)))) {
-                                    ItemListItemViev(item: item)
-                                        .tag(index)
-                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                        .buttonStyle(.plain)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    ContextMenuContent(item: item)
-                                }
-                            } else {
+                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(node: node, selectedIndex: index))) {
                                 ItemListItemViev(item: item)
                                     .tag(index)
                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                     .buttonStyle(.plain)
-                                    .onTapGesture {
-                                        node.selectedItem = index
-                                        fullScreenView = true
-                                    }
-                                    .contextMenu {
-                                        ContextMenuContent(item: item)
-                                    }
-                                    .fullScreenCover(isPresented: $fullScreenView) {
-                                        //
-                                    } content: {
-                                        NavigationView {
-                                            ArticlesPageView(node: node, fullScreenView: $fullScreenView)
-                                        }
-                                    }
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                ContextMenuContent(item: item)
                             }
                         }
                     }
@@ -91,7 +70,8 @@ struct ItemsView: View {
             }
             .onPreferenceChange(ViewOffsetKey.self) {
                 scrollViewHelper.currentOffset = $0
-            }.onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+            }
+            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
                 if markReadWhileScrolling {
                     print($0)
                     let numberOfItems = max(($0 / (cellHeight + 15.0)) - 1, 0)
@@ -109,8 +89,12 @@ struct ItemsView: View {
                 }
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(node.$title) { navTitle = $0 }
-            .onReceive(node.$items) { items = $0 }
+            .onReceive(node.$title) {
+                navTitle = $0
+            }
+            .onReceive(node.$items) { newItems in
+                items = newItems
+            }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0
             }
