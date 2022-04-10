@@ -33,15 +33,25 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    init(item: CDItem) {
-        let feed = CDFeed.feed(id: item.feedId)
-        title = Self.itemTitle(item: item)
-        summary = Self.output(item: item)
-        urlString = Self.itemUrl(item: item)
-        dateText = Self.dateText(item: item)
-        author = Self.itemAuthor(item: item)
-        feedTitle = feed?.title ?? "Untitled"
-        fileName = "summary_\(item.id)"
+    init(item: CDItem?) {
+        if let item = item {
+            let feed = CDFeed.feed(id: item.feedId)
+            title = Self.itemTitle(item: item)
+            summary = Self.output(item: item)
+            urlString = Self.itemUrl(item: item)
+            dateText = Self.dateText(item: item)
+            author = Self.itemAuthor(item: item)
+            feedTitle = feed?.title ?? "Untitled"
+            fileName = "summary_\(item.id)"
+        } else {
+            title = "Untitled"
+            summary = "No Summary"
+            urlString = ""
+            dateText = ""
+            author = ""
+            feedTitle = "Untitled"
+            fileName = "summary_000"
+        }
 
         preferences.$marginPortrait.sink { [weak self] _ in
             self?.saveItemSummary()

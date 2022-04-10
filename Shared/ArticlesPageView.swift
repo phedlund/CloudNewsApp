@@ -11,18 +11,17 @@ import WebKit
 
 struct ArticlesPageView: View {
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
+    @EnvironmentObject private var model: FeedModel
 
     @State private var selectedIndex: Int
     @State private var isShowingPopover = false
     @State private var isShowingPartialSheet = false
     @State private var isShowingSharePopover = false
-    @State private var currentModel: ArticleModel
+    @State private var currentModel = ArticleModel(item: nil)
     @State private var canGoBack = false
     @State private var canGoForward = false
     @State private var isLoading = false
     @State private var title = ""
-
-    private var node: Node
 
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
@@ -30,31 +29,30 @@ struct ArticlesPageView: View {
         viewedUrl = currentModel.webView.url
         subject = currentModel.webView.title ?? ""
         if viewedUrl?.scheme?.hasPrefix("file") ?? false {
-            if let urlString = currentModel.item.url {
+            if let urlString = currentModel.item?.url {
                 viewedUrl = URL(string: urlString) ?? nil
-                subject = currentModel.item.title ?? "Untitled"
+                subject = currentModel.item?.title ?? "Untitled"
             }
         }
-        
+
         if let url = viewedUrl {
             return SharingProvider(placeholderItem: url, subject: subject)
         }
         return nil
     }
 
-    init(node: Node, selectedIndex: Int) {
-        self.node = node
-        _currentModel = State(initialValue: node.items[selectedIndex])
+    init(selectedIndex: Int) {
         _selectedIndex = State(initialValue: selectedIndex)
-        markItemRead()
     }
 
     var body: some View {
         print(Self._printChanges())
         return TabView(selection: $selectedIndex) {
-            ForEach(node.items.indices, id: \.self) { index in
-                ArticleView(model: node.items[index])
-                    .tag(index)
+            ForEach(model.currentNode.items.indices, id: \.self) { index in
+                if let item = model.currentNode.items[index] {
+                    ArticleView(model: item)
+                        .tag(index)
+                }
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -63,9 +61,13 @@ struct ArticlesPageView: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
+        .onAppear {
+            currentModel = model.currentNode.items[selectedIndex]
+            markItemRead()
+        }
         .onChange(of: selectedIndex) { newValue in
             currentModel.webView.stopLoading()
-            currentModel = node.items[newValue]
+            currentModel = model.currentNode.items[newValue]
             markItemRead()
         }
         .onReceive(currentModel.$canGoBack) {
@@ -158,9 +160,9 @@ struct ArticlesPageView: View {
     }
 
     private func markItemRead() {
-        if currentModel.item.unread {
+        if let item = currentModel.item, item.unread {
             Task {
-                try? await NewsManager.shared.markRead(items: [currentModel.item], unread: false)
+                try? await NewsManager.shared.markRead(items: [item], unread: false)
             }
         }
     }

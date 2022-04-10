@@ -12,12 +12,10 @@ import SwiftUI
 struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
     @EnvironmentObject private var settings: Preferences
+    @EnvironmentObject private var model: FeedModel
     @StateObject var scrollViewHelper = ScrollViewHelper()
-    @ObservedObject var node: Node
     @State private var isMarkAllReadDisabled = true
-    @State private var navTitle = ""
     @State private var cellHeight: CGFloat = 160.0
-    @State private var items = [ArticleModel]()
     @State private var fullScreenView = false
 
     var body: some View {
@@ -29,26 +27,29 @@ struct ItemsView: View {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
-                        ForEach(items.indices, id: \.self) { index in
-                            let item = items[index].item
-                            NavigationLink(destination: NavigationLazyView(ArticlesPageView(node: node, selectedIndex: index))) {
-                                ItemListItemViev(item: item)
-                                    .tag(index)
-                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                    .buttonStyle(.plain)
+                        if !model.currentNode.items.indices.isEmpty {
+                            ForEach(model.currentNode.items.indices, id: \.self) { index in
+                                if let item = model.currentNode.items[index].item {
+                                NavigationLink(destination: NavigationLazyView(ArticlesPageView(selectedIndex: index).environmentObject(model))) {
+                                    ItemListItemViev(item: item)
+                                        .tag(index)
+                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                        .buttonStyle(.plain)
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu {
+                                    ContextMenuContent(item: item)
+                                }
                             }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                ContextMenuContent(item: item)
-                            }
+                        }
                         }
                     }
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
-                                let unreadItems = items.filter( { $0.item.unread == true })
+                                let unreadItems = model.currentNode.items.filter( { $0.item?.unread ?? false })
                                 Task {
-                                    let myItems = unreadItems.map( { $0.item })
+                                    let myItems = unreadItems.map( { $0.item! })
                                     try? await NewsManager.shared.markRead(items: myItems, unread: false)
                                 }
                             } label: {
@@ -63,7 +64,7 @@ struct ItemsView: View {
                     }
                 }
             }
-            .navigationTitle(navTitle)
+            .navigationTitle(model.currentNode.title)
             .coordinateSpace(name: "scroll")
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -77,24 +78,21 @@ struct ItemsView: View {
                     let numberOfItems = max(($0 / (cellHeight + 15.0)) - 1, 0)
                     print("Number of items \(numberOfItems)")
                     if numberOfItems > 0 {
-                        let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.item.unread })
+                        let itemsToMarkRead = model.currentNode.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
                         print("Number of unread items \(itemsToMarkRead.count)")
                         if !itemsToMarkRead.isEmpty {
                             Task(priority: .userInitiated) {
-                                let myItems = itemsToMarkRead.map( { $0.item })
+                                let myItems = itemsToMarkRead.map( { $0.item! })
                                 try? await NewsManager.shared.markRead(items: myItems, unread: false)
                             }
                         }
                     }
                 }
             }
-            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(node.$title) {
-                navTitle = $0
+            .onReceive(model.$currentNode) { newNode in
+                isMarkAllReadDisabled = newNode.unreadCount == 0
             }
-            .onReceive(node.$items) { newItems in
-                items = newItems
-            }
+            .onReceive(model.currentNode.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0
             }

@@ -9,17 +9,13 @@ import Combine
 import CoreData
 import SwiftUI
 
+@MainActor
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var selectedNode: String?
     private let preferences = Preferences()
 
-    var currentNode: Node {
-        if let selectedNode = selectedNode, let node = nodes.first(where: { $0.id == selectedNode }) {
-            return node
-        }
-        return allNode
-    }
+    @Published var currentNode = Node(.all, id: AllNodeGuid)
 
     private let allNode: Node
     private let starNode: Node
@@ -75,9 +71,16 @@ class FeedModel: ObservableObject {
             .store(in: &cancellables)
 
         $selectedNode.sink { [weak self] in
+            guard let self = self else { return }
             if let id = $0 {
                 print("Selected node with id \(id)")
-                self?.preferences.selectedNode = id
+                self.preferences.selectedNode = id
+                
+                if let node = self.nodes.first(where: { $0.id == id }) {
+                    self.currentNode = node
+                } else {
+                    self.currentNode = self.allNode
+                }
             }
         }
         .store(in: &cancellables)
@@ -102,34 +105,42 @@ class FeedModel: ObservableObject {
     }
 
     func update() {
-        var folderNodes = [Node]()
-        var feedNodes = [Node]()
-
-        if let folders = CDFolder.all() {
-            for folder in folders {
-                folderNodes.append(folderNode(folder: folder))
-            }
-        }
-
-        if let feeds = CDFeed.inFolder(folder: 0) {
-            for feed in feeds {
-                feedNodes.append(feedNode(feed: feed))
-            }
-        }
-
         DispatchQueue.main.async { [weak self] in
-            let firstFolderIndex = 2
-            if let lastFolderIndex = self?.nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
-                self?.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
-            } else {
-                self?.nodes.append(contentsOf: folderNodes)
+            guard let self = self else {
+                return
+            }
+            var folderNodes = [Node]()
+            var feedNodes = [Node]()
+            
+            if let folders = CDFolder.all() {
+                for folder in folders {
+                    folderNodes.append(self.folderNode(folder: folder))
+                }
             }
             
-            if let firstFeedIndex = self?.nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
-               let lastFeedIndex = self?.nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
-                self?.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+            if let feeds = CDFeed.inFolder(folder: 0) {
+                for feed in feeds {
+                    feedNodes.append(self.feedNode(feed: feed))
+                }
+            }
+            
+            let firstFolderIndex = 2
+            if let lastFolderIndex = self.nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+                self.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
             } else {
-                self?.nodes.append(contentsOf: feedNodes)
+                self.nodes.append(contentsOf: folderNodes)
+            }
+            
+            if let firstFeedIndex = self.nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+               let lastFeedIndex = self.nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+                self.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+            } else {
+                self.nodes.append(contentsOf: feedNodes)
+            }
+            if let node = self.nodes.first(where: { $0.id == self.selectedNode }) {
+                self.currentNode = node
+            } else {
+                self.currentNode = self.allNode
             }
         }
     }

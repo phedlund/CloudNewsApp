@@ -10,7 +10,6 @@ import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @StateObject var settings = Preferences()
     let sheetManager: PartialSheetManager = PartialSheetManager()
@@ -20,7 +19,6 @@ struct CloudNewsApp: App {
             ContentView()
                 .environmentObject(settings)
                 .environmentObject(sheetManager)
-                .environment(\.managedObjectContext, NewsData.mainThreadContext)
         }
     }
 }

@@ -27,13 +27,13 @@ struct ArticleWebView: NSViewRepresentable {
 }
 #else
 struct ArticleWebView: UIViewRepresentable {
-    private let item: CDItem
+    private let item: CDItem?
 
     let webView: WKWebView
     let content: ArticleWebContent
 
-    public init(webView: WKWebView, item: CDItem) {
-        print(item.title ?? "")
+    public init(webView: WKWebView, item: CDItem?) {
+        print(item?.title ?? "")
         self.webView = webView
         self.item = item
         self.content = ArticleWebContent(item: item)
@@ -45,19 +45,21 @@ struct ArticleWebView: UIViewRepresentable {
         webView.allowsBackForwardNavigationGestures = false
 //        webView.scrollView.isScrollEnabled = false
         webView.scrollView.showsHorizontalScrollIndicator = false
-        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0) 
-        let feed = CDFeed.feed(id: item.feedId)
-        if feed?.preferWeb == true,
-           let urlString = item.url,
-           let url = URL(string: urlString) {
-            webView.load(URLRequest(url: url))
-        } else {
-            let url = tempDirectory()?
-                .appendingPathComponent("summary_\(item.id)")
-                .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
+        if let item = item {
+            let feed = CDFeed.feed(id: item.feedId)
+            if feed?.preferWeb == true,
+               let urlString = item.url,
+               let url = URL(string: urlString) {
+                webView.load(URLRequest(url: url))
+            } else {
+                let url = tempDirectory()?
+                    .appendingPathComponent("summary_\(item.id)")
+                    .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
 
-            let request = URLRequest(url: url)
-            webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
+                let request = URLRequest(url: url)
+                webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
         }
         return webView
     }

@@ -9,12 +9,9 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var appDelegate: AppDelegate
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
-
-    @StateObject private var nodeTree = FeedModel()
 
     @State private var isShowingLogin = false
 
@@ -41,23 +38,19 @@ struct ContentView: View {
 
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .environment(\.managedObjectContext, NewsData.mainThreadContext)
             .previewInterfaceOrientation(.landscapeLeft)
     }
 }
 
 struct NodesView: View {
-    @StateObject private var nodeTree = FeedModel()
+    @StateObject private var nodeTree: FeedModel
+
+    init() {
+        self._nodeTree = StateObject(wrappedValue: FeedModel())
+    }
 
     @ViewBuilder
     var body: some View {
@@ -71,7 +64,7 @@ struct NodesView: View {
             NavigationView {
                 SidebarView()
                     .environmentObject(nodeTree)
-                ItemsView(node: Node())
+                ItemsView()
                     .environmentObject(nodeTree)
             }
             .navigationViewStyle(.automatic)

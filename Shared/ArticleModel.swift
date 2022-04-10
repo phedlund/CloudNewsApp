@@ -35,9 +35,9 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             return internalWebView!
         }
     }
-    var item: CDItem
+    var item: CDItem?
 
-    init(item: CDItem) {
+    init(item: CDItem?) {
         self.item = item
     }
 

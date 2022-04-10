@@ -36,7 +36,7 @@ struct SidebarView: View {
         .receive(on: DispatchQueue.main)
 
     var body: some View {
-        List(selection: $selectedNode) {
+        List(selection: $model.selectedNode) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -55,11 +55,11 @@ struct SidebarView: View {
             }
             OutlineGroup(model.nodes, children: \.children) { node in
                 if UIDevice.current.userInterfaceIdiom == .phone {
-                    NavigationLink(destination: ItemsView(node: node)) {
+                    NavigationLink(destination: ItemsView().environmentObject(model)) {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                     }
                 } else {
-                    NavigationLink(destination: ItemsView(node: node),
+                    NavigationLink(destination: ItemsView().environmentObject(model),
                                    isActive: model.selectionBindingForId(id: node.id)) {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                     }
@@ -98,8 +98,8 @@ struct SidebarView: View {
         .onReceive(publisher) { _ in
             isSyncing = false
         }
-        .onChange(of: selectedNode) { newSelection in
-            print(newSelection ?? "")
+        .onChange(of: selectedNode) {
+            print("Selected node is \($0 ?? "")")
         }
         .navigationTitle(Text("Feeds"))
         .sheet(item: $modalSheet, onDismiss: {
