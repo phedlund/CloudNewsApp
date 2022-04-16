@@ -17,6 +17,7 @@ struct ItemsView: View {
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = 160.0
     @State private var fullScreenView = false
+    @State private var items = [ArticleModel]()
 
     var body: some View {
         print(Self._printChanges())
@@ -27,9 +28,9 @@ struct ItemsView: View {
                 ZStack {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
-                        if !model.currentNode.items.indices.isEmpty {
-                            ForEach(model.currentNode.items.indices, id: \.self) { index in
-                                if let item = model.currentNode.items[index].item {
+                        if !items.indices.isEmpty {
+                            ForEach(items.indices, id: \.self) { index in
+                                if let item = items[index].item {
                                 NavigationLink(destination: NavigationLazyView(ArticlesPageView(selectedIndex: index).environmentObject(model))) {
                                     ItemListItemViev(item: item)
                                         .tag(index)
@@ -47,7 +48,7 @@ struct ItemsView: View {
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
-                                let unreadItems = model.currentNode.items.filter( { $0.item?.unread ?? false })
+                                let unreadItems = items.filter( { $0.item?.unread ?? false })
                                 Task {
                                     let myItems = unreadItems.map( { $0.item! })
                                     try? await NewsManager.shared.markRead(items: myItems, unread: false)
@@ -78,7 +79,7 @@ struct ItemsView: View {
                     let numberOfItems = max(($0 / (cellHeight + 15.0)) - 1, 0)
                     print("Number of items \(numberOfItems)")
                     if numberOfItems > 0 {
-                        let itemsToMarkRead = model.currentNode.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
+                        let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
                         print("Number of unread items \(itemsToMarkRead.count)")
                         if !itemsToMarkRead.isEmpty {
                             Task(priority: .userInitiated) {
@@ -93,6 +94,7 @@ struct ItemsView: View {
                 isMarkAllReadDisabled = newNode.unreadCount == 0
             }
             .onReceive(model.currentNode.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(model.currentNode.$items) { items = $0 }
             .onReceive(settings.$compactView) { newCompactView in
                 cellHeight = newCompactView ? 85.0 : 160.0
             }
