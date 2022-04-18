@@ -31,18 +31,18 @@ struct ItemsView: View {
                         if !items.indices.isEmpty {
                             ForEach(items.indices, id: \.self) { index in
                                 if let item = items[index].item {
-                                NavigationLink(destination: NavigationLazyView(ArticlesPageView(selectedIndex: index).environmentObject(model))) {
-                                    ItemListItemViev(item: item)
-                                        .tag(index)
-                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                        .buttonStyle(.plain)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    ContextMenuContent(item: item)
+                                    NavigationLink(destination: NavigationLazyView(ArticlesPageView(selectedIndex: index).environmentObject(model))) {
+                                        ItemListItemViev(item: item)
+                                            .tag(index)
+                                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                            .buttonStyle(.plain)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
+                                    }
                                 }
                             }
-                        }
                         }
                     }
                     .toolbar {
