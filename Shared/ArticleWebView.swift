@@ -65,7 +65,7 @@ struct ArticleWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-//        print("Update WebView called")
+        print("Update WebView called")
     }
 
     func makeCoordinator() -> WebViewCoordinator {
@@ -96,9 +96,6 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        print("View url: \(webView.url?.absoluteString ?? "")")
-        print("Action url: \(navigationAction.request.url?.absoluteString ?? "")")
-
         if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
             if let url = navigationAction.request.url {
                 if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
