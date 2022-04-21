@@ -58,16 +58,20 @@ struct NodesView: View {
             NavigationView {
                 SidebarView()
                     .environmentObject(nodeTree)
+                Text("No Feed Selected")
+                    .font(.system(size: 36))
+                    .foregroundColor(.secondary)
             }
             .navigationViewStyle(.stack)
         } else {
             NavigationView {
                 SidebarView()
                     .environmentObject(nodeTree)
-                ItemsView()
-                    .environmentObject(nodeTree)
+                Text("No Feed Selected")
+                    .font(.system(size: 36))
+                    .foregroundColor(.secondary)
             }
-            .navigationViewStyle(.automatic)
+            .navigationViewStyle(.columns)
         }
     }
 
