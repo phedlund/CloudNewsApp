@@ -7,13 +7,12 @@
 
 import PartialSheet
 import SwiftUI
-import WebKit
 
 struct ArticlesPageView: View {
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
-    @EnvironmentObject private var model: FeedModel
-
-    @State private var selectedIndex: Int
+    @EnvironmentObject private var settings: Preferences
+    @ObservedObject private var node: Node
+    @State var selectedIndex: Int
     @State private var isShowingPopover = false
     @State private var isShowingPartialSheet = false
     @State private var isShowingSharePopover = false
@@ -41,18 +40,17 @@ struct ArticlesPageView: View {
         return nil
     }
 
-    init(selectedIndex: Int) {
-        _selectedIndex = State(initialValue: selectedIndex)
+    init(node: Node, selectedIndex: Int) {
+        self.node = node
+        self.selectedIndex = selectedIndex
     }
 
     var body: some View {
         print(Self._printChanges())
         return TabView(selection: $selectedIndex) {
-            ForEach(model.currentNode.items.indices, id: \.self) { index in
-                if let item = model.currentNode.items[index] {
-                    ArticleView(model: item)
-                        .tag(index)
-                }
+            ForEach(Array(zip(node.items.indices, node.items)), id: \.1) { index, item in
+                ArticleView(model: item)
+                    .tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -62,12 +60,12 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
         .onAppear {
-            currentModel = model.currentNode.items[selectedIndex]
+            currentModel = node.items[selectedIndex]
             markItemRead()
         }
         .onChange(of: selectedIndex) { newValue in
             currentModel.webView.stopLoading()
-            currentModel = model.currentNode.items[newValue]
+            currentModel = node.items[newValue]
             markItemRead()
         }
         .onReceive(currentModel.$canGoBack) {

@@ -22,6 +22,7 @@ extension ModalSheet: Identifiable {
 
 struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
+    @EnvironmentObject private var preferences: Preferences
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(StorageKeys.selectedNode) private var selectedNode: String?
     @State private var isShowingSheet = false
@@ -55,11 +56,11 @@ struct SidebarView: View {
             }
             OutlineGroup(model.nodes, children: \.children) { node in
                 if UIDevice.current.userInterfaceIdiom == .phone {
-                    NavigationLink(destination: ItemsView().environmentObject(model)) {
+                    NavigationLink(destination: ItemsView(node: node).environmentObject(preferences)) {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                     }
                 } else {
-                    NavigationLink(destination: ItemsView().environmentObject(model),
+                    NavigationLink(destination: ItemsView(node: node).environmentObject(preferences),
                                    isActive: model.selectionBindingForId(id: node.id)) {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
                     }

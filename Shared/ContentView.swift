@@ -47,9 +47,11 @@ struct ContentView_Previews: PreviewProvider {
 
 struct NodesView: View {
     @StateObject private var nodeTree: FeedModel
+    @StateObject private var preferences: Preferences
 
     init() {
         self._nodeTree = StateObject(wrappedValue: FeedModel())
+        self._preferences = StateObject(wrappedValue: Preferences())
     }
 
     @ViewBuilder
@@ -58,6 +60,7 @@ struct NodesView: View {
             NavigationView {
                 SidebarView()
                     .environmentObject(nodeTree)
+                    .environmentObject(preferences)
                 Text("No Feed Selected")
                     .font(.system(size: 36))
                     .foregroundColor(.secondary)
@@ -67,6 +70,7 @@ struct NodesView: View {
             NavigationView {
                 SidebarView()
                     .environmentObject(nodeTree)
+                    .environmentObject(preferences)
                 Text("No Feed Selected")
                     .font(.system(size: 36))
                     .foregroundColor(.secondary)
