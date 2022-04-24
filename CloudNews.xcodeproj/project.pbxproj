@@ -113,6 +113,9 @@
 		D06D072E274F01D100325770 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06D072C274F01D000325770 /* Node.swift */; };
 		D06D0730274F236800325770 /* FavIconFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06D072F274F236800325770 /* FavIconFetcher.swift */; };
 		D06D0731274F236800325770 /* FavIconFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06D072F274F236800325770 /* FavIconFetcher.swift */; };
+		D0728A502815FF3B00B85F72 /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = D0728A4F2815FF3B00B85F72 /* SwiftUIPager */; };
+		D0728A522816009600B85F72 /* PagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* PagerWrapper.swift */; };
+		D0728A532816009600B85F72 /* PagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* PagerWrapper.swift */; };
 		D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043826E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
@@ -234,6 +237,7 @@
 		D0698978268569BF005AA05B /* ItemListItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemListItemView.swift; sourceTree = "<group>"; };
 		D06D072C274F01D000325770 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D06D072F274F236800325770 /* FavIconFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavIconFetcher.swift; sourceTree = "<group>"; };
+		D0728A512816009600B85F72 /* PagerWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagerWrapper.swift; sourceTree = "<group>"; };
 		D07A043626E2F61F00178EEE /* UserDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
 		D081F84E26CB478B00511B60 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
@@ -273,6 +277,7 @@
 			files = (
 				D04A49652701278F003FD659 /* Kingfisher in Frameworks */,
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
+				D0728A502815FF3B00B85F72 /* SwiftUIPager in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
 				D0AFBC4526B041C500A75C05 /* CustomModalView in Frameworks */,
 				D050B31E27C332D500442584 /* PartialSheet in Frameworks */,
@@ -335,6 +340,7 @@
 				D0C77C4227D4509800086A96 /* ArticleDetailView.swift */,
 				D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
+				D0728A512816009600B85F72 /* PagerWrapper.swift */,
 				D0FEBD68268BFCDB00AC0618 /* ArticleWebView.swift */,
 				D050B31627B0C0C100442584 /* ContentBlocker.swift */,
 				D02FA073269E2E7600A77875 /* FeedSettingsView.swift */,
@@ -469,6 +475,7 @@
 				D0AFBC4426B041C500A75C05 /* CustomModalView */,
 				D04A49642701278F003FD659 /* Kingfisher */,
 				D050B31D27C332D500442584 /* PartialSheet */,
+				D0728A4F2815FF3B00B85F72 /* SwiftUIPager */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -527,6 +534,7 @@
 				D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */,
 				D04A49632701278F003FD659 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */,
+				D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -617,6 +625,7 @@
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F4525265C8CDD00A3505B /* CDItem+CoreDataClass.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
+				D0728A522816009600B85F72 /* PagerWrapper.swift in Sources */,
 				D02F4529265C8CE700A3505B /* CDStarred+CoreDataClass.swift in Sources */,
 				D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* StorageKeys.swift in Sources */,
@@ -669,6 +678,7 @@
 				D081F85626CB489300511B60 /* SharingProvider.swift in Sources */,
 				D050B31827B0C0C200442584 /* ContentBlocker.swift in Sources */,
 				D02F4510265C8CAA00A3505B /* Items.swift in Sources */,
+				D0728A532816009600B85F72 /* PagerWrapper.swift in Sources */,
 				D027487A26A9D2A10000FB47 /* AddView.swift in Sources */,
 				D06D0731274F236800325770 /* FavIconFetcher.swift in Sources */,
 				D02F44F0265C89F700A3505B /* SyncHelper.swift in Sources */,
@@ -1009,6 +1019,14 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fermoya/SwiftUIPager";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		D0AFBC4326B041C500A75C05 /* XCRemoteSwiftPackageReference "CustomModalView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jankaltoun/CustomModalView";
@@ -1049,6 +1067,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */;
 			productName = PartialSheet;
+		};
+		D0728A4F2815FF3B00B85F72 /* SwiftUIPager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */;
+			productName = SwiftUIPager;
 		};
 		D0AFBC4426B041C500A75C05 /* CustomModalView */ = {
 			isa = XCSwiftPackageProductDependency;

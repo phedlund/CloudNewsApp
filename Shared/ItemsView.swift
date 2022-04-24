@@ -31,7 +31,7 @@ struct ItemsView: View {
                         if !node.items.indices.isEmpty {
                             ForEach(node.items.indices, id: \.self) { index in
                                 if let item = node.items[index].item {
-                                    NavigationLink(destination: LazyView(ArticlesPageView(node: node, selectedIndex: index))) {
+                                    NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
                                         ItemListItemViev(item: item)
                                             .tag(index)
                                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
