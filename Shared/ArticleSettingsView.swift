@@ -21,11 +21,14 @@ struct ArticleSettingsView: View {
     @EnvironmentObject private var settings: Preferences
     var item: CDItem
 
+    let buttonHeight = 25.0
+    let buttonWidth = 100.0
+
     var body: some View {
         HStack(alignment: .center) {
             Spacer()
             VStack(alignment: .center) {
-                HStack {
+                HStack(spacing: 15) {
                     let isUnRead = item.unread
                     let isStarred = item.starred
                     Button {
@@ -39,13 +42,10 @@ struct ArticleSettingsView: View {
                             Image(systemName: isUnRead ? "eye" : "eye.slash")
                         }
                         .labelStyle(.iconOnly)
+                        .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
-                    Spacer(minLength: 15)
+                    .buttonStyle(.bordered)
                     Button {
                         Task {
                             try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
@@ -57,16 +57,14 @@ struct ArticleSettingsView: View {
                             Image(systemName: isStarred ? "star" : "star.fill")
                         }
                         .labelStyle(.iconOnly)
+                        .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
+                    .buttonStyle(.bordered)
                 }
                 .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
                 .fixedSize()
-                HStack {
+                HStack(spacing: 15) {
                     Button {
                         if settings.fontSize > ArticleSettingsConstants.minFontSize {
                             settings.fontSize -= 1
@@ -74,13 +72,10 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "textformat.size.smaller")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
-                    Spacer(minLength: 15)
+                    .buttonStyle(.bordered)
                     Button {
                         if settings.fontSize < ArticleSettingsConstants.maxFontSize {
                             settings.fontSize += 1
@@ -88,70 +83,58 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "textformat.size.larger")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
+                    .buttonStyle(.bordered)
                 }
                 .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
                 .fixedSize()
-                HStack {
+                HStack(spacing: 15) {
                     Button {
                         if settings.lineHeight > ArticleSettingsConstants.minLineHeight {
                             settings.lineHeight -= 0.2
                         }
                     } label: {
                         Image("lineheight")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
-                    Spacer(minLength: 15)
+                    .buttonStyle(.bordered)
                     Button {
                         if settings.lineHeight < ArticleSettingsConstants.maxLineHeight {
                             settings.lineHeight += 0.2
                         }
                     } label: {
                         Image("lineheight")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
+                    .buttonStyle(.bordered)
                 }
                 .padding(EdgeInsets(top: 15, leading: 15, bottom: 0, trailing: 15))
                 .fixedSize()
-                HStack {
+                HStack(spacing: 15) {
                     Button {
                         if settings.marginPortrait > ArticleSettingsConstants.minMarginWidth {
                             settings.marginPortrait -= 5
                         }
                     } label: {
                         Image(systemName: "increase.indent")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
-                    Spacer(minLength: 15)
+                    .buttonStyle(.bordered)
                     Button {
                         if settings.marginPortrait < ArticleSettingsConstants.maxMarginWidth {
                             settings.marginPortrait += 5
                         }
                     } label: {
                         Image(systemName: "decrease.indent")
+                            .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
+                            .contentShape(Rectangle())
                     }
-                    .frame(width: horizontalSizeClass == .compact ? 125 : 50, height: 35, alignment: .center)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(.gray, lineWidth: 1)
-                    )
+                    .buttonStyle(.bordered)
                 }
                 .padding(EdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15))
                 .fixedSize()
