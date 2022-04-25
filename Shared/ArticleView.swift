@@ -16,8 +16,8 @@ struct ArticleView: View, Equatable {
     @ObservedObject var model: ArticleModel
 
     var body: some View {
-//        ArticleDetailView(item: model.item)
         ArticleWebView(webView: model.webView, item: model.item)
+            .equatable()
             .navigationBarTitleDisplayMode(.inline)
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)

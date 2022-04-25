@@ -26,7 +26,8 @@ struct ArticleWebView: NSViewRepresentable {
 
 }
 #else
-struct ArticleWebView: UIViewRepresentable {
+struct ArticleWebView: UIViewRepresentable, Equatable {
+
     private let item: CDItem?
 
     let webView: WKWebView
@@ -39,11 +40,14 @@ struct ArticleWebView: UIViewRepresentable {
         self.content = ArticleWebContent(item: item)
     }
 
+    static func == (lhs: ArticleWebView, rhs: ArticleWebView) -> Bool {
+        return lhs.item == rhs.item
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = false
-//        webView.scrollView.isScrollEnabled = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
         if let item = item {
@@ -64,9 +68,7 @@ struct ArticleWebView: UIViewRepresentable {
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        print("Update WebView called")
-    }
+    func updateUIView(_ uiView: WKWebView, context: Context) { }
 
     func makeCoordinator() -> WebViewCoordinator {
         WebViewCoordinator(self)

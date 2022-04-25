@@ -51,9 +51,15 @@ struct PagerWrapper: View {
               id: \.id,
               content: { index in
             ArticleView(model: index)
+                .equatable()
                 .tag(index.id)
         })
-        .sensitivity(.high)
+        .draggingAnimation(.standard(duration: 1.0))
+        .onPageChanged { newValue in
+            currentModel.webView.stopLoading()
+            currentModel = node.items[newValue]
+            markItemRead()
+        }
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -61,11 +67,6 @@ struct PagerWrapper: View {
         .addPartialSheet(style: .defaultStyle())
         .onAppear {
             currentModel = node.items[page.index]
-            markItemRead()
-        }
-        .onChange(of: page.index) { newValue in
-            currentModel.webView.stopLoading()
-            currentModel = node.items[newValue]
             markItemRead()
         }
         .onReceive(currentModel.$canGoBack) {
