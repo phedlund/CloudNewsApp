@@ -28,44 +28,43 @@ struct ArticleWebView: NSViewRepresentable {
 #else
 struct ArticleWebView: UIViewRepresentable, Equatable {
 
-    private let item: CDItem?
+    @ObservedObject var model: ArticleModel
 
-    let webView: WKWebView
     let content: ArticleWebContent
 
-    public init(webView: WKWebView, item: CDItem?) {
-        print(item?.title ?? "")
-        self.webView = webView
-        self.item = item
-        self.content = ArticleWebContent(item: item)
+    public init(model: ArticleModel) {
+        print(model.item?.title ?? "")
+        self.model = model
+        self.content = ArticleWebContent(item: model.item)
     }
 
     static func == (lhs: ArticleWebView, rhs: ArticleWebView) -> Bool {
-        return lhs.item == rhs.item
+        let isTheSame = lhs.model == rhs.model
+        return isTheSame
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        webView.navigationDelegate = context.coordinator
-        webView.uiDelegate = context.coordinator
-        webView.allowsBackForwardNavigationGestures = false
-        webView.scrollView.showsHorizontalScrollIndicator = false
-        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
-        if let item = item {
+        model.webView.navigationDelegate = context.coordinator
+        model.webView.uiDelegate = context.coordinator
+        model.webView.allowsBackForwardNavigationGestures = false
+        model.webView.scrollView.showsHorizontalScrollIndicator = false
+        model.webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
+        if let item = model.item {
             let feed = CDFeed.feed(id: item.feedId)
             if feed?.preferWeb == true,
-               let urlString = item.url,
+               let urlString = model.item?.url,
                let url = URL(string: urlString) {
-                webView.load(URLRequest(url: url))
+                model.webView.load(URLRequest(url: url))
             } else {
                 let url = tempDirectory()?
                     .appendingPathComponent("summary_\(item.id)")
                     .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
 
                 let request = URLRequest(url: url)
-                webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
+                model.webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
             }
         }
-        return webView
+        return model.webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) { }
@@ -92,7 +91,7 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
         content.$refreshToken.sink { [weak self] _ in
             guard let self = self else { return }
-            self.parent.webView.reload()
+            self.parent.model.webView.reload()
         }
         .store(in: &cancellables)
     }

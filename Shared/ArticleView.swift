@@ -10,13 +10,13 @@ import WebKit
 
 struct ArticleView: View, Equatable {
     static func == (lhs: ArticleView, rhs: ArticleView) -> Bool {
-        return lhs.model.item == rhs.model.item
+        return lhs.model == rhs.model
     }
 
     @ObservedObject var model: ArticleModel
 
     var body: some View {
-        ArticleWebView(webView: model.webView, item: model.item)
+        ArticleWebView(model: model)
             .equatable()
             .navigationBarTitleDisplayMode(.inline)
             .background {
