@@ -36,7 +36,7 @@ struct ItemsView: View {
                                             .tag(index)
                                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(ClearSelectionStyle())
                                     .contextMenu {
                                         ContextMenuContent(item: item)
                                     }
@@ -130,5 +130,12 @@ struct ViewOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat = .zero
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value += nextValue()
+    }
+}
+
+struct ClearSelectionStyle: ButtonStyle {
+    func makeBody(configuration: Self.Configuration) -> some View {
+        configuration.label
+            .background(Color.clear)
     }
 }
