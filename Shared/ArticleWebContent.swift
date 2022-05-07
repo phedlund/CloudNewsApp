@@ -160,7 +160,7 @@ class ArticleWebContent: ObservableObject {
             }
 
             summary = fixRelativeUrl(html: summary, baseUrlString: baseString)
-//            summary = replaceVideoIframe(html: summary, videoSize: videoSize)
+            summary = fixVideoIframe(html: summary)
         }
 
         return summary
@@ -171,7 +171,7 @@ class ArticleWebContent: ObservableObject {
             <div class="container">
                 <div class="articleVideo">
                     <iframe id="yt" src="https://www.youtube.com/embed/\(videoId)" type="text/html" frameborder="0" width="100%%" height="100%%" allowfullscreen></iframe>
-                </div>"
+                </div>
             </div>
             """
     }
@@ -201,36 +201,27 @@ class ArticleWebContent: ObservableObject {
         return dateFormat.string(from: date)
     }
 
-//    private static func videoSize(size: CGSize) -> CGSize {
-//        let preferences = Preferences()
-//        let ratio = CGFloat(preferences.marginPortrait) / 100.0
-//        let width = min(700.0, size.width * ratio)
-//        let height = width * 0.5625
-//        return CGSize(width: width, height: height)
-//    }
-//
     private static func fixRelativeUrl(html: String, baseUrlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html), let baseURL = URL(string: baseUrlString) else {
             return html
         }
         var result = html
         do {
-            let srcs: Elements = try doc.select("img[src]")
-            let srcsStringArray: [String?] = srcs.array().map { try? $0.attr("src").description }
-            for src in srcsStringArray {
-                if let src = src, let newSrc = URL(string: src, relativeTo: baseURL) {
-                    let newSrcString = newSrc.absoluteString
-                    result = result.replacingOccurrences(of: src, with: newSrcString)
+            let imgs = try doc.select("img")
+            for img in imgs {
+                let src = try img.attr("src")
+                if let newSrc = URL(string: src, relativeTo: baseURL) {
+                    try img.attr("src", newSrc.absoluteString)
                 }
             }
-
-            let hrefs: Elements = try doc.select("a[href]")
-            let hrefsStringArray: [String?] = hrefs.array().map { try? $0.attr("href").description }
-            for href in hrefsStringArray {
-                if let href = href, let newHref = URL(string: href, relativeTo: baseURL) {
-                    result = result.replacingOccurrences(of: href, with: newHref.absoluteString)
+            let anchors = try doc.select("a")
+            for anchor in anchors {
+                let href = try anchor.attr("href")
+                if let newSrc = URL(string: href, relativeTo: baseURL) {
+                    try anchor.attr("href", newSrc.absoluteString)
                 }
             }
+            try result = doc.outerHtml()
         } catch Exception.Error(_, let message) {
             print(message)
         } catch {
@@ -239,29 +230,29 @@ class ArticleWebContent: ObservableObject {
         return result
     }
     
-//    private static func replaceVideoIframe(html: String, videoSize: CGSize) -> String {
-//        guard let doc: Document = try? SwiftSoup.parse(html) else {
-//            return html
-//        }
-//        var result = html
-//        do {
-//            let iframes: Elements = try doc.select("iframe")
-//            for iframe in iframes {
-//                if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
-//                    if src.contains("youtu"), let videoId = src.youtubeVideoID {
-//                        let embed = embedYTString(videoId)
-//                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
-//                    }
-//                    if src.contains("vimeo"), let videoId = src.vimeoID {
-//                        let embed = String(format:"<iframe id=\"vimeo\" src=\"https://player.vimeo.com/video/%@\" type=\"text/html\" frameborder=\"0\" width=\"%ldpx\" height=\"%ldpdx\"></iframe>", videoId, Int(videoSize.width), Int(videoSize.height))
-//                        result = result.replacingOccurrences(of: try iframe.html(), with: embed)
-//                    }
-//                }
-//            }
-//        } catch { }
-//
-//        return result
-//    }
+    private static func fixVideoIframe(html: String) -> String {
+        guard let doc: Document = try? SwiftSoup.parse(html) else {
+            return html
+        }
+        var result = html
+        do {
+            let iframes: Elements = try doc.select("iframe")
+            for iframe in iframes {
+                if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
+                    if src.contains("youtu") || src.contains("vimeo") {
+                        try iframe.attr("width", "100%%")
+                        try iframe.attr("height", "100%%")
+                    }
+                }
+            }
+            try result = doc.outerHtml()
+        } catch Exception.Error(_, let message) {
+            print(message)
+        } catch {
+            print("error")
+        }
+        return result
+    }
 
     private static func createYoutubeItem(html: String, urlString: String) -> String {
         guard let doc: Document = try? SwiftSoup.parse(html) else {
@@ -271,13 +262,15 @@ class ArticleWebContent: ObservableObject {
         do {
             let iframes: Elements = try doc.select("iframe")
             for iframe in iframes {
-                if let videoId = urlString.youtubeVideoID {
-                    let embed = embedYTString(videoId)
-                    result = try result.replacingOccurrences(of: iframe.outerHtml(), with: embed)
-                }
+                try iframe.attr("width", "100%%")
+                try iframe.attr("height", "100%%")
             }
-        } catch { }
-        
+            try result = doc.outerHtml()
+        } catch Exception.Error(_, let message) {
+            print(message)
+        } catch {
+            print("error")
+        }
         return result
     }
 
