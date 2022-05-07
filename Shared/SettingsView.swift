@@ -30,8 +30,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
-
-    @Binding var showModal: Bool
     @State var isShowingMailView = false
     
     var body: some View {
@@ -44,7 +42,6 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        showModal = false
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
@@ -249,6 +246,6 @@ struct SettingsForm: View {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(showModal: .constant(true))
+        SettingsView()
     }
 }

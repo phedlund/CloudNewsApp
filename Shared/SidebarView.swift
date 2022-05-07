@@ -25,7 +25,6 @@ struct SidebarView: View {
     @EnvironmentObject private var preferences: Preferences
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(StorageKeys.selectedNode) private var selectedNode: String?
-    @State private var isShowingSheet = false
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
@@ -57,12 +56,12 @@ struct SidebarView: View {
             OutlineGroup(model.nodes, children: \.children) { node in
                 if UIDevice.current.userInterfaceIdiom == .phone {
                     NavigationLink(destination: ItemsView(node: node).environmentObject(preferences)) {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
                     }
                 } else {
                     NavigationLink(destination: ItemsView(node: node).environmentObject(preferences),
                                    isActive: model.selectionBindingForId(id: node.id)) {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet, isShowingSheet: $isShowingSheet)
+                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
                     }
                 }
             }
@@ -90,7 +89,6 @@ struct SidebarView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     modalSheet = .settings
-                    isShowingSheet = true
                 } label: {
                     Image(systemName: "ellipsis")
                 }
@@ -104,13 +102,12 @@ struct SidebarView: View {
         }
         .navigationTitle(Text("Feeds"))
         .sheet(item: $modalSheet, onDismiss: {
-            isShowingSheet = false
             modalSheet = nil
         }, content: { sheet in
             switch sheet {
             case .settings:
                 NavigationView {
-                    SettingsView(showModal: $isShowingSheet)
+                    SettingsView()
                 }
             case .folderRename:
                 NavigationView {
@@ -122,7 +119,7 @@ struct SidebarView: View {
                 }
             case .login:
                 NavigationView {
-                    SettingsView(showModal: $isShowingSheet)
+                    SettingsView()
                 }
             }
         })

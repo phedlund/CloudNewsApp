@@ -13,7 +13,6 @@ struct NodeView: View {
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
-    @Binding var isShowingSheet: Bool
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
@@ -44,7 +43,6 @@ struct NodeView: View {
                 Button {
                     selectedFeed = Int(folderId)
                     modalSheet = .folderRename
-                    isShowingSheet = true
                 } label: {
                     Label("Rename...", systemImage: "square.and.pencil")
                 }
@@ -57,7 +55,6 @@ struct NodeView: View {
                 Button {
                     selectedFeed = Int(feedId)
                     modalSheet = .feedSettings
-                    isShowingSheet = true
                 } label: {
                     Label("Settings...", systemImage: "gearshape")
                 }

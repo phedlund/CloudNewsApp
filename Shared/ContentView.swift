@@ -26,7 +26,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
             NavigationView {
-                SettingsView(showModal: .constant(true))
+                SettingsView()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
