@@ -138,7 +138,7 @@ class ArticleWebContent: ObservableObject {
     }
 
     private static func output(item: CDItem) -> String {
-        var summary = ""
+        var result = ""
 
         if let html = item.body,
            let urlString = item.url,
@@ -146,24 +146,49 @@ class ArticleWebContent: ObservableObject {
            let scheme = url.scheme,
            let host = url.host {
 
-            let baseString = "\(scheme)://\(host)"
-            if baseString.lowercased().contains("youtu") {
-                if html.lowercased().contains("iframe") {
-                    summary = createYoutubeItem(html: html, urlString: urlString)
-                } else if urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+            result = html
+            do {
+                let document = try SwiftSoup.parse(html)
+                let baseString = "\(scheme)://\(host)"
+                if baseString.lowercased().contains("youtu"), urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
                     let videoIdStartIndex = urlString.index(after: equalIndex)
                     let videoId = String(urlString[videoIdStartIndex...])
-                    summary = embedYTString(videoId)
+                    try document.body()?.html(embedYTString(videoId))
+                } else if let baseURL = URL(string: baseString) {
+                    let imgs = try document.select("img")
+                    for img in imgs {
+                        let src = try img.attr("src")
+                        if let newSrc = URL(string: src, relativeTo: baseURL) {
+                            try img.attr("src", newSrc.absoluteString)
+                        }
+                    }
+                    let anchors = try document.select("a")
+                    for anchor in anchors {
+                        let href = try anchor.attr("href")
+                        if let newSrc = URL(string: href, relativeTo: baseURL) {
+                            try anchor.attr("href", newSrc.absoluteString)
+                        }
+                    }
+                    let iframes = try document.select("iframe")
+                    for iframe in iframes {
+                        let src = try iframe.attr("src")
+                        if src.contains("youtu") || src.contains("vimeo") {
+                            try iframe.attr("width", "100%%")
+                            try iframe.attr("height", "100%%")
+                            try iframe.wrap("<div class=\"container\"><div class=\"articleVideo\"></div></div>")
+                        }
+                    }
                 }
-            } else {
-                summary = html
+                if let html = try document.body()?.html() {
+                    result = html
+                }
+            } catch Exception.Error(_, let message) {
+                print(message)
+            } catch {
+                print("error")
             }
-
-            summary = fixRelativeUrl(html: summary, baseUrlString: baseString)
-            summary = fixVideoIframe(html: summary)
         }
-
-        return summary
+        return result
     }
 
     private static func embedYTString(_ videoId: String) -> String {
@@ -199,79 +224,6 @@ class ArticleWebContent: ObservableObject {
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;
         return dateFormat.string(from: date)
-    }
-
-    private static func fixRelativeUrl(html: String, baseUrlString: String) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(html), let baseURL = URL(string: baseUrlString) else {
-            return html
-        }
-        var result = html
-        do {
-            let imgs = try doc.select("img")
-            for img in imgs {
-                let src = try img.attr("src")
-                if let newSrc = URL(string: src, relativeTo: baseURL) {
-                    try img.attr("src", newSrc.absoluteString)
-                }
-            }
-            let anchors = try doc.select("a")
-            for anchor in anchors {
-                let href = try anchor.attr("href")
-                if let newSrc = URL(string: href, relativeTo: baseURL) {
-                    try anchor.attr("href", newSrc.absoluteString)
-                }
-            }
-            try result = doc.outerHtml()
-        } catch Exception.Error(_, let message) {
-            print(message)
-        } catch {
-            print("error")
-        }
-        return result
-    }
-    
-    private static func fixVideoIframe(html: String) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(html) else {
-            return html
-        }
-        var result = html
-        do {
-            let iframes: Elements = try doc.select("iframe")
-            for iframe in iframes {
-                if let src = try iframe.getElementsByAttribute("src").first()?.attr("src") {
-                    if src.contains("youtu") || src.contains("vimeo") {
-                        try iframe.attr("width", "100%%")
-                        try iframe.attr("height", "100%%")
-                    }
-                }
-            }
-            try result = doc.outerHtml()
-        } catch Exception.Error(_, let message) {
-            print(message)
-        } catch {
-            print("error")
-        }
-        return result
-    }
-
-    private static func createYoutubeItem(html: String, urlString: String) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(html) else {
-            return html
-        }
-        var result = html
-        do {
-            let iframes: Elements = try doc.select("iframe")
-            for iframe in iframes {
-                try iframe.attr("width", "100%%")
-                try iframe.attr("height", "100%%")
-            }
-            try result = doc.outerHtml()
-        } catch Exception.Error(_, let message) {
-            print(message)
-        } catch {
-            print("error")
-        }
-        return result
     }
 
     private func updateCssVariables() -> String {

@@ -146,7 +146,6 @@ div.articleBody {
     margin-top: 30px;
     line-height: var(--line-height);
     clear: both;
-
 }
 
 div.footer {
@@ -164,9 +163,9 @@ div.footer {
 }
 
 div.container {
-  width: 100%;
-  padding-top: 56.25%;
-  position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    position: relative;
 }
 
 div.articleVideo {
