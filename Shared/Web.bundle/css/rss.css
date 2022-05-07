@@ -14,6 +14,7 @@ and (orientation: portrait) {
         margin-bottom: 40px;
         margin-left: auto;
         margin-right: auto;
+        word-wrap: break-word;
     }
     
     article {
@@ -22,6 +23,7 @@ and (orientation: portrait) {
         margin-left:auto;
         margin-right:auto;
         margin-top:30px;
+        word-wrap: break-word;
     }
 
 }
@@ -158,6 +160,7 @@ div.footer {
     margin-top: 0;
     width: 100%;
     line-height: calc(var(--line-height) * 0.85);
+    word-wrap: break-word;
 }
 
 div.container {

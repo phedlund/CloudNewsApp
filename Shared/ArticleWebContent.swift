@@ -118,15 +118,7 @@ class ArticleWebContent: ObservableObject {
                         </p>
                     </div>
                     <div class="footer">
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                                <td>
-                                    <div>
-                                        <a class="footerLink" href="\(urlString)"><br />\(urlString)</a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                        <a href="\(urlString)"><br />\(urlString)</a>
                     </div>
                 </article>
             </body>
@@ -301,7 +293,6 @@ class ArticleWebContent: ObservableObject {
                 --body-width-landscape: \(preferences.marginPortrait)vw;
                 --line-height: \(preferences.lineHeight)em;
                 --link-color: \(Color.pbh.whiteLink.hexaRGB!);
-                --footer-link: \(Color.pbh.whitePopoverBackground.hexaRGB!);
             }
         """
     }
