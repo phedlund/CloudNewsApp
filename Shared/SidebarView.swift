@@ -38,7 +38,7 @@ struct SidebarView: View {
 
     var body: some View {
         print(Self._printChanges())
-        return List(selection: $selection) {
+        return List {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -66,10 +66,6 @@ struct SidebarView: View {
                             .environmentObject(preferences)
                     } label: {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                            .onTapGesture {
-                                selection = node.id
-                                selectedNode = selection ?? AllNodeGuid
-                            }
                     }
                 }
             }
