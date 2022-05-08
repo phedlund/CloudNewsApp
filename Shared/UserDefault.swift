@@ -17,7 +17,13 @@ final class UserDefault<T>: NSObject {
             return userDefaults.object(forKey: key) as! T
         }
         set {
-            userDefaults.setValue(newValue, forKey: key)
+            if key == StorageKeys.selectedNode {
+                if let value = newValue as? String {
+                    userDefaults.setValue(value, forKey: key)
+                }
+            } else {
+                userDefaults.setValue(newValue, forKey: key)
+            }
         }
     }
 
@@ -71,4 +77,5 @@ class Preferences: ObservableObject {
     @UserDefault(StorageKeys.compactView) var compactView = false
     @UserDefault(StorageKeys.keepDuration) var keepDuration = 3
     @UserDefault(StorageKeys.selectedNode) var selectedNode = ""
+    @UserDefault(StorageKeys.selectedFeed) var selectedFeed = 0
 }

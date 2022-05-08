@@ -12,14 +12,13 @@ import SwiftUI
 @MainActor
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
-    @Published var selectedNode: String?
     private let preferences = Preferences()
-
+    
     @Published var currentNode = Node(.all, id: AllNodeGuid)
-
+    
     private let allNode: Node
     private let starNode: Node
-
+    
     private var folders = [CDFolder]() {
         didSet {
             if !isInInit {
@@ -34,21 +33,21 @@ class FeedModel: ObservableObject {
             }
         }
     }
-
+    
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
     private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
-
+    
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
-
+    
     init() {
         isInInit = true
         allNode = Node(.all, id: AllNodeGuid)
         starNode = Node(.starred, id: StarNodeGuid)
         nodes.append(allNode)
         nodes.append(starNode)
-
+        
         feedPublisher.sink { feeds in
             self.feeds = feeds
         }
@@ -57,7 +56,7 @@ class FeedModel: ObservableObject {
             self.folders = folders
         }
         .store(in: &cancellables)
-
+        
         changePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] changes in
@@ -69,56 +68,38 @@ class FeedModel: ObservableObject {
                 self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
             }
             .store(in: &cancellables)
-
-        $selectedNode.sink { [weak self] in
+        
+        preferences.$selectedNode.sink { [weak self] selection in
             guard let self = self else { return }
-            if let id = $0 {
-                print("Selected node with id \(id)")
-                self.preferences.selectedNode = id
-                
-                if let node = self.nodes.first(where: { $0.id == id }) {
-                    self.currentNode = node
-                } else {
-                    let folderNodes = self.nodes.filter {
-                        switch $0.nodeType {
-                        case .folder:
-                            return true
-                        default:
-                            return false
-                        }
+            print("Selected node with id \(selection)")
+            
+            if let node = self.nodes.first(where: { $0.id == selection }) {
+                self.currentNode = node
+            } else {
+                let folderNodes = self.nodes.filter {
+                    switch $0.nodeType {
+                    case .folder:
+                        return true
+                    default:
+                        return false
                     }
-                    for folderNode in folderNodes {
-                        if let node = folderNode.children?.first(where: { $0.id == id }) {
-                            self.currentNode = node
-                            break
-                        } else {
-                            self.currentNode = self.allNode
-                        }
+                }
+                for folderNode in folderNodes {
+                    if let node = folderNode.children?.first(where: { $0.id == selection }) {
+                        self.currentNode = node
+                        break
+                    } else {
+                        self.currentNode = self.allNode
                     }
                 }
             }
         }
         .store(in: &cancellables)
-
-        if !preferences.selectedNode.isEmpty {
-            selectedNode = preferences.selectedNode
-        } else {
-            selectedNode = allNode.id
-        }
+        
         update()
         isInInit = false
     }
-
-    func selectionBindingForId(id: String) -> Binding<Bool> {
-        Binding<Bool> { () -> Bool in
-            self.selectedNode == id
-        } set: { (newValue) in
-            if newValue {
-                self.selectedNode = id
-            }
-        }
-    }
-
+    
     func update() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {
@@ -152,14 +133,14 @@ class FeedModel: ObservableObject {
             } else {
                 self.nodes.append(contentsOf: feedNodes)
             }
-            if let node = self.nodes.first(where: { $0.id == self.selectedNode }) {
+            if let node = self.nodes.first(where: { $0.id == self.preferences.selectedNode }) {
                 self.currentNode = node
             } else {
                 self.currentNode = self.allNode
             }
         }
     }
-
+    
     func delete(_ node: Node) {
         switch node.nodeType {
         case .all, .starred:
@@ -199,9 +180,9 @@ class FeedModel: ObservableObject {
             }
         }
     }
-
+    
     private func folderNode(folder: CDFolder) -> Node {
-
+        
         var basePredicate: NSPredicate {
             if let feedIds = CDFeed.idsInFolder(folder: folder.id) {
                 return NSPredicate(format: "feedId IN %@", feedIds)
@@ -220,11 +201,11 @@ class FeedModel: ObservableObject {
         let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.expanded)
         return node
     }
-
+    
     private func feedNode(feed: CDFeed) -> Node {
         let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
         node.errorCount = Int(feed.updateErrorCount)
         return node
     }
-
+    
 }

@@ -24,19 +24,21 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-    @AppStorage(StorageKeys.selectedNode) private var selectedNode: String?
+    @AppStorage(StorageKeys.selectedNode) private var selectedNode: String = AllNodeGuid
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingError = false
     @State private var errorMessage = ""
+    @State private var selection: String? = AllNodeGuid
 
     private var publisher = NotificationCenter.default
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
     var body: some View {
-        List(selection: $model.selectedNode) {
+        print(Self._printChanges())
+        return List(selection: $selection) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -59,9 +61,15 @@ struct SidebarView: View {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
                     }
                 } else {
-                    NavigationLink(destination: ItemsView(node: node).environmentObject(preferences),
-                                   isActive: model.selectionBindingForId(id: node.id)) {
+                    NavigationLink(tag: node.id, selection: $selection) {
+                        ItemsView(node: node)
+                            .environmentObject(preferences)
+                    } label: {
                         NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                            .onTapGesture {
+                                selection = node.id
+                                selectedNode = selection ?? AllNodeGuid
+                            }
                     }
                 }
             }
@@ -71,6 +79,9 @@ struct SidebarView: View {
         .accentColor(.pbh.darkIcon)
         .refreshable {
             sync()
+        }
+        .onAppear {
+            selection = selectedNode
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -97,7 +108,7 @@ struct SidebarView: View {
         .onReceive(publisher) { _ in
             isSyncing = false
         }
-        .onChange(of: selectedNode) {
+        .onChange(of: selection) {
             print("Selected node is \($0 ?? "")")
         }
         .navigationTitle(Text("Feeds"))
