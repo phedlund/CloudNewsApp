@@ -56,21 +56,15 @@ struct SidebarView: View {
                 .transition(.move(edge: .top))
             }
             OutlineGroup(model.nodes, children: \.children) { node in
-                if UIDevice.current.userInterfaceIdiom == .phone {
-                    NavigationLink(destination: ItemsView(node: node).environmentObject(preferences)) {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                    }
-                } else {
-                    NavigationLink(tag: node.id, selection: $selection) {
-                        ItemsView(node: node)
-                            .environmentObject(preferences)
-                    } label: {
-                        NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                            .onTapGesture {
-                                selection = node.id
-                                selectedNode = selection ?? AllNodeGuid
-                            }
-                    }
+                NavigationLink(tag: node.id, selection: $selection) {
+                    ItemsView(node: node)
+                        .environmentObject(preferences)
+                } label: {
+                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                        .onTapGesture {
+                            selection = node.id
+                            selectedNode = selection ?? AllNodeGuid
+                        }
                 }
             }
             .accentColor(.pbh.whiteIcon)
