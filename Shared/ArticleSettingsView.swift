@@ -96,7 +96,7 @@ struct ArticleSettingsView: View {
                             settings.lineHeight -= 0.2
                         }
                     } label: {
-                        Image("lineheight")
+                        Image(systemName: "line.3.horizontal")
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -106,7 +106,7 @@ struct ArticleSettingsView: View {
                             settings.lineHeight += 0.2
                         }
                     } label: {
-                        Image("lineheight")
+                        Image("custom.line.3.horizontal")
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
