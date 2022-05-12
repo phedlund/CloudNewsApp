@@ -40,6 +40,7 @@ struct ArticleSettingsView: View {
                             Text(isUnRead ? "Read" : "Unread")
                         } icon: {
                             Image(systemName: isUnRead ? "eye" : "eye.slash")
+                                .imageScale(.large)
                         }
                         .labelStyle(.iconOnly)
                         .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
@@ -55,6 +56,7 @@ struct ArticleSettingsView: View {
                             Text(isStarred ? "Unstar" : "Star")
                         } icon: {
                             Image(systemName: isStarred ? "star" : "star.fill")
+                                .imageScale(.large)
                         }
                         .labelStyle(.iconOnly)
                         .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
@@ -72,6 +74,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "textformat.size.smaller")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -83,6 +86,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "textformat.size.larger")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -97,6 +101,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -107,6 +112,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image("custom.line.3.horizontal")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -121,6 +127,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "increase.indent")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
@@ -131,6 +138,7 @@ struct ArticleSettingsView: View {
                         }
                     } label: {
                         Image(systemName: "decrease.indent")
+                            .imageScale(.large)
                             .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                             .contentShape(Rectangle())
                     }
