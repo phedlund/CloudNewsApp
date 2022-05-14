@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Combine
-import CustomModalView
 
 enum ModalSheet {
     case login
