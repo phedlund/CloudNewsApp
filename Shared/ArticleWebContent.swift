@@ -148,27 +148,14 @@ class ArticleWebContent: ObservableObject {
 
             result = html
             do {
-                let document = try SwiftSoup.parse(html)
                 let baseString = "\(scheme)://\(host)"
+                let document = try SwiftSoup.parse(html, baseString)
+
                 if baseString.lowercased().contains("youtu"), urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
                     let videoIdStartIndex = urlString.index(after: equalIndex)
                     let videoId = String(urlString[videoIdStartIndex...])
                     try document.body()?.html(embedYTString(videoId))
-                } else if let baseURL = URL(string: baseString) {
-                    let imgs = try document.select("img")
-                    for img in imgs {
-                        let src = try img.attr("src")
-                        if let newSrc = URL(string: src, relativeTo: baseURL) {
-                            try img.attr("src", newSrc.absoluteString)
-                        }
-                    }
-                    let anchors = try document.select("a")
-                    for anchor in anchors {
-                        let href = try anchor.attr("href")
-                        if let newSrc = URL(string: href, relativeTo: baseURL) {
-                            try anchor.attr("href", newSrc.absoluteString)
-                        }
-                    }
+                } else {
                     let iframes = try document.select("iframe")
                     for iframe in iframes {
                         let src = try iframe.attr("src")
