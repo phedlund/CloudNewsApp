@@ -60,10 +60,6 @@ struct SidebarView: View {
                         .environmentObject(preferences)
                 } label: {
                     NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                        .onTapGesture {
-                            selection = node.id
-                            selectedNode = selection ?? AllNodeGuid
-                        }
                 }
             }
             .accentColor(.pbh.whiteIcon)
