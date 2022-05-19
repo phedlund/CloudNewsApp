@@ -54,6 +54,7 @@ struct PagerWrapper: View {
                 .equatable()
                 .tag(index.id)
         })
+        .contentLoadingPolicy(.lazy(recyclingRatio: 2))
         .draggingAnimation(.standard(duration: 1.0))
         .onPageChanged { newValue in
             currentModel.webView.stopLoading()
