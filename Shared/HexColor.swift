@@ -9,15 +9,20 @@ import SwiftUI
 
 extension Color {
 
-    var uiColor: UIColor {
-            .init(self)
+    var uiColor: SystemColor {
+        .init(self)
     }
 
     typealias RGBA = (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)
 
     var rgba: RGBA? {
         var (r, g, b, a): RGBA = (0, 0, 0, 0)
+#if os(macOS)
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return (r, g, b, a)
+#else
         return uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) ? (r, g, b, a) : nil
+#endif
     }
 
     var hexaRGB: String? {

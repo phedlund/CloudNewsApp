@@ -5,11 +5,15 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
+#if os(iOS)
 import PartialSheet
+#endif
 import SwiftUI
 
 struct ArticlesPageView: View {
+#if os(iOS)
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
+#endif
     @EnvironmentObject private var settings: Preferences
     @ObservedObject private var node: Node
     @State var selectedIndex: Int
@@ -22,6 +26,7 @@ struct ArticlesPageView: View {
     @State private var isLoading = false
     @State private var title = ""
 
+#if os(iOS)
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
         var subject = ""
@@ -39,6 +44,7 @@ struct ArticlesPageView: View {
         }
         return nil
     }
+#endif
 
     init(node: Node, selectedIndex: Int) {
         self.node = node
@@ -54,7 +60,9 @@ struct ArticlesPageView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+#if !os(macOS)
         .addPartialSheet(style: .defaultStyle())
+#endif
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -82,7 +90,8 @@ struct ArticlesPageView: View {
                 title = $0
             }
         }
-        .toolbar(content: {
+        .toolbar {
+#if !os(macOS)
             ToolbarItem(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)
             }
@@ -154,7 +163,8 @@ struct ArticlesPageView: View {
                 }
                 .disabled(isLoading)
             }
-        })
+#endif
+        }
     }
 
     private func markItemRead() {

@@ -17,6 +17,8 @@
 		D0103C74271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D027487A26A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
+		D029B70C283BE61500833D66 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70B283BE61500833D66 /* Kingfisher */; };
+		D029B70E283BE61B00833D66 /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70D283BE61B00833D66 /* SwiftUIPager */; };
 		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02DE6C42754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
@@ -119,13 +121,9 @@
 		D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043826E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
-		D07A043B26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
 		D081F84F26CB478B00511B60 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F84E26CB478B00511B60 /* ActivityView.swift */; };
-		D081F85026CB478B00511B60 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F84E26CB478B00511B60 /* ActivityView.swift */; };
 		D081F85226CB483E00511B60 /* SafariActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85126CB483E00511B60 /* SafariActivity.swift */; };
-		D081F85326CB483E00511B60 /* SafariActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85126CB483E00511B60 /* SafariActivity.swift */; };
 		D081F85526CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
-		D081F85626CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D08C5F8A272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
 		D08C5F8B272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
 		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
@@ -145,9 +143,7 @@
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0B8A80A269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0C77C4327D4509800086A96 /* ArticleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C77C4227D4509800086A96 /* ArticleDetailView.swift */; };
-		D0C77C4427D4509800086A96 /* ArticleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C77C4227D4509800086A96 /* ArticleDetailView.swift */; };
 		D0C77C4627D56F5A00086A96 /* AttributedString+StyledMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C77C4527D56F5A00086A96 /* AttributedString+StyledMarkdown.swift */; };
-		D0C77C4727D56F5A00086A96 /* AttributedString+StyledMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C77C4527D56F5A00086A96 /* AttributedString+StyledMarkdown.swift */; };
 		D0CAF5E2270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5E3270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5ED2713C43800BB9062 /* ItemViews.swift */; };
@@ -155,7 +151,6 @@
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F10276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
-		D0E60F13276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
 		D0E60F2B277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
 		D0E8C64126A24C7900BA3ABE /* FolderRenameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */; };
@@ -286,6 +281,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D029B70C283BE61500833D66 /* Kingfisher in Frameworks */,
+				D029B70E283BE61B00833D66 /* SwiftUIPager in Frameworks */,
 				D02F450A265C8C5500A3505B /* KeychainAccess in Frameworks */,
 				D02F450C265C8C5500A3505B /* SwiftSoup in Frameworks */,
 			);
@@ -494,6 +491,8 @@
 			packageProductDependencies = (
 				D02F4509265C8C5500A3505B /* KeychainAccess */,
 				D02F450B265C8C5500A3505B /* SwiftSoup */,
+				D029B70B283BE61500833D66 /* Kingfisher */,
+				D029B70D283BE61B00833D66 /* SwiftUIPager */,
 			);
 			productName = "CloudNews (macOS)";
 			productReference = D02F44AF265C86BF00A3505B /* CloudNews.app */;
@@ -658,7 +657,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D00AFA1C269383CB00BAED44 /* OCSProtocol.swift in Sources */,
-				D0C77C4727D56F5A00086A96 /* AttributedString+StyledMarkdown.swift in Sources */,
 				D0FEBD6A268BFCDB00AC0618 /* ArticleWebView.swift in Sources */,
 				D02F44B6265C86BF00A3505B /* CloudNewsApp.swift in Sources */,
 				D02F4538265C8D0800A3505B /* CDUnread+CoreDataClass.swift in Sources */,
@@ -671,7 +669,6 @@
 				D02F44EE265C89F700A3505B /* NewsSessionManager.swift in Sources */,
 				D0B0B2FA267ED1D900A997DB /* ItemsView.swift in Sources */,
 				D02F44F6265C89F700A3505B /* NewsRouter.swift in Sources */,
-				D081F85626CB489300511B60 /* SharingProvider.swift in Sources */,
 				D050B31827B0C0C200442584 /* ContentBlocker.swift in Sources */,
 				D02F4510265C8CAA00A3505B /* Items.swift in Sources */,
 				D0728A532816009600B85F72 /* PagerWrapper.swift in Sources */,
@@ -694,9 +691,7 @@
 				D0A1005A27E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D02F4516265C8CB600A3505B /* User.swift in Sources */,
 				D02F4530265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
-				D0C77C4427D4509800086A96 /* ArticleDetailView.swift in Sources */,
 				D00AFA1F2693872800BAED44 /* KeychainStorage.swift in Sources */,
-				D0E60F13276E7988009CF78F /* AppDelegate.swift in Sources */,
 				D02F4528265C8CE300A3505B /* CDFeed+CoreDataClass.swift in Sources */,
 				D02F452E265C8CF500A3505B /* CDFeeds+CoreDataClass.swift in Sources */,
 				D02F4546265C8D2900A3505B /* CDRead+CoreDataClass.swift in Sources */,
@@ -704,7 +699,6 @@
 				D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
 				D0FEBD67268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F2265C89F700A3505B /* NotificationNames.swift in Sources */,
-				D081F85326CB483E00511B60 /* SafariActivity.swift in Sources */,
 				D08C5F8B272DCA33007EB9D8 /* ArticleModel.swift in Sources */,
 				D06D072E274F01D100325770 /* Node.swift in Sources */,
 				D0B8A80A269928C3002A99A4 /* NodeView.swift in Sources */,
@@ -718,14 +712,12 @@
 				D045A16126C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D02F4518265C8CBA00A3505B /* Feeds.swift in Sources */,
 				D0B0B300267FF86300A997DB /* FeedModel.swift in Sources */,
-				D07A043B26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D02F4522265C8CD000A3505B /* Folders.swift in Sources */,
 				D02F4542265C8D1E00A3505B /* CDFolder+CoreDataClass.swift in Sources */,
 				D069897A268569BF005AA05B /* ItemListItemView.swift in Sources */,
 				D02F44B8265C86BF00A3505B /* ContentView.swift in Sources */,
 				D02F451A265C8CBF00A3505B /* Protocols.swift in Sources */,
 				D02FA075269E2E7600A77875 /* FeedSettingsView.swift in Sources */,
-				D081F85026CB478B00511B60 /* ActivityView.swift in Sources */,
 				D02F4536265C8D0400A3505B /* CDFolder+CoreDataProperties.swift in Sources */,
 				D02F4532265C8CFD00A3505B /* CDStarred+CoreDataProperties.swift in Sources */,
 				D02F451E265C8CC800A3505B /* Status.swift in Sources */,
@@ -857,7 +849,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1759;
+				CURRENT_PROJECT_VERSION = 1761;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
@@ -881,7 +873,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1759;
+				CURRENT_PROJECT_VERSION = 1761;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
@@ -1026,6 +1018,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D029B70B283BE61500833D66 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D04A49632701278F003FD659 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		D029B70D283BE61B00833D66 /* SwiftUIPager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */;
+			productName = SwiftUIPager;
+		};
 		D02F44FE265C8BFD00A3505B /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */;

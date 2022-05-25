@@ -45,6 +45,7 @@ struct ItemsView: View {
                         }
                     }
                     .toolbar {
+#if !os(macOS)
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
                                 let unreadItems = node.items.filter( { $0.item?.unread ?? false })
@@ -57,6 +58,7 @@ struct ItemsView: View {
                             }
                             .disabled(isMarkAllReadDisabled)
                         }
+#endif
                     }
                     GeometryReader {
                         let offset = -$0.frame(in: .named("scroll")).origin.y
@@ -90,6 +92,16 @@ struct ItemsView: View {
                 }
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(node.$items) {
+                for item in $0 {
+                    if let cdItem = item.item {
+                        if let imageLink = cdItem.imageLink, !imageLink.isEmpty {
+                            continue
+                        }
+                        ItemImageFetcher().itemURL(cdItem)
+                    }
+                }
+            }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         }
     }

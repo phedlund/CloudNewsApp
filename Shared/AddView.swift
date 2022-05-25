@@ -127,17 +127,21 @@ struct AddViewSegment: View {
         switch addType {
         case .feed:
             TextField("", text: $input, prompt: Text("https://example.com/feed"))
+#if !os(macOS)
                 .autocapitalization(.none)
-                .disableAutocorrection(true)
                 .textContentType(.URL)
+                .listRowSeparator(.hidden)
+#endif
+                .disableAutocorrection(true)
                 .textFieldStyle(.roundedBorder)
                 .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                .listRowSeparator(.hidden)
         case .folder:
             TextField("", text: $input, prompt: Text("Folder Name"))
                 .textFieldStyle(.roundedBorder)
                 .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+#if !os(macOS)
                 .listRowSeparator(.hidden)
+#endif
         }
     }
 }

@@ -9,33 +9,37 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
+#if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
+#endif
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
-
+    
     @State private var isShowingLogin = false
-
+    
     private var isNotLoggedIn: Bool {
         return username.isEmpty || password.isEmpty
     }
-
+    
     var body: some View {
         NodesView()
-        .onAppear {
-            isShowingLogin = isNotLoggedIn
-        }
-        .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
-            NavigationView {
-                SettingsView()
+            .onAppear {
+                isShowingLogin = isNotLoggedIn
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-            print("Moving to the background!")
-            appDelegate.scheduleAppRefresh()
-            appDelegate.scheduleImageFetch()
-        }
+            .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
+                NavigationView {
+                    SettingsView()
+                }
+            }
+#if !os(macOS)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+                print("Moving to the background!")
+                appDelegate.scheduleAppRefresh()
+                appDelegate.scheduleImageFetch()
+            }
+#endif
     }
-
+    
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -48,14 +52,15 @@ struct ContentView_Previews: PreviewProvider {
 struct NodesView: View {
     @StateObject private var nodeTree: FeedModel
     @StateObject private var preferences: Preferences
-
+    
     init() {
         self._nodeTree = StateObject(wrappedValue: FeedModel())
         self._preferences = StateObject(wrappedValue: Preferences())
     }
-
+    
     @ViewBuilder
     var body: some View {
+#if !os(macOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             NavigationView {
                 SidebarView()
@@ -77,6 +82,17 @@ struct NodesView: View {
             }
             .navigationViewStyle(.columns)
         }
+#else
+        NavigationView {
+            SidebarView()
+                .environmentObject(nodeTree)
+                .environmentObject(preferences)
+            Text("No Feed Selected")
+                .font(.system(size: 36))
+                .foregroundColor(.secondary)
+        }
+        .navigationViewStyle(.columns)
+#endif
     }
-
+    
 }

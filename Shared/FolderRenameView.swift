@@ -31,7 +31,9 @@ struct FolderRenameView: View {
                 TextField("Name", text: $folderName)
                     .textFieldStyle(.roundedBorder)
                     .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+#if !os(macOS)
                     .listRowSeparator(.hidden)
+#endif
                 Button {
                     onSave()
                 } label: {

@@ -55,7 +55,7 @@ struct SettingsView: View {
     }
 
 }
-    
+
 struct SettingsForm: View {
     @Environment(\.openURL) var openURL
 
@@ -86,26 +86,15 @@ struct SettingsForm: View {
 
     var body: some View {
         Form {
-#if os(macOS)
-            Toggle(isOn: $syncOnStart) {
-                Text("Sync on Start")
-            }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, idealHeight: 20, maxHeight: 20, alignment: .leading)
-            Toggle(isOn: $offlineMode) {
-                Text("Work Offline")
-            }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, idealHeight: 20, maxHeight: 20, alignment: .leading)
-            Color(NSColor.clear)
-#else
             Section(header: Text("Server"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
                 TextField("https://example.com/cloud", text: $server)
 #if !os(macOS)
                     .textContentType(.URL)
                     .autocapitalization(.none)
-                    .disableAutocorrection(true)
                     .listRowSeparator(.hidden)
-                    .textFieldStyle(.roundedBorder)
 #endif
+                    .disableAutocorrection(true)
+                    .textFieldStyle(.roundedBorder)
                 Button {
                     currentSettingsSheet = .login
                     settingsSheet = .login
@@ -166,7 +155,6 @@ struct SettingsForm: View {
                     Label("Contact", systemImage: "mail")
                 }
             }
-#endif
         }
         .onAppear(perform: {
             updateFooter()
@@ -182,9 +170,13 @@ struct SettingsForm: View {
             case .login:
                 LoginWebViewView(server: server)
             case .mail:
+#if !os(macOS)
                 MailComposeView(recipients: [email], subject: subject, message: message) {
                     // Did finish action
                 }
+#else
+                EmptyView() //todo
+#endif
             }
         })
     }
@@ -228,6 +220,7 @@ struct SettingsForm: View {
     }
     
     private func sendMail() {
+#if !os(macOS)
         if MFMailComposeViewController.canSendMail() {
             settingsSheet = .mail
             isShowingMailView = true
@@ -241,6 +234,7 @@ struct SettingsForm: View {
                 openURL(mailURL)
             }
         }
+#endif
     }
 }
 

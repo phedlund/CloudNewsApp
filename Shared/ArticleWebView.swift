@@ -10,24 +10,56 @@ import Combine
 import WebKit
 
 #if os(macOS)
-struct ArticleWebView: NSViewRepresentable {
-    public let webView: WKWebView
+struct ArticleWebView: NSViewRepresentable, Equatable {
+    @ObservedObject var model: ArticleModel
 
-    public init(webView: WKWebView) {
-      self.webView = webView
+    let content: ArticleWebContent
+
+    public init(model: ArticleModel) {
+        print(model.item?.title ?? "")
+        self.model = model
+        self.content = ArticleWebContent(item: model.item)
+    }
+
+    static func == (lhs: ArticleWebView, rhs: ArticleWebView) -> Bool {
+        let isTheSame = lhs.model == rhs.model
+        return isTheSame
     }
 
     func makeNSView(context: Context) -> WKWebView {
-        return webView
+        model.webView.navigationDelegate = context.coordinator
+        model.webView.uiDelegate = context.coordinator
+        model.webView.allowsBackForwardNavigationGestures = false
+//        model.webView.scrollView.showsHorizontalScrollIndicator = false
+//        model.webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
+        if let item = model.item {
+            let feed = CDFeed.feed(id: item.feedId)
+            if feed?.preferWeb == true,
+               let urlString = model.item?.url,
+               let url = URL(string: urlString) {
+                model.webView.load(URLRequest(url: url))
+            } else {
+                let url = tempDirectory()?
+                    .appendingPathComponent("summary_\(item.id)")
+                    .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+
+                let request = URLRequest(url: url)
+                model.webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
+        }
+        return model.webView
     }
 
     func updateNSView(_ uiView: WKWebView, context: Context) {
     }
 
+    func makeCoordinator() -> WebViewCoordinator {
+        WebViewCoordinator(self)
+    }
+
 }
 #else
 struct ArticleWebView: UIViewRepresentable, Equatable {
-
     @ObservedObject var model: ArticleModel
 
     let content: ArticleWebContent
@@ -100,7 +132,7 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
             if let url = navigationAction.request.url {
                 if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+//TODO                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
                     decisionHandler(.cancel)
                     return
                 }
@@ -129,18 +161,18 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.isDragging || scrollView.isDecelerating {
-            isUserScrolling = true
-        }
-    }
-
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        isUserScrolling = true
-    }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        isUserScrolling = false
-    }
+//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        if scrollView.isDragging || scrollView.isDecelerating {
+//            isUserScrolling = true
+//        }
+//    }
+//
+//    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+//        isUserScrolling = true
+//    }
+//
+//    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+//        isUserScrolling = false
+//    }
 
 }

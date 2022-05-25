@@ -61,7 +61,9 @@ struct ArticleDetailView: View {
             }
             .padding(.horizontal, 20)
         }
+#if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .onAppear {
             let feed = CDFeed.feed(id: item.feedId)
             feedTitle = feed?.title ?? "Untitled"

@@ -5,7 +5,23 @@
 //  Created by Peter Hedlund on 9/6/21.
 //
 
+//import UIKit
+
+#if os(macOS)
+import AppKit
+public typealias SystemImage = NSImage
+public typealias SystemView = NSView
+public typealias SystemColor = NSColor
+public typealias SystemImageView = NSImageView
+public typealias SystemButton = NSButton
+#else
 import UIKit
+public typealias SystemImage = UIImage
+public typealias SystemView = UIView
+public typealias SystemColor = UIColor
+public typealias SystemImageView = UIImageView
+public typealias SystemButton = UIButton
+#endif
 
 extension TimeInterval {
     static let fiveMinutes: TimeInterval = 300
@@ -15,6 +31,16 @@ extension URL {
 
     init?(withCheck string: String?) {
         let regEx = "((https|http)://)((\\w|-)+)(([.]|[/])((\\w|-)+))+"
+#if os(macOS)
+        guard
+            let urlString = string,
+            let url = URL(string: urlString),
+            NSPredicate(format: "SELF MATCHES %@", argumentArray: [regEx]).evaluate(with: urlString)
+        else {
+            return nil
+        }
+        self = url
+#else
         guard
             let urlString = string,
             let url = URL(string: urlString),
@@ -24,9 +50,39 @@ extension URL {
             return nil
         }
         self = url
+#endif
     }
-    
 }
+
+extension SystemImage {
+    convenience init?(symbolName: String) {
+#if os(macOS)
+        self.init(systemSymbolName: symbolName, accessibilityDescription: nil)
+#else
+        self.init(systemName: symbolName)
+#endif
+    }
+
+    func asPngData() -> Data? {
+#if os(macOS)
+        return self.png
+#else
+        return self.pngData()
+#endif
+    }
+}
+
+#if os(macOS)
+extension NSBitmapImageRep {
+    var png: Data? { representation(using: .png, properties: [:]) }
+}
+extension Data {
+    var bitmap: NSBitmapImageRep? { NSBitmapImageRep(data: self) }
+}
+extension NSImage {
+    var png: Data? { tiffRepresentation?.bitmap?.png }
+}
+#endif
 
 func tempDirectory() -> URL? {
     let tempDirURL = FileManager.default.temporaryDirectory.appendingPathComponent("CloudNews", isDirectory: true)

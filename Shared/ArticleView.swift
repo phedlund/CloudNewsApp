@@ -18,7 +18,9 @@ struct ArticleView: View, Equatable {
     var body: some View {
         ArticleWebView(model: model)
             .equatable()
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+        #endif
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
@@ -46,6 +48,7 @@ struct StatefulPreviewWrapper<Value, Content: View>: View {
 //    }
 //}
 
+#if os(iOS)
 extension UINavigationController {
 
   open override func viewWillLayoutSubviews() {
@@ -53,3 +56,4 @@ extension UINavigationController {
   }
 
 }
+#endif

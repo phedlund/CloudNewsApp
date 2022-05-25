@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 11/24/21.
 //
 
-import UIKit
 import CloudKit
 import Combine
 
@@ -16,7 +15,7 @@ final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = 0
     @Published var errorCount = 0
     @Published var title = ""
-    @Published var icon = UIImage()
+    @Published var icon = SystemImage()
     @Published var items = [ArticleModel]()
 
     var id: String
@@ -119,19 +118,19 @@ final class Node: Identifiable, ObservableObject {
         }
     }
 
-    private func nodeIcon() -> UIImage {
+    private func nodeIcon() -> SystemImage {
         switch nodeType {
         case .all:
-            return UIImage(named: "rss")!
+            return SystemImage(named: "rss")!
         case .starred:
-            return UIImage(systemName: "star.fill")!
+            return SystemImage(symbolName: "star.fill")!
         case .folder( _):
-            return UIImage(systemName: "folder")!
+            return SystemImage(symbolName: "folder")!
         case .feed(let id):
             if let feed = CDFeed.feed(id: id), let data = feed.favicon {
-                return UIImage(data: data) ?? UIImage(named: "rss") ?? UIImage()
+                return SystemImage(data: data) ?? SystemImage(named: "rss") ?? SystemImage()
             } else {
-                return UIImage(named: "rss")!
+                return SystemImage(named: "rss")!
             }
         }
     }

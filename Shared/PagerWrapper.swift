@@ -5,12 +5,16 @@
 //  Created by Peter Hedlund on 4/24/22.
 //
 
+#if os(iOS)
 import PartialSheet
+#endif
 import SwiftUI
 import SwiftUIPager
 
 struct PagerWrapper: View {
+#if os(iOS)
     @EnvironmentObject private var partialSheetManager: PartialSheetManager
+#endif
     @StateObject var page: Page = .first()
     @ObservedObject private var node: Node
 
@@ -22,6 +26,7 @@ struct PagerWrapper: View {
     @State private var isShowingSharePopover = false
     @State private var currentModel = ArticleModel(item: nil)
 
+#if !os(macOS)
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
         var subject = ""
@@ -39,6 +44,7 @@ struct PagerWrapper: View {
         }
         return nil
     }
+#endif
 
     init(node: Node, selectedIndex: Int) {
         self.node = node
@@ -65,7 +71,9 @@ struct PagerWrapper: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
+#if !os(macOS)
         .addPartialSheet(style: .defaultStyle())
+#endif
         .onAppear {
             currentModel = node.items[page.index]
             markItemRead()
@@ -84,7 +92,8 @@ struct PagerWrapper: View {
                 title = $0
             }
         }
-        .toolbar(content: {
+        .toolbar {
+#if !os(macOS)
             ToolbarItem(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)
             }
@@ -156,7 +165,8 @@ struct PagerWrapper: View {
                 }
                 .disabled(isLoading)
             }
-        })
+#endif
+        }
     }
 
     private func markItemRead() {

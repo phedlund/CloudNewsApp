@@ -73,6 +73,7 @@ struct SidebarView: View {
             selection = selectedNode
         }
         .toolbar {
+#if !os(macOS)
             ToolbarItem(placement: .navigationBarTrailing) {
                 ProgressView()
                     .progressViewStyle(.circular)
@@ -93,6 +94,7 @@ struct SidebarView: View {
                     Image(systemName: "ellipsis")
                 }
             }
+#endif
         }
         .onReceive(publisher) { _ in
             isSyncing = false

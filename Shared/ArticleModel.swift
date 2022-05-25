@@ -26,7 +26,9 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             if internalWebView == nil {
                 let webConfig = WKWebViewConfiguration()
                 webConfig.preferences.setValue(true, forKey: "fullScreenEnabled")
+#if !os(macOS)
                 webConfig.allowsInlineMediaPlayback = true
+#endif
                 webConfig.mediaTypesRequiringUserActionForPlayback = [.all]
 
                 internalWebView = WKWebView(frame: .zero, configuration: webConfig)
@@ -60,11 +62,12 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             }
         }
         .store(in: &cancellables)
+#if !os(macOS)
         NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification, object: nil).sink { [weak self] _ in
             self?.webView.reload()
         }
         .store(in: &cancellables)
-
+#endif
         Task {
             do {
                 if let rules = try await ContentBlocker.ruleList() {

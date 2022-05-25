@@ -44,18 +44,25 @@ struct FeedFavIconView: View {
                 .scaledToFit()
                 .frame(width: 16, height: 16, alignment: .center)
         case .feed(let id):
+#if os(macOS)
+            Image(nsImage: favIconImage(id))
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
+#else
             Image(uiImage: favIconImage(id))
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16, alignment: .center)
+#endif
         }
     }
 
-    private func favIconImage(_ feedId: Int32) -> UIImage {
-        var result = UIImage(named: "rss") ?? UIImage()
+    private func favIconImage(_ feedId: Int32) -> SystemImage {
+        var result = SystemImage(named: "rss") ?? SystemImage()
         if let feed = CDFeed.feed(id: feedId) {
             if let data = feed.favicon {
-                result = UIImage(data: data) ?? UIImage()
+                result = SystemImage(data: data) ?? SystemImage()
             }
         }
         return result

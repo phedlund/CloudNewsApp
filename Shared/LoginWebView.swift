@@ -50,6 +50,13 @@ struct LoginWebView_Previews: PreviewProvider {
 
 #if os(macOS)
 struct LoginWebView: NSViewRepresentable {
+    @Environment(\.dismiss) var dismiss
+
+    @AppStorage(StorageKeys.server) var server: String = ""
+    @AppStorage(StorageKeys.productVersion) var productVersion = ""
+    @KeychainStorage(StorageKeys.username) var username: String = ""
+    @KeychainStorage(StorageKeys.password) var password: String = ""
+
     public let webView: WKWebView
 
     public init(webView: WKWebView) {
@@ -63,6 +70,10 @@ struct LoginWebView: NSViewRepresentable {
     func updateNSView(_ uiView: WKWebView, context: Context) {
     }
 
+    func makeCoordinator() -> LoginWebViewCoordinator {
+        LoginWebViewCoordinator(self)
+    }
+    
 }
 #else
 struct LoginWebView: UIViewRepresentable {

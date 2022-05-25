@@ -5,7 +5,7 @@
 //  Created by Peter Hedlund on 11/24/21.
 //
 
-import UIKit
+import Foundation
 
 enum FetchError: Error {
     case noImage
@@ -16,7 +16,7 @@ actor FavIconFetcher {
     private let validSchemas = ["http", "https", "file"]
 
     func fetch() async throws {
-        var result = UIImage(named: "rss")?.pngData() ?? UIImage().pngData()
+        var result = SystemImage(named: "rss")?.asPngData() ?? SystemImage().asPngData()
         if let feeds = CDFeed.all() {
             for feed in feeds {
                 if let link = feed.faviconLink,

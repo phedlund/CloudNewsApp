@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct NodeView: View {
+#if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
+#endif
     @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
@@ -25,10 +27,17 @@ struct NodeView: View {
                 Text(title)
                     .lineLimit(1)
             } icon: {
+#if !os(macOS)
                 Image(uiImage: node.icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22, alignment: .center)
+#else
+                Image(nsImage: node.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22, alignment: .center)
+#endif
             }
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
@@ -68,7 +77,9 @@ struct NodeView: View {
         .onReceive(node.$unreadCount) { [unreadCount] newUnreadCount in
             self.unreadCount = newUnreadCount
             if node.nodeType == .all, unreadCount != newUnreadCount {
+#if !os(macOS)
                 appDelegate.updateBadge(newUnreadCount)
+#endif
             }
         }
         .onReceive(node.$title) {

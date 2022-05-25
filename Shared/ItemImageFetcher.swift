@@ -22,9 +22,6 @@ class ItemImageFetcher {
 
     func itemURL(_ item: CDItem) {
         Task(priority: .userInitiated) {
-            if let imageLink = item.imageLink, !imageLink.isEmpty {
-                return
-            }
             var itemImageUrl: String?
             if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
                 itemImageUrl = imgUrl.absoluteString
