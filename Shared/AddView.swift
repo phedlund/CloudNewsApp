@@ -25,7 +25,7 @@ struct AddView: View {
 
     var body: some View {
         Form {
-            Section(footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
+            Section(footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
                 Picker("Add", selection: $selectedAdd) {
                     Text("Feed").tag(AddType.feed)
                     Text("Folder").tag(AddType.folder)

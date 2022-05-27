@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct FooterLabel: View {
-    @Binding var message: String
-    @Binding var success: Bool
+    var message: String
+    var success: Bool
 
     @ViewBuilder
     var body: some View {
@@ -18,6 +18,9 @@ struct FooterLabel: View {
         } else {
             Label {
                 Text(message)
+#if os(macOS)
+                    .font(.footnote)
+#endif
             } icon: {
                 if success {
                     Image(systemName: "checkmark.circle")
@@ -28,11 +31,5 @@ struct FooterLabel: View {
                 }
             }
         }
-    }
-}
-
-struct ErrorLabel_Previews: PreviewProvider {
-    static var previews: some View {
-        FooterLabel(message: .constant(""), success: .constant(true))
     }
 }

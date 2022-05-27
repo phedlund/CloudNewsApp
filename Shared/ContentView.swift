@@ -18,7 +18,11 @@ struct ContentView: View {
     @State private var isShowingLogin = false
     
     private var isNotLoggedIn: Bool {
+#if !os(macOS)
         return username.isEmpty || password.isEmpty
+#else
+        return false
+#endif
     }
     
     var body: some View {

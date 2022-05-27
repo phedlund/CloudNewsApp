@@ -27,7 +27,7 @@ struct FolderRenameView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Rename Folder"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
+            Section(header: Text("Rename Folder"), footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
                 TextField("Name", text: $folderName)
                     .textFieldStyle(.roundedBorder)
                     .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))

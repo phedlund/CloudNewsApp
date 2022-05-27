@@ -59,7 +59,7 @@ struct FeedSettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Settings"), footer: FooterLabel(message: $footerMessage, success: $footerSuccess)) {
+            Section(header: Text("Settings"), footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
                 HStack(spacing: 15) {
                     Text("Title")
                     TextField("Title", text: $title) { isEditing in
