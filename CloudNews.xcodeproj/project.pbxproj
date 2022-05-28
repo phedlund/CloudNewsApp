@@ -19,6 +19,7 @@
 		D027487A26A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D029B70C283BE61500833D66 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70B283BE61500833D66 /* Kingfisher */; };
 		D029B70E283BE61B00833D66 /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70D283BE61B00833D66 /* SwiftUIPager */; };
+		D029B70F28429D2800833D66 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02DE6C42754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
@@ -698,6 +699,7 @@
 				D02F4540265C8D1900A3505B /* CDRead+CoreDataProperties.swift in Sources */,
 				D0E8C64226A24C7900BA3ABE /* FolderRenameView.swift in Sources */,
 				D0FEBD67268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
+				D029B70F28429D2800833D66 /* AppDelegate.swift in Sources */,
 				D02F44F2265C89F700A3505B /* NotificationNames.swift in Sources */,
 				D08C5F8B272DCA33007EB9D8 /* ArticleModel.swift in Sources */,
 				D06D072E274F01D100325770 /* Node.swift in Sources */,

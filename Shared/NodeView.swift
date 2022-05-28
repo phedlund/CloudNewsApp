@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct NodeView: View {
-#if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
-#endif
     @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
@@ -36,14 +34,16 @@ struct NodeView: View {
                 Image(nsImage: node.icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 22, height: 22, alignment: .center)
+                    .frame(width: 16, height: 16, alignment: .center)
 #endif
             }
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
             BadgeView(node: node)
         }
+#if !os(macOS)
         .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
+#endif
         .contextMenu {
             switch node.nodeType {
             case .all, .starred:
@@ -77,9 +77,7 @@ struct NodeView: View {
         .onReceive(node.$unreadCount) { [unreadCount] newUnreadCount in
             self.unreadCount = newUnreadCount
             if node.nodeType == .all, unreadCount != newUnreadCount {
-#if !os(macOS)
                 appDelegate.updateBadge(newUnreadCount)
-#endif
             }
         }
         .onReceive(node.$title) {

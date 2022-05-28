@@ -7,6 +7,40 @@
 
 import BackgroundTasks
 import Combine
+import UserNotifications
+
+#if os(macOS)
+
+import AppKit
+
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound]) { granted, error in
+            if error == nil {
+                // success!
+            }
+        }
+    }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return true
+    }
+
+    func updateBadge(_ badgeValue: Int) {
+        print("Badge updated")
+        DispatchQueue.main.async {
+            NSApp.dockTile.badgeLabel = badgeValue > 0 ? "\(badgeValue)" : ""
+        }
+    }
+
+}
+
+#else
+
 import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
@@ -112,3 +146,4 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     }
 
 }
+#endif
