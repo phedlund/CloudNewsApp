@@ -260,6 +260,15 @@ struct SettingsForm: View {
                 openURL(mailURL)
             }
         }
+#else
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = email
+        components.queryItems = [URLQueryItem(name: "subject", value: subject),
+                                 URLQueryItem(name: "body", value: message)]
+        if let mailURL = components.url {
+            openURL(mailURL)
+        }
 #endif
     }
 }
