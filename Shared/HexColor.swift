@@ -18,7 +18,9 @@ extension Color {
     var rgba: RGBA? {
         var (r, g, b, a): RGBA = (0, 0, 0, 0)
 #if os(macOS)
-        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        if let components = uiColor.cgColor.components {
+            return (components[0], components[1], components[2], components[3])
+        }
         return (r, g, b, a)
 #else
         return uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) ? (r, g, b, a) : nil

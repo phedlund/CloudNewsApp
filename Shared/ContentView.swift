@@ -94,6 +94,9 @@ struct NodesView: View {
             Text("No Feed Selected")
                 .font(.system(size: 36))
                 .foregroundColor(.secondary)
+            Text("No Article Selected")
+                .font(.system(size: 36))
+                .foregroundColor(.secondary)
         }
         .navigationViewStyle(.columns)
 #endif
