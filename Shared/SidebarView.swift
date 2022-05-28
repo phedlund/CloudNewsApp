@@ -94,6 +94,26 @@ struct SidebarView: View {
                     Image(systemName: "ellipsis")
                 }
             }
+#else
+            ToolbarItem(placement: .automatic) {
+                Spacer()
+            }
+            ToolbarItem(placement: .automatic) {
+                ProgressView()
+#if os(macOS)
+                    .controlSize(.small)
+#endif
+                    .progressViewStyle(.circular)
+                    .opacity(isSyncing ? 1.0 : 0.0)
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    sync()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isSyncing)
+            }
 #endif
         }
         .onReceive(publisher) { _ in

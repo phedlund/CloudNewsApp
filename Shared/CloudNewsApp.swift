@@ -26,6 +26,10 @@ struct CloudNewsApp: App {
 #endif
         }
 #if os(macOS)
+        .windowToolbarStyle(UnifiedCompactWindowToolbarStyle())
+#endif
+
+#if os(macOS)
         Settings {
             ScrollView {
                 SettingsView()
