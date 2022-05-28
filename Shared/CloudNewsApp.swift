@@ -10,12 +10,22 @@ import PartialSheet
 #endif
 import SwiftUI
 
+#if os(macOS)
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+}
+#endif
+
 @main
 struct CloudNewsApp: App {
     @StateObject var settings = Preferences()
-#if os(iOS)
+#if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     let sheetManager: PartialSheetManager = PartialSheetManager()
+#else
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
 #endif
     var body: some Scene {
         WindowGroup {
