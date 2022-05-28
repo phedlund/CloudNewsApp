@@ -100,9 +100,15 @@ struct SettingsForm: View {
                     .disableAutocorrection(true)
                     .textFieldStyle(.roundedBorder)
                 Button {
+#if !os(macOS)
                     currentSettingsSheet = .login
                     settingsSheet = .login
                     isShowingSheet = true
+#else
+                    if let url = URL(string: "cloudnews://login") {
+                        openURL(url)
+                    }
+#endif
                 } label: {
                     Text("Log In")
                 }
@@ -147,7 +153,7 @@ struct SettingsForm: View {
             }
             .groupedStyle(header: Text("Reading"))
 
-            Section(header: Text("Maintenance")) {
+            Section() {
                 Picker("Keep Articles For", selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
                     Text("3 months").tag(KeepDuration.three)
@@ -184,7 +190,7 @@ struct SettingsForm: View {
                     AddView()
                 }
             case .login:
-                LoginWebViewView(server: server)
+                LoginWebViewView()
             case .mail:
 #if !os(macOS)
                 MailComposeView(recipients: [email], subject: subject, message: message) {
@@ -195,6 +201,10 @@ struct SettingsForm: View {
 #endif
             }
         })
+        .onReceive(NotificationCenter.default.publisher(for: .loginComplete)) { _ in
+            currentSettingsSheet = .login
+            onDismiss()
+        }
     }
 
     private func onDismiss() {

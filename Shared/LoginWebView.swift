@@ -10,7 +10,7 @@ import WebKit
 
 struct LoginWebViewView: View {
     @StateObject var webViewManager = WebViewManager()
-    var server: String
+    @AppStorage(StorageKeys.server) var server: String = ""
 
     var body: some View {
         VStack {
@@ -64,6 +64,7 @@ struct LoginWebView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> WKWebView {
+        webView.navigationDelegate = context.coordinator
         return webView
     }
 
@@ -132,7 +133,12 @@ class LoginWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             } else {
                 parent.productVersion = ""
             }
+
+#if !os(macOS)
             parent.dismiss()
+#else
+            NotificationCenter.default.post(name: .loginComplete, object: nil)
+#endif
         }
     }
 

@@ -33,6 +33,13 @@ struct CloudNewsApp: App {
             }
             .frame(width: 500, height: 600)
         }
+
+        WindowGroup("Login") {
+            LoginWebViewView()
+                .navigationTitle("Login Information")
+                .frame(minWidth: 350, idealWidth: 600, maxWidth: 800, minHeight: 500, idealHeight: 750, maxHeight: 900)
+        }
+        .handlesExternalEvents(matching: Set(arrayLiteral: "login"))
 #endif
     }
 }

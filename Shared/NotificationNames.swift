@@ -12,6 +12,7 @@ extension NSNotification.Name {
 
     public static let syncInitiated = NSNotification.Name("SyncInitiated")
     public static let syncComplete = NSNotification.Name("SyncComplete")
+    public static let loginComplete = NSNotification.Name("LoginComplete")
     public static let folderSync = NSNotification.Name("FolderSync")
     public static let feedSync = NSNotification.Name("FeedSync")
 
