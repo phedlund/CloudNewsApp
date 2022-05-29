@@ -41,12 +41,13 @@ struct ContextMenuContent: View {
 struct TitleView: View {
     var title: String
     var unread: Bool
+    let font = Font.headline.weight(.semibold)
 
     var body: some View {
         let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         Text(title)
             .multilineTextAlignment(.leading)
-            .font(.headline)
+            .font(font)
             .foregroundColor(textColor)
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true) //force wrapping
@@ -82,7 +83,7 @@ struct BodyView: View {
         Text(bodyText)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
-            .font(.subheadline)
+            .font(.body)
             .foregroundColor(textColor)
     }
 }

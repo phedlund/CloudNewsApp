@@ -71,7 +71,6 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
-#else
             if !settings.compactView  {
                 HStack {
                     VStack {
@@ -101,6 +100,7 @@ struct ItemListItemViev: View {
             thumbnailHeight = newCompactView ? cellHeight : horizontalSizeClass == .compact ? cellHeight / 2 : cellHeight
 #else
             thumbnailWidth = newCompactView ? 66.0 : 145.0
+            thumbnailHeight = cellHeight
 #endif
         }
     }
