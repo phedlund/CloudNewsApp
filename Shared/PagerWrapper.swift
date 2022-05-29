@@ -166,8 +166,53 @@ struct PagerWrapper: View {
                 .disabled(isLoading)
             }
 #else
-            ToolbarItem {
-                Spacer(minLength: 10)
+            ToolbarItemGroup {
+                Button {
+                    currentModel.webView.goBack()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                }
+                .disabled(!canGoBack)
+                Button {
+                    currentModel.webView.goForward()
+                } label: {
+                    Image(systemName: "chevron.forward")
+                }
+                .disabled(!canGoForward)
+                Button {
+                    if isLoading {
+                        currentModel.webView.stopLoading()
+                    } else {
+                        currentModel.webView.reload()
+                    }
+                } label: {
+                    if isLoading {
+                        Image(systemName: "xmark")
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                Spacer()
+                //                    Button {
+                //                        isShowingSharePopover = sharingProvider != nil
+                //                    } label: {
+                //                        Image(systemName: "square.and.arrow.up")
+                //                    }
+                //                    .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                //                        ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
+                //                    }
+                //                    .disabled(isLoading)
+                Button {
+                    isShowingPopover = true
+                } label: {
+                    Image(systemName: "textformat.size")
+                }
+                .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                    if let item = currentModel.item {
+                        ArticleSettingsView(item: item)
+                    }
+                }
+                .disabled(isLoading)
             }
 #endif
         }

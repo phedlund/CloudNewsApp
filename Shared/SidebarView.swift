@@ -61,6 +61,15 @@ struct SidebarView: View {
                 } label: {
                     NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
                 }
+                .contextMenu {
+                    Button {
+                        selection = selectedNode
+        //                selectedFeed = Int(folderId)
+        //                modalSheet = .folderRename
+                    } label: {
+                        Label("Rename...", systemImage: "square.and.pencil")
+                    }
+                }
             }
             .accentColor(.pbh.whiteIcon)
         }
@@ -95,18 +104,11 @@ struct SidebarView: View {
                 }
             }
 #else
-            ToolbarItem(placement: .automatic) {
-                Spacer()
-            }
-            ToolbarItem(placement: .automatic) {
+            ToolbarItemGroup {
                 ProgressView()
-#if os(macOS)
                     .controlSize(.small)
-#endif
                     .progressViewStyle(.circular)
                     .opacity(isSyncing ? 1.0 : 0.0)
-            }
-            ToolbarItem(placement: .automatic) {
                 Button {
                     sync()
                 } label: {
