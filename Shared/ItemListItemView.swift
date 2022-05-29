@@ -71,7 +71,7 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
-            #else
+#else
             if !settings.compactView  {
                 HStack {
                     VStack {
@@ -84,7 +84,7 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
-            #endif
+#endif
         }
         .padding([.trailing], 10)
         .background(Color.pbh.whiteCellBackground

@@ -58,6 +58,19 @@ struct ItemsView: View {
                             }
                             .disabled(isMarkAllReadDisabled)
                         }
+#else
+                        ToolbarItem {
+                            Button {
+                                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
+                                Task {
+                                    let myItems = unreadItems.map( { $0.item! })
+                                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                                }
+                            } label: {
+                                Image(systemName: "checkmark")
+                            }
+                            .disabled(isMarkAllReadDisabled)
+                        }
 #endif
                     }
                     GeometryReader {

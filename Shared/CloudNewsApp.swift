@@ -28,7 +28,7 @@ struct CloudNewsApp: App {
 #endif
         }
 #if os(macOS)
-        .windowToolbarStyle(UnifiedCompactWindowToolbarStyle())
+        .windowToolbarStyle(.unifiedCompact)
 #endif
 
 #if os(macOS)

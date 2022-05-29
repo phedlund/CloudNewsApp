@@ -165,6 +165,10 @@ struct PagerWrapper: View {
                 }
                 .disabled(isLoading)
             }
+#else
+            ToolbarItem {
+                Spacer(minLength: 10)
+            }
 #endif
         }
     }
