@@ -99,12 +99,31 @@ struct ItemImageView: View {
         let isShowingThumbnails = showThumbnails ?? true
 
         if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(withCheck: imageLink) {
+#if os(macOS)
+            AsyncImage(url: thumbnailURL) { phase in
+                switch phase {
+                case .empty:
+                    ProgressView()
+                        .controlSize(.small)
+                case .success(let image):
+                    image.resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: size.width, maxHeight: size.height)
+                case .failure:
+                    Spacer(minLength: 2)
+                @unknown default:
+                    Spacer(minLength: 2)
+                }
+            }
+            .clipShape(Rectangle())
+#else
             KFImage(thumbnailURL)
                 .cancelOnDisappear(true)
                 .setProcessors([ResizingImageProcessor(referenceSize: CGSize(width: size.width, height: size.height), mode: .aspectFill),
                                 CroppingImageProcessor(size: CGSize(width: size.width, height: size.height), anchor: CGPoint(x: 0.5, y: 0.5)),
                                 OverlayImageProcessor(overlay: .white, fraction: unread ? 1.0 : 0.4)])
                 .frame(width: size.width, height: size.height)
+#endif
         } else {
             Spacer(minLength: 2)
         }
