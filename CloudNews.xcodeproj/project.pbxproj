@@ -20,6 +20,8 @@
 		D029B70C283BE61500833D66 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70B283BE61500833D66 /* Kingfisher */; };
 		D029B70E283BE61B00833D66 /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = D029B70D283BE61B00833D66 /* SwiftUIPager */; };
 		D029B70F28429D2800833D66 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
+		D029B71228454D8300833D66 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = D029B71128454D8300833D66 /* NukeUI */; };
+		D029B71428454DC600833D66 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = D029B71328454DC600833D66 /* NukeUI */; };
 		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02DE6C42754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
@@ -273,6 +275,7 @@
 				D04A49652701278F003FD659 /* Kingfisher in Frameworks */,
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D0728A502815FF3B00B85F72 /* SwiftUIPager in Frameworks */,
+				D029B71228454D8300833D66 /* NukeUI in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
 				D050B31E27C332D500442584 /* PartialSheet in Frameworks */,
 			);
@@ -282,6 +285,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D029B71428454DC600833D66 /* NukeUI in Frameworks */,
 				D029B70C283BE61500833D66 /* Kingfisher in Frameworks */,
 				D029B70E283BE61B00833D66 /* SwiftUIPager in Frameworks */,
 				D02F450A265C8C5500A3505B /* KeychainAccess in Frameworks */,
@@ -471,6 +475,7 @@
 				D04A49642701278F003FD659 /* Kingfisher */,
 				D050B31D27C332D500442584 /* PartialSheet */,
 				D0728A4F2815FF3B00B85F72 /* SwiftUIPager */,
+				D029B71128454D8300833D66 /* NukeUI */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -494,6 +499,7 @@
 				D02F450B265C8C5500A3505B /* SwiftSoup */,
 				D029B70B283BE61500833D66 /* Kingfisher */,
 				D029B70D283BE61B00833D66 /* SwiftUIPager */,
+				D029B71328454DC600833D66 /* NukeUI */,
 			);
 			productName = "CloudNews (macOS)";
 			productReference = D02F44AF265C86BF00A3505B /* CloudNews.app */;
@@ -531,6 +537,7 @@
 				D04A49632701278F003FD659 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */,
 				D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */,
+				D029B71028454D8300833D66 /* XCRemoteSwiftPackageReference "NukeUI" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -977,6 +984,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D029B71028454D8300833D66 /* XCRemoteSwiftPackageReference "NukeUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/NukeUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.1;
+			};
+		};
 		D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
@@ -1029,6 +1044,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0728A4E2815FF3B00B85F72 /* XCRemoteSwiftPackageReference "SwiftUIPager" */;
 			productName = SwiftUIPager;
+		};
+		D029B71128454D8300833D66 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D029B71028454D8300833D66 /* XCRemoteSwiftPackageReference "NukeUI" */;
+			productName = NukeUI;
+		};
+		D029B71328454DC600833D66 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D029B71028454D8300833D66 /* XCRemoteSwiftPackageReference "NukeUI" */;
+			productName = NukeUI;
 		};
 		D02F44FE265C8BFD00A3505B /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
