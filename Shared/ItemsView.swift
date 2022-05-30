@@ -16,11 +16,14 @@ struct ItemsView: View {
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = 160.0
 
+    @State private var selection: Int? = 0
+
     init(node: Node) {
         self.node = node
     }
 
     var body: some View {
+#if !os(macOS)
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
@@ -44,35 +47,7 @@ struct ItemsView: View {
                             }
                         }
                     }
-                    .toolbar {
-#if !os(macOS)
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
-                                Task {
-                                    let myItems = unreadItems.map( { $0.item! })
-                                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                                }
-                            } label: {
-                                Image(systemName: "checkmark")
-                            }
-                            .disabled(isMarkAllReadDisabled)
-                        }
-#else
-                        ToolbarItem {
-                            Button {
-                                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
-                                Task {
-                                    let myItems = unreadItems.map( { $0.item! })
-                                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                                }
-                            } label: {
-                                Image(systemName: "checkmark")
-                            }
-                            .disabled(isMarkAllReadDisabled)
-                        }
-#endif
-                    }
+                    .toolbar(content: itemsToolBarContent)
                     GeometryReader {
                         let offset = -$0.frame(in: .named("scroll")).origin.y
                         Color.clear.preference(key: ViewOffsetKey.self, value: offset)
@@ -88,21 +63,7 @@ struct ItemsView: View {
                 scrollViewHelper.currentOffset = $0
             }
             .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                if markReadWhileScrolling {
-                    print($0)
-                    let numberOfItems = max(($0 / (cellHeight + 15.0)) - 1, 0)
-                    print("Number of items \(numberOfItems)")
-                    if numberOfItems > 0 {
-                        let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
-                        print("Number of unread items \(itemsToMarkRead.count)")
-                        if !itemsToMarkRead.isEmpty {
-                            Task(priority: .userInitiated) {
-                                let myItems = itemsToMarkRead.map( { $0.item! })
-                                try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                            }
-                        }
-                    }
-                }
+                markRead($0)
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
             .onReceive(node.$items) {
@@ -117,6 +78,98 @@ struct ItemsView: View {
             }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         }
+#else
+        GeometryReader { geometry in
+            let viewWidth = geometry.size.width
+            let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
+            ZStack {
+                List(selection: $selection) {
+                    ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+                        NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
+                            ItemListItemViev(item: item.item!)
+                                .tag(index)
+                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
+//                                .padding(.horizontal, -10)
+                                .listRowBackground(Color.pbh.whiteBackground)
+                        }
+                        .padding(.leading, 7)
+                        .listRowBackground(Color.pbh.whiteBackground)
+                        .contextMenu {
+                            ContextMenuContent(item: item.item!)
+                        }
+                    }
+//                    .padding(.horizontal, -10)
+                    .listRowBackground(Color.pbh.whiteBackground)
+                }
+                .listStyle(.bordered)
+                .listRowBackground(Color.pbh.whiteBackground)
+                .toolbar(content: itemsToolBarContent)
+                GeometryReader {
+                    let offset = -$0.frame(in: .named("scroll")).origin.y
+                    Color.clear.preference(key: ViewOffsetKey.self, value: offset)
+                }
+            }
+            .padding(.horizontal, -7)
+            .navigationTitle(node.title)
+            .coordinateSpace(name: "scroll")
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
+            .onPreferenceChange(ViewOffsetKey.self) {
+                scrollViewHelper.currentOffset = $0
+            }
+            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                markRead($0)
+            }
+            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(node.$items) {
+                for item in $0 {
+                    if let cdItem = item.item {
+                        if let imageLink = cdItem.imageLink, !imageLink.isEmpty {
+                            continue
+                        }
+                        ItemImageFetcher().itemURL(cdItem)
+                    }
+                }
+            }
+            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
+        }
+#endif
+    }
+
+    @ToolbarContentBuilder
+    func itemsToolBarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            Button {
+                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
+                Task {
+                    let myItems = unreadItems.map( { $0.item! })
+                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                }
+            } label: {
+                Image(systemName: "checkmark")
+            }
+            .disabled(isMarkAllReadDisabled)
+        }
+    }
+
+    private func markRead(_ offset: CGFloat) {
+        if markReadWhileScrolling {
+            print(offset)
+            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+            print("Number of items \(numberOfItems)")
+            if numberOfItems > 0 {
+                let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
+                print("Number of unread items \(itemsToMarkRead.count)")
+                if !itemsToMarkRead.isEmpty {
+                    Task(priority: .userInitiated) {
+                        let myItems = itemsToMarkRead.map( { $0.item! })
+                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -144,9 +197,9 @@ class ScrollViewHelper: ObservableObject {
 
     init() {
         cancellable = AnyCancellable($currentOffset
-                                        .debounce(for: 0.2, scheduler: DispatchQueue.main)
-                                        .dropFirst()
-                                        .assign(to: \.offsetAtScrollEnd, on: self))
+            .debounce(for: 0.2, scheduler: DispatchQueue.main)
+            .dropFirst()
+            .assign(to: \.offsetAtScrollEnd, on: self))
     }
     
 }

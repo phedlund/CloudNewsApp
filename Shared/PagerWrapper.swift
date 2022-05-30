@@ -26,6 +26,8 @@ struct PagerWrapper: View {
     @State private var isShowingSharePopover = false
     @State private var currentModel = ArticleModel(item: nil)
 
+    private var selectedIndex = 0
+
 #if !os(macOS)
     private var sharingProvider: SharingProvider? {
         var viewedUrl: URL?
@@ -48,10 +50,12 @@ struct PagerWrapper: View {
 
     init(node: Node, selectedIndex: Int) {
         self.node = node
+        self.selectedIndex = selectedIndex
         self._page = StateObject(wrappedValue: .withIndex(selectedIndex))
     }
 
     var body: some View {
+#if !os(macOS)
         Pager(page: page,
               data: node.items,
               id: \.id,
@@ -71,9 +75,7 @@ struct PagerWrapper: View {
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-#if !os(macOS)
         .addPartialSheet(style: .defaultStyle())
-#endif
         .onAppear {
             currentModel = node.items[page.index]
             markItemRead()
@@ -92,31 +94,52 @@ struct PagerWrapper: View {
                 title = $0
             }
         }
-        .toolbar {
+        .toolbar(content: articleToolBarContent)
+#else
+        ArticleView(model: node.items[selectedIndex])
+            .navigationTitle(title)
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
+            .onAppear {
+                currentModel = node.items[page.index]
+                markItemRead()
+            }
+            .onReceive(currentModel.$canGoBack) {
+                canGoBack = $0
+            }
+            .onReceive(currentModel.$canGoForward) {
+                canGoForward = $0
+            }
+            .onReceive(currentModel.$isLoading) {
+                isLoading = $0
+            }
+            .onReceive(currentModel.$title) {
+                if $0 != title {
+                    title = $0
+                }
+            }
+            .toolbar(content: articleToolBarContent)
+#endif
+    }
+
+    @ToolbarContentBuilder
+    func articleToolBarContent() -> some ToolbarContent {
 #if !os(macOS)
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItemGroup(placement: .navigationBarLeading) {
                 Spacer(minLength: 10)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
-                Spacer(minLength: 10)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     currentModel.webView.goBack()
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
                 .disabled(!canGoBack)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     currentModel.webView.goForward()
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
                 .disabled(!canGoForward)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     if isLoading {
                         currentModel.webView.stopLoading()
@@ -131,7 +154,7 @@ struct PagerWrapper: View {
                     }
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Button {
                     isShowingSharePopover = sharingProvider != nil
                 } label: {
@@ -141,8 +164,6 @@ struct PagerWrapper: View {
                     ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
                 }
                 .disabled(isLoading)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         self.partialSheetManager.showPartialSheet({
@@ -215,7 +236,6 @@ struct PagerWrapper: View {
                 .disabled(isLoading)
             }
 #endif
-        }
     }
 
     private func markItemRead() {
