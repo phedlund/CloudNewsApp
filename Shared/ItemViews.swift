@@ -107,6 +107,7 @@ struct ItemImageView: View {
                                                     crop: true,
                                                     upscale: true)])
                 .frame(width: size.width, height: size.height)
+                .opacity(unread ? 1.0 : 0.4)
         } else {
             Spacer(minLength: 2)
         }
