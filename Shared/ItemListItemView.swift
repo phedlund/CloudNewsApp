@@ -8,7 +8,6 @@
 
 import SwiftSoup
 import SwiftUI
-import Kingfisher
 
 struct ItemListItemViev: View {
 #if !os(macOS)
@@ -91,6 +90,9 @@ struct ItemListItemViev: View {
             .frame(height: cellHeight)
             .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
         .onAppear() {
+            if let imageLink = item.imageLink, !imageLink.isEmpty {
+                return
+            }
             ItemImageFetcher().itemURL(item)
         }
         .onReceive(settings.$compactView) { newCompactView in

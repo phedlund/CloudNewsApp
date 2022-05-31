@@ -7,9 +7,8 @@
 //
 
 import Foundation
-import Kingfisher
+import Nuke
 import SwiftSoup
-import SwiftUI
 
 class ItemImageFetcher {
 
@@ -45,8 +44,8 @@ class ItemImageFetcher {
                 itemImageUrl = stepTwo(item)?.absoluteString
             }
 
-            if let imageUrlString = itemImageUrl, let imageUrl = URL(string: imageUrlString) {
-                await retrieve([ItemURLContainer(item: item, url: imageUrl)])
+            if let imageUrlString = itemImageUrl, let _ = URL(string: imageUrlString) {
+                try await CDItem.addImageLink(item: item, imageLink: imageUrlString)
             } else {
                 try await CDItem.addImageLink(item: item, imageLink: "data:null")
             }
@@ -56,7 +55,6 @@ class ItemImageFetcher {
     func itemImages() async throws {
 
         if let items = CDItem.itemsWithoutImageLink() {
-            var itemUrlsToRetrieve = [ItemURLContainer]()
             for item in items {
                 var itemImageUrl: URL?
                 if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
@@ -82,12 +80,11 @@ class ItemImageFetcher {
                 }
 
                 if let imageUrl = itemImageUrl {
-                    itemUrlsToRetrieve.append(ItemURLContainer(item: item, url: imageUrl))
+                    try await CDItem.addImageLink(item: item, imageLink: imageUrl.absoluteString)
                 } else {
                     try await CDItem.addImageLink(item: item, imageLink: "data:null")
                 }
             }
-            await retrieve(itemUrlsToRetrieve)
         }
     }
 
@@ -116,91 +113,18 @@ class ItemImageFetcher {
 
 }
 
-extension ItemImageFetcher {
-
-    private func retrieve(_ itemUrlContainers: [ItemURLContainer]) async {
-        for itemUrlContainer in itemUrlContainers {
-            let retrieveTask = Task { () -> KFCrossPlatformImage in
-                let manager = KingfisherManager.shared
-                let resource = ImageResource(downloadURL: itemUrlContainer.url)
-                print(resource.downloadURL.absoluteString)
-                let sizeProcessor = SizeProcessor()
-                let image = try await manager.retrieveImage(with: resource, options: [.processor(sizeProcessor)], progressBlock: nil, downloadTaskUpdated: nil)
-                print("Image with key \(image.source.cacheKey)")
-                return image.image
-            }
-
-            let result = await retrieveTask.result
-            switch result {
-            case .success( _):
-                do {
-                    try await CDItem.addImageLink(item: itemUrlContainer.item, imageLink: itemUrlContainer.url.absoluteString)
-                } catch { }
-            case .failure(let error as KingfisherError):
-                switch error {
-                case .processorError(reason: let reason):
-                    print(reason)
-                    switch reason {
-                    case .processingFailed(processor: let processor, item: _):
-                        if processor.identifier == SizeProcessor().identifier {
-                            print("size failure")
-                            do {
-                                try await CDItem.addImageLink(item: itemUrlContainer.item, imageLink: "data:null")
-                            } catch { }
-                        }
-                    }
-                default:
-                    break
-                }
-            case .failure(_):
-                break
-            }
-        }
-    }
-
-}
-
-extension KingfisherManager {
-
-    func retrieveImage(with: ImageResource, options: KingfisherOptionsInfo?, progressBlock: DownloadProgressBlock?, downloadTaskUpdated: DownloadTaskUpdatedBlock?) async throws -> RetrieveImageResult {
-        try await withCheckedThrowingContinuation { continuation in
-            let _ = retrieveImage(with: with, options: options, progressBlock: progressBlock, downloadTaskUpdated: downloadTaskUpdated) { result in
-                switch result {
-                case .success(let image):
-                    continuation.resume(returning: image)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-}
-
-struct SizeProcessor: ImageProcessor {
+struct SizeProcessor: ImageProcessing {
     // `identifier` should be the same for processors with the same properties/functionality
     // It will be used when storing and retrieving the image to/from cache.
     let identifier = "dev.pbh.sizeprocessor"
 
     // Convert input data/image to target image and return it.
-    func process(item: ImageProcessItem, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {
-        switch item {
-        case .image(let image):
-            let size = image.size
-            if size.height > 100, size.width > 100 {
-                return image
-            }
-            print("Small image: \(size)")
-            return nil
-        case .data(let data):
-            if let image = KFCrossPlatformImage(data: data) {
-                let size = image.size
-                if size.height > 100, size.width > 100 {
-                    return image
-                }
-                print("Small image: \(size)")
-                return nil
-            }
-            return nil
+    func process(_ image: PlatformImage) -> PlatformImage? {
+        let size = image.size
+        if size.height > 100, size.width > 100 {
+            return image
         }
+        print("Small image: \(size)")
+        return nil
     }
 }

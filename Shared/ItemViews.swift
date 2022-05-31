@@ -94,14 +94,15 @@ struct ItemImageView: View {
     var imageLink: String?
     var unread: Bool
     var size: CGSize
-
+    
     @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
-
+        
         if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(withCheck: imageLink) {
             LazyImage(source: thumbnailURL)
-                .processors([ImageProcessors.Resize(size: size,
+                .processors([SizeProcessor(),
+                             ImageProcessors.Resize(size: size,
                                                     unit: .points,
                                                     contentMode: .aspectFill,
                                                     crop: true,
