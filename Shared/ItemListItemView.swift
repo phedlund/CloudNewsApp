@@ -70,18 +70,6 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
-            if !settings.compactView  {
-                HStack {
-                    VStack {
-                        BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
-                            .padding([.leading], 12)
-                        Spacer()
-                    }
-                    Spacer(minLength: 26) // 16 (star view width) + 10 (HStack spacing above)
-                }
-            } else {
-                EmptyView()
-            }
 #endif
         }
         .padding([.trailing], 10)
