@@ -67,7 +67,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             .sink { _ in
                 Task {
                     do {
-                        try await ItemImageFetcher().itemImages()
+                        try await ItemImageFetcher().itemURLs()
                     } catch {
                         print("Could not complete image fetch task \(error.localizedDescription)")
                     }
@@ -94,7 +94,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: appImageFetchTaskId, using: nil) { task in
             Task {
                 do {
-                    try await ItemImageFetcher().itemImages()
+                    try await ItemImageFetcher().itemURLs()
                     task.setTaskCompleted(success: true)
                 } catch {
                     task.setTaskCompleted(success: false)

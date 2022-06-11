@@ -91,27 +91,52 @@ struct BodyView: View {
 
 struct ItemImageView: View {
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-    var imageLink: String?
-    var unread: Bool
+    @ObservedObject var item: CDItem
     var size: CGSize
-    
+
+    init(item: CDItem, size: CGSize) {
+        self.item = item
+        self.size = size
+        ImagePipeline.shared = ImagePipeline(configuration: .withDataCache)
+    }
+
     @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
-        
-        if isShowingThumbnails, let imageLink = imageLink, let thumbnailURL = URL(withCheck: imageLink) {
-            LazyImage(source: thumbnailURL)
-                .processors([SizeProcessor(),
-                             ImageProcessors.Resize(size: size,
-                                                    unit: .points,
-                                                    contentMode: .aspectFill,
-                                                    crop: true,
-                                                    upscale: true)])
-                .frame(width: size.width, height: size.height)
-                .opacity(unread ? 1.0 : 0.4)
-        } else {
-            Spacer(minLength: 2)
-        }
+        if isShowingThumbnails, let imageLink = item.imageLink, imageLink != "data:null", let url = URL(string: imageLink) {
+                let request = ImageRequest.init(urlRequest: URLRequest(url: url), processors: [SizeProcessor(), ImageProcessors.Resize(size: size,
+                                                                                                                               unit: .points,
+                                                                                                                               contentMode: .aspectFill,
+                                                                                                                               crop: true,
+                                                                                                                               upscale: true)],
+                                                priority: .veryHigh,
+                                                options: [],
+                                                userInfo: nil)
+
+                LazyImage(source: request) { state in
+                    if let image = state.image {
+                        image
+                            .animation(nil, value: true)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: size.width, height: size.height)
+                            .clipped()
+                            .opacity(item.unread ? 1.0 : 0.4)
+                    } else if state.error != nil {
+                        Color.pbh.whiteCellBackground
+                            .animation(.none)
+                            .frame(width: 2, height: size.height)
+                    } else {
+                        HStack(alignment: .center) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .controlSize(.small)
+                        }
+                        .frame(width: size.width, height: size.height)
+                    }
+                }
+            } else {
+                Spacer(minLength: 2)
+            }
     }
 }
 

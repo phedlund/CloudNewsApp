@@ -16,7 +16,7 @@ struct ItemListItemViev: View {
 #endif
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var settings: Preferences
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
     @State private var cellHeight: CGFloat = 160.0
     @State private var thumbnailWidth: CGFloat = 145.0
     @State private var thumbnailHeight: CGFloat = 160.0
@@ -25,43 +25,43 @@ struct ItemListItemViev: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: 10) {
-                    ItemImageView(imageLink: item.imageLink, unread: item.unread, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
+                ItemImageView(item: model.item!, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
                     .alignmentGuide(.top) { d in
                         (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
                     }
-                    HStack {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TitleView(title: item.title ?? "Untitled", unread: item.unread)
-                            FavIconDateAuthorView(dateAuthorFeed: item.dateAuthorFeed, unread: item.unread, feedId: item.feedId)
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TitleView(title: model.item?.title ?? "Untitled", unread: model.item?.unread ?? true)
+                        FavIconDateAuthorView(dateAuthorFeed: model.item?.dateAuthorFeed ?? "", unread: model.item?.unread ?? true, feedId: model.item?.feedId ?? 0)
 #if !os(macOS)
-                            if settings.compactView || horizontalSizeClass == .compact {
-                                EmptyView()
-                            } else {
-                                BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
-                            }
-#else
-                            if settings.compactView {
-                                EmptyView()
-                            } else {
-                                BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
-                            }
-#endif
-                            Spacer()
+                        if settings.compactView || horizontalSizeClass == .compact {
+                            EmptyView()
+                        } else {
+                            BodyView(bodyText: model.item?.displayBody ?? "", unread: model.item?.unread ?? true)
                         }
-                        .padding(.zero)
+#else
+                        if settings.compactView {
+                            EmptyView()
+                        } else {
+                            BodyView(bodyText: model.item?.displayBody ?? "", unread: model.item?.unread ?? true)
+                        }
+#endif
                         Spacer()
                     }
-                    .padding([.top], 6)
+                    .padding(.zero)
+                    Spacer()
+                }
+                .padding([.top], 6)
 #if !os(macOS)
-                    .padding([.leading], settings.compactView || horizontalSizeClass == .compact ? 0 : 6)
+                .padding([.leading], settings.compactView || horizontalSizeClass == .compact ? 0 : 6)
 #endif
-                    ItemStarredView(starred: item.starred, unread: item.unread)
+                ItemStarredView(starred: model.item?.starred ?? false, unread: model.item?.unread ?? true)
             }
 #if !os(macOS)
             if horizontalSizeClass == .compact && !settings.compactView  {
                 HStack {
                     VStack {
-                        BodyView(bodyText: item.displayBody ?? "", unread: item.unread)
+                        BodyView(bodyText: model.item?.displayBody ?? "", unread: model.item?.unread ?? true)
                             .padding([.leading], 12)
                         Spacer()
                     }
@@ -77,12 +77,6 @@ struct ItemListItemViev: View {
             .cornerRadius(4)
             .frame(height: cellHeight)
             .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
-        .onAppear() {
-            if let imageLink = item.imageLink, !imageLink.isEmpty {
-                return
-            }
-            ItemImageFetcher().itemURL(item)
-        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 85.0 : 160.0
 #if !os(macOS)

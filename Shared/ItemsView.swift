@@ -32,18 +32,18 @@ struct ItemsView: View {
                     LazyVStack(spacing: 15.0) {
                         Spacer(minLength: 1.0)
                         if !node.items.indices.isEmpty {
-                            ForEach(node.items.indices, id: \.self) { index in
-                                if let item = node.items[index].item {
+                            ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+//                                if let item = node.items[index].item {
                                     NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
-                                        ItemListItemViev(item: item)
+                                        ItemListItemViev(model: item)
                                             .tag(index)
                                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                     }
                                     .buttonStyle(ClearSelectionStyle())
                                     .contextMenu {
-                                        ContextMenuContent(item: item)
+                                        ContextMenuContent(item: item.item!)
                                     }
-                                }
+//                                }
                             }
                         }
                     }
@@ -86,7 +86,7 @@ struct ItemsView: View {
                 List(selection: $selection) {
                     ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
                         NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
-                            ItemListItemViev(item: item.item!)
+                            ItemListItemViev(model: item)
                                 .tag(index)
                                 .frame(width: cellWidth, height: cellHeight, alignment: .center)
 //                                .padding(.horizontal, -10)
@@ -104,6 +104,7 @@ struct ItemsView: View {
                 .listStyle(.bordered)
                 .listRowBackground(Color.pbh.whiteBackground)
                 .toolbar(content: itemsToolBarContent)
+                .coordinateSpace(name: "scroll")
                 GeometryReader {
                     let offset = -$0.frame(in: .named("scroll")).origin.y
                     Color.clear.preference(key: ViewOffsetKey.self, value: offset)
@@ -111,7 +112,6 @@ struct ItemsView: View {
             }
             .padding(.horizontal, -7)
             .navigationTitle(node.title)
-            .coordinateSpace(name: "scroll")
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
@@ -122,14 +122,11 @@ struct ItemsView: View {
                 markRead($0)
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(node.$items) {
-                for item in $0 {
-                    if let cdItem = item.item {
-                        if let imageLink = cdItem.imageLink, !imageLink.isEmpty {
-                            continue
-                        }
-                        ItemImageFetcher().itemURL(cdItem)
-                    }
+            .onReceive(node.$items) { _ in
+                Task {
+                    do {
+                        try await ItemImageFetcher().itemURLs()
+                    } catch { }
                 }
             }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }

@@ -252,11 +252,9 @@ class NewsManager {
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(starredRouter.urlRequest())
             try await CDItem.deleteOldItems()
 
-            let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()
             Task {
                 try? await favIconFetcher.fetch()
-                try? await articleImageFetcher.itemImages()
             }
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
@@ -369,11 +367,9 @@ class NewsManager {
             try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
             try await CDItem.deleteOldItems()
-            let articleImageFetcher = ItemImageFetcher()
             let favIconFetcher = FavIconFetcher()
             Task {
                 try? await favIconFetcher.fetch()
-                try? await articleImageFetcher.itemImages()
             }
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)

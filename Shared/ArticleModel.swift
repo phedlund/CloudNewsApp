@@ -7,9 +7,11 @@
 
 import Combine
 import Foundation
+import Nuke
 import WebKit
 
 class ArticleModel: NSObject, ObservableObject, Identifiable {
+    
     @Published public var canGoBack = false
     @Published public var canGoForward = false
     @Published public var isLoading = false
@@ -41,6 +43,17 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     init(item: CDItem?) {
         self.item = item
+        guard let item = item,
+                let imageLink = item.imageLink,
+                !imageLink.isEmpty,
+                let _ = URL(withCheck: imageLink) else {
+            if let item = item {
+                ItemImageFetcher().itemURL(item)
+            }
+            super.init()
+            return
+        }
+        super.init()
     }
 
     private func setupObservations() {
@@ -80,4 +93,5 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             }
         }
     }
+
 }

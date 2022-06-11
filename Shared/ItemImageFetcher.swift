@@ -19,6 +19,17 @@ class ItemImageFetcher {
 
     private let validSchemas = ["http", "https", "file"]
 
+    func prefetchImages(_ urlStrings: [String?]) {
+        var imageRequests = [ImageRequest]()
+        for urlString in urlStrings {
+            if let urlString = urlString {
+                imageRequests.append(ImageRequest(url: URL(string: urlString), processors: [SizeProcessor()], priority: .veryHigh, options: [], userInfo: nil))
+            }
+        }
+        let prefetcher = ImagePrefetcher()
+        prefetcher.startPrefetching(with: imageRequests)
+    }
+
     func itemURL(_ item: CDItem) {
         Task(priority: .userInitiated) {
             var itemImageUrl: String?
@@ -52,8 +63,7 @@ class ItemImageFetcher {
         }
     }
 
-    func itemImages() async throws {
-
+    func itemURLs() async throws {
         if let items = CDItem.itemsWithoutImageLink() {
             for item in items {
                 var itemImageUrl: URL?
