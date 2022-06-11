@@ -33,17 +33,15 @@ struct ItemsView: View {
                         Spacer(minLength: 1.0)
                         if !node.items.indices.isEmpty {
                             ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-//                                if let item = node.items[index].item {
-                                    NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
-                                        ItemListItemViev(model: item)
-                                            .tag(index)
-                                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                    }
-                                    .buttonStyle(ClearSelectionStyle())
-                                    .contextMenu {
-                                        ContextMenuContent(item: item.item!)
-                                    }
-//                                }
+                                NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
+                                    ItemListItemViev(model: item)
+                                        .tag(index)
+                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                }
+                                .buttonStyle(ClearSelectionStyle())
+                                .contextMenu {
+                                    ContextMenuContent(item: item.item!)
+                                }
                             }
                         }
                     }
@@ -89,7 +87,6 @@ struct ItemsView: View {
                             ItemListItemViev(model: item)
                                 .tag(index)
                                 .frame(width: cellWidth, height: cellHeight, alignment: .center)
-//                                .padding(.horizontal, -10)
                                 .listRowBackground(Color.pbh.whiteBackground)
                         }
                         .padding(.leading, 7)
@@ -98,7 +95,6 @@ struct ItemsView: View {
                             ContextMenuContent(item: item.item!)
                         }
                     }
-//                    .padding(.horizontal, -10)
                     .listRowBackground(Color.pbh.whiteBackground)
                 }
                 .listStyle(.bordered)
