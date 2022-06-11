@@ -125,6 +125,9 @@ struct ItemImageView: View {
                         Color.pbh.whiteCellBackground
                             .animation(.none)
                             .frame(width: 2, height: size.height)
+                            .onAppear {
+                                updateImageLink()
+                            }
                     } else {
                         HStack(alignment: .center) {
                         ProgressView()
@@ -137,6 +140,12 @@ struct ItemImageView: View {
             } else {
                 Spacer(minLength: 2)
             }
+    }
+
+    private func updateImageLink() {
+        Task {
+            try await CDItem.addImageLink(item: item, imageLink: "data:null")
+        }
     }
 }
 
