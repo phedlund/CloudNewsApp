@@ -80,39 +80,36 @@ struct ItemsView: View {
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
-            ZStack {
-                List(selection: $selection) {
-                    ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                        NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
-                            ItemListItemViev(model: item)
-                                .tag(index)
-                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                .listRowBackground(Color.pbh.whiteBackground)
-                        }
-                        .padding(.leading, 7)
-                        .listRowBackground(Color.pbh.whiteBackground)
-                        .contextMenu {
-                            ContextMenuContent(item: item.item!)
-                        }
+            List(selection: $selection) {
+                ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+                    NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
+                        ItemListItemViev(model: item)
+                            .tag(index)
+                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                            .listRowBackground(Color.pbh.whiteBackground)
                     }
+                    .padding(.leading, 7)
                     .listRowBackground(Color.pbh.whiteBackground)
+                    .contextMenu {
+                        ContextMenuContent(item: item.item!)
+                    }
+                    .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                        prefKey = CGFloat(index)
+                    }
+                    .onPreferenceChange(ViewOffsetKey.self) {
+                        let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                        scrollViewHelper.currentOffset = offset
+                    }
                 }
-                .listStyle(.bordered)
                 .listRowBackground(Color.pbh.whiteBackground)
-                .toolbar(content: itemsToolBarContent)
-                .coordinateSpace(name: "scroll")
-                GeometryReader {
-                    let offset = -$0.frame(in: .named("scroll")).origin.y
-                    Color.clear.preference(key: ViewOffsetKey.self, value: offset)
-                }
             }
+            .listStyle(.bordered)
+            .listRowBackground(Color.pbh.whiteBackground)
+            .toolbar(content: itemsToolBarContent)
             .padding(.horizontal, -7)
             .navigationTitle(node.title)
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-            }
-            .onPreferenceChange(ViewOffsetKey.self) {
-                scrollViewHelper.currentOffset = $0
             }
             .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
                 markRead($0)
