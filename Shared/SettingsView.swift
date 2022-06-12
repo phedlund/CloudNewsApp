@@ -160,11 +160,13 @@ struct SettingsForm: View {
                     Text("12 months").tag(KeepDuration.twelve)
                         .navigationTitle("Duration")
                 }
+#if !os(macOS)
                 NavigationLink {
-                    AddView()
+                    AddView(.feed)
                 } label: {
                     Text("Add Feed or Folder...")
                 }
+#endif
             }
             .groupedStyle(header: Text("Maintenance"))
 
@@ -187,7 +189,7 @@ struct SettingsForm: View {
             switch sheet {
             case .add:
                 NavigationView {
-                    AddView()
+                    AddView(.feed)
                 }
             case .login:
                 LoginWebViewView()

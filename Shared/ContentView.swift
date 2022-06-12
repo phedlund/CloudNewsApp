@@ -14,9 +14,18 @@ struct ContentView: View {
 #endif
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
-    
+
+    private let onNewFeed = NotificationCenter.default
+        .publisher(for: .newFeed)
+        .receive(on: RunLoop.main)
+
+    private let onNewFolder = NotificationCenter.default
+        .publisher(for: .newFolder)
+        .receive(on: RunLoop.main)
+
     @State private var isShowingLogin = false
-    
+    @State private var addSheet: AddType?
+
     private var isNotLoggedIn: Bool {
 #if !os(macOS)
         return username.isEmpty || password.isEmpty
@@ -30,17 +39,41 @@ struct ContentView: View {
             .onAppear {
                 isShowingLogin = isNotLoggedIn
             }
-            .sheet(isPresented: $isShowingLogin, onDismiss: nil) {
+#if !os(macOS)
+            .sheet(isPresented: $isShowingLogin) {
                 NavigationView {
                     SettingsView()
                 }
             }
-#if !os(macOS)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
                 print("Moving to the background!")
                 appDelegate.scheduleAppRefresh()
                 appDelegate.scheduleImageFetch()
             }
+#else
+            .sheet(item: $addSheet) { sheet in
+                switch sheet {
+                case .feed:
+                    VStack {
+                        AddView(.feed)
+                    }
+                    .padding()
+                    .frame(minWidth: 400)
+                case .folder:
+                    VStack {
+                        AddView(.folder)
+                    }
+                    .padding()
+                    .frame(minWidth: 400)
+                }
+            }
+            .onReceive(onNewFeed) { _ in
+                addSheet = .feed
+            }
+            .onReceive(onNewFolder) { _ in
+                addSheet = .folder
+            }
+
 #endif
     }
     

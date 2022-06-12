@@ -7,9 +7,11 @@
 
 import SwiftUI
 
-enum AddType: Int {
+enum AddType: Int, Identifiable {
     case feed
     case folder
+
+    var id: Int { self.rawValue }
 }
 
 struct AddView: View {
@@ -23,14 +25,20 @@ struct AddView: View {
     @State private var folderNames = [String]()
     @State private var folderId = 0
 
+    init(_ selectedAddType: AddType) {
+        self._selectedAdd = State(initialValue: selectedAddType)
+    }
+
     var body: some View {
         Form {
             Section(footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
+#if !os(macOS)
                 Picker("Add", selection: $selectedAdd) {
                     Text("Feed").tag(AddType.feed)
                     Text("Folder").tag(AddType.folder)
                 }
                 .pickerStyle(.segmented)
+#endif
                 AddViewSegment(input: $input, addType: selectedAdd)
                 if selectedAdd == .feed {
                     Picker("Folder", selection: $folderSelection) {
@@ -91,6 +99,17 @@ struct AddView: View {
                         .progressViewStyle(.circular)
                         .opacity(isAdding ? 1.0 : 0.0)
                 }
+#if os(macOS)
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Close")
+                    }
+                    .keyboardShortcut(.escape, modifiers: [])
+                }
+#endif
             }
             .navigationTitle("Add Feed or Folder")
         }
@@ -114,7 +133,7 @@ struct AddView: View {
 
 struct AddView_Previews: PreviewProvider {
     static var previews: some View {
-        AddView()
+        AddView(.feed)
     }
 }
 
@@ -126,7 +145,7 @@ struct AddViewSegment: View {
     var body: some View {
         switch addType {
         case .feed:
-            TextField("", text: $input, prompt: Text("https://example.com/feed"))
+            TextField("URL", text: $input, prompt: Text("https://example.com/feed"))
 #if !os(macOS)
                 .autocapitalization(.none)
                 .textContentType(.URL)
@@ -136,7 +155,7 @@ struct AddViewSegment: View {
                 .textFieldStyle(.roundedBorder)
                 .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
         case .folder:
-            TextField("", text: $input, prompt: Text("Folder Name"))
+            TextField("Name", text: $input, prompt: Text("Folder Name"))
                 .textFieldStyle(.roundedBorder)
                 .padding(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
 #if !os(macOS)
