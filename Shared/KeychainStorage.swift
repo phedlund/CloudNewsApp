@@ -5,10 +5,11 @@ import KeychainAccess
 struct KeychainStorage: DynamicProperty {
     let key: String
     @State private var value: String
+    private let keychain = Keychain(service: "dev.hedlund.CloudNews")
 
     init(wrappedValue: String = "", _ key: String) {
         self.key = key
-        let initialValue = (try? Keychain().get(key)) ?? wrappedValue
+        let initialValue = (try? keychain.get(key)) ?? wrappedValue
         self._value = State<String>(initialValue: initialValue)
     }
 
@@ -18,7 +19,7 @@ struct KeychainStorage: DynamicProperty {
         nonmutating set {
             value = newValue
             do {
-                try Keychain().set(value, key: key)
+                try keychain.set(value, key: key)
             } catch let error {
                 fatalError("\(error)")
             }
