@@ -40,13 +40,12 @@ struct ContextMenuContent: View {
 }
 
 struct TitleView: View {
-    var title: String
-    var unread: Bool
+    @ObservedObject var item: CDItem
     let font = Font.headline.weight(.semibold)
 
     var body: some View {
-        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(title)
+        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(item.title ?? "Untitled")
             .multilineTextAlignment(.leading)
             .font(font)
             .foregroundColor(textColor)
@@ -56,16 +55,14 @@ struct TitleView: View {
 }
 
 struct FavIconDateAuthorView: View {
-    var dateAuthorFeed: String
-    var unread: Bool
-    var feedId: Int32
+    @ObservedObject var item: CDItem
 
     var body: some View {
-        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         HStack {
-            ItemFavIconView(nodeType: .feed(id: feedId))
-                .opacity(unread ? 1.0 : 0.4)
-            Text(dateAuthorFeed)
+            ItemFavIconView(nodeType: .feed(id: item.feedId))
+                .opacity(item.unread ? 1.0 : 0.4)
+            Text(item.dateAuthorFeed)
                 .font(.subheadline)
                 .foregroundColor(textColor)
                 .italic()
@@ -75,13 +72,12 @@ struct FavIconDateAuthorView: View {
 }
 
 struct BodyView: View {
-    var bodyText: String
-    var unread: Bool
+    @ObservedObject var item: CDItem
 
     @ViewBuilder
     var body: some View {
-        let textColor = unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(bodyText)
+        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(item.displayBody ?? "")
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.body)
@@ -150,13 +146,12 @@ struct ItemImageView: View {
 }
 
 struct ItemStarredView: View {
-    var starred: Bool
-    var unread: Bool
+    @ObservedObject var item: CDItem
 
     @ViewBuilder
     var body: some View {
         VStack {
-            if starred {
+            if item.starred {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -169,6 +164,6 @@ struct ItemStarredView: View {
             }
         }
         .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-        .opacity(unread ? 1.0 : 0.4)
+        .opacity(item.unread ? 1.0 : 0.4)
     }
 }
