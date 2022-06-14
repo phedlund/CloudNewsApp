@@ -76,6 +76,7 @@ class Preferences: ObservableObject {
     @UserDefault(StorageKeys.lastModified) var lastModified: Int32 = 0
     @UserDefault(StorageKeys.compactView) var compactView = false
     @UserDefault(StorageKeys.keepDuration) var keepDuration = 3
+    @UserDefault(StorageKeys.syncInterval) var syncInterval = 900
     @UserDefault(StorageKeys.selectedNode) var selectedNode = ""
     @UserDefault(StorageKeys.selectedFeed) var selectedFeed = 0
 }

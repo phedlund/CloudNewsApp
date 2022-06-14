@@ -159,6 +159,7 @@
 		D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
 		D0EBDB5F269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
 		D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F35C0527249B2F004BFC27 /* MailComposeView.swift */; };
+		D0F9B04D2856AFDD00D91BF5 /* SyncTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */; };
 		D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
 		D0FEBD5B268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
 		D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */; };
@@ -256,6 +257,7 @@
 		D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderRenameView.swift; sourceTree = "<group>"; };
 		D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		D0F35C0527249B2F004BFC27 /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MailComposeView.swift; path = Shared/MailComposeView.swift; sourceTree = SOURCE_ROOT; };
+		D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTimer.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PBHColors.swift; sourceTree = "<group>"; };
 		D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemImageFetcher.swift; sourceTree = "<group>"; };
@@ -310,6 +312,7 @@
 				D02F44C6265C89F700A3505B /* Models */,
 				D0B0B2EF267C2A4D00A997DB /* Networking */,
 				D0B0B2FE267FF86300A997DB /* FeedModel.swift */,
+				D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */,
 				D06D072C274F01D000325770 /* Node.swift */,
 				D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */,
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
@@ -673,6 +676,7 @@
 				D050B31827B0C0C200442584 /* ContentBlocker.swift in Sources */,
 				D02F4510265C8CAA00A3505B /* Items.swift in Sources */,
 				D0728A532816009600B85F72 /* PagerWrapper.swift in Sources */,
+				D0F9B04D2856AFDD00D91BF5 /* SyncTimer.swift in Sources */,
 				D027487A26A9D2A10000FB47 /* AddView.swift in Sources */,
 				D06D0731274F236800325770 /* FavIconFetcher.swift in Sources */,
 				D02F44F0265C89F700A3505B /* SyncHelper.swift in Sources */,

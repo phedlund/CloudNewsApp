@@ -5,6 +5,15 @@
 //  Created by Peter Hedlund on 6/27/20.
 //
 
+enum SyncInterval: Int, CaseIterable, Identifiable {
+    case zero = 0
+    case fifteen = 900
+    case thirty = 1800
+    case sixty = 3600
+
+    var id: Int { self.rawValue }
+}
+
 enum KeepDuration: Int, CaseIterable, Identifiable {
     case one = 1
     case three = 3
@@ -73,7 +82,8 @@ struct SettingsForm: View {
     @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst = false
     @AppStorage(StorageKeys.compactView) var compactView = false
     @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
-    
+    @AppStorage(StorageKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
+
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
     @State private var footerMessage = ""
@@ -118,12 +128,22 @@ struct SettingsForm: View {
             .groupedStyle(header: Text("Server"), footer: FooterLabel(message: footerMessage, success: footerSuccess))
 
             Section {
+#if !os(macOS)
                 Toggle(isOn: $syncOnStart) {
                     Text("Sync on Start")
                 }
                 Toggle(isOn: $syncInBackground) {
                     Text("Sync in Background")
                 }
+#else
+                Picker("Sync Every", selection: $syncInterval) {
+                    Text("Never").tag(SyncInterval.zero)
+                    Text("15 minutes").tag(SyncInterval.fifteen)
+                    Text("30 minutes").tag(SyncInterval.thirty)
+                    Text("60 minutes").tag(SyncInterval.sixty)
+                        .navigationTitle("Sync Interval")
+                }
+#endif
             }
             .groupedStyle(header: Text("Syncing"))
 

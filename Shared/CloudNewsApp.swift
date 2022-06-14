@@ -18,7 +18,9 @@ struct CloudNewsApp: App {
     let sheetManager: PartialSheetManager = PartialSheetManager()
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    private let syncTimer = SyncTimer()
 #endif
+
     var body: some Scene {
         WindowGroup {
             ContentView()

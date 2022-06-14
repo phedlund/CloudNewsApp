@@ -58,4 +58,5 @@ enum StorageKeys {
     static let itemsToStar = "ItemsToStar"
     static let itemsToUnstar = "ItemsToUnstar"
     static let keepDuration = "KeepDuration"
+    static let syncInterval = "SyncInterval"
 }
