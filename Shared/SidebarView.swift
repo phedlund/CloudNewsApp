@@ -150,9 +150,9 @@ struct SidebarView: View {
     }
 
     private func sync() {
-        Task {
+        isSyncing = true
+        Task(priority: .userInitiated) {
             do {
-                isSyncing = true
                 try await NewsManager().sync()
                 isShowingError = false
                 errorMessage = ""
