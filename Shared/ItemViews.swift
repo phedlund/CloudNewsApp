@@ -10,29 +10,29 @@ import NukeUI
 import SwiftUI
 
 struct ContextMenuContent: View {
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
 
     var body: some View {
         Button {
             Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: !item.unread)
+                try? await NewsManager.shared.markRead(items: [model.item!], unread: !model.unread)
             }
         } label: {
             Label {
-                Text(item.unread ? "Read" : "Unread")
+                Text(model.unread ? "Read" : "Unread")
             } icon: {
-                Image(systemName: item.unread ? "eye" : "eye.slash")
+                Image(systemName: model.unread ? "eye" : "eye.slash")
             }
         }
         Button {
             Task {
-                try? await NewsManager.shared.markStarred(item: item, starred: !item.starred)
+                try? await NewsManager.shared.markStarred(item: model.item!, starred: !model.starred)
             }
         } label: {
             Label {
-                Text(item.starred ? "Unstar" : "Star")
+                Text(model.starred ? "Unstar" : "Star")
             } icon: {
-                Image(systemName: item.starred ? "star" : "star.fill")
+                Image(systemName: model.starred ? "star" : "star.fill")
             }
         }
     }
@@ -40,12 +40,12 @@ struct ContextMenuContent: View {
 }
 
 struct TitleView: View {
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
     let font = Font.headline.weight(.semibold)
 
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(item.title ?? "Untitled")
+        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(model.item!.title ?? "Untitled")
             .multilineTextAlignment(.leading)
             .font(font)
             .foregroundColor(textColor)
@@ -55,14 +55,14 @@ struct TitleView: View {
 }
 
 struct FavIconDateAuthorView: View {
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
 
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         HStack {
-            ItemFavIconView(nodeType: .feed(id: item.feedId))
-                .opacity(item.unread ? 1.0 : 0.4)
-            Text(item.dateAuthorFeed)
+            ItemFavIconView(nodeType: .feed(id: model.feedId))
+                .opacity(model.unread ? 1.0 : 0.4)
+            Text(model.dateAuthorFeed)
                 .font(.subheadline)
                 .foregroundColor(textColor)
                 .italic()
@@ -72,12 +72,12 @@ struct FavIconDateAuthorView: View {
 }
 
 struct BodyView: View {
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
 
     @ViewBuilder
     var body: some View {
-        let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(item.displayBody ?? "")
+        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        Text(model.displayBody)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.body)
@@ -87,11 +87,11 @@ struct BodyView: View {
 
 struct ItemImageView: View {
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
     var size: CGSize
 
-    init(item: CDItem, size: CGSize) {
-        self.item = item
+    init(model: ArticleModel, size: CGSize) {
+        self.model = model
         self.size = size
         ImagePipeline.shared = ImagePipeline(configuration: .withDataCache)
     }
@@ -99,59 +99,38 @@ struct ItemImageView: View {
     @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
-        if isShowingThumbnails, let imageLink = item.imageLink, imageLink != "data:null", let url = URL(string: imageLink) {
-                let request = ImageRequest.init(urlRequest: URLRequest(url: url), processors: [SizeProcessor(), ImageProcessors.Resize(size: size,
-                                                                                                                               unit: .points,
-                                                                                                                               contentMode: .aspectFill,
-                                                                                                                               crop: true,
-                                                                                                                               upscale: true)],
-                                                priority: .veryHigh,
-                                                options: [],
-                                                userInfo: nil)
-
-                LazyImage(source: request) { state in
-                    if let image = state.image {
-                        image
-                            .animation(nil, value: true)
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: size.width, height: size.height)
-                            .clipped()
-                            .opacity(item.unread ? 1.0 : 0.4)
-                    } else if state.error != nil {
-                        Color.pbh.whiteCellBackground
-                            .animation(.none)
-                            .frame(width: 2, height: size.height)
-                            .onAppear {
-                                updateImageLink()
-                            }
-                    } else {
-                        HStack(alignment: .center) {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .controlSize(.small)
-                        }
-                        .frame(width: size.width, height: size.height)
-                    }
+        if isShowingThumbnails, let image = model.image {
+            Image(image)
+                .aspectRatio(contentMode: .fill)
+                .frame(width: size.width, height: size.height)
+                .clipped()
+                .opacity(model.unread ? 1.0 : 0.4)
+        } else {
+            Color.pbh.whiteCellBackground
+                .frame(width: 2, height: size.height)
+                .onAppear {
+                    updateImageLink()
                 }
-            } else {
-                Spacer(minLength: 2)
-            }
+        }
     }
 
     private func updateImageLink() {
         Task {
-            try await CDItem.addImageLink(item: item, imageLink: "data:null")
+            guard let currentLink = model.item?.imageLink, currentLink != "data:null" else {
+                return
+            }
+            try await CDItem.addImageLink(item: model.item!, imageLink: "data:null")
         }
     }
 }
 
 struct ItemStarredView: View {
-    @ObservedObject var item: CDItem
+    @ObservedObject var model: ArticleModel
 
     @ViewBuilder
     var body: some View {
         VStack {
-            if item.starred {
+            if model.starred {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -164,6 +143,6 @@ struct ItemStarredView: View {
             }
         }
         .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-        .opacity(item.unread ? 1.0 : 0.4)
+        .opacity(model.unread ? 1.0 : 0.4)
     }
 }

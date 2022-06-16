@@ -19,21 +19,25 @@ class ItemImageFetcher {
 
     private let validSchemas = ["http", "https", "file"]
 
-    func prefetchImages(_ urlStrings: [String?]) {
-        var imageRequests = [ImageRequest]()
-        for urlString in urlStrings {
-            if let urlString = urlString {
-                imageRequests.append(ImageRequest(url: URL(string: urlString), processors: [SizeProcessor()], priority: .veryHigh, options: [], userInfo: nil))
-            }
-        }
-        let prefetcher = ImagePrefetcher()
-        prefetcher.startPrefetching(with: imageRequests)
-    }
+//    func prefetchImages(_ urlStrings: [String?]) {
+//        var imageRequests = [ImageRequest]()
+//        for urlString in urlStrings {
+//            if let urlString = urlString {
+//                imageRequests.append(ImageRequest(url: URL(string: urlString), processors: [SizeProcessor()], priority: .veryHigh, options: [], userInfo: nil))
+//            }
+//        }
+//        let prefetcher = ImagePrefetcher()
+//        prefetcher.startPrefetching(with: imageRequests)
+//    }
 
     func itemURL(_ item: CDItem) {
         Task(priority: .userInitiated) {
             var itemImageUrl: String?
-            if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
+            if let imageLink = item.imageLink,
+               !imageLink.isEmpty,
+               imageLink != "data:null" {
+                itemImageUrl = imageLink
+            } else if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
                 itemImageUrl = imgUrl.absoluteString
             } else if let summary = item.body {
                 do {
@@ -55,7 +59,7 @@ class ItemImageFetcher {
                 itemImageUrl = stepTwo(item)?.absoluteString
             }
 
-            if let imageUrlString = itemImageUrl, let _ = URL(string: imageUrlString) {
+            if let imageUrlString = itemImageUrl, let _ = URL(withCheck: imageUrlString) {
                 try await CDItem.addImageLink(item: item, imageLink: imageUrlString)
             } else {
                 try await CDItem.addImageLink(item: item, imageLink: "data:null")
@@ -127,6 +131,7 @@ struct SizeProcessor: ImageProcessing {
     // `identifier` should be the same for processors with the same properties/functionality
     // It will be used when storing and retrieving the image to/from cache.
     let identifier = "dev.pbh.sizeprocessor"
+    let item: CDItem
 
     // Convert input data/image to target image and return it.
     func process(_ image: PlatformImage) -> PlatformImage? {
@@ -135,6 +140,9 @@ struct SizeProcessor: ImageProcessing {
             return image
         }
         print("Small image: \(size)")
+        Task(priority: .high) {
+            try await CDItem.addImageLink(item: item, imageLink: "data:null")
+        }
         return nil
     }
 }

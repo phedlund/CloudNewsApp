@@ -26,14 +26,14 @@ struct ItemListItemViev: View {
         if let item = model.item {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 10) {
-                    ItemImageView(item: item, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
+                    ItemImageView(model: model, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
                         .alignmentGuide(.top) { d in
                             (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
                         }
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
-                            TitleView(item: item)
-                            FavIconDateAuthorView(item: item)
+                            TitleView(model: model)
+                            FavIconDateAuthorView(model: model)
 #if !os(macOS)
                             if settings.compactView || horizontalSizeClass == .compact {
                                 EmptyView()
@@ -44,7 +44,7 @@ struct ItemListItemViev: View {
                             if settings.compactView {
                                 EmptyView()
                             } else {
-                                BodyView(item: item)
+                                BodyView(model: model)
                             }
 #endif
                             Spacer()
@@ -56,7 +56,7 @@ struct ItemListItemViev: View {
 #if !os(macOS)
                     .padding([.leading], settings.compactView || horizontalSizeClass == .compact ? 0 : 6)
 #endif
-                    ItemStarredView(item: item)
+                    ItemStarredView(model: model)
                 }
 #if !os(macOS)
                 if horizontalSizeClass == .compact && !settings.compactView  {

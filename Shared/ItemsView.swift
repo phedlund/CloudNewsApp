@@ -64,16 +64,6 @@ struct ItemsView: View {
                 markRead($0)
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(node.$items) {
-                for item in $0 {
-                    if let cdItem = item.item {
-                        if let imageLink = cdItem.imageLink, !imageLink.isEmpty {
-                            continue
-                        }
-                        ItemImageFetcher().itemURL(cdItem)
-                    }
-                }
-            }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         }
 #else
@@ -82,7 +72,7 @@ struct ItemsView: View {
             let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
             List(selection: $selection) {
                 ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                    NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
+                    NavigationLink(destination: LazyView(PagerWrapper(node: node, selectedIndex: index))) {
                         ItemListItemViev(model: item)
                             .tag(index)
                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
@@ -91,7 +81,7 @@ struct ItemsView: View {
                     .padding(.leading, 7)
                     .listRowBackground(Color.pbh.whiteBackground)
                     .contextMenu {
-                        ContextMenuContent(item: item.item!)
+                        ContextMenuContent(model: item)
                     }
                     .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
                         prefKey = CGFloat(index)

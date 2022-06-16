@@ -11,17 +11,21 @@ import Nuke
 import WebKit
 
 class ArticleModel: NSObject, ObservableObject, Identifiable {
-    
     @Published public var canGoBack = false
     @Published public var canGoForward = false
     @Published public var isLoading = false
     @Published public var title = ""
 
-    private var cancellables = Set<AnyCancellable>()
+    @Published public var image: PlatformImage?
+    @Published public var unread = true
+    @Published public var starred = false
+    @Published public var feedId: Int32 = 0
+    @Published public var dateAuthorFeed = ""
+    @Published public var displayBody = ""
 
+    private var cancellables = Set<AnyCancellable>()
     private var observations = [NSKeyValueObservation]()
     private var internalWebView: WKWebView?
-    private var shouldListenToResizeNotification = false
 
     var webView: WKWebView {
         get {
@@ -43,17 +47,76 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     init(item: CDItem?) {
         self.item = item
-        guard let item = item,
-                let imageLink = item.imageLink,
-                !imageLink.isEmpty,
-                let _ = URL(withCheck: imageLink) else {
-            if let item = item {
-                ItemImageFetcher().itemURL(item)
-            }
-            super.init()
-            return
-        }
         super.init()
+        if let item = item {
+            item
+                .publisher(for: \.imageLink)
+                .sink {
+                    guard self.image == nil else {
+                        return
+                    }
+                    if let imageLink = $0 {
+                        guard imageLink != "data:null" else {
+                            return
+                        }
+                        if imageLink.isEmpty {
+                            ItemImageFetcher().itemURL(item)
+                        } else if let url = URL(withCheck: imageLink) {
+                            print("Creating image request")
+                            let request = ImageRequest(urlRequest: URLRequest(url: url),
+                                                       processors: [SizeProcessor(item: item),
+                                                                    ImageProcessors.Resize(size: CGSize(width: 145.0, height: 160.0),
+                                                                                           unit: .points,
+                                                                                           contentMode: .aspectFill,
+                                                                                           crop: true,
+                                                                                           upscale: true)],
+                                                       priority: .veryHigh,
+                                                       options: [],
+                                                       userInfo: nil)
+                            ImagePipeline.shared.imagePublisher(with: request)
+                                .sink(receiveCompletion: { _ in /* Ignore errors */ },
+                                      receiveValue: { [weak self] in
+                                    self?.image = $0.image
+                                })
+                                .store(in: &self.cancellables)
+                        }
+                    } else {
+                        ItemImageFetcher().itemURL(item)
+                    }
+                }
+                .store(in: &cancellables)
+            item
+                .publisher(for: \.unread)
+                .sink {
+                    self.unread = $0
+                }
+                .store(in: &cancellables)
+            item
+                .publisher(for: \.starred)
+                .sink {
+                    self.starred = $0
+                }
+                .store(in: &cancellables)
+            item
+                .publisher(for: \.feedId)
+                .sink {
+                    self.feedId = $0
+                }
+                .store(in: &cancellables)
+            item
+                .publisher(for: \.dateAuthorFeed)
+                .sink {
+                    self.dateAuthorFeed = $0
+                }
+                .store(in: &cancellables)
+            item
+                .publisher(for: \.displayBody)
+                .sink {
+                    self.displayBody = $0 ?? ""
+                }
+                .store(in: &cancellables)
+            title = item.title ?? "Untitled"
+        }
     }
 
     private func setupObservations() {
