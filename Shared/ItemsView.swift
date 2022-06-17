@@ -40,7 +40,7 @@ struct ItemsView: View {
                                 }
                                 .buttonStyle(ClearSelectionStyle())
                                 .contextMenu {
-                                    ContextMenuContent(item: item.item!)
+                                    ContextMenuContent(model: item)
                                 }
                             }
                         }
