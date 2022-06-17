@@ -23,75 +23,58 @@ struct ItemListItemViev: View {
 
     @ViewBuilder
     var body: some View {
-        if let item = model.item {
-            VStack(spacing: 0) {
-                HStack(alignment: .top, spacing: 10) {
-                    ItemImageView(model: model, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
-                        .alignmentGuide(.top) { d in
-                            (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
-                        }
-                    HStack {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TitleView(model: model)
-                            FavIconDateAuthorView(model: model)
 #if !os(macOS)
-                            if settings.compactView || horizontalSizeClass == .compact {
-                                EmptyView()
-                            } else {
-                                BodyView(item: item)
-                            }
+        let isHorizontalCompact = horizontalSizeClass == .compact
 #else
-                            if settings.compactView {
-                                EmptyView()
-                            } else {
-                                BodyView(model: model)
-                            }
+        let isHorizontalCompact = false
 #endif
-                            Spacer()
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 10) {
+                ItemImageView(model: model, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
+                    .alignmentGuide(.top) { d in
+                        (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
+                    }
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TitleView(model: model)
+                        FavIconDateAuthorView(model: model)
+                        if settings.compactView || isHorizontalCompact {
+                            EmptyView()
+                        } else {
+                            BodyView(model: model)
                         }
-                        .padding(.zero)
                         Spacer()
                     }
-                    .padding([.top], 6)
-#if !os(macOS)
-                    .padding([.leading], settings.compactView || horizontalSizeClass == .compact ? 0 : 6)
-#endif
-                    ItemStarredView(model: model)
+                    .padding(.zero)
+                    .padding(.top, 3)
+                    Spacer()
                 }
-#if !os(macOS)
-                if horizontalSizeClass == .compact && !settings.compactView  {
-                    HStack {
-                        VStack {
-                            BodyView(item: item)
-                                .padding([.leading], 12)
-                            Spacer()
-                        }
-                        Spacer(minLength: 26) // 16 (star view width) + 10 (HStack spacing above)
+                .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
+                ItemStarredView(model: model)
+            }
+            if isHorizontalCompact && !settings.compactView  {
+                HStack {
+                    VStack {
+                        BodyView(model: model)
+                            .padding([.leading], 12)
+                        Spacer()
                     }
-                } else {
-                    EmptyView()
+                    Spacer(minLength: 26) // 16 (star view width) + 10 (HStack spacing above)
                 }
-#endif
+            } else {
+                EmptyView()
             }
-            .padding([.trailing], 10)
-            .background(Color.pbh.whiteCellBackground
-                .cornerRadius(4)
-                .frame(height: cellHeight)
-                .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
-            .onReceive(settings.$compactView) { newCompactView in
-                cellHeight = newCompactView ? 85.0 : 160.0
-#if !os(macOS)
-                thumbnailWidth = newCompactView ? 66.0 : horizontalSizeClass == .compact ? 66.0 : 145.0
-                thumbnailHeight = newCompactView ? cellHeight : horizontalSizeClass == .compact ? cellHeight / 2 : cellHeight
-#else
-                thumbnailWidth = newCompactView ? 66.0 : 145.0
-                thumbnailHeight = cellHeight
-#endif
-            }
-        } else {
-            EmptyView()
         }
-
+        .padding([.trailing], 10)
+        .background(Color.pbh.whiteCellBackground
+            .cornerRadius(4)
+            .frame(height: cellHeight)
+            .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
+        .onReceive(settings.$compactView) { newCompactView in
+            cellHeight = newCompactView ? 85.0 : 160.0
+            thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
+            thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? cellHeight / 2 : cellHeight
+        }
     }
     
 }
