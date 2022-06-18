@@ -214,15 +214,8 @@ struct PagerWrapper: View {
                     }
                 }
                 Spacer()
-                //                    Button {
-                //                        isShowingSharePopover = sharingProvider != nil
-                //                    } label: {
-                //                        Image(systemName: "square.and.arrow.up")
-                //                    }
-                //                    .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                //                        ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
-                //                    }
-                //                    .disabled(isLoading)
+                NSSharingService.submenu(text: currentModel.item?.url ?? "")
+                .disabled(isLoading)
                 Button {
                     isShowingPopover = true
                 } label: {

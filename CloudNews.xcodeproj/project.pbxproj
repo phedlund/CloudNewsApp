@@ -13,6 +13,7 @@
 		D00AFA1C269383CB00BAED44 /* OCSProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCSProtocol.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
 		D00AFA1F2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
+		D00FD65A285C157A00D95FB4 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D0103C73271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D0103C74271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
@@ -698,6 +699,7 @@
 				D02F4530265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
 				D00AFA1F2693872800BAED44 /* KeychainStorage.swift in Sources */,
 				D02F4528265C8CE300A3505B /* CDFeed+CoreDataClass.swift in Sources */,
+				D00FD65A285C157A00D95FB4 /* SharingProvider.swift in Sources */,
 				D02F452E265C8CF500A3505B /* CDFeeds+CoreDataClass.swift in Sources */,
 				D02F4546265C8D2900A3505B /* CDRead+CoreDataClass.swift in Sources */,
 				D02F4540265C8D1900A3505B /* CDRead+CoreDataProperties.swift in Sources */,
