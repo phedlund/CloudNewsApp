@@ -55,20 +55,11 @@ struct SidebarView: View {
                 .transition(.move(edge: .top))
             }
             OutlineGroup(model.nodes, children: \.children) { node in
-                NavigationLink(tag: node.id, selection: $selection) {
+                NavigationLink {
                     ItemsView(node: node)
                         .environmentObject(preferences)
                 } label: {
                     NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                }
-                .contextMenu {
-                    Button {
-                        selection = selectedNode
-        //                selectedFeed = Int(folderId)
-        //                modalSheet = .folderRename
-                    } label: {
-                        Label("Rename...", systemImage: "square.and.pencil")
-                    }
                 }
             }
             .accentColor(.pbh.whiteIcon)
@@ -82,41 +73,24 @@ struct SidebarView: View {
             selection = selectedNode
         }
         .toolbar {
-#if !os(macOS)
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .opacity(isSyncing ? 1.0 : 0.0)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     sync()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
                 .disabled(isSyncing)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
+#if !os(macOS)
                 Button {
                     modalSheet = .settings
                 } label: {
                     Image(systemName: "ellipsis")
                 }
-            }
-#else
-            ToolbarItemGroup {
-                ProgressView()
-                    .controlSize(.small)
-                    .progressViewStyle(.circular)
-                    .opacity(isSyncing ? 1.0 : 0.0)
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isSyncing)
-            }
 #endif
+            }
         }
         .onReceive(publisher) { _ in
             isSyncing = false
@@ -171,11 +145,11 @@ struct SidebarView: View {
     }
 }
 
-struct SidebarView_Previews: PreviewProvider {
-    static var previews: some View {
-        SidebarView()
-    }
-}
+//struct SidebarView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        SidebarView()
+//    }
+//}
 
 struct RectPreferences<NSManagedObjectID: Hashable>: PreferenceKey {
     typealias Value = [NSManagedObjectID: CGRect]

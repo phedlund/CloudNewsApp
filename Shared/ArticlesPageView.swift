@@ -91,30 +91,20 @@ struct ArticlesPageView: View {
             }
         }
         .toolbar {
-#if !os(macOS)
-            ToolbarItem(placement: .navigationBarLeading) {
-                Spacer(minLength: 10)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
-                Spacer(minLength: 10)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItemGroup(placement: .navigationBarLeading) {
+//                Spacer(minLength: 10)
                 Button {
                     currentModel.webView.goBack()
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
                 .disabled(!canGoBack)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     currentModel.webView.goForward()
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
                 .disabled(!canGoForward)
-            }
-            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     if isLoading {
                         currentModel.webView.stopLoading()
@@ -129,7 +119,7 @@ struct ArticlesPageView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Button {
                     isShowingSharePopover = sharingProvider != nil
                 } label: {
@@ -139,8 +129,6 @@ struct ArticlesPageView: View {
                     ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
                 }
                 .disabled(isLoading)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         self.partialSheetManager.showPartialSheet({
@@ -163,7 +151,6 @@ struct ArticlesPageView: View {
                 }
                 .disabled(isLoading)
             }
-#endif
         }
     }
 

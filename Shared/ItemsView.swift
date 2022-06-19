@@ -33,7 +33,9 @@ struct ItemsView: View {
                         Spacer(minLength: 1.0)
                         if !node.items.indices.isEmpty {
                             ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                                NavigationLink(destination: PagerWrapper(node: node, selectedIndex: index)) {
+                                NavigationLink {
+                                    ArticlesPageView(node: node, selectedIndex: index)
+                                } label: {
                                     ItemListItemViev(model: item)
                                         .tag(index)
                                         .frame(width: cellWidth, height: cellHeight, alignment: .center)
