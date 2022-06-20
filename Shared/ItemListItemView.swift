@@ -66,10 +66,10 @@ struct ItemListItemViev: View {
             }
         }
         .padding([.trailing], 10)
-        .background(Color.pbh.whiteCellBackground
-            .cornerRadius(4)
-            .frame(height: cellHeight)
-            .shadow(color: Color(white: 0.4, opacity: colorScheme == .light ? 0.35 : 0.65), radius: 2, x: 1, y: 2))
+        .background(in: RoundedRectangle(cornerRadius: 4.0))
+        .backgroundStyle(
+            Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
+        )
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 85.0 : 160.0
             thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
