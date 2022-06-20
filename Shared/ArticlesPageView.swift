@@ -26,26 +26,6 @@ struct ArticlesPageView: View {
     @State private var isLoading = false
     @State private var title = ""
 
-#if os(iOS)
-    private var sharingProvider: SharingProvider? {
-        var viewedUrl: URL?
-        var subject = ""
-        viewedUrl = currentModel.webView.url
-        subject = currentModel.webView.title ?? ""
-        if viewedUrl?.scheme?.hasPrefix("file") ?? false {
-            if let urlString = currentModel.item?.url {
-                viewedUrl = URL(string: urlString) ?? nil
-                subject = currentModel.item?.title ?? "Untitled"
-            }
-        }
-
-        if let url = viewedUrl {
-            return SharingProvider(placeholderItem: url, subject: subject)
-        }
-        return nil
-    }
-#endif
-
     init(node: Node, selectedIndex: Int) {
         self.node = node
         self.selectedIndex = selectedIndex
@@ -120,15 +100,8 @@ struct ArticlesPageView: View {
                 }
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button {
-                    isShowingSharePopover = sharingProvider != nil
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .popover(isPresented: $isShowingSharePopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                    ActivityView(activityItems: [sharingProvider!], applicationActivities: [SafariActivity()])
-                }
-                .disabled(isLoading)
+                ShareLinkView(model: currentModel)
+                    .disabled(isLoading)
                 Button {
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         self.partialSheetManager.showPartialSheet({
