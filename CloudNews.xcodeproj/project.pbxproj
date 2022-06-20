@@ -109,7 +109,6 @@
 		D050B31527B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
 		D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
 		D050B31827B0C0C200442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
-		D050B31E27C332D500442584 /* PartialSheet in Frameworks */ = {isa = PBXBuildFile; productRef = D050B31D27C332D500442584 /* PartialSheet */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
 		D064CAEF26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
 		D0698979268569BF005AA05B /* ItemListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0698978268569BF005AA05B /* ItemListItemView.swift */; };
@@ -273,7 +272,6 @@
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D029B71228454D8300833D66 /* NukeUI in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
-				D050B31E27C332D500442584 /* PartialSheet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,7 +465,6 @@
 			packageProductDependencies = (
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
-				D050B31D27C332D500442584 /* PartialSheet */,
 				D029B71128454D8300833D66 /* NukeUI */,
 			);
 			productName = "CloudNews (iOS)";
@@ -525,7 +522,6 @@
 			packageReferences = (
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
-				D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */,
 				D029B71028454D8300833D66 /* XCRemoteSwiftPackageReference "NukeUI" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
@@ -1002,14 +998,6 @@
 				minimumVersion = 2.3.2;
 			};
 		};
-		D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/AndreaMiotto/PartialSheet";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1042,11 +1030,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
-		};
-		D050B31D27C332D500442584 /* PartialSheet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D050B31C27C332D500442584 /* XCRemoteSwiftPackageReference "PartialSheet" */;
-			productName = PartialSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 

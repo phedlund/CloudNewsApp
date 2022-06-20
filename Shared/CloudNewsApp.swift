@@ -5,9 +5,6 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
-#if os(iOS)
-import PartialSheet
-#endif
 import SwiftUI
 
 @main
@@ -15,7 +12,6 @@ struct CloudNewsApp: App {
     @StateObject var settings = Preferences()
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
-    let sheetManager: PartialSheetManager = PartialSheetManager()
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
     private let syncTimer = SyncTimer()
@@ -25,9 +21,6 @@ struct CloudNewsApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(settings)
-#if os(iOS)
-                .environmentObject(sheetManager)
-#endif
         }
 #if os(macOS)
         .windowToolbarStyle(.unifiedCompact)

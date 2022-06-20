@@ -5,21 +5,13 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
-#if os(iOS)
-import PartialSheet
-#endif
 import SwiftUI
 
 struct ArticlesPageView: View {
-#if os(iOS)
-    @EnvironmentObject private var partialSheetManager: PartialSheetManager
-#endif
     @EnvironmentObject private var settings: Preferences
     @ObservedObject private var node: Node
     @State var selectedIndex: Int
     @State private var isShowingPopover = false
-    @State private var isShowingPartialSheet = false
-    @State private var isShowingSharePopover = false
     @State private var currentModel = ArticleModel(item: nil)
     @State private var canGoBack = false
     @State private var canGoForward = false
@@ -40,9 +32,6 @@ struct ArticlesPageView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-#if !os(macOS)
-        .addPartialSheet(style: .defaultStyle())
-#endif
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -72,7 +61,6 @@ struct ArticlesPageView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarLeading) {
-//                Spacer(minLength: 10)
                 Button {
                     currentModel.webView.goBack()
                 } label: {
@@ -103,23 +91,14 @@ struct ArticlesPageView: View {
                 ShareLinkView(model: currentModel)
                     .disabled(isLoading)
                 Button {
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        self.partialSheetManager.showPartialSheet({
-                            print("Partial sheet dismissed")
-                        }) {
-                            if let item = currentModel.item {
-                                ArticleSettingsView(item: item)
-                            }
-                        }
-                    } else {
-                        isShowingPopover = true
-                    }
+                    isShowingPopover = true
                 } label: {
                     Image(systemName: "textformat.size")
                 }
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                     if let item = currentModel.item {
                         ArticleSettingsView(item: item)
+                            .presentationDetents([.height(300.0)])
                     }
                 }
                 .disabled(isLoading)
