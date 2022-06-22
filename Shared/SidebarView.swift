@@ -87,7 +87,7 @@ struct SidebarView: View {
                 Button {
                     modalSheet = .settings
                 } label: {
-                    Image(systemName: "ellipsis")
+                    Image(systemName: "ellipsis.circle")
                 }
 #endif
             }
