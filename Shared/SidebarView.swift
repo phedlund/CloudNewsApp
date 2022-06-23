@@ -73,7 +73,7 @@ struct SidebarView: View {
             selection = selectedNode
         }
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .primaryAction) {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .opacity(isSyncing ? 1.0 : 0.0)
