@@ -163,13 +163,28 @@ struct SettingsView: View {
 #endif
             } header: {
                 Text("Maintenance")
+            } footer: {
+                Text("Starred articles will never be deleted")
+#if os(macOS)
+                    .font(.footnote)
+#endif
             }
             Section {
+#if !os(macOS)
                 Button {
                     sendMail()
                 } label: {
                     Label("Contact", systemImage: "mail")
                 }
+#else
+                Link(destination: supportURL) {
+                    Label("Email", systemImage: "mail")
+                }
+#endif
+                Link(destination: URL(string: "https://pbh.dev/cloudnews")!) {
+                    Label("Web Site", systemImage: "link")
+                }
+
             } header: {
                 Text("Support")
             }
@@ -204,19 +219,19 @@ struct SettingsView: View {
             onDismiss()
         }
 #if !os(macOS)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .symbolVariant(.circle.fill)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                    }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.title2)
+                        .symbolVariant(.circle.fill)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
 #endif
     }
 
@@ -258,8 +273,8 @@ struct SettingsView: View {
         footerSuccess = true
     }
     
-    private func sendMail() {
 #if !os(macOS)
+    private func sendMail() {
         if MFMailComposeViewController.canSendMail() {
             settingsSheet = .mail
             isShowingMailView = true
@@ -273,17 +288,22 @@ struct SettingsView: View {
                 openURL(mailURL)
             }
         }
+    }
 #else
+    var supportURL: URL {
         var components = URLComponents()
         components.scheme = "mailto"
         components.path = email
         components.queryItems = [URLQueryItem(name: "subject", value: subject),
                                  URLQueryItem(name: "body", value: message)]
         if let mailURL = components.url {
-            openURL(mailURL)
+            return mailURL
+        } else {
+            return URL(string: "data:null")!
         }
-#endif
     }
+#endif
+
 }
 
 struct SettingsView_Previews: PreviewProvider {
