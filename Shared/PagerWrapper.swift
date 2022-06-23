@@ -5,13 +5,10 @@
 //  Created by Peter Hedlund on 4/24/22.
 //
 
+#if os(macOS)
 import SwiftUI
 
 struct PagerWrapper: View {
-#if os(iOS)
-    @EnvironmentObject private var partialSheetManager: PartialSheetManager
-#endif
-//    @StateObject var page: Page = .first()
     @ObservedObject private var node: Node
 
     @State private var title = ""
@@ -27,12 +24,9 @@ struct PagerWrapper: View {
     init(node: Node, selectedIndex: Int) {
         self.node = node
         self.selectedIndex = selectedIndex
-//        self._page = StateObject(wrappedValue: .withIndex(selectedIndex))
     }
 
     var body: some View {
-#if !os(macOS)
-#else
         ArticleView(model: node.items[selectedIndex])
             .navigationTitle(title)
             .background {
@@ -57,13 +51,10 @@ struct PagerWrapper: View {
                 }
             }
             .toolbar(content: articleToolBarContent)
-#endif
     }
 
     @ToolbarContentBuilder
     func articleToolBarContent() -> some ToolbarContent {
-#if !os(macOS)
-#else
             ToolbarItemGroup {
                 Button {
                     currentModel.webView.goBack()
@@ -105,7 +96,6 @@ struct PagerWrapper: View {
                 }
                 .disabled(isLoading)
             }
-#endif
     }
 
     private func markItemRead() {
@@ -117,4 +107,4 @@ struct PagerWrapper: View {
     }
 
 }
-
+#endif
