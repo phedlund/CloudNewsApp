@@ -31,11 +31,7 @@ struct CloudNewsApp: App {
 
 #if os(macOS)
         Settings {
-            ScrollView {
-                SettingsView()
-                    .padding(20)
-            }
-            .frame(width: 500, height: 600)
+            SettingsView()
         }
 
         WindowGroup("Login") {

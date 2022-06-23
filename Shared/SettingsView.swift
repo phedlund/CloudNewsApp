@@ -39,36 +39,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @State var isShowingMailView = false
-    
-    var body: some View {
-#if os(macOS)
-        SettingsForm()
-            .listStyle(.plain)
-            .navigationTitle("Settings")
-#else
-        SettingsForm()
-            .listStyle(.grouped)
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .symbolVariant(.circle.fill)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-#endif
-    }
-
-}
-
-struct SettingsForm: View {
     @Environment(\.openURL) var openURL
 
     @AppStorage(StorageKeys.server) var server = ""
@@ -104,12 +74,12 @@ struct SettingsForm: View {
                     Text("URL")
                 }
 #if !os(macOS)
-                    .textContentType(.URL)
-                    .autocapitalization(.none)
-                    .listRowSeparator(.hidden)
+                .textContentType(.URL)
+                .autocapitalization(.none)
+                .listRowSeparator(.hidden)
 #endif
-                    .disableAutocorrection(true)
-                    .textFieldStyle(.roundedBorder)
+                .disableAutocorrection(true)
+                .textFieldStyle(.roundedBorder)
                 Button {
 #if !os(macOS)
                     currentSettingsSheet = .login
@@ -125,9 +95,12 @@ struct SettingsForm: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(server.isEmpty)
-            }
-            .groupedStyle(header: Text("Server"), footer: FooterLabel(message: footerMessage, success: footerSuccess))
 
+            } header: {
+                Text("Server")
+            } footer: {
+                FooterLabel(message: footerMessage, success: footerSuccess)
+            }
             Section {
 #if !os(macOS)
                 Toggle(isOn: $syncOnStart) {
@@ -145,9 +118,9 @@ struct SettingsForm: View {
                         .navigationTitle("Sync Interval")
                 }
 #endif
+            } header: {
+                Text("Syncing")
             }
-            .groupedStyle(header: Text("Syncing"))
-
             Section {
                 Toggle(isOn: $showFavIcons) {
                     Text("Show Favicons")
@@ -155,10 +128,10 @@ struct SettingsForm: View {
                 Toggle(isOn: $showThumbnails) {
                     Text("Show Thumbnails")
                 }
+            } header: {
+                Text("Images")
             }
-            .groupedStyle(header: Text("Images"))
-
-            Section() {
+            Section {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
@@ -171,10 +144,10 @@ struct SettingsForm: View {
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }
+            } header: {
+                Text("Reading")
             }
-            .groupedStyle(header: Text("Reading"))
-
-            Section() {
+            Section {
                 Picker("Keep Articles For", selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
                     Text("3 months").tag(KeepDuration.three)
@@ -188,19 +161,21 @@ struct SettingsForm: View {
                     Text("Add Feed or Folder...")
                 }
 #endif
+            } header: {
+                Text("Maintenance")
             }
-            .groupedStyle(header: Text("Maintenance"))
-
             Section {
                 Button {
                     sendMail()
                 } label: {
                     Label("Contact", systemImage: "mail")
                 }
+            } header: {
+                Text("Support")
             }
-            .groupedStyle(header: Text("Support"))
-
         }
+        .formStyle(.grouped)
+        .navigationTitle("Settings")
         .onAppear(perform: {
             updateFooter()
         })
@@ -228,6 +203,21 @@ struct SettingsForm: View {
             currentSettingsSheet = .login
             onDismiss()
         }
+#if !os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.title2)
+                            .symbolVariant(.circle.fill)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+#endif
     }
 
     private func onDismiss() {
@@ -299,34 +289,5 @@ struct SettingsForm: View {
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
-    }
-}
-
-extension View {
-    func groupedStyle<V: View>(header: V = EmptyView() as! V, footer: FooterLabel = FooterLabel(message: "", success: true) ) -> some View {
-#if os(iOS)
-        return Section(header: header, footer: footer) {
-            self
-        }
-#else
-        return VStack(alignment: .leading) {
-            GroupBox(label: header
-                .font(.bold(.body)())
-                .padding(.top, 3)
-                .padding(.bottom, 3)) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            self.padding(.vertical, 3)
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical)
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            Spacer()
-            footer.foregroundColor(.secondary)
-        }
-#endif
     }
 }
