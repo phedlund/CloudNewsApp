@@ -39,7 +39,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.openURL) var openURL
+    @Environment(\.openWindow) var openWindow
 
     @AppStorage(StorageKeys.server) var server = ""
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
@@ -86,9 +86,7 @@ struct SettingsView: View {
                     settingsSheet = .login
                     isShowingSheet = true
 #else
-                    if let url = URL(string: "cloudnews://login") {
-                        openURL(url)
-                    }
+                    openWindow(id: "login")
 #endif
                 } label: {
                     Text("Log In")
