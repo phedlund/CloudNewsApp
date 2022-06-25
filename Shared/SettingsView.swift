@@ -39,8 +39,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+#if os(macOS)
     @Environment(\.openWindow) var openWindow
-
+#else
+    @Environment(\.openURL) var openURL
+#endif
     @AppStorage(StorageKeys.server) var server = ""
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
     @AppStorage(StorageKeys.syncInBackground) var syncInBackground = false

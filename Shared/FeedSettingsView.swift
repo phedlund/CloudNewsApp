@@ -11,6 +11,7 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
     @State private var folderName: String?
@@ -32,7 +33,7 @@ struct FeedSettingsView: View {
 
     init(_ selectedFeed: Int) {
         if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
-            let folders = CDFolder.all() {
+           let folders = CDFolder.all() {
             self.feed = theFeed
             var fNames = [noFolderName]
             let names = folders.compactMap( { $0.name } )
@@ -58,10 +59,9 @@ struct FeedSettingsView: View {
     }
 
     var body: some View {
-        Form {
-            Section(header: Text("Settings"), footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
-                HStack(spacing: 15) {
-                    Text("Title")
+        VStack {
+            Form {
+                Section {
                     TextField("Title", text: $title) { isEditing in
                         if !isEditing {
                             onTitleCommit()
@@ -69,80 +69,98 @@ struct FeedSettingsView: View {
                     } onCommit: {
                         onTitleCommit()
                     }
-                }
-                Picker("Folder", selection: $folderSelection) {
-                    ForEach(folderNames, id: \.self) {
-                        Text($0)
+                    .textFieldStyle(.roundedBorder)
+                    Picker("Folder", selection: $folderSelection) {
+                        ForEach(folderNames, id: \.self) {
+                            Text($0)
+                        }
+                        .navigationTitle("Folder")
                     }
-                    .navigationTitle("Folder")
+                    Toggle("View web version", isOn: $preferWeb)
+                } header: {
+                    Text("Settings")
+                } footer: {
+                    FooterLabel(message: footerMessage, success: footerSuccess)
                 }
-                Toggle("View web version", isOn: $preferWeb)
+                Section {
+                    HStack(alignment: .lastTextBaseline, spacing: 15) {
+                        Text("URL")
+                        Spacer()
+                        Text(verbatim: url)
+                            .lineLimit(2)
+                            .textSelection(.enabled)
+                    }
+                    HStack(spacing: 15) {
+                        Text("Date Added")
+                        Spacer()
+                        Text(verbatim: added)
+                            .lineLimit(1)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    Toggle("Pinned", isOn: $pinned)
+                        .disabled(true)
+                    HStack(spacing: 15) {
+                        Text("Update Error Count")
+                        Spacer()
+                        Text(verbatim: updateErrorCount)
+                            .lineLimit(1)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack(spacing: 15) {
+                        Text("Last Update Error")
+                        Spacer()
+                        Text(verbatim: lastUpdateError)
+                            .lineLimit(1)
+                            .multilineTextAlignment(.trailing)
+                    }
+                } header: {
+                    Text("Information")
+                } footer: {
+                    Text("Use the web interface to change or correct this information.\nThe last \(keepDuration.rawValue) months of articles will be kept locally.")
+                }
             }
+            .formStyle(.grouped)
             .navigationTitle("Feed Settings")
-            Section {
-                HStack(alignment: .lastTextBaseline, spacing: 15) {
-                    Text("URL")
-                    Spacer()
-                    Text(verbatim: url)
-                        .lineLimit(2)
-                        .textSelection(.enabled)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.title2)
+                            .symbolVariant(.circle.fill)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                HStack(spacing: 15) {
-                    Text("Date Added")
-                    Spacer()
-                    Text(verbatim: added)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.trailing)
-                }
-                Toggle("Pinned", isOn: $pinned)
-                    .disabled(true)
-                HStack(spacing: 15) {
-                    Text("Update Error Count")
-                    Spacer()
-                    Text(verbatim: updateErrorCount)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.trailing)
-                }
-                HStack(spacing: 15) {
-                    Text("Last Update Error")
-                    Spacer()
-                    Text(verbatim: lastUpdateError)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.trailing)
-                }
-            } header: {
-                Text("Information")
-            } footer: {
-                Text("Use the web interface to change or correct this information.\nThe last 30 days of articles will be kept locally.")
             }
-        }
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
+            .onChange(of: folderSelection) { [folderSelection] newFolder in
+                if newFolder != folderSelection {
+                    onFolderSelection(newFolder == noFolderName ? "" : newFolder)
+                }
+            }
+            .onChange(of: preferWeb) { newValue in
+                if let feed = self.feed {
+                    feed.preferWeb = preferWeb
+                    do {
+                        try NewsData.mainThreadContext.save()
+                    } catch {
+                        //
+                    }
+                }
+            }
+#if os(macOS)
+            HStack {
+                Spacer()
                 Button {
                     dismiss()
                 } label: {
-                    Image(systemName: "xmark")
-                        .font(.title2)
-                        .symbolVariant(.circle.fill)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.secondary)
+                    Text("Close")
                 }
+                .buttonStyle(.bordered)
             }
-        }
-        .onChange(of: folderSelection) { [folderSelection] newFolder in
-            if newFolder != folderSelection {
-                onFolderSelection(newFolder == noFolderName ? "" : newFolder)
-            }
-        }
-        .onChange(of: preferWeb) { newValue in
-            if let feed = self.feed {
-                feed.preferWeb = preferWeb
-                do {
-                    try NewsData.mainThreadContext.save()
-                } catch {
-                    //
-                }
-            }
+            .padding()
+#endif
         }
     }
 

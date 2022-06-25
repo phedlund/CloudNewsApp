@@ -14,6 +14,8 @@ struct CloudNewsApp: App {
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    @AppStorage(StorageKeys.selectedFeedSettings) private var selectedFeedSettings: Int = 0
+    @AppStorage(StorageKeys.selectedFolderRename) private var selectedFolderRename: Int = 0
     private let syncTimer = SyncTimer()
 #endif
 
@@ -38,6 +40,19 @@ struct CloudNewsApp: App {
             LoginWebViewView()
                 .frame(minWidth: 350, idealWidth: 600, maxWidth: 600, minHeight: 500, idealHeight: 750, maxHeight: 900)
         }
+        .windowResizability(.contentSize)
+
+        Window(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
+            FeedSettingsView(selectedFeedSettings)
+                .frame(width: 600, height: 500)
+        }
+        .windowResizability(.contentSize)
+
+        Window(Text("Rename Folder"), id: ModalSheet.folderRename.rawValue) {
+            FolderRenameView(selectedFolderRename)
+                .frame(width: 500, height: 200)
+        }
+        .windowResizability(.contentSize)
 #endif
     }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-enum ModalSheet {
+enum ModalSheet: String {
     case login
     case folderRename
     case settings
@@ -20,13 +20,19 @@ extension ModalSheet: Identifiable {
 }
 
 struct SidebarView: View {
+#if os(macOS)
+    @Environment(\.openWindow) var openWindow
+#endif
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
+    @AppStorage(StorageKeys.selectedFeedSettings) private var selectedFeedSettings: Int = 0
+    @AppStorage(StorageKeys.selectedFolderRename) private var selectedFolderRename: Int = 0
     @AppStorage(StorageKeys.selectedNode) private var selectedNode: String = AllNodeGuid
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
+    @State private var isShowingConfirmation = false
     @State private var isShowingError = false
     @State private var errorMessage = ""
     @State private var selection: String? = AllNodeGuid
@@ -60,6 +66,46 @@ struct SidebarView: View {
                         .environmentObject(preferences)
                 } label: {
                     NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                }
+                .contextMenu {
+                    switch node.nodeType {
+                    case .all, .starred:
+                        EmptyView()
+                    case .folder(let folderId):
+                        Button {
+#if os(macOS)
+                            selectedFolderRename = Int(folderId)
+                            openWindow(id: ModalSheet.folderRename.rawValue)
+#else
+                            selectedFeed = Int(folderId)
+                            modalSheet = .folderRename
+#endif
+                        } label: {
+                            Label("Rename...", systemImage: "square.and.pencil")
+                        }
+                        Button(role: .destructive) {
+                            isShowingConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    case .feed(let feedId):
+                        Button {
+#if os(macOS)
+                            selectedFeedSettings = Int(feedId)
+                            openWindow(id: ModalSheet.feedSettings.rawValue)
+#else
+                            selectedFeed = Int(feedId)
+                            modalSheet = .feedSettings
+#endif
+                        } label: {
+                            Label("Settings...", systemImage: "gearshape")
+                        }
+                        Button(role: .destructive) {
+                            isShowingConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
             .accentColor(.pbh.whiteIcon)
