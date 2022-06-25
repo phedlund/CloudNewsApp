@@ -19,6 +19,12 @@ struct NodeView: View {
     @State private var unreadCount = 0
     @State private var title = ""
 
+#if os(iOS)
+    let noChildrenPadding = 23.0
+#else
+    let noChildrenPadding = 0.0
+#endif
+
     var body: some View {
         HStack {
             Label {
@@ -41,9 +47,7 @@ struct NodeView: View {
             Spacer(minLength: 12)
             BadgeView(node: node)
         }
-#if !os(macOS)
-        .padding(.trailing, node.children?.isEmpty ?? true ? 23 : 0)
-#endif
+        .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {
             switch node.nodeType {
             case .all, .starred:
