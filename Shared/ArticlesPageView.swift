@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(iOS)
 struct ArticlesPageView: View {
     @EnvironmentObject private var settings: Preferences
     @ObservedObject private var node: Node
@@ -120,3 +120,4 @@ struct ArticlesPageView: View {
 //        ArticlesPageView()
 //    }
 //}
+#endif
