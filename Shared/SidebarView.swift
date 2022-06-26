@@ -122,6 +122,7 @@ struct SidebarView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 ProgressView()
                     .progressViewStyle(.circular)
+                    .controlSize(.small)
                     .opacity(isSyncing ? 1.0 : 0.0)
                 Button {
                     sync()

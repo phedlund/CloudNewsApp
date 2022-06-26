@@ -82,7 +82,7 @@ struct PagerWrapper: View {
                     }
                 }
                 Spacer()
-                NSSharingService.submenu(text: currentModel.item?.url ?? "")
+                ShareLinkView(model: currentModel)
                 .disabled(isLoading)
                 Button {
                     isShowingPopover = true

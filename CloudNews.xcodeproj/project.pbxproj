@@ -13,7 +13,6 @@
 		D00AFA1C269383CB00BAED44 /* OCSProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCSProtocol.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
 		D00AFA1F2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
-		D00FD65A285C157A00D95FB4 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D0103C73271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D0103C74271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
@@ -126,8 +125,6 @@
 		D0818A7F2862C35B002264D6 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0818A7E2862C35B002264D6 /* NukeUI */; };
 		D0818A802863FC81002264D6 /* PagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* PagerWrapper.swift */; };
 		D0818A812863FC83002264D6 /* PagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* PagerWrapper.swift */; };
-		D081F84F26CB478B00511B60 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F84E26CB478B00511B60 /* ActivityView.swift */; };
-		D081F85526CB489300511B60 /* SharingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D081F85426CB489300511B60 /* SharingProvider.swift */; };
 		D08C5F8A272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
 		D08C5F8B272DCA33007EB9D8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */; };
 		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
@@ -240,8 +237,6 @@
 		D0728A512816009600B85F72 /* PagerWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagerWrapper.swift; sourceTree = "<group>"; };
 		D07A043626E2F61F00178EEE /* UserDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
-		D081F84E26CB478B00511B60 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
-		D081F85426CB489300511B60 /* SharingProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharingProvider.swift; sourceTree = "<group>"; };
 		D08C5F89272DCA33007EB9D8 /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
 		D0A1005827E6B963005D7D70 /* FooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterLabel.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* StorageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageKeys.swift; sourceTree = "<group>"; };
@@ -351,8 +346,6 @@
 				D0E8C64026A24C7900BA3ABE /* FolderRenameView.swift */,
 				D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */,
 				D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */,
-				D081F84E26CB478B00511B60 /* ActivityView.swift */,
-				D081F85426CB489300511B60 /* SharingProvider.swift */,
 				D045A15F26C5F6D4002E553F /* LoginWebView.swift */,
 				D00AFA1426937C9700BAED44 /* SettingsView.swift */,
 				D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */,
@@ -592,7 +585,6 @@
 				D02F44EF265C89F700A3505B /* NewsSessionManager.swift in Sources */,
 				D0B0B2F9267ED1D900A997DB /* ItemsView.swift in Sources */,
 				D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */,
-				D081F85526CB489300511B60 /* SharingProvider.swift in Sources */,
 				D02F450F265C8CAA00A3505B /* Items.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
 				D02F44F1265C89F700A3505B /* SyncHelper.swift in Sources */,
@@ -646,7 +638,6 @@
 				D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */,
 				D02F4519265C8CBE00A3505B /* Protocols.swift in Sources */,
 				D02FA074269E2E7600A77875 /* FeedSettingsView.swift in Sources */,
-				D081F84F26CB478B00511B60 /* ActivityView.swift in Sources */,
 				D02F4535265C8D0300A3505B /* CDFolder+CoreDataProperties.swift in Sources */,
 				D0295126285FECC800543C7F /* ShareLinkView.swift in Sources */,
 				D02F4531265C8CFC00A3505B /* CDStarred+CoreDataProperties.swift in Sources */,
@@ -700,7 +691,6 @@
 				D02F4530265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
 				D00AFA1F2693872800BAED44 /* KeychainStorage.swift in Sources */,
 				D02F4528265C8CE300A3505B /* CDFeed+CoreDataClass.swift in Sources */,
-				D00FD65A285C157A00D95FB4 /* SharingProvider.swift in Sources */,
 				D02F452E265C8CF500A3505B /* CDFeeds+CoreDataClass.swift in Sources */,
 				D02F4546265C8D2900A3505B /* CDRead+CoreDataClass.swift in Sources */,
 				D02F4540265C8D1900A3505B /* CDRead+CoreDataProperties.swift in Sources */,
