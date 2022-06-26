@@ -351,9 +351,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D02F44A6265C86BF00A3505B /* CloudNews (iOS) */ = {
+		D02F44A6265C86BF00A3505B /* CloudNews */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D02F44BF265C86BF00A3505B /* Build configuration list for PBXNativeTarget "CloudNews (iOS)" */;
+			buildConfigurationList = D02F44BF265C86BF00A3505B /* Build configuration list for PBXNativeTarget "CloudNews" */;
 			buildPhases = (
 				D02F44A3265C86BF00A3505B /* Sources */,
 				D02F44A4265C86BF00A3505B /* Frameworks */,
@@ -363,7 +363,7 @@
 			);
 			dependencies = (
 			);
-			name = "CloudNews (iOS)";
+			name = CloudNews;
 			packageProductDependencies = (
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
@@ -407,7 +407,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D02F44A6265C86BF00A3505B /* CloudNews (iOS) */,
+				D02F44A6265C86BF00A3505B /* CloudNews */,
 			);
 		};
 /* End PBXProject section */
@@ -698,7 +698,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D02F44BF265C86BF00A3505B /* Build configuration list for PBXNativeTarget "CloudNews (iOS)" */ = {
+		D02F44BF265C86BF00A3505B /* Build configuration list for PBXNativeTarget "CloudNews" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D02F44C0265C86BF00A3505B /* Debug */,

@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D02F44A6265C86BF00A3505B"
                BuildableName = "CloudNews.app"
-               BlueprintName = "CloudNews (iOS)"
+               BlueprintName = "CloudNews"
                ReferencedContainer = "container:CloudNews.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,7 +46,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D02F44A6265C86BF00A3505B"
             BuildableName = "CloudNews.app"
-            BlueprintName = "CloudNews (iOS)"
+            BlueprintName = "CloudNews"
             ReferencedContainer = "container:CloudNews.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,7 +63,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D02F44A6265C86BF00A3505B"
             BuildableName = "CloudNews.app"
-            BlueprintName = "CloudNews (iOS)"
+            BlueprintName = "CloudNews"
             ReferencedContainer = "container:CloudNews.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
