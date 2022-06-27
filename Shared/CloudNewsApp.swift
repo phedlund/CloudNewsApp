@@ -9,7 +9,9 @@ import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-    @StateObject var settings = Preferences()
+    @StateObject private var settings = Preferences()
+    @StateObject private var nodeTree = FeedModel()
+
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #else
@@ -21,10 +23,10 @@ struct CloudNewsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(settings)
+            ContentView(model: nodeTree, settings: settings)
         }
 #if os(macOS)
+        .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
             AppCommands()
@@ -38,7 +40,7 @@ struct CloudNewsApp: App {
 
         Window(Text("Log In"), id: "login") {
             LoginWebViewView()
-                .frame(minWidth: 350, idealWidth: 600, maxWidth: 600, minHeight: 500, idealHeight: 750, maxHeight: 900)
+                .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
 

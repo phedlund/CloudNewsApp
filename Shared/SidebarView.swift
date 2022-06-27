@@ -42,8 +42,7 @@ struct SidebarView: View {
         .receive(on: DispatchQueue.main)
 
     var body: some View {
-        print(Self._printChanges())
-        return List(selection: $selection) {
+        List(selection: $selection) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -69,7 +68,7 @@ struct SidebarView: View {
                 }
                 .contextMenu {
                     switch node.nodeType {
-                    case .all, .starred:
+                    case .empty, .all, .starred:
                         EmptyView()
                     case .folder(let folderId):
                         Button {
@@ -118,6 +117,9 @@ struct SidebarView: View {
         .onAppear {
             selection = selectedNode
         }
+#if os(macOS)
+        .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
+#endif
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 ProgressView()

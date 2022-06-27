@@ -143,7 +143,7 @@ class FeedModel: ObservableObject {
 
     func delete(_ node: Node) {
         switch node.nodeType {
-        case .all, .starred:
+        case .empty, .all, .starred:
             break
         case .folder(let id):
             print("\(id)")

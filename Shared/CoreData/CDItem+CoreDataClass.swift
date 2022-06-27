@@ -60,6 +60,8 @@ public class CDItem: NSManagedObject, ItemProtocol {
         var result = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
         switch nodeType {
+        case .empty:
+            break
         case .all:
             let predicate = NSPredicate(format: "unread == true")
             request.predicate = predicate

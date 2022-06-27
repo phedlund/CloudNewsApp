@@ -50,7 +50,7 @@ struct NodeView: View {
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {
             switch node.nodeType {
-            case .all, .starred:
+            case .empty, .all, .starred:
                 EmptyView()
             case .folder(let folderId):
                 Button {
@@ -100,7 +100,7 @@ struct NodeView: View {
             Button("No", role: .cancel) {}
         } message: {
             switch node.nodeType {
-            case .all, .starred:
+            case .empty, .all, .starred:
                 EmptyView()
             case .folder(_):
                 Text("All feeds and articles in \"\(node.title)\" will also be deleted")

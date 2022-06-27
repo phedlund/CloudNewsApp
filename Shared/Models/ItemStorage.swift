@@ -18,6 +18,8 @@ extension NodeChange: Identifiable {
 
     var id: String {
         switch nodeType {
+        case .empty:
+            return "empty"
         case .all:
             return "all"
         case .starred:

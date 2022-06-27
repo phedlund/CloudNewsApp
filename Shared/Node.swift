@@ -8,6 +8,7 @@
 import CloudKit
 import Combine
 
+let EmptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
 let AllNodeGuid = "72137d96-4ef2-11ec-81d3-0242ac130003"
 let StarNodeGuid = "967917a4-4ef2-11ec-81d3-0242ac130003"
 
@@ -49,6 +50,8 @@ final class Node: Identifiable, ObservableObject {
             .sink { items in
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
                 switch nodeType {
+                case .empty:
+                    break
                 case .all:
                     self.items = items.map( { ArticleModel(item: $0) } )
                 case .starred:
@@ -79,7 +82,7 @@ final class Node: Identifiable, ObservableObject {
                     if change.nodeType == self.nodeType {
                         self.unreadCount = CDItem.unreadCount(nodeType: change.nodeType)
                         switch change.nodeType {
-                        case .all:
+                        case .empty, .all:
                             break
                         case .starred:
                             if let starredItems = CDItem.starredItems() {
@@ -107,6 +110,8 @@ final class Node: Identifiable, ObservableObject {
 
     private func nodeTitle() -> String {
         switch nodeType {
+        case .empty:
+            return ""
         case .all:
             return "All Articles"
         case .starred:
@@ -120,7 +125,7 @@ final class Node: Identifiable, ObservableObject {
 
     private func nodeIcon() -> SystemImage {
         switch nodeType {
-        case .all:
+        case .empty, .all:
             return SystemImage(named: "rss")!
         case .starred:
             return SystemImage(symbolName: "star.fill")!

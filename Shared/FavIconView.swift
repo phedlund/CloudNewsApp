@@ -28,7 +28,7 @@ struct FeedFavIconView: View {
     @ViewBuilder
     var body: some View {
         switch nodeType {
-        case .all:
+        case .empty, .all:
             Image("rss")
                 .resizable()
                 .scaledToFit()
