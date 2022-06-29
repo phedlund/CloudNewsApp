@@ -17,48 +17,31 @@ struct MacItemWrapper: View {
     @State private var isLoading = false
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
-//    @State private var currentModel = ArticleModel(item: nil)
-//
-//    private var selectedIndex = 0
-
-//    init(node: Node, selectedIndex: Int) {
-//        self.node = node
-//        self.selectedIndex = selectedIndex
-//    }
 
     var body: some View {
-        ZStack {
-            if articleModel.item != nil {
-                ArticleWebView(model: articleModel)
-                    .navigationTitle(title)
-                    .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                    }
-                    .onAppear {
-                        //                    currentModel = node.items[selectedIndex]
-                        markItemRead()
-                    }
-                    .onReceive(articleModel.$canGoBack) {
-                        canGoBack = $0
-                    }
-                    .onReceive(articleModel.$canGoForward) {
-                        canGoForward = $0
-                    }
-                    .onReceive(articleModel.$isLoading) {
-                        isLoading = $0
-                    }
-                    .onReceive(articleModel.$title) {
-                        if $0 != title {
-                            title = $0
-                        }
-                    }
-                    .toolbar(content: articleToolBarContent)
-            } else {
-                Text("No Article Selected")
-                    .font(.system(size: 36))
-                    .foregroundColor(.secondary)
+        ArticleWebView(model: articleModel)
+            .navigationTitle(title)
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
-        }
+            .onAppear {
+                markItemRead()
+            }
+            .onReceive(articleModel.$canGoBack) {
+                canGoBack = $0
+            }
+            .onReceive(articleModel.$canGoForward) {
+                canGoForward = $0
+            }
+            .onReceive(articleModel.$isLoading) {
+                isLoading = $0
+            }
+            .onReceive(articleModel.$title) {
+                if $0 != title {
+                    title = $0
+                }
+            }
+            .toolbar(content: articleToolBarContent)
     }
 
     @ToolbarContentBuilder

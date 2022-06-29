@@ -19,6 +19,10 @@ final class Node: Identifiable, ObservableObject {
     @Published var icon = SystemImage()
     @Published var items = [ArticleModel]()
 
+    func item(for id: ArticleModel.ID) -> ArticleModel? {
+        items.first(where: { $0.id == id} )
+    }
+
     var id: String
     private let itemPublisher = ItemStorage.shared.items.eraseToAnyPublisher()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()

@@ -17,6 +17,7 @@ struct ItemsView: View {
     @State private var cellHeight: CGFloat = 160.0
 
     @State private var selection: Int? = 0
+    @Binding var itemSelection: ArticleModel.ID?
 
     var body: some View {
 #if !os(macOS)
@@ -71,68 +72,50 @@ struct ItemsView: View {
             }
         }
 #else
-        ZStack {
-            if node.id == EmptyNodeGuid {
-                Text("No Feed Selected")
-                    .font(.system(size: 36))
-                    .foregroundColor(.secondary)
-            } else {
-                GeometryReader { geometry in
-                    let viewWidth = geometry.size.width
-                    let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
-                    List(selection: $selection) {
-                        ForEach(node.items) { item in
-                            NavigationLink {
-                                MacItemWrapper(articleModel: item)
-                            } label: {
-                                ItemListItemViev(model: item)
-                                    .tag(item.id)
-                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                    .listRowBackground(Color.pbh.whiteBackground)
-                            }
-                            //                        NavigationLink(destination: LazyView(MacItemWrapper(node: node, selectedIndex: index))) {
-                            //                            ItemListItemViev(model: item)
-                            //                                .tag(index)
-                            //                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            //                                .listRowBackground(Color.pbh.whiteBackground)
-                            //                        }
-                            .padding(.leading, 7)
+        GeometryReader { geometry in
+            let viewWidth = geometry.size.width
+            let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
+            List(selection: $itemSelection) {
+                ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+                    ItemListItemViev(model: item)
+                            .tag(index)
+                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             .listRowBackground(Color.pbh.whiteBackground)
-                            .contextMenu {
-                                ContextMenuContent(model: item)
-                            }
-                            //                        .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                            //                            prefKey = CGFloat(index)
-                            //                        }
-                            .onPreferenceChange(ViewOffsetKey.self) {
-                                let offset = ($0 * (cellHeight + 15)) - geometry.size.height
-                                scrollViewHelper.currentOffset = offset
-                            }
-                        }
-                        .listRowBackground(Color.pbh.whiteBackground)
-                    }
-                    .listStyle(.bordered)
+                    .padding(.leading, 7)
                     .listRowBackground(Color.pbh.whiteBackground)
-                    .toolbar(content: itemsToolBarContent)
-                    .padding(.horizontal, -7)
-                    .navigationTitle(node.title)
-                    .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                    .contextMenu {
+                        ContextMenuContent(model: item)
                     }
-                    .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                        markRead($0)
+                    .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                        prefKey = CGFloat(index)
                     }
-                    .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-                    .onReceive(node.$items) { _ in
-                        Task {
-                            do {
-                                try await ItemImageFetcher().itemURLs()
-                            } catch { }
-                        }
+                    .onPreferenceChange(ViewOffsetKey.self) {
+                        let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                        scrollViewHelper.currentOffset = offset
                     }
-                    .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
+                }
+                .listRowBackground(Color.pbh.whiteBackground)
+            }
+            .listStyle(.bordered)
+            .listRowBackground(Color.pbh.whiteBackground)
+            .toolbar(content: itemsToolBarContent)
+            .padding(.horizontal, -7)
+            .navigationTitle(node.title)
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
+            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                markRead($0)
+            }
+            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(node.$items) { _ in
+                Task {
+                    do {
+                        try await ItemImageFetcher().itemURLs()
+                    } catch { }
                 }
             }
+            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         }
 #endif
     }

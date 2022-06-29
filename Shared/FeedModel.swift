@@ -16,6 +16,10 @@ class FeedModel: ObservableObject {
 
     @Published var currentNode = Node(.all, id: AllNodeGuid)
 
+    func node(for id: Node.ID) -> Node? {
+        nodes.first(where: { $0.id == id} )
+    }
+
     private let allNode: Node
     private let starNode: Node
 

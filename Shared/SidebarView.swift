@@ -35,14 +35,19 @@ struct SidebarView: View {
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
     @State private var errorMessage = ""
-    @State private var selection: String? = AllNodeGuid
+
+    @Binding var nodeSelection: Node.ID?
 
     private var publisher = NotificationCenter.default
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
+    init(nodeSelection: Binding<Node.ID?>) {
+        self._nodeSelection = nodeSelection
+    }
+
     var body: some View {
-        List(selection: $selection) {
+        List(selection: $nodeSelection) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -60,52 +65,47 @@ struct SidebarView: View {
                 .transition(.move(edge: .top))
             }
             OutlineGroup(model.nodes, children: \.children) { node in
-                NavigationLink {
-                    ItemsView(node: node)
-                        .environmentObject(preferences)
-                } label: {
-                    NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                }
-                .contextMenu {
-                    switch node.nodeType {
-                    case .empty, .all, .starred:
-                        EmptyView()
-                    case .folder(let folderId):
-                        Button {
+                NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                    .contextMenu {
+                        switch node.nodeType {
+                        case .empty, .all, .starred:
+                            EmptyView()
+                        case .folder(let folderId):
+                            Button {
 #if os(macOS)
-                            selectedFolderRename = Int(folderId)
-                            openWindow(id: ModalSheet.folderRename.rawValue)
+                                selectedFolderRename = Int(folderId)
+                                openWindow(id: ModalSheet.folderRename.rawValue)
 #else
-                            selectedFeed = Int(folderId)
-                            modalSheet = .folderRename
+                                selectedFeed = Int(folderId)
+                                modalSheet = .folderRename
 #endif
-                        } label: {
-                            Label("Rename...", systemImage: "square.and.pencil")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    case .feed(let feedId):
-                        Button {
+                            } label: {
+                                Label("Rename...", systemImage: "square.and.pencil")
+                            }
+                            Button(role: .destructive) {
+                                isShowingConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        case .feed(let feedId):
+                            Button {
 #if os(macOS)
-                            selectedFeedSettings = Int(feedId)
-                            openWindow(id: ModalSheet.feedSettings.rawValue)
+                                selectedFeedSettings = Int(feedId)
+                                openWindow(id: ModalSheet.feedSettings.rawValue)
 #else
-                            selectedFeed = Int(feedId)
-                            modalSheet = .feedSettings
+                                selectedFeed = Int(feedId)
+                                modalSheet = .feedSettings
 #endif
-                        } label: {
-                            Label("Settings...", systemImage: "gearshape")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                            } label: {
+                                Label("Settings...", systemImage: "gearshape")
+                            }
+                            Button(role: .destructive) {
+                                isShowingConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
-                }
             }
             .accentColor(.pbh.whiteIcon)
         }
@@ -113,9 +113,6 @@ struct SidebarView: View {
         .accentColor(.pbh.darkIcon)
         .refreshable {
             sync()
-        }
-        .onAppear {
-            selection = selectedNode
         }
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
@@ -144,7 +141,7 @@ struct SidebarView: View {
         .onReceive(publisher) { _ in
             isSyncing = false
         }
-        .onChange(of: selection) {
+        .onChange(of: nodeSelection) {
             print("Selected node is \($0 ?? "")")
         }
         .navigationTitle(Text("Feeds"))

@@ -30,6 +30,9 @@ struct ContentView: View {
     @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
+    @State private var nodeSelection: Node.ID?
+    @State private var itemSelection: ArticleModel.ID?
+
     private var isNotLoggedIn: Bool {
 #if !os(macOS)
         return username.isEmpty || password.isEmpty
@@ -39,9 +42,9 @@ struct ContentView: View {
     }
     
     var body: some View {
-#if !os(macOS)
+#if os(iOS)
         NavigationSplitView {
-            SidebarView()
+            SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
         } detail: {
@@ -63,14 +66,27 @@ struct ContentView: View {
         }
 #else
         NavigationSplitView(columnVisibility: $splitViewVisibility) {
-            SidebarView()
+            SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
         } content: {
-            ItemsView(node: Node(.empty, id: EmptyNodeGuid))
-                .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
+            if let nodeSelection, let node = model.node(for: nodeSelection) {
+                ItemsView(node: node, itemSelection: $itemSelection)
+                    .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
+                    .environmentObject(settings)
+            } else {
+                Text("No Feed Selected")
+                    .font(.system(size: 36))
+                    .foregroundColor(.secondary)
+            }
         } detail: {
-            MacItemWrapper(articleModel: ArticleModel(item: nil))
+            if let nodeSelection, let itemSelection, let item = model.node(for: nodeSelection)?.item(for: itemSelection) {
+                MacItemWrapper(articleModel: item)
+            } else {
+                Text("No Article Selected")
+                    .font(.system(size: 36))
+                    .foregroundColor(.secondary)
+            }
         }
         .sheet(item: $addSheet) { sheet in
             switch sheet {
@@ -95,28 +111,6 @@ struct ContentView: View {
             addSheet = .folder
         }
 #endif
-//        NavigationView {
-//            SidebarView()
-//                .environmentObject(nodeTree)
-//                .environmentObject(preferences)
-//            Text("No Feed Selected")
-//                .font(.system(size: 36))
-//                .foregroundColor(.secondary)
-//                .toolbar {
-//                    ToolbarItem {
-//                        Spacer()
-//                    }
-//                }
-//            Text("No Article Selected")
-//                .font(.system(size: 36))
-//                .foregroundColor(.secondary)
-//                .toolbar {
-//                    ToolbarItem {
-//                        Spacer()
-//                    }
-//                }
-//        }
-//        .navigationViewStyle(.columns)
     }
     
 }
