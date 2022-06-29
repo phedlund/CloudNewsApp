@@ -81,7 +81,7 @@ struct ContentView: View {
             }
         } detail: {
             if let nodeSelection, let itemSelection, let item = model.node(for: nodeSelection)?.item(for: itemSelection) {
-                MacItemWrapper(articleModel: item)
+                MacArticleView(articleModel: item)
             } else {
                 Text("No Article Selected")
                     .font(.system(size: 36))

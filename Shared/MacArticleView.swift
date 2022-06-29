@@ -8,7 +8,7 @@
 #if os(macOS)
 import SwiftUI
 
-struct MacItemWrapper: View {
+struct MacArticleView: View {
     @ObservedObject var articleModel: ArticleModel
 
     @State private var title = ""
