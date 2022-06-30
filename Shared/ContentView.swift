@@ -48,8 +48,16 @@ struct ContentView: View {
                 .environmentObject(model)
                 .environmentObject(settings)
         } detail: {
-            ItemsView(node: Node(.empty, id: EmptyNodeGuid))
-                .environmentObject(settings)
+            ZStack {
+                if let nodeSelection, let node = model.node(for: nodeSelection) {
+                    ItemsView(node: node, itemSelection: $itemSelection)
+                        .environmentObject(settings)
+                } else {
+                    Text("No Feed Selected")
+                        .font(.system(size: 36))
+                        .foregroundColor(.secondary)
+                }
+            }
         }
         .onAppear {
             isShowingLogin = isNotLoggedIn

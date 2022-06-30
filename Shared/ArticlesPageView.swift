@@ -10,6 +10,7 @@ import SwiftUI
 struct ArticlesPageView: View {
     @EnvironmentObject private var settings: Preferences
     @ObservedObject private var node: Node
+    @ObservedObject private var model: ArticleModel
     @State var selectedIndex: Int
     @State private var isShowingPopover = false
     @State private var currentModel = ArticleModel(item: nil)
@@ -18,9 +19,10 @@ struct ArticlesPageView: View {
     @State private var isLoading = false
     @State private var title = ""
 
-    init(node: Node, selectedIndex: Int) {
+    init(model: ArticleModel, node: Node) {
+        self.model = model
         self.node = node
-        self.selectedIndex = selectedIndex
+        self.selectedIndex = node.items.firstIndex(of: model) ?? 0
     }
 
     var body: some View {

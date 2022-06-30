@@ -13,63 +13,54 @@ struct ItemsView: View {
     @EnvironmentObject private var settings: Preferences
     @ObservedObject var node: Node
     @StateObject var scrollViewHelper = ScrollViewHelper()
+
+    @Binding var itemSelection: ArticleModel.ID?
+
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = 160.0
 
-    @State private var selection: Int? = 0
-    @Binding var itemSelection: ArticleModel.ID?
-
     var body: some View {
-#if !os(macOS)
-        if node.id == EmptyNodeGuid {
-            Text("No Feed Selected")
-                .font(.system(size: 36))
-                .foregroundColor(.secondary)
-        } else {
-            GeometryReader { geometry in
-                let viewWidth = geometry.size.width
-                let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
-                ScrollView {
-                    ZStack {
-                        LazyVStack(spacing: 15.0) {
-                            Spacer(minLength: 1.0)
-                            if !node.items.indices.isEmpty {
-                                ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                                    NavigationLink {
-                                        ArticlesPageView(node: node, selectedIndex: index)
-                                    } label: {
-                                        ItemListItemViev(model: item)
-                                            .tag(index)
-                                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                    }
-                                    .buttonStyle(ClearSelectionStyle())
-                                    .contextMenu {
-                                        ContextMenuContent(model: item)
-                                    }
+#if os(iOS)
+        GeometryReader { geometry in
+            let viewWidth = geometry.size.width
+            let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
+            ScrollView {
+                ZStack {
+                    LazyVStack(spacing: 15.0) {
+                        Spacer(minLength: 1.0)
+                        NavigationStack {
+                            ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+                                NavigationLink(value: item) {
+                                    ItemListItemViev(model: item)
+                                        .tag(index)
+                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                 }
                             }
-                        }
-                        .toolbar(content: itemsToolBarContent)
-                        GeometryReader {
-                            let offset = -$0.frame(in: .named("scroll")).origin.y
-                            Color.clear.preference(key: ViewOffsetKey.self, value: offset)
+                            .navigationDestination(for: ArticleModel.self) { model in
+                                ArticlesPageView(model: model, node: node)
+                            }
                         }
                     }
+                    .toolbar(content: itemsToolBarContent)
+                    GeometryReader {
+                        let offset = -$0.frame(in: .named("scroll")).origin.y
+                        Color.clear.preference(key: ViewOffsetKey.self, value: offset)
+                    }
                 }
-                .navigationTitle(node.title)
-                .coordinateSpace(name: "scroll")
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-                .onPreferenceChange(ViewOffsetKey.self) {
-                    scrollViewHelper.currentOffset = $0
-                }
-                .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                    markRead($0)
-                }
-                .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-                .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
             }
+            .navigationTitle(node.title)
+            .coordinateSpace(name: "scroll")
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            }
+            .onPreferenceChange(ViewOffsetKey.self) {
+                scrollViewHelper.currentOffset = $0
+            }
+            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                markRead($0)
+            }
+            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         }
 #else
         GeometryReader { geometry in
