@@ -87,30 +87,35 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
                 .store(in: &cancellables)
             item
                 .publisher(for: \.unread)
+                .receive(on: DispatchQueue.main)
                 .sink {
                     self.unread = $0
                 }
                 .store(in: &cancellables)
             item
                 .publisher(for: \.starred)
+                .receive(on: DispatchQueue.main)
                 .sink {
                     self.starred = $0
                 }
                 .store(in: &cancellables)
             item
                 .publisher(for: \.feedId)
+                .receive(on: DispatchQueue.main)
                 .sink {
                     self.feedId = $0
                 }
                 .store(in: &cancellables)
             item
                 .publisher(for: \.dateAuthorFeed)
+                .receive(on: DispatchQueue.main)
                 .sink {
                     self.dateAuthorFeed = $0
                 }
                 .store(in: &cancellables)
             item
                 .publisher(for: \.displayBody)
+                .receive(on: DispatchQueue.main)
                 .sink {
                     self.displayBody = $0 ?? ""
                 }

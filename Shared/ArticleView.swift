@@ -17,7 +17,6 @@ struct ArticleView: View, Equatable {
 
     var body: some View {
         ArticleWebView(model: model)
-            .equatable()
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
