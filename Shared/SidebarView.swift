@@ -123,6 +123,7 @@ struct SidebarView: View {
 #endif
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
+                Spacer()
                 ProgressView()
                     .progressViewStyle(.circular)
                     .controlSize(.small)
