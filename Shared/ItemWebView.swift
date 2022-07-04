@@ -18,15 +18,10 @@ import SwiftUI
 import WebKit
 
 public struct WebView: WebViewRepresentable {
-    fileprivate var viewModel = Self.ViewModel()
-    @Binding var itemSelection: ArticleModel.ID?
 
     private let configuration: (WKWebView) -> Void
-    private let node: Node
 
-    init(node: Node, itemSelection: Binding<ArticleModel.ID?>, configuration: @escaping (WKWebView) -> Void = { _ in }) {
-        self.node = node
-        self._itemSelection = itemSelection
+    init(configuration: @escaping (WKWebView) -> Void = { _ in }) {
         self.configuration = configuration
     }
 
@@ -81,26 +76,10 @@ private extension WebView {
                 //
             }
         }
-        viewModel.createRequest(node: node, itemSelection: itemSelection)
-        view.load(viewModel.urlRequest)
         configuration(view)
         return view
     }
 
-    class ViewModel: ObservableObject {
-        var urlRequest = URLRequest(url: URL(string: "/dev/null")!)
-        
-        func createRequest(node: Node, itemSelection: ArticleModel.ID?) {
-            if let itemSelection, let item = node.item(for: itemSelection) {
-                let content = ArticleWebContent(item: item.item)
-                let url = tempDirectory()?
-                    .appendingPathComponent(content.fileName)
-                    .appendingPathExtension("html") ?? URL(fileURLWithPath: "/dev/null")
-                print("Created request for \(url.absoluteString)")
-                urlRequest = URLRequest(url: url)
-            }
-        }
-    }
 }
 
 #endif

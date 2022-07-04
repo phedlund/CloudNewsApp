@@ -11,6 +11,7 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent: ObservableObject {
+    @Published public var url: URL?
     private let author: String
     private let title: String
     private let feedTitle: String
@@ -128,6 +129,8 @@ class ArticleWebContent: ObservableObject {
                 .appendingPathComponent(fileName)
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
+                url = saveUrl
+                objectWillChange.send()
             }
         } catch(let error) {
             print(error.localizedDescription)

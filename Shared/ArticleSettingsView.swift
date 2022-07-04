@@ -23,7 +23,7 @@ struct ArticleSettingsConstants {
 struct ArticleSettingsView: View {
 #if os(iOS)
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    #endif
+#endif
     @EnvironmentObject private var settings: Preferences
     var item: CDItem
 

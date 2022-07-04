@@ -17,16 +17,21 @@ class ItemWebViewHelper: ObservableObject {
     @Published public var title = ""
     @Published public var url: URL?
 
+    var node: Node?
+    var itemSelection: ArticleModel.ID?
+    var urlRequest: URLRequest?
+
     var webView: WKWebView? {
         didSet {
             setupObservations()
         }
     }
 
+    private var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
 
     private func setupObservations() {
-        if let webView {
+        if let webView, let node, let itemSelection, let model = node.item(for: itemSelection) {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
                 self?.canGoBack = newValue
             }
@@ -50,6 +55,25 @@ class ItemWebViewHelper: ObservableObject {
             }
             .store(in: &cancellables)
 
+            if let item = model.item {
+                let feed = CDFeed.feed(id: item.feedId)
+                if feed?.preferWeb == true,
+                   let urlString = model.item?.url,
+                   let url = URL(string: urlString) {
+                    urlRequest = URLRequest(url: url)
+                } else {
+                    content = ArticleWebContent(item: item)
+                    content?.$url.sink { [weak self] newURL in
+                        guard let self, let newURL else { return }
+                        self.webView?.reload()
+                        self.urlRequest = URLRequest(url: newURL)
+                        print("Created request for \(newURL.absoluteString)")
+                    }
+                    .store(in: &cancellables)
+                }
+            }
+
         }
+
     }
 }

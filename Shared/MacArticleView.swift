@@ -11,6 +11,7 @@ import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
+    @EnvironmentObject private var settings: Preferences
     @State private var webViewHelper = ItemWebViewHelper()
     let node: Node
     @Binding var itemSelection: ArticleModel.ID?
@@ -28,10 +29,15 @@ struct MacArticleView: View {
     }
 
     var body: some View {
-        WebView(node: node, itemSelection: $itemSelection) { webView in
+        WebView { webView in
+            webViewHelper.node = node
+            webViewHelper.itemSelection = self.itemSelection
             webViewHelper.webView = webView
+            if let urlRequest = webViewHelper.urlRequest {
+                webView.load(urlRequest)
+            }
         }
-        .id(itemSelection) //forces the web view to be recreated get a unique WKWebView for each article
+        .id(itemSelection) //forces the web view to be recreated to get a unique WKWebView for each article
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
