@@ -30,6 +30,14 @@ class ItemWebViewHelper: ObservableObject {
     private var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
 
+    func markItemRead() {
+        if let node, let itemSelection, let model = node.item(for: itemSelection), let item = model.item {
+            Task {
+                try? await NewsManager.shared.markRead(items: [item], unread: false)
+            }
+        }
+    }
+
     private func setupObservations() {
         if let webView, let node, let itemSelection, let model = node.item(for: itemSelection) {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in

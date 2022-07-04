@@ -35,15 +35,13 @@ struct MacArticleView: View {
             webViewHelper.webView = webView
             if let urlRequest = webViewHelper.urlRequest {
                 webView.load(urlRequest)
+                webViewHelper.markItemRead()
             }
         }
         .id(itemSelection) //forces the web view to be recreated to get a unique WKWebView for each article
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-        }
-        .onAppear {
-            markItemRead()
         }
         .onReceive(webViewHelper.$canGoBack) {
             canGoBack = $0
@@ -107,14 +105,6 @@ struct MacArticleView: View {
                 }
                 .disabled(isLoading)
             }
-    }
-
-    private func markItemRead() {
-//        if let item = articleModel.item, item.unread {
-//            Task {
-//                try? await NewsManager.shared.markRead(items: [item], unread: false)
-//            }
-//        }
     }
 
 }
