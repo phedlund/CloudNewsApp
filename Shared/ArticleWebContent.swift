@@ -11,15 +11,13 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent: ObservableObject {
-    @Published var refreshToken = ""
-
     private let author: String
     private let title: String
     private let feedTitle: String
     private let dateText: String
     private let urlString: String
     private let summary: String
-    private let fileName: String
+    let fileName: String
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
 
@@ -130,7 +128,6 @@ class ArticleWebContent: ObservableObject {
                 .appendingPathComponent(fileName)
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
-                refreshToken = UUID().uuidString
             }
         } catch(let error) {
             print(error.localizedDescription)

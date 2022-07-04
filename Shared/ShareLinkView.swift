@@ -9,19 +9,18 @@ import SwiftUI
 
 struct ShareLinkView: View {
     var model: ArticleModel?
+    var url: URL?
 
-    private var url: URL?
     private var subject = ""
     private var message = ""
 
-    init(model: ArticleModel?) {
+    init(model: ArticleModel?, url: URL?) {
         self.model = model
-        if let model {
-            url = model.webView.url
+        if let model, let url {
             subject = model.webView.title ?? ""
-            if url?.scheme?.hasPrefix("file") ?? false {
+            if url.scheme?.hasPrefix("file") ?? false {
                 if let urlString = model.item?.url {
-                    url = URL(string: urlString) ?? nil
+                    self.url = URL(string: urlString) ?? nil
                     subject = model.item?.title ?? "Untitled"
                     message = model.item?.displayBody ?? ""
                 }

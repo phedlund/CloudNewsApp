@@ -88,8 +88,8 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         } detail: {
-            if let nodeSelection, let itemSelection, let item = model.node(for: nodeSelection)?.item(for: itemSelection) {
-                MacArticleView(articleModel: item)
+            if let nodeSelection, let node = model.node(for: nodeSelection) {
+                MacArticleView(node: node, itemSelection: $itemSelection)
             } else {
                 Text("No Article Selected")
                     .font(.system(size: 36))

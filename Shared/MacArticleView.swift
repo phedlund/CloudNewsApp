@@ -6,10 +6,14 @@
 //
 
 #if os(macOS)
+import Combine
 import SwiftUI
+import WebKit
 
 struct MacArticleView: View {
-    @ObservedObject var articleModel: ArticleModel
+    @State private var webViewHelper = ItemWebViewHelper()
+    let node: Node
+    @Binding var itemSelection: ArticleModel.ID?
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -18,52 +22,60 @@ struct MacArticleView: View {
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
 
+    init(node: Node, itemSelection: Binding<ArticleModel.ID?>) {
+        self.node = node
+        _itemSelection = itemSelection
+    }
+
     var body: some View {
-        ArticleWebView(model: articleModel)
-            .navigationTitle(title)
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        WebView(node: node, itemSelection: $itemSelection) { webView in
+            webViewHelper.webView = webView
+        }
+        .id(itemSelection) //forces the web view to be recreated get a unique WKWebView for each article
+        .navigationTitle(title)
+        .background {
+            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        }
+        .onAppear {
+            markItemRead()
+        }
+        .onReceive(webViewHelper.$canGoBack) {
+            canGoBack = $0
+        }
+        .onReceive(webViewHelper.$canGoForward) {
+            canGoForward = $0
+        }
+        .onReceive(webViewHelper.$isLoading) {
+            isLoading = $0
+        }
+        .onReceive(webViewHelper.$title) {
+            if $0 != title {
+                title = $0
             }
-            .onAppear {
-                markItemRead()
-            }
-            .onReceive(articleModel.$canGoBack) {
-                canGoBack = $0
-            }
-            .onReceive(articleModel.$canGoForward) {
-                canGoForward = $0
-            }
-            .onReceive(articleModel.$isLoading) {
-                isLoading = $0
-            }
-            .onReceive(articleModel.$title) {
-                if $0 != title {
-                    title = $0
-                }
-            }
-            .toolbar(content: articleToolBarContent)
+        }
+        .toolbar(content: articleToolBarContent)
     }
 
     @ToolbarContentBuilder
     func articleToolBarContent() -> some ToolbarContent {
             ToolbarItemGroup {
                 Button {
-                    articleModel.webView.goBack()
+                    webViewHelper.webView?.goBack()
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
                 .disabled(!canGoBack)
                 Button {
-                    articleModel.webView.goForward()
+                    webViewHelper.webView?.goForward()
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
                 .disabled(!canGoForward)
                 Button {
                     if isLoading {
-                        articleModel.webView.stopLoading()
+                        webViewHelper.webView?.stopLoading()
                     } else {
-                        articleModel.webView.reload()
+                        webViewHelper.webView?.reload()
                     }
                 } label: {
                     if isLoading {
@@ -73,16 +85,18 @@ struct MacArticleView: View {
                     }
                 }
                 Spacer()
-                ShareLinkView(model: articleModel)
-                .disabled(isLoading)
+                if let itemSelection, let item = node.item(for: itemSelection) {
+                    ShareLinkView(model: item, url: webViewHelper.url)
+                        .disabled(isLoading)
+                }
                 Button {
                     isShowingPopover = true
                 } label: {
                     Image(systemName: "textformat.size")
                 }
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    if let item = articleModel.item {
-                        ArticleSettingsView(item: item)
+                    if let itemSelection, let item = node.item(for: itemSelection) {
+                        ArticleSettingsView(item: item.item!)
                     }
                 }
                 .disabled(isLoading)
@@ -90,11 +104,11 @@ struct MacArticleView: View {
     }
 
     private func markItemRead() {
-        if let item = articleModel.item, item.unread {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
-            }
-        }
+//        if let item = articleModel.item, item.unread {
+//            Task {
+//                try? await NewsManager.shared.markRead(items: [item], unread: false)
+//            }
+//        }
     }
 
 }

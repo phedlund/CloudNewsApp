@@ -66,6 +66,10 @@ struct SidebarView: View {
             }
             OutlineGroup(model.nodes, children: \.children) { node in
                 NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                    .tag(node.id)
+                    .onTapGesture {
+                        nodeSelection = node.id
+                    }
                     .contextMenu {
                         switch node.nodeType {
                         case .empty, .all, .starred:

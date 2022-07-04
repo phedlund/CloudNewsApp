@@ -9,22 +9,42 @@ import SwiftUI
 import Combine
 import WebKit
 
+
 #if os(macOS)
-struct ArticleWebView: NSViewRepresentable, Equatable {
-    @ObservedObject var model: ArticleModel
+struct ArticleWebView: NSViewRepresentable {
+    var model: ArticleModel
 
     let content: ArticleWebContent
+    private var request: URLRequest?
+    private var prefersWeb = false
 
     public init(model: ArticleModel) {
         print(model.item?.title ?? "")
         self.model = model
         self.content = ArticleWebContent(item: model.item)
+        if let item = model.item {
+            let feed = CDFeed.feed(id: item.feedId)
+            if feed?.preferWeb == true,
+               let urlString = model.item?.url,
+               let url = URL(string: urlString) {
+                prefersWeb = true
+                request = URLRequest(url: url)
+                model.webView.load(URLRequest(url: url))
+            } else {
+                let url = tempDirectory()?
+                    .appendingPathComponent("summary_\(item.id)")
+                    .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
+                prefersWeb = false
+                request = URLRequest(url: url)
+                model.webView.loadFileRequest(request!, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
+        }
     }
 
-    static func == (lhs: ArticleWebView, rhs: ArticleWebView) -> Bool {
-        let isTheSame = lhs.model == rhs.model
-        return isTheSame
-    }
+//    static func == (lhs: ArticleWebView, rhs: ArticleWebView) -> Bool {
+//        let isTheSame = lhs.model == rhs.model
+//        return isTheSame
+//    }
 
     func makeNSView(context: Context) -> WKWebView {
         model.webView.navigationDelegate = context.coordinator
@@ -32,21 +52,6 @@ struct ArticleWebView: NSViewRepresentable, Equatable {
         model.webView.allowsBackForwardNavigationGestures = false
 //        model.webView.scrollView.showsHorizontalScrollIndicator = false
 //        model.webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
-        if let item = model.item {
-            let feed = CDFeed.feed(id: item.feedId)
-            if feed?.preferWeb == true,
-               let urlString = model.item?.url,
-               let url = URL(string: urlString) {
-                model.webView.load(URLRequest(url: url))
-            } else {
-                let url = tempDirectory()?
-                    .appendingPathComponent("summary_\(item.id)")
-                    .appendingPathExtension("html") ?? URL(fileURLWithPath: "")
-
-                let request = URLRequest(url: url)
-                model.webView.loadFileRequest(request, allowingReadAccessTo: url.deletingLastPathComponent())
-            }
-        }
         return model.webView
     }
 
@@ -121,11 +126,11 @@ class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.content = parent.content
         super.init()
 
-        content.$refreshToken.sink { [weak self] _ in
-            guard let self = self else { return }
-            self.parent.model.webView.reload()
-        }
-        .store(in: &cancellables)
+//        content.$refreshToken.sink { [weak self] _ in
+//            guard let self = self else { return }
+//            self.parent.model.webView.reload()
+//        }
+//        .store(in: &cancellables)
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
