@@ -61,4 +61,5 @@ enum StorageKeys {
     static let itemsToUnstar = "ItemsToUnstar"
     static let keepDuration = "KeepDuration"
     static let syncInterval = "SyncInterval"
+    static let adBlock = "AdBlock"
 }

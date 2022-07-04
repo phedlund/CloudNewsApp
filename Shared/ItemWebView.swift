@@ -18,6 +18,7 @@ import SwiftUI
 import WebKit
 
 public struct WebView: WebViewRepresentable {
+    @AppStorage(StorageKeys.adBlock) var adBlock = true
 
     private let configuration: (WKWebView) -> Void
 
@@ -65,15 +66,17 @@ private extension WebView {
         view.scrollView.showsHorizontalScrollIndicator = false
         view.scrollView.contentInset = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
 #endif
-        Task {
-            do {
-                if let rules = try await ContentBlocker.ruleList() {
-                    DispatchQueue.main.async {
-                        view.configuration.userContentController.add(rules)
+        if adBlock {
+            Task {
+                do {
+                    if let rules = try await ContentBlocker.ruleList() {
+                        DispatchQueue.main.async {
+                            view.configuration.userContentController.add(rules)
+                        }
                     }
+                } catch {
+                    //
                 }
-            } catch {
-                //
             }
         }
         configuration(view)

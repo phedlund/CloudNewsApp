@@ -57,6 +57,7 @@ struct SettingsView: View {
     @AppStorage(StorageKeys.compactView) var compactView = false
     @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
     @AppStorage(StorageKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
+    @AppStorage(StorageKeys.adBlock) var adBlock = true
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
@@ -142,6 +143,10 @@ struct SettingsView: View {
                 Toggle(isOn: $sortOldestFirst) {
                     Text("Sort Oldest Item First")
                 }
+                Toggle(isOn: $adBlock) {
+                    Text("Block Ads")
+                    Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-ios/blob/development/Client/WebFilters/ContentBlocker/Lists/block-ads.json)")
+                }
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }
@@ -149,11 +154,14 @@ struct SettingsView: View {
                 Text("Reading")
             }
             Section {
-                Picker("Keep Articles For", selection: $keepDuration) {
+                Picker(selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
                     Text("3 months").tag(KeepDuration.three)
                     Text("12 months").tag(KeepDuration.twelve)
                         .navigationTitle("Duration")
+                } label: {
+                    Text("Keep Articles For")
+                    Text("Starred articles will never be deleted")
                 }
 #if !os(macOS)
                 NavigationLink {
@@ -164,11 +172,6 @@ struct SettingsView: View {
 #endif
             } header: {
                 Text("Maintenance")
-            } footer: {
-                Text("Starred articles will never be deleted")
-#if os(macOS)
-                    .font(.footnote)
-#endif
             }
             Section {
 #if !os(macOS)
