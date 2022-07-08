@@ -97,8 +97,10 @@ struct AddView: View {
                     Spacer()
                     ProgressView()
                         .progressViewStyle(.circular)
-                        .controlSize(.small)
                         .opacity(isAdding ? 1.0 : 0.0)
+#if os(macOS)
+                        .controlSize(.small)
+#endif
                 }
 #if os(macOS)
                 HStack {

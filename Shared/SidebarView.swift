@@ -126,8 +126,10 @@ struct SidebarView: View {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(.circular)
-                    .controlSize(.small)
                     .opacity(isSyncing ? 1.0 : 0.0)
+#if os(macOS)
+                    .controlSize(.small)
+#endif
                 Button {
                     sync()
                 } label: {
