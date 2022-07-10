@@ -63,18 +63,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             }
             .store(in: &cancellables)
 
-//        didBecomActivePublisher
-//            .sink { _ in
-//                Task {
-//                    do {
-//                        try await ItemImageFetcher().itemURLs()
-//                    } catch {
-//                        print("Could not complete image fetch task \(error.localizedDescription)")
-//                    }
-//                }
-//            }
-//            .store(in: &cancellables)
-
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -90,18 +78,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
                 self.scheduleAppRefresh()
             }
         }
-
-//        BGTaskScheduler.shared.register(forTaskWithIdentifier: appImageFetchTaskId, using: nil) { task in
-//            Task {
-//                do {
-//                    try await ItemImageFetcher().itemURLs()
-//                    task.setTaskCompleted(success: true)
-//                } catch {
-//                    task.setTaskCompleted(success: false)
-//                }
-//                self.scheduleImageFetch()
-//            }
-//        }
 
         UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
             if error == nil {
@@ -129,19 +105,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             print("Submit called")
         } catch {
             print("Could not schedule app refresh task \(error.localizedDescription)")
-        }
-    }
-
-    func scheduleImageFetch() {
-        let request = BGAppRefreshTaskRequest(identifier: appImageFetchTaskId)
-
-        request.earliestBeginDate = Date(timeIntervalSinceNow: .fiveMinutes)
-
-        do {
-            try BGTaskScheduler.shared.submit(request)
-            print("Submit called")
-        } catch {
-            print("Could not schedule image fetch task \(error.localizedDescription)")
         }
     }
 

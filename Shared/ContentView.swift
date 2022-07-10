@@ -87,7 +87,6 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             print("Moving to the background!")
             appDelegate.scheduleAppRefresh()
-            appDelegate.scheduleImageFetch()
         }
         .onChange(of: nodeSelection) { _ in
             path.removeLast(path.count)
