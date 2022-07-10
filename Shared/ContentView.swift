@@ -62,6 +62,7 @@ struct ContentView: View {
                             }
                             .navigationDestination(for: ArticleModel.self) { item in
                                 ArticlesPageView(item: item, node: node)
+                                    .environmentObject(settings)
                             }
                         }
                         .toolbar {

@@ -104,6 +104,7 @@ struct ArticlesPageView: View {
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                     if let item = node.item(for: selection)?.item {
                         ArticleSettingsView(item: item)
+                            .environmentObject(settings)
                             .presentationDetents([.height(300.0)])
                     }
                 }
