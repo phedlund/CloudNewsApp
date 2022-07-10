@@ -63,17 +63,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             }
             .store(in: &cancellables)
 
-        didBecomActivePublisher
-            .sink { _ in
-                Task {
-                    do {
-                        try await ItemImageFetcher().itemURLs()
-                    } catch {
-                        print("Could not complete image fetch task \(error.localizedDescription)")
-                    }
-                }
-            }
-            .store(in: &cancellables)
+//        didBecomActivePublisher
+//            .sink { _ in
+//                Task {
+//                    do {
+//                        try await ItemImageFetcher().itemURLs()
+//                    } catch {
+//                        print("Could not complete image fetch task \(error.localizedDescription)")
+//                    }
+//                }
+//            }
+//            .store(in: &cancellables)
 
     }
 
@@ -91,17 +91,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             }
         }
 
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: appImageFetchTaskId, using: nil) { task in
-            Task {
-                do {
-                    try await ItemImageFetcher().itemURLs()
-                    task.setTaskCompleted(success: true)
-                } catch {
-                    task.setTaskCompleted(success: false)
-                }
-                self.scheduleImageFetch()
-            }
-        }
+//        BGTaskScheduler.shared.register(forTaskWithIdentifier: appImageFetchTaskId, using: nil) { task in
+//            Task {
+//                do {
+//                    try await ItemImageFetcher().itemURLs()
+//                    task.setTaskCompleted(success: true)
+//                } catch {
+//                    task.setTaskCompleted(success: false)
+//                }
+//                self.scheduleImageFetch()
+//            }
+//        }
 
         UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
             if error == nil {

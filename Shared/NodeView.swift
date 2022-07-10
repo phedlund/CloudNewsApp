@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NodeView: View {
+struct NodeView: View, Equatable {
     @EnvironmentObject var appDelegate: AppDelegate
     @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
@@ -24,6 +24,11 @@ struct NodeView: View {
 #else
     let noChildrenPadding = 0.0
 #endif
+
+    static func == (lhs: NodeView, rhs: NodeView) -> Bool {
+        lhs.title == rhs.title &&
+        lhs.unreadCount == rhs.unreadCount
+    }
 
     var body: some View {
         HStack {
@@ -46,6 +51,7 @@ struct NodeView: View {
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
             BadgeView(node: node)
+                .equatable()
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {

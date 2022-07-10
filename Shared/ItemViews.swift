@@ -9,6 +9,29 @@ import Nuke
 import NukeUI
 import SwiftUI
 
+struct ItemListToolbarContent: ToolbarContent {
+    @ObservedObject var node: Node
+    @State private var isMarkAllReadDisabled = true
+
+    @ToolbarContentBuilder
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            Button {
+                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
+                Task {
+                    let myItems = unreadItems.map( { $0.item! })
+                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                }
+            } label: {
+                Image(systemName: "checkmark")
+            }
+            .disabled(isMarkAllReadDisabled)
+            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+        }
+    }
+}
+
+
 struct ContextMenuContent: View {
     @ObservedObject var model: ArticleModel
 
@@ -99,8 +122,11 @@ struct ItemImageView: View {
     @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
-        if isShowingThumbnails, let image = model.image {
-            Image(image)
+        if isShowingThumbnails,
+            let imageLink = model.imageLink,
+            imageLink != "data:null",
+            let imageUrl = URL(string: imageLink) {
+            LazyImage(url: imageUrl)
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)
                 .clipped()
@@ -108,20 +134,9 @@ struct ItemImageView: View {
         } else {
             Color.pbh.whiteCellBackground
                 .frame(width: 2, height: size.height)
-                .onAppear {
-                    updateImageLink()
-                }
         }
     }
 
-    private func updateImageLink() {
-        Task {
-            guard let currentLink = model.item?.imageLink, currentLink != "data:null" else {
-                return
-            }
-            try await CDItem.addImageLink(item: model.item!, imageLink: "data:null")
-        }
-    }
 }
 
 struct ItemStarredView: View {

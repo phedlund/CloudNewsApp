@@ -17,8 +17,7 @@ class ItemWebViewHelper: ObservableObject {
     @Published public var title = ""
     @Published public var url: URL?
 
-    var node: Node?
-    var itemSelection: ArticleModel.ID?
+    var item: ArticleModel? 
     var urlRequest: URLRequest?
 
     var webView: WKWebView? {
@@ -31,7 +30,7 @@ class ItemWebViewHelper: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func markItemRead() {
-        if let node, let itemSelection, let model = node.item(for: itemSelection), let item = model.item {
+        if let model = item, let item = model.item {
             Task {
                 try? await NewsManager.shared.markRead(items: [item], unread: false)
             }
@@ -39,7 +38,7 @@ class ItemWebViewHelper: ObservableObject {
     }
 
     private func setupObservations() {
-        if let webView, let node, let itemSelection, let model = node.item(for: itemSelection) {
+        if let webView, let model = item {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
                 self?.canGoBack = newValue
             }
@@ -62,7 +61,12 @@ class ItemWebViewHelper: ObservableObject {
                 self?.url = newValue
             }
             .store(in: &cancellables)
-
+#if os(iOS)
+            NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification, object: nil).sink { [weak self] _ in
+                self?.webView?.reload()
+            }
+            .store(in: &cancellables)
+#endif
             if let item = model.item {
                 let feed = CDFeed.feed(id: item.feedId)
                 if feed?.preferWeb == true,

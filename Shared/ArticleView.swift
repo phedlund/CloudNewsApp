@@ -8,44 +8,28 @@
 import SwiftUI
 import WebKit
 
-struct ArticleView: View, Equatable {
-    static func == (lhs: ArticleView, rhs: ArticleView) -> Bool {
-        return lhs.model == rhs.model
-    }
-
-    @ObservedObject var model: ArticleModel
+struct ArticleView: View {
+    var item: ArticleModel
 
     var body: some View {
-        ArticleWebView(model: model)
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        WebView { webView in
+            item.webViewHelper.item = item
+            item.webViewHelper.webView = webView
+            if let urlRequest = item.webViewHelper.urlRequest {
+                webView.load(urlRequest)
+                item.webViewHelper.markItemRead()
             }
+        }
+        .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
+#if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
+        .background {
+            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        }
     }
     
 }
-
-struct StatefulPreviewWrapper<Value, Content: View>: View {
-    @State var value: Value
-    var content: (Binding<Value>) -> Content
-
-    public var body: some View {
-        content($value)
-    }
-
-    public init(_ value: Value, content: @escaping (Binding<Value>) -> Content) {
-        self._value = State(wrappedValue: value)
-        self.content = content
-    }
-}
-
-//struct ArticleView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ArticleWebView(webView: WebViewManager(type: .article).webView)
-//    }
-//}
 
 #if os(iOS)
 extension UINavigationController {

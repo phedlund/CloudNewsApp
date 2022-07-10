@@ -7,7 +7,12 @@
 
 import SwiftUI
 
-struct BadgeView: View {
+struct BadgeView: View, Equatable {
+    static func == (lhs: BadgeView, rhs: BadgeView) -> Bool {
+        lhs.unreadCount == rhs.unreadCount &&
+        lhs.errorCount == rhs.errorCount
+    }
+
     @ObservedObject var node: Node
 
     @State private var unreadCount = 0

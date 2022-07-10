@@ -9,185 +9,87 @@ import Combine
 import SwiftUI
 
 struct ItemsView: View {
-    @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling: Bool = true
-    @EnvironmentObject private var settings: Preferences
+    @EnvironmentObject private var feedModel: FeedModel
     @ObservedObject var node: Node
-    @StateObject var scrollViewHelper = ScrollViewHelper()
-
     @Binding var itemSelection: ArticleModel.ID?
 
+    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
+    @EnvironmentObject private var settings: Preferences
+    @StateObject private var scrollViewHelper = ScrollViewHelper()
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = 160.0
+    @State private var path = NavigationPath()
 
     var body: some View {
-#if os(iOS)
-        GeometryReader { geometry in
+        Self._printChanges()
+        return GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
-            ScrollView {
-                ZStack {
-                    LazyVStack(spacing: 15.0) {
-                        Spacer(minLength: 1.0)
-                        NavigationStack {
-                            ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                                NavigationLink(value: item) {
-                                    ItemListItemViev(model: item)
-                                        .tag(index)
-                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
+            OptionalNavigationStack(path: $path) {
+                List(selection: $itemSelection) {
+                    ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
+                        SingleItemView(model: item) {
+                            ItemListItemViev(model: item)
+                                .tag(index)
+                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                .listRowBackground(Color.pbh.whiteBackground)
+                                .contextMenu {
+                                    ContextMenuContent(model: item)
                                 }
-                            }
-                            .navigationDestination(for: ArticleModel.self) { model in
-                                ArticlesPageView(model: model, node: node)
-                            }
+                                .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                                    prefKey = CGFloat(index)
+                                }
+                                .onPreferenceChange(ViewOffsetKey.self) {
+                                    let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                                    scrollViewHelper.currentOffset = offset
+                                }
+                        }
+                        .id(index)
+                    }
+                    .listRowBackground(Color.pbh.whiteBackground)
+                    .listRowSeparator(.hidden)
+                }
+#if os(macOS)
+                .listStyle(.bordered)
+#endif
+                .listRowBackground(Color.pbh.whiteBackground)
+                .toolbar {
+                    ItemListToolbarContent(node: node)
+                }
+                .navigationTitle(node.title)
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
+                .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                    markRead($0)
+                }
+                .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
+                .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
+            }
+        }
+
+        func markRead(_ offset: CGFloat) {
+            if markReadWhileScrolling {
+                print(offset)
+                let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+                print("Number of items \(numberOfItems)")
+                if numberOfItems > 0 {
+                    let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
+                    print("Number of unread items \(itemsToMarkRead.count)")
+                    if !itemsToMarkRead.isEmpty {
+                        Task(priority: .userInitiated) {
+                            let myItems = itemsToMarkRead.map( { $0.item! })
+                            try? await NewsManager.shared.markRead(items: myItems, unread: false)
                         }
                     }
-                    .toolbar(content: itemsToolBarContent)
-                    GeometryReader {
-                        let offset = -$0.frame(in: .named("scroll")).origin.y
-                        Color.clear.preference(key: ViewOffsetKey.self, value: offset)
-                    }
                 }
             }
-            .navigationTitle(node.title)
-            .coordinateSpace(name: "scroll")
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-            }
-            .onPreferenceChange(ViewOffsetKey.self) {
-                scrollViewHelper.currentOffset = $0
-            }
-            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                markRead($0)
-            }
-            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
-        }
-#else
-        GeometryReader { geometry in
-            let viewWidth = geometry.size.width
-            let cellWidth: CGFloat = min(viewWidth * 0.93, 700.0)
-            List(selection: $itemSelection) {
-                ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                    ItemListItemViev(model: item)
-                            .tag(index)
-                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            .listRowBackground(Color.pbh.whiteBackground)
-                    .padding(.leading, 7)
-                    .listRowBackground(Color.pbh.whiteBackground)
-                    .contextMenu {
-                        ContextMenuContent(model: item)
-                    }
-                    .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                        prefKey = CGFloat(index)
-                    }
-                    .onPreferenceChange(ViewOffsetKey.self) {
-                        let offset = ($0 * (cellHeight + 15)) - geometry.size.height
-                        scrollViewHelper.currentOffset = offset
-                    }
-                }
-                .listRowBackground(Color.pbh.whiteBackground)
-            }
-            .listStyle(.bordered)
-            .listRowBackground(Color.pbh.whiteBackground)
-            .toolbar(content: itemsToolBarContent)
-            .padding(.horizontal, -7)
-            .navigationTitle(node.title)
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-            }
-            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                markRead($0)
-            }
-            .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(node.$items) { _ in
-                Task {
-                    do {
-                        try await ItemImageFetcher().itemURLs()
-                    } catch { }
-                }
-            }
-            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
-        }
-#endif
-    }
 
-    @ToolbarContentBuilder
-    func itemsToolBarContent() -> some ToolbarContent {
-        ToolbarItem(placement: .automatic) {
-            Button {
-                let unreadItems = node.items.filter( { $0.item?.unread ?? false })
-                Task {
-                    let myItems = unreadItems.map( { $0.item! })
-                    try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                }
-            } label: {
-                Image(systemName: "checkmark")
-            }
-            .disabled(isMarkAllReadDisabled)
         }
-    }
-
-    private func markRead(_ offset: CGFloat) {
-        if markReadWhileScrolling {
-            print(offset)
-            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
-            print("Number of items \(numberOfItems)")
-            if numberOfItems > 0 {
-                let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
-                print("Number of unread items \(itemsToMarkRead.count)")
-                if !itemsToMarkRead.isEmpty {
-                    Task(priority: .userInitiated) {
-                        let myItems = itemsToMarkRead.map( { $0.item! })
-                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                    }
-                }
-            }
-        }
-
     }
 }
-
 //struct ItemsView_Previews: PreviewProvider {
 //    static var previews: some View {
 //        ItemsView(node: AnyTreeNode(StarredFeedNode()))
 //    }
 //}
-
-struct LazyView<Content: View>: View {
-    let build: () -> Content
-    init(_ build: @autoclosure @escaping () -> Content) {
-        self.build = build
-    }
-    var body: Content {
-        build()
-    }
-}
-
-class ScrollViewHelper: ObservableObject {
-    @Published var currentOffset: CGFloat = 0
-    @Published var offsetAtScrollEnd: CGFloat = 0
-    
-    private var cancellable: AnyCancellable?
-
-    init() {
-        cancellable = AnyCancellable($currentOffset
-            .debounce(for: 0.2, scheduler: DispatchQueue.main)
-            .dropFirst()
-            .assign(to: \.offsetAtScrollEnd, on: self))
-    }
-    
-}
-
-struct ViewOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value += nextValue()
-    }
-}
-
-struct ClearSelectionStyle: ButtonStyle {
-    func makeBody(configuration: Self.Configuration) -> some View {
-        configuration.label
-            .background(Color.clear)
-    }
-}

@@ -31,7 +31,9 @@ struct ContentView: View {
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     @State private var nodeSelection: Node.ID?
-    @State private var itemSelection: ArticleModel.ID?
+//    @State private var itemSelection: ArticleModel.ID?
+
+    @State private var path = NavigationPath()
 
     private var isNotLoggedIn: Bool {
 #if !os(macOS)
@@ -43,15 +45,29 @@ struct ContentView: View {
     
     var body: some View {
 #if os(iOS)
-        NavigationSplitView {
+        Self._printChanges()
+        return NavigationSplitView {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
         } detail: {
             ZStack {
                 if let nodeSelection, let node = model.node(for: nodeSelection) {
-                    ItemsView(node: node, itemSelection: $itemSelection)
-                        .environmentObject(settings)
+                    GeometryReader { geometry in
+                        let cellWidth = min(geometry.size.width * 0.93, 700.0)
+                        OptionalNavigationStack(path: $path) {
+                            List {
+                                ItemsListView(node: node, cellWidth: cellWidth, viewHeight: geometry.size.height)
+                                    .environmentObject(settings)
+                            }
+                            .navigationDestination(for: ArticleModel.self) { item in
+                                ArticlesPageView(item: item, node: node)
+                            }
+                        }
+                        .toolbar {
+                            ItemListToolbarContent(node: node)
+                        }
+                    }
                 } else {
                     Text("No Feed Selected")
                         .font(.system(size: 36))
@@ -72,7 +88,10 @@ struct ContentView: View {
             appDelegate.scheduleAppRefresh()
             appDelegate.scheduleImageFetch()
         }
-#else
+        .onChange(of: nodeSelection) { _ in
+            path.removeLast(path.count)
+        }
+#elseif os(macOS)
         NavigationSplitView(columnVisibility: $splitViewVisibility) {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
@@ -124,15 +143,16 @@ struct ContentView: View {
     
 }
 
-struct ContentView_Previews: PreviewProvider {
-    struct Preview: View {
-        @StateObject private var model = FeedModel()
-        @StateObject private var settings = Preferences()
-        var body: some View {
-            ContentView(model: model, settings: settings)
-        }
-    }
-    static var previews: some View {
-        Preview()
-    }}
-
+//struct ContentView_Previews: PreviewProvider {
+//    struct Preview: View {
+//        @StateObject private var model = FeedModel()
+//        @StateObject private var settings = Preferences()
+//        var body: some View {
+//            ContentView(model: model, settings: settings)
+//        }
+//    }
+//    static var previews: some View {
+//        Preview()
+//    }
+//}
+//

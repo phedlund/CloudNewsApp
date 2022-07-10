@@ -17,7 +17,7 @@ struct ShareLinkView: View {
     init(model: ArticleModel?, url: URL?) {
         self.model = model
         if let model, let url {
-            subject = model.webView.title ?? ""
+            subject = model.title
             if url.scheme?.hasPrefix("file") ?? false {
                 if let urlString = model.item?.url {
                     self.url = URL(string: urlString) ?? nil
