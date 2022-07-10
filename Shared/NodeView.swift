@@ -20,7 +20,7 @@ struct NodeView: View, Equatable {
     @State private var title = ""
 
 #if os(iOS)
-    let noChildrenPadding = 23.0
+    let noChildrenPadding = 21.0
 #else
     let noChildrenPadding = 0.0
 #endif
