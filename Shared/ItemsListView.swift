@@ -22,7 +22,6 @@ struct ItemsListView: View {
                 ItemListItemViev(model: item)
                     .tag(item.id)
                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                    .listRowBackground(Color.pbh.whiteBackground)
                     .contextMenu {
                         ContextMenuContent(model: item)
                     }
@@ -37,7 +36,7 @@ struct ItemsListView: View {
                     }
             }
         }
-        .listRowBackground(Color.pbh.whiteBackground)
+        .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .navigationTitle(node.title)
         .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
