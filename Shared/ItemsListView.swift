@@ -36,7 +36,7 @@ struct ItemsListView: View {
                     }
             }
         }
-        .listRowBackground(Color.clear)
+        .listRowBackground(Color.pbh.whiteBackground)
         .listRowSeparator(.hidden)
         .navigationTitle(node.title)
         .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }

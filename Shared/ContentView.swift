@@ -60,6 +60,7 @@ struct ContentView: View {
                                 ItemsListView(node: node, cellWidth: cellWidth, viewHeight: geometry.size.height)
                                     .environmentObject(settings)
                             }
+                            .scrollContentBackground(Color.pbh.whiteBackground)
                             .navigationDestination(for: ArticleModel.self) { item in
                                 ArticlesPageView(item: item, node: node)
                                     .environmentObject(settings)
