@@ -10,7 +10,6 @@
 		D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1426937C9700BAED44 /* SettingsView.swift */; };
 		D00AFA1B269383CB00BAED44 /* OCSProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCSProtocol.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
-		D0103C73271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D0295126285FECC800543C7F /* ShareLinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0295125285FECC800543C7F /* ShareLinkView.swift */; };
 		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
@@ -100,7 +99,6 @@
 		D00AFA1426937C9700BAED44 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D00AFA1A269383CB00BAED44 /* OCSProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCSProtocol.swift; sourceTree = "<group>"; };
 		D00AFA1D2693872800BAED44 /* KeychainStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainStorage.swift; sourceTree = "<group>"; };
-		D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderDisclosureGroup.swift; sourceTree = "<group>"; };
 		D027487826A9D2A10000FB47 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
 		D0295125285FECC800543C7F /* ShareLinkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinkView.swift; sourceTree = "<group>"; };
 		D02DE6C22754691800533EB0 /* ItemImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImporter.swift; sourceTree = "<group>"; };
@@ -235,7 +233,6 @@
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
 				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
-				D0103C72271B968E00623B96 /* FolderDisclosureGroup.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D035E343287A5C1D00E1FE5E /* HelperViews.swift */,
 				D035E345287A5D3300E1FE5E /* ItemsListView.swift */,
@@ -468,7 +465,6 @@
 				D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */,
 				D02F4511265C8CAD00A3505B /* Item.swift in Sources */,
 				D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */,
-				D0103C73271B968E00623B96 /* FolderDisclosureGroup.swift in Sources */,
 				D08ED871287217E400A8F585 /* ItemWebViewHelper.swift in Sources */,
 				D08C5F8A272DCA33007EB9D8 /* ArticleModel.swift in Sources */,
 				D04A49722702AE62003FD659 /* FavIconView.swift in Sources */,
