@@ -47,8 +47,7 @@ struct ContentView: View {
     
     var body: some View {
 #if os(iOS)
-        Self._printChanges()
-        return NavigationSplitView {
+        NavigationSplitView {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
@@ -176,13 +175,10 @@ struct ContentView: View {
 
     func markRead(_ offset: CGFloat) {
         if markReadWhileScrolling {
-            print(offset)
             let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
-            print("Number of items \(numberOfItems)")
             if numberOfItems > 0 {
                 if let nodeSelection, let node = model.node(for: nodeSelection) {
                     let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
-                    print("Number of unread items \(itemsToMarkRead.count)")
                     if !itemsToMarkRead.isEmpty {
                         Task(priority: .userInitiated) {
                             let myItems = itemsToMarkRead.map( { $0.item! })
