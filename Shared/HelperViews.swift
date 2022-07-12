@@ -30,7 +30,7 @@ struct OptionalNavigationStack<Content: View>: View {
 
 }
 
-struct SingleItemView<Content: View>: View {
+struct OptionalNavigationLink<Content: View>: View {
     let content: Content
     let model: ArticleModel
 
@@ -42,11 +42,7 @@ struct SingleItemView<Content: View>: View {
     var body: some View {
 #if os(iOS)
         NavigationLink(value: model) {
-            HStack {
-                Spacer()
-                content
-                Spacer()
-            }
+            content
         }
 #else
         content

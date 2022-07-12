@@ -14,9 +14,12 @@ struct ContentView: View {
 #endif
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
+    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
+
+    @StateObject private var scrollViewHelper = ScrollViewHelper()
 
     private let onNewFeed = NotificationCenter.default
         .publisher(for: .newFeed)
@@ -31,9 +34,8 @@ struct ContentView: View {
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     @State private var nodeSelection: Node.ID?
-//    @State private var itemSelection: ArticleModel.ID?
-
     @State private var path = NavigationPath()
+    @State private var cellHeight: CGFloat = 160.0
 
     private var isNotLoggedIn: Bool {
 #if !os(macOS)
@@ -56,18 +58,46 @@ struct ContentView: View {
                     GeometryReader { geometry in
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         OptionalNavigationStack(path: $path) {
-                            List {
-                                ItemsListView(node: node, cellWidth: cellWidth, viewHeight: geometry.size.height)
-                                    .environmentObject(settings)
+                            ScrollView {
+                                ZStack {
+                                    LazyVStack(spacing: 15.0) {
+                                        Spacer(minLength: 1.0)
+                                        ForEach(node.items, id: \.id) { item in
+                                            OptionalNavigationLink(model: item) {
+                                                ItemListItemViev(model: item)
+                                                    .tag(item.id)
+                                                    .environmentObject(settings)
+                                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                                    .contextMenu {
+                                                        ContextMenuContent(model: item)
+                                                    }
+                                            }
+                                        }
+                                        .listRowBackground(Color.pbh.whiteBackground)
+                                        .listRowSeparator(.hidden)
+                                    }
+                                    .scrollContentBackground(Color.pbh.whiteBackground)
+                                    .navigationDestination(for: ArticleModel.self) { item in
+                                        ArticlesPageView(item: item, node: node)
+                                            .environmentObject(settings)
+                                    }
+                                    GeometryReader {
+                                        let offset = -$0.frame(in: .named("scroll")).origin.y
+                                        Color.clear.preference(key: ViewOffsetKey.self, value: offset)
+                                    }
+                                }
                             }
-                            .scrollContentBackground(Color.pbh.whiteBackground)
-                            .navigationDestination(for: ArticleModel.self) { item in
-                                ArticlesPageView(item: item, node: node)
-                                    .environmentObject(settings)
+                            .navigationTitle(node.title)
+                            .coordinateSpace(name: "scroll")
+                            .toolbar {
+                                ItemListToolbarContent(node: node)
                             }
-                        }
-                        .toolbar {
-                            ItemListToolbarContent(node: node)
+                            .onPreferenceChange(ViewOffsetKey.self) {
+                                scrollViewHelper.currentOffset = $0
+                            }
+                            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                                markRead($0)
+                            }
                         }
                     }
                 } else {
@@ -89,6 +119,7 @@ struct ContentView: View {
             print("Moving to the background!")
             appDelegate.scheduleAppRefresh()
         }
+        .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         .onChange(of: nodeSelection) { _ in
             path.removeLast(path.count)
         }
@@ -140,6 +171,26 @@ struct ContentView: View {
             addSheet = .folder
         }
 #endif
+    }
+
+    func markRead(_ offset: CGFloat) {
+        if markReadWhileScrolling {
+            print(offset)
+            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+            print("Number of items \(numberOfItems)")
+            if numberOfItems > 0 {
+                if let nodeSelection, let node = model.node(for: nodeSelection) {
+                    let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
+                    print("Number of unread items \(itemsToMarkRead.count)")
+                    if !itemsToMarkRead.isEmpty {
+                        Task(priority: .userInitiated) {
+                            let myItems = itemsToMarkRead.map( { $0.item! })
+                            try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                        }
+                    }
+                }
+            }
+        }
     }
     
 }

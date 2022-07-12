@@ -28,7 +28,7 @@ struct ItemsView: View {
             OptionalNavigationStack(path: $path) {
                 List(selection: $itemSelection) {
                     ForEach(Array(node.items.enumerated()), id: \.1.id) { index, item in
-                        SingleItemView(model: item) {
+                        OptionalNavigationLink(model: item) {
                             ItemListItemViev(model: item)
                                 .tag(index)
                                 .frame(width: cellWidth, height: cellHeight, alignment: .center)
