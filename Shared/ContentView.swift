@@ -72,6 +72,7 @@ struct ContentView: View {
                                                         ContextMenuContent(model: item)
                                                     }
                                             }
+                                            .buttonStyle(ClearSelectionStyle())
                                         }
                                         .listRowBackground(Color.pbh.whiteBackground)
                                         .listRowSeparator(.hidden)
