@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
+import Combine
 import SwiftUI
 import CoreData
 
@@ -19,7 +20,8 @@ struct ContentView: View {
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
 
-    @StateObject private var scrollViewHelper = ScrollViewHelper()
+    private let offsetDetector: CurrentValueSubject<CGFloat, Never>
+    private let offsetPublisher: AnyPublisher<CGFloat, Never>
 
     private let onNewFeed = NotificationCenter.default
         .publisher(for: .newFeed)
@@ -44,7 +46,18 @@ struct ContentView: View {
         return false
 #endif
     }
-    
+
+    init(model: FeedModel, settings: Preferences) {
+        self.model = model
+        self.settings = settings
+        let detector = CurrentValueSubject<CGFloat, Never>(0)
+        self.offsetPublisher = detector
+            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
+            .dropFirst()
+            .eraseToAnyPublisher()
+        self.offsetDetector = detector
+    }
+
     var body: some View {
 #if os(iOS)
         NavigationSplitView {
@@ -58,33 +71,34 @@ struct ContentView: View {
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         OptionalNavigationStack(path: $path) {
                             ScrollView {
-                                ZStack {
-                                    LazyVStack(spacing: 15.0) {
-                                        Spacer(minLength: 1.0)
-                                        ForEach(node.items, id: \.id) { item in
-                                            OptionalNavigationLink(model: item) {
-                                                ItemListItemViev(model: item)
-                                                    .tag(item.id)
-                                                    .environmentObject(settings)
-                                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                                    .contextMenu {
-                                                        ContextMenuContent(model: item)
-                                                    }
-                                            }
-                                            .buttonStyle(ClearSelectionStyle())
+                                LazyVStack(spacing: 15.0) {
+                                    Spacer(minLength: 1.0)
+                                    ForEach(node.items, id: \.id) { item in
+                                        OptionalNavigationLink(model: item) {
+                                            ItemListItemViev(model: item)
+                                                .tag(item.id)
+                                                .environmentObject(settings)
+                                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                                .contextMenu {
+                                                    ContextMenuContent(model: item)
+                                                }
                                         }
-                                        .listRowBackground(Color.pbh.whiteBackground)
-                                        .listRowSeparator(.hidden)
+                                        .buttonStyle(ClearSelectionStyle())
                                     }
-                                    .scrollContentBackground(Color.pbh.whiteBackground)
-                                    .navigationDestination(for: ArticleModel.self) { item in
-                                        ArticlesPageView(item: item, node: node)
-                                            .environmentObject(settings)
-                                    }
-                                    GeometryReader {
-                                        let offset = -$0.frame(in: .named("scroll")).origin.y
-                                        Color.clear.preference(key: ViewOffsetKey.self, value: offset)
-                                    }
+                                    .listRowBackground(Color.pbh.whiteBackground)
+                                    .listRowSeparator(.hidden)
+                                }
+                                .scrollContentBackground(Color.pbh.whiteBackground)
+                                .navigationDestination(for: ArticleModel.self) { item in
+                                    ArticlesPageView(item: item, node: node)
+                                        .environmentObject(settings)
+                                }
+                                .background(GeometryReader {
+                                    Color.clear.preference(key: ViewOffsetKey.self,
+                                                           value: -$0.frame(in: .named("scroll")).origin.y)
+                                })
+                                .onPreferenceChange(ViewOffsetKey.self) {
+                                    offsetDetector.send($0)
                                 }
                             }
                             .navigationTitle(node.title)
@@ -92,10 +106,7 @@ struct ContentView: View {
                             .toolbar {
                                 ItemListToolbarContent(node: node)
                             }
-                            .onPreferenceChange(ViewOffsetKey.self) {
-                                scrollViewHelper.currentOffset = $0
-                            }
-                            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
+                            .onReceive(offsetPublisher) {
                                 markRead($0)
                             }
                         }
