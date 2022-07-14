@@ -46,7 +46,6 @@ struct NodeView: View {
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
             BadgeView(node: node)
-                .equatable()
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {
