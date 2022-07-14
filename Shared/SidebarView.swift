@@ -67,6 +67,7 @@ struct SidebarView: View {
             NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
                 .tag(node.id)
                 .accentColor(.pbh.whiteIcon)
+                .contentShape(Rectangle())
                 .onTapGesture {
                     nodeSelection = node.id
                 }
