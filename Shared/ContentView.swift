@@ -20,7 +20,7 @@ struct ContentView: View {
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
 
-    private let offsetDetector: CurrentValueSubject<CGFloat, Never>
+    private let offsetDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetPublisher: AnyPublisher<CGFloat, Never>
 
     private let onNewFeed = NotificationCenter.default
@@ -50,12 +50,10 @@ struct ContentView: View {
     init(model: FeedModel, settings: Preferences) {
         self.model = model
         self.settings = settings
-        let detector = CurrentValueSubject<CGFloat, Never>(0)
-        self.offsetPublisher = detector
+        self.offsetPublisher = offsetDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
-        self.offsetDetector = detector
     }
 
     var body: some View {

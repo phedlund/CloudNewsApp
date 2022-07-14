@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NodeView: View, Equatable {
+struct NodeView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
@@ -24,11 +24,6 @@ struct NodeView: View, Equatable {
 #else
     let noChildrenPadding = 0.0
 #endif
-
-    static func == (lhs: NodeView, rhs: NodeView) -> Bool {
-        lhs.title == rhs.title &&
-        lhs.unreadCount == rhs.unreadCount
-    }
 
     var body: some View {
         HStack {
