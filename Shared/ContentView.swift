@@ -20,6 +20,8 @@ struct ContentView: View {
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
 
+    @Namespace var topID
+
     private let offsetDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetPublisher: AnyPublisher<CGFloat, Never>
 
@@ -68,44 +70,52 @@ struct ContentView: View {
                     GeometryReader { geometry in
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         OptionalNavigationStack(path: $path) {
-                            ScrollView {
-                                LazyVStack(spacing: 15.0) {
-                                    Spacer(minLength: 1.0)
-                                    ForEach(node.items, id: \.id) { item in
-                                        OptionalNavigationLink(model: item) {
-                                            ItemListItemViev(model: item)
-                                                .tag(item.id)
-                                                .environmentObject(settings)
-                                                .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                                .contextMenu {
-                                                    ContextMenuContent(model: item)
-                                                }
+                            ScrollViewReader { proxy in
+                                ScrollView {
+                                    Rectangle()
+                                        .fill(.clear)
+                                        .frame(height: 1)
+                                        .id(topID)
+                                    LazyVStack(spacing: 15.0) {
+                                        ForEach(node.items, id: \.id) { item in
+                                            OptionalNavigationLink(model: item) {
+                                                ItemListItemViev(model: item)
+                                                    .tag(item.id)
+                                                    .environmentObject(settings)
+                                                    .frame(width: cellWidth, height: cellHeight, alignment: .center)
+                                                    .contextMenu {
+                                                        ContextMenuContent(model: item)
+                                                    }
+                                            }
+                                            .buttonStyle(ClearSelectionStyle())
                                         }
-                                        .buttonStyle(ClearSelectionStyle())
+                                        .listRowBackground(Color.pbh.whiteBackground)
+                                        .listRowSeparator(.hidden)
                                     }
-                                    .listRowBackground(Color.pbh.whiteBackground)
-                                    .listRowSeparator(.hidden)
+                                    .scrollContentBackground(Color.pbh.whiteBackground)
+                                    .navigationDestination(for: ArticleModel.self) { item in
+                                        ArticlesPageView(item: item, node: node)
+                                            .environmentObject(settings)
+                                    }
+                                    .background(GeometryReader {
+                                        Color.clear.preference(key: ViewOffsetKey.self,
+                                                               value: -$0.frame(in: .named("scroll")).origin.y)
+                                    })
+                                    .onPreferenceChange(ViewOffsetKey.self) {
+                                        offsetDetector.send($0)
+                                    }
                                 }
-                                .scrollContentBackground(Color.pbh.whiteBackground)
-                                .navigationDestination(for: ArticleModel.self) { item in
-                                    ArticlesPageView(item: item, node: node)
-                                        .environmentObject(settings)
+                                .navigationTitle(node.title)
+                                .coordinateSpace(name: "scroll")
+                                .toolbar {
+                                    ItemListToolbarContent(node: node)
                                 }
-                                .background(GeometryReader {
-                                    Color.clear.preference(key: ViewOffsetKey.self,
-                                                           value: -$0.frame(in: .named("scroll")).origin.y)
-                                })
-                                .onPreferenceChange(ViewOffsetKey.self) {
-                                    offsetDetector.send($0)
+                                .onReceive(offsetPublisher) {
+                                    markRead($0)
                                 }
-                            }
-                            .navigationTitle(node.title)
-                            .coordinateSpace(name: "scroll")
-                            .toolbar {
-                                ItemListToolbarContent(node: node)
-                            }
-                            .onReceive(offsetPublisher) {
-                                markRead($0)
+                                .onChange(of: nodeSelection) { _ in
+                                    proxy.scrollTo(topID)
+                                }
                             }
                         }
                     }
