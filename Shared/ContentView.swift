@@ -19,6 +19,7 @@ struct ContentView: View {
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
+    @ObservedObject private var node: Node
 
     @Namespace var topID
 
@@ -52,6 +53,8 @@ struct ContentView: View {
     init(model: FeedModel, settings: Preferences) {
         self.model = model
         self.settings = settings
+        _nodeSelection = State(initialValue: settings.selectedNode)
+        node = model.currentNode
         self.offsetPublisher = offsetDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -66,7 +69,7 @@ struct ContentView: View {
                 .environmentObject(settings)
         } detail: {
             ZStack {
-                if let nodeSelection, let node = model.node(for: nodeSelection) {
+                if let nodeSelection, node.id != EmptyNodeGuid {
                     GeometryReader { geometry in
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         OptionalNavigationStack(path: $path) {
@@ -139,8 +142,11 @@ struct ContentView: View {
             appDelegate.scheduleAppRefresh()
         }
         .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
-        .onChange(of: nodeSelection) { _ in
+        .onChange(of: nodeSelection) {
             path.removeLast(path.count)
+            if let nodeId = $0 {
+                model.updateCurrentNode(nodeId)
+            }
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: $splitViewVisibility) {

@@ -14,7 +14,7 @@ class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     private let preferences = Preferences()
 
-    @Published var currentNode = Node(.all, id: AllNodeGuid)
+    @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
 
     func node(for id: Node.ID) -> Node? {
         if let node = nodes.first(where: { $0.id == id} ) {
@@ -151,6 +151,11 @@ class FeedModel: ObservableObject {
                 self.currentNode = self.allNode
             }
         }
+    }
+
+    func updateCurrentNode(_ current: String) {
+        preferences.selectedNode = current
+        currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
     func delete(_ node: Node) {

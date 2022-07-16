@@ -28,7 +28,6 @@ struct SidebarView: View {
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(StorageKeys.selectedFeedSettings) private var selectedFeedSettings: Int = 0
     @AppStorage(StorageKeys.selectedFolderRename) private var selectedFolderRename: Int = 0
-    @AppStorage(StorageKeys.selectedNode) private var selectedNode: String = AllNodeGuid
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
