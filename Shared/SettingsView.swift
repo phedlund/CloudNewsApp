@@ -137,6 +137,9 @@ struct SettingsView: View {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
+                Toggle(isOn: $compactView) {
+                    Text("Comapct View")
+                }
                 Toggle(isOn: $preferences.hideRead) {
                     Text("Hide Read Items")
                 }
@@ -146,9 +149,6 @@ struct SettingsView: View {
                 Toggle(isOn: $adBlock) {
                     Text("Block Ads")
                     Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-ios/blob/development/Client/WebFilters/ContentBlocker/Lists/block-ads.json)")
-                }
-                Toggle(isOn: $compactView) {
-                    Text("Comapct View")
                 }
             } header: {
                 Text("Reading")
