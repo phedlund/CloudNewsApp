@@ -47,11 +47,7 @@ struct ContentView: View {
     @State private var cellHeight: CGFloat = 160.0
 
     private var isNotLoggedIn: Bool {
-#if !os(macOS)
         return username.isEmpty || password.isEmpty
-#else
-        return false
-#endif
     }
 
     init(model: FeedModel, settings: Preferences) {
@@ -191,6 +187,11 @@ struct ContentView: View {
                 }
                 .padding()
                 .frame(minWidth: 400)
+            }
+        }
+        .onAppear {
+            if isNotLoggedIn {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
         }
         .onReceive(onNewFeed) { _ in
