@@ -12,9 +12,7 @@ import WebKit
 
 struct MacArticleView: View {
     @EnvironmentObject private var settings: Preferences
-    @State private var webViewHelper = ItemWebViewHelper()
-    let node: Node
-    @Binding var itemSelection: ArticleModel.ID?
+    var item: ArticleModel
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -23,36 +21,30 @@ struct MacArticleView: View {
     @State private var isShowingPopover = false
     @State private var isShowingSharePopover = false
 
-    init(node: Node, itemSelection: Binding<ArticleModel.ID?>) {
-        self.node = node
-        _itemSelection = itemSelection
-    }
-
     var body: some View {
         WebView { webView in
-            webViewHelper.node = node
-            webViewHelper.itemSelection = self.itemSelection
-            webViewHelper.webView = webView
-            if let urlRequest = webViewHelper.urlRequest {
+            item.webViewHelper.item = item
+            item.webViewHelper.webView = webView
+            if let urlRequest = item.webViewHelper.urlRequest {
                 webView.load(urlRequest)
-                webViewHelper.markItemRead()
+                item.webViewHelper.markItemRead()
             }
         }
-        .id(itemSelection) //forces the web view to be recreated to get a unique WKWebView for each article
+        .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
         .navigationTitle(title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
-        .onReceive(webViewHelper.$canGoBack) {
+        .onReceive(item.webViewHelper.$canGoBack) {
             canGoBack = $0
         }
-        .onReceive(webViewHelper.$canGoForward) {
+        .onReceive(item.webViewHelper.$canGoForward) {
             canGoForward = $0
         }
-        .onReceive(webViewHelper.$isLoading) {
+        .onReceive(item.webViewHelper.$isLoading) {
             isLoading = $0
         }
-        .onReceive(webViewHelper.$title) {
+        .onReceive(item.webViewHelper.$title) {
             if $0 != title {
                 title = $0
             }
@@ -64,22 +56,22 @@ struct MacArticleView: View {
     func articleToolBarContent() -> some ToolbarContent {
             ToolbarItemGroup {
                 Button {
-                    webViewHelper.webView?.goBack()
+                    item.webViewHelper.webView?.goBack()
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
                 .disabled(!canGoBack)
                 Button {
-                    webViewHelper.webView?.goForward()
+                    item.webViewHelper.webView?.goForward()
                 } label: {
                     Image(systemName: "chevron.forward")
                 }
                 .disabled(!canGoForward)
                 Button {
                     if isLoading {
-                        webViewHelper.webView?.stopLoading()
+                        item.webViewHelper.webView?.stopLoading()
                     } else {
-                        webViewHelper.webView?.reload()
+                        item.webViewHelper.webView?.reload()
                     }
                 } label: {
                     if isLoading {
@@ -89,19 +81,15 @@ struct MacArticleView: View {
                     }
                 }
                 Spacer()
-                if let itemSelection, let item = node.item(for: itemSelection) {
-                    ShareLinkView(model: item, url: webViewHelper.url)
-                        .disabled(isLoading)
-                }
+                ShareLinkView(model: item, url: item.webViewHelper.url)
+                    .disabled(isLoading)
                 Button {
                     isShowingPopover = true
                 } label: {
                     Image(systemName: "textformat.size")
                 }
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    if let itemSelection, let item = node.item(for: itemSelection) {
-                        ArticleSettingsView(item: item.item!)
-                    }
+                    ArticleSettingsView(item: item.item!)
                 }
                 .disabled(isLoading)
             }

@@ -5,6 +5,8 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
+//NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+
 import Combine
 import SwiftUI
 import CoreData
@@ -39,6 +41,8 @@ struct ContentView: View {
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     @State private var nodeSelection: Node.ID?
+    @State private var itemSelection: ArticleModel.ID?
+    @State private var selectedItem: ArticleModel?
     @State private var path = NavigationPath()
     @State private var cellHeight: CGFloat = 160.0
 
@@ -149,13 +153,13 @@ struct ContentView: View {
             }
         }
 #elseif os(macOS)
-        NavigationSplitView(columnVisibility: $splitViewVisibility) {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
         } content: {
-            if let nodeSelection, let node = model.node(for: nodeSelection) {
-                ItemsView(node: node, itemSelection: $itemSelection)
+            if nodeSelection != nil, node.id != EmptyNodeGuid {
+                ItemsView(node: node, selectedItem: $selectedItem)
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
                     .environmentObject(settings)
             } else {
@@ -164,8 +168,8 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         } detail: {
-            if let nodeSelection, let node = model.node(for: nodeSelection), let _ = itemSelection {
-                MacArticleView(node: node, itemSelection: $itemSelection)
+            if let selectedItem {
+                MacArticleView(item: selectedItem)
                     .environmentObject(settings)
             } else {
                 Text("No Article Selected")
@@ -194,6 +198,12 @@ struct ContentView: View {
         }
         .onReceive(onNewFolder) { _ in
             addSheet = .folder
+        }
+        .onChange(of: nodeSelection) {
+            path.removeLast(path.count)
+            if let nodeId = $0 {
+                model.updateCurrentNode(nodeId)
+            }
         }
 #endif
     }
