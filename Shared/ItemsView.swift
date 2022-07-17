@@ -37,17 +37,17 @@ struct ItemsView: View {
                                 scrollViewHelper.currentOffset = offset
                             }
                     }
-                    .buttonStyle(ClearSelectionStyle())
                     .contextMenu {
                         ContextMenuContent(model: item)
                     }
                 }
+                .listRowBackground(Color.pbh.whiteBackground)
 #if os(macOS)
                 .listStyle(.bordered)
 #endif
-                .listRowBackground(Color.pbh.whiteBackground)
                 .listRowSeparator(.hidden)
             }
+            .accentColor(Color.pbh.whiteBackground)
             .toolbar {
                 ItemListToolbarContent(node: node)
             }

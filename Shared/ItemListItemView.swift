@@ -64,12 +64,20 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
+#if os(macOS)
+            Spacer(minLength: 3)
+            Rectangle()
+                .fill(.gray.opacity(0.25))
+                .frame(height: 1)
+#endif
         }
+#if os(iOS)
         .padding([.trailing], 10)
         .background(in: RoundedRectangle(cornerRadius: 4.0))
         .backgroundStyle(
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
+#endif
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 85.0 : 160.0
             thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
