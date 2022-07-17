@@ -48,8 +48,6 @@ struct ItemsView: View {
                 .listRowBackground(Color.pbh.whiteBackground)
                 .listRowSeparator(.hidden)
             }
-            .listStyle(.bordered)
-            .listRowBackground(Color.pbh.whiteBackground)
             .toolbar {
                 ItemListToolbarContent(node: node)
             }

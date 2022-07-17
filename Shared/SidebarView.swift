@@ -46,7 +46,7 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        List(selection: $nodeSelection) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -63,55 +63,57 @@ struct SidebarView: View {
                 .cornerRadius(10.0)
                 .transition(.move(edge: .top))
             }
-            NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
-                .tag(node.id)
-                .accentColor(.pbh.whiteIcon)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    nodeSelection = node.id
-                }
-                .contextMenu {
-                    switch node.nodeType {
-                    case .empty, .all, .starred:
-                        EmptyView()
-                    case .folder(let folderId):
-                        Button {
+            OutlineGroup(model.nodes, id: \.id, children: \.children) { node in
+                NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                    .tag(node.id)
+                    .accentColor(.pbh.whiteIcon)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        nodeSelection = node.id
+                    }
+                    .contextMenu {
+                        switch node.nodeType {
+                        case .empty, .all, .starred:
+                            EmptyView()
+                        case .folder(let folderId):
+                            Button {
 #if os(macOS)
-                            selectedFolderRename = Int(folderId)
-                            openWindow(id: ModalSheet.folderRename.rawValue)
+                                selectedFolderRename = Int(folderId)
+                                openWindow(id: ModalSheet.folderRename.rawValue)
 #else
-                            selectedFeed = Int(folderId)
-                            modalSheet = .folderRename
+                                selectedFeed = Int(folderId)
+                                modalSheet = .folderRename
 #endif
-                        } label: {
-                            Label("Rename...", systemImage: "square.and.pencil")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    case .feed(let feedId):
-                        Button {
+                            } label: {
+                                Label("Rename...", systemImage: "square.and.pencil")
+                            }
+                            Button(role: .destructive) {
+                                isShowingConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        case .feed(let feedId):
+                            Button {
 #if os(macOS)
-                            selectedFeedSettings = Int(feedId)
-                            openWindow(id: ModalSheet.feedSettings.rawValue)
+                                selectedFeedSettings = Int(feedId)
+                                openWindow(id: ModalSheet.feedSettings.rawValue)
 #else
-                            selectedFeed = Int(feedId)
-                            modalSheet = .feedSettings
+                                selectedFeed = Int(feedId)
+                                modalSheet = .feedSettings
 #endif
-                        } label: {
-                            Label("Settings...", systemImage: "gearshape")
-                        }
-                        Button(role: .destructive) {
-                            isShowingConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                            } label: {
+                                Label("Settings...", systemImage: "gearshape")
+                            }
+                            Button(role: .destructive) {
+                                isShowingConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
-                }
+            }
         }
-        .listStyle(.sidebar)
+        .listStyle(.automatic)
         .accentColor(.pbh.darkIcon)
         .refreshable {
             sync()
