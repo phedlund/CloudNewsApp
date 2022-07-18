@@ -55,22 +55,37 @@ struct CloudNewsApp: App {
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
+
+        Window(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
+            AddView(.feed)
+                .frame(width: 500, height: 200)
+        }
+        .windowResizability(.contentSize)
+
+        Window(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
+            AddView(.folder)
+                .frame(width: 500, height: 200)
+        }
+        .windowResizability(.contentSize)
+
 #endif
     }
 }
 
+#if os(macOS)
 struct AppCommands: Commands {
 //    @ObservedObject var sessionManager: NoteSessionManager
+    @Environment(\.openWindow) var openWindow
 
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
         CommandGroup(replacing: CommandGroupPlacement.newItem) {
             Button("New Feed...") {
-                NotificationCenter.default.post(name: .newFeed, object: nil)
+                openWindow(id: ModalSheet.addFeed.rawValue)
             }
             .keyboardShortcut("n")
             Button("New Folder...") {
-                NotificationCenter.default.post(name: .newFolder, object: nil)
+                openWindow(id: ModalSheet.addFolder.rawValue)
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
         }
@@ -136,3 +151,4 @@ struct AppCommands: Commands {
         }
     }
 }
+#endif

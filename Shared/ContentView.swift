@@ -28,14 +28,6 @@ struct ContentView: View {
     private let offsetDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetPublisher: AnyPublisher<CGFloat, Never>
 
-    private let onNewFeed = NotificationCenter.default
-        .publisher(for: .newFeed)
-        .receive(on: RunLoop.main)
-
-    private let onNewFolder = NotificationCenter.default
-        .publisher(for: .newFolder)
-        .receive(on: RunLoop.main)
-
     @State private var isShowingLogin = false
     @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
@@ -193,12 +185,6 @@ struct ContentView: View {
             if isNotLoggedIn {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
-        }
-        .onReceive(onNewFeed) { _ in
-            addSheet = .feed
-        }
-        .onReceive(onNewFolder) { _ in
-            addSheet = .folder
         }
         .onChange(of: nodeSelection) {
             path.removeLast(path.count)

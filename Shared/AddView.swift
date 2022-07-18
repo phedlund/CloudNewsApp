@@ -30,92 +30,100 @@ struct AddView: View {
     }
 
     var body: some View {
-        Form {
-            Section(footer: FooterLabel(message: footerMessage, success: footerSuccess)) {
+        VStack {
+            Form {
+                Section {
 #if !os(macOS)
-                Picker("Add", selection: $selectedAdd) {
-                    Text("Feed").tag(AddType.feed)
-                    Text("Folder").tag(AddType.folder)
-                }
-                .pickerStyle(.segmented)
-#endif
-                AddViewSegment(input: $input, addType: selectedAdd)
-                if selectedAdd == .feed {
-                    Picker("Folder", selection: $folderSelection) {
-                        ForEach(folderNames, id: \.self) {
-                            Text($0)
-                        }
-                        .navigationTitle("Folder")
+                    Picker("Add", selection: $selectedAdd) {
+                        Text("Feed").tag(AddType.feed)
+                        Text("Folder").tag(AddType.folder)
                     }
-                    .disabled(input.isEmpty)
-                }
-                HStack {
-                    Button {
-                        switch selectedAdd {
-                        case .feed:
-                            Task {
-                                isAdding = true
-                                do {
-                                    try await NewsManager.shared.addFeed(url: input, folderId: folderId)
-                                    footerMessage = "Feed '\(input)' added"
-                                    footerSuccess = true
-                                } catch(let error as PBHError) {
-                                    switch error {
-                                    case .networkError(let message):
-                                        footerMessage = message
-                                        footerSuccess = false
-                                    default:
-                                        break
-                                    }
-                                }
-                                isAdding = false
+                    .pickerStyle(.segmented)
+#endif
+                    AddViewSegment(input: $input, addType: selectedAdd)
+                    if selectedAdd == .feed {
+                        Picker("Folder", selection: $folderSelection) {
+                            ForEach(folderNames, id: \.self) {
+                                Text($0)
                             }
-                        case .folder:
-                            Task {
-                                isAdding = true
-                                do {
-                                    try await NewsManager.shared.addFolder(name: input)
-                                    footerMessage = "Folder '\(input)' added"
-                                    footerSuccess = true
-                                } catch(let error as PBHError) {
-                                    switch error {
-                                    case .networkError(let message):
-                                        footerMessage = message
-                                        footerSuccess = false
-                                    default:
-                                        break
-                                    }
-                                }
-                                isAdding = false
-                            }
+                            .navigationTitle("Folder")
                         }
-                    } label: {
-                        Text("Add")
+                        .disabled(input.isEmpty)
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(input.isEmpty)
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .opacity(isAdding ? 1.0 : 0.0)
+                    HStack {
+                        Button {
+                            switch selectedAdd {
+                            case .feed:
+                                Task {
+                                    isAdding = true
+                                    do {
+                                        try await NewsManager.shared.addFeed(url: input, folderId: folderId)
+                                        footerMessage = "Feed '\(input)' added"
+                                        footerSuccess = true
+                                    } catch(let error as PBHError) {
+                                        switch error {
+                                        case .networkError(let message):
+                                            footerMessage = message
+                                            footerSuccess = false
+                                        default:
+                                            break
+                                        }
+                                    }
+                                    isAdding = false
+                                }
+                            case .folder:
+                                Task {
+                                    isAdding = true
+                                    do {
+                                        try await NewsManager.shared.addFolder(name: input)
+                                        footerMessage = "Folder '\(input)' added"
+                                        footerSuccess = true
+                                    } catch(let error as PBHError) {
+                                        switch error {
+                                        case .networkError(let message):
+                                            footerMessage = message
+                                            footerSuccess = false
+                                        default:
+                                            break
+                                        }
+                                    }
+                                    isAdding = false
+                                }
+                            }
+                        } label: {
+                            Text("Add")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(input.isEmpty)
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .opacity(isAdding ? 1.0 : 0.0)
 #if os(macOS)
-                        .controlSize(.small)
+                            .controlSize(.small)
 #endif
-                }
-#if os(macOS)
-                HStack {
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Close")
                     }
-                    .keyboardShortcut(.escape, modifiers: [])
+                } footer: {
+                    FooterLabel(message: footerMessage, success: footerSuccess)
                 }
-#endif
             }
-            .navigationTitle("Add Feed or Folder")
+            .formStyle(.grouped)
+#if os(macOS)
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Close")
+                }
+                .keyboardShortcut(.escape, modifiers: [])
+            }
+            .padding()
+#endif
         }
+#if os(iOS)
+        .navigationTitle("Add Feed or Folder")
+#endif
         .onAppear {
             if let folders = CDFolder.all() {
                 var fNames = [noFolderName]
