@@ -28,8 +28,6 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
-    @AppStorage(StorageKeys.selectedFeedSettings) private var selectedFeedSettings: Int = 0
-    @AppStorage(StorageKeys.selectedFolderRename) private var selectedFolderRename: Int = 0
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
@@ -80,8 +78,7 @@ struct SidebarView: View {
                         case .folder(let folderId):
                             Button {
 #if os(macOS)
-                                selectedFolderRename = Int(folderId)
-                                openWindow(id: ModalSheet.folderRename.rawValue)
+                                openWindow(id: ModalSheet.folderRename.rawValue, value: folderId)
 #else
                                 selectedFeed = Int(folderId)
                                 modalSheet = .folderRename
@@ -97,8 +94,7 @@ struct SidebarView: View {
                         case .feed(let feedId):
                             Button {
 #if os(macOS)
-                                selectedFeedSettings = Int(feedId)
-                                openWindow(id: ModalSheet.feedSettings.rawValue)
+                                openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
                                 selectedFeed = Int(feedId)
                                 modalSheet = .feedSettings

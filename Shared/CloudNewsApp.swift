@@ -16,8 +16,6 @@ struct CloudNewsApp: App {
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
-    @AppStorage(StorageKeys.selectedFeedSettings) private var selectedFeedSettings: Int = 0
-    @AppStorage(StorageKeys.selectedFolderRename) private var selectedFolderRename: Int = 0
     private let syncTimer = SyncTimer()
 #endif
 
@@ -29,7 +27,7 @@ struct CloudNewsApp: App {
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands()
+            AppCommands(model: nodeTree)
         }
 #endif
 
@@ -44,14 +42,14 @@ struct CloudNewsApp: App {
         }
         .windowResizability(.contentSize)
 
-        Window(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
-            FeedSettingsView(selectedFeedSettings)
+        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
+            FeedSettingsView(Int(feedId.wrappedValue!))
                 .frame(width: 600, height: 500)
         }
         .windowResizability(.contentSize)
 
-        Window(Text("Rename Folder"), id: ModalSheet.folderRename.rawValue) {
-            FolderRenameView(selectedFolderRename)
+        WindowGroup(Text("Rename Folder"), id: ModalSheet.folderRename.rawValue, for: Int32.self) { folderId in
+            FolderRenameView(Int(folderId.wrappedValue!))
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
@@ -74,8 +72,10 @@ struct CloudNewsApp: App {
 
 #if os(macOS)
 struct AppCommands: Commands {
-//    @ObservedObject var sessionManager: NoteSessionManager
     @Environment(\.openWindow) var openWindow
+    @ObservedObject var model: FeedModel
+
+    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
 
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
@@ -100,8 +100,18 @@ struct AppCommands: Commands {
             .keyboardShortcut("r")
             Divider()
         }
+        CommandMenu("Folder") {
+            Button("Rename...") {
+                switch model.currentNode.nodeType {
+                case .empty, .all, .starred, .feed(id: _):
+                    break
+                case .folder(id: let id):
+                    openWindow(id: ModalSheet.folderRename.rawValue, value: id)
+                }
+            }
+            .disabled(isFolderRenameDisabled())
+        }
         CommandMenu("Feed") {
-            Divider()
             Button("Previous") {
                 print("Favorite selected")
             }
@@ -110,6 +120,16 @@ struct AppCommands: Commands {
                 print("Category selected")
             }
             .keyboardShortcut("f", modifiers: [])
+            Divider()
+            Button("Settings...") {
+                switch model.currentNode.nodeType {
+                case .empty, .all, .starred, .folder(id: _):
+                    break
+                case .feed(id: let id):
+                    openWindow(id: ModalSheet.feedSettings.rawValue, value: id)
+                }
+            }
+            .disabled(isFeedSettingsDisabled())
             Divider()
             Button("Delete") {
                 print("Delete selected")
@@ -150,5 +170,24 @@ struct AppCommands: Commands {
             .keyboardShortcut("a", modifiers: [])
         }
     }
+
+    private func isFolderRenameDisabled() -> Bool {
+        switch model.currentNode.nodeType {
+        case .empty, .all, .starred, .feed(id: _):
+            return true
+        case .folder(id: _):
+            return false
+        }
+    }
+
+    private func isFeedSettingsDisabled() -> Bool {
+        switch model.currentNode.nodeType {
+        case .empty, .all, .starred, .folder(id: _):
+            return true
+        case .feed(id: _):
+            return false
+        }
+    }
+
 }
 #endif

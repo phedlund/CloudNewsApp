@@ -18,6 +18,7 @@ struct ContentView: View {
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
     @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
+    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
@@ -190,6 +191,14 @@ struct ContentView: View {
             path.removeLast(path.count)
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)
+                switch model.currentNode.nodeType {
+                case .empty, .all, .starred:
+                    break
+                case .folder(id:  let id):
+                    selectedFeed = Int(id)
+                case .feed(id: let id):
+                    selectedFeed = Int(id)
+                }
             }
         }
 #endif
