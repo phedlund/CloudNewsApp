@@ -9,6 +9,30 @@ import Combine
 import Foundation
 import SwiftUI
 
+struct MarkReadButton: View {
+    @ObservedObject var node: Node
+    @State private var isDisabled = true
+
+    var body: some View {
+        Button {
+            let unreadItems = node.items.filter( { $0.item?.unread ?? false })
+            Task {
+                let myItems = unreadItems.map( { $0.item! })
+                try? await NewsManager.shared.markRead(items: myItems, unread: false)
+            }
+        } label: {
+            Label {
+                Text("Mark Read")
+            } icon: {
+                Image(systemName: "checkmark")
+            }
+        }
+        .keyboardShortcut("a", modifiers: [])
+        .disabled(isDisabled)
+        .onReceive(node.$unreadCount) { isDisabled = $0 == 0 }
+    }
+}
+
 struct OptionalNavigationStack<Content: View>: View {
     let content: Content
     let path: Binding<NavigationPath>

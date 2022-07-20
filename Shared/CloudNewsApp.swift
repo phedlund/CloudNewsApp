@@ -80,14 +80,7 @@ struct AppCommands: Commands {
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
         CommandGroup(replacing: CommandGroupPlacement.newItem) {
-            Button("New Feed...") {
-                openWindow(id: ModalSheet.addFeed.rawValue)
-            }
-            .keyboardShortcut("n")
-            Button("New Folder...") {
-                openWindow(id: ModalSheet.addFolder.rawValue)
-            }
-            .keyboardShortcut("n", modifiers: [.command, .shift])
+            EmptyView()
         }
         CommandGroup(after: .sidebar) {
             Divider()
@@ -110,6 +103,16 @@ struct AppCommands: Commands {
                 }
             }
             .disabled(isFolderRenameDisabled())
+            Divider()
+            Button("New Folder...") {
+                openWindow(id: ModalSheet.addFolder.rawValue)
+            }
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+            Button("Delete Folder") {
+                print("Delete selected")
+            }
+            .keyboardShortcut(.delete)
+            .disabled(isFolderRenameDisabled())
         }
         CommandMenu("Feed") {
             Button("Previous") {
@@ -131,10 +134,15 @@ struct AppCommands: Commands {
             }
             .disabled(isFeedSettingsDisabled())
             Divider()
-            Button("Delete") {
+            Button("New Feed...") {
+                openWindow(id: ModalSheet.addFeed.rawValue)
+            }
+            .keyboardShortcut("n")
+            Button("Delete Feed") {
                 print("Delete selected")
             }
             .keyboardShortcut(.delete)
+            .disabled(isFeedSettingsDisabled())
         }
         CommandMenu("Article") {
             Button("Previous") {
@@ -164,10 +172,7 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut("2")
             Divider()
-            Button("Mark Read") {
-                print("Favorite selected")
-            }
-            .keyboardShortcut("a", modifiers: [])
+            MarkReadButton(node: model.currentNode)
         }
     }
 
