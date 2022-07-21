@@ -34,6 +34,7 @@ struct SidebarView: View {
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
     @State private var errorMessage = ""
+    @State private var confirmationNode: Node?
 
     @Binding var nodeSelection: Node.ID?
 
@@ -73,6 +74,25 @@ struct SidebarView: View {
                     }
                     .contextMenu {
                         contextMenu(node: node)
+                    }
+                    .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
+                        Button {
+                            model.delete(detail)
+                        } label: {
+                            Text("Delete \(detail.title)")
+                        }
+                        Button("Cancel", role: .cancel) {
+                            confirmationNode = nil
+                        }
+                    } message: { detail in
+                        switch detail.nodeType {
+                        case .all, .empty, .starred:
+                            EmptyView()
+                        case .feed(id: _):
+                            Text("This will delete the feed \(detail.title)")
+                        case .folder(id: _):
+                            Text("This will delete the folder \(detail.title) and all its feeds")
+                        }
                     }
             }
         }
@@ -161,9 +181,10 @@ struct SidebarView: View {
                 Label("Rename...", systemImage: "square.and.pencil")
             }
             Button(role: .destructive) {
+                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
             MarkReadButton(node: node)
@@ -178,9 +199,10 @@ struct SidebarView: View {
                 Label("Settings...", systemImage: "gearshape")
             }
             Button(role: .destructive) {
+                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label("Delete...", systemImage: "trash")
             }
         }
     }
