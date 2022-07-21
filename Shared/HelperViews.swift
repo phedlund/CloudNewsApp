@@ -11,7 +11,6 @@ import SwiftUI
 
 struct MarkReadButton: View {
     @ObservedObject var node: Node
-    @State private var isDisabled = true
 
     var body: some View {
         Button {
@@ -28,8 +27,7 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [])
-        .disabled(isDisabled)
-        .onReceive(node.$unreadCount) { isDisabled = $0 == 0 }
+        .disabled(node.unreadCount == 0)
     }
 }
 

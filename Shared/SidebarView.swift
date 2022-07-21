@@ -72,42 +72,7 @@ struct SidebarView: View {
                         nodeSelection = node.id
                     }
                     .contextMenu {
-                        switch node.nodeType {
-                        case .empty, .all, .starred:
-                            EmptyView()
-                        case .folder(let folderId):
-                            Button {
-#if os(macOS)
-                                openWindow(id: ModalSheet.folderRename.rawValue, value: folderId)
-#else
-                                selectedFeed = Int(folderId)
-                                modalSheet = .folderRename
-#endif
-                            } label: {
-                                Label("Rename...", systemImage: "square.and.pencil")
-                            }
-                            Button(role: .destructive) {
-                                isShowingConfirmation = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        case .feed(let feedId):
-                            Button {
-#if os(macOS)
-                                openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
-#else
-                                selectedFeed = Int(feedId)
-                                modalSheet = .feedSettings
-#endif
-                            } label: {
-                                Label("Settings...", systemImage: "gearshape")
-                            }
-                            Button(role: .destructive) {
-                                isShowingConfirmation = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
+                        contextMenu(node: node)
                     }
             }
         }
@@ -174,6 +139,50 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
+    }
+
+    @ViewBuilder
+    private func contextMenu(node: Node) -> some View {
+        switch node.nodeType {
+        case .empty, .starred:
+            EmptyView()
+        case .all:
+            MarkReadButton(node: node)
+        case .folder(let folderId):
+            MarkReadButton(node: node)
+            Button {
+#if os(macOS)
+                openWindow(id: ModalSheet.folderRename.rawValue, value: folderId)
+#else
+                selectedFeed = Int(folderId)
+                modalSheet = .folderRename
+#endif
+            } label: {
+                Label("Rename...", systemImage: "square.and.pencil")
+            }
+            Button(role: .destructive) {
+                isShowingConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        case .feed(let feedId):
+            MarkReadButton(node: node)
+            Button {
+#if os(macOS)
+                openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
+#else
+                selectedFeed = Int(feedId)
+                modalSheet = .feedSettings
+#endif
+            } label: {
+                Label("Settings...", systemImage: "gearshape")
+            }
+            Button(role: .destructive) {
+                isShowingConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 
     private func sync() {
