@@ -30,8 +30,7 @@ class ItemImageFetcher {
 //        prefetcher.startPrefetching(with: imageRequests)
 //    }
 
-    func itemURL(_ item: CDItem) {
-        Task(priority: .userInitiated) {
+    func itemURL(_ item: CDItem) async throws {
             var itemImageUrl: String?
             if let imageLink = item.imageLink,
                !imageLink.isEmpty,
@@ -64,7 +63,6 @@ class ItemImageFetcher {
             } else {
                 try await CDItem.addImageLink(item: item, imageLink: "data:null")
             }
-        }
     }
 
     func itemURLs() async throws {

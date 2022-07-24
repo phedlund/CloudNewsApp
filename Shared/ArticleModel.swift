@@ -33,10 +33,6 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
                 .sink {
                     if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null" {
                         self.imageLink = imageLink
-                    } else if let imageLink = $0, !imageLink.isEmpty, imageLink == "data:null" {
-                        return
-                    } else {
-                        ItemImageFetcher().itemURL(item)
                     }
                 }
                 .store(in: &cancellables)

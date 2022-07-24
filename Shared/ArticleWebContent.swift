@@ -16,6 +16,7 @@ class ArticleWebContent: ObservableObject {
     private let title: String
     private let feedTitle: String
     private let dateText: String
+    private let baseString: String
     private let urlString: String
     private let summary: String
     let fileName: String
@@ -37,6 +38,7 @@ class ArticleWebContent: ObservableObject {
             let feed = CDFeed.feed(id: item.feedId)
             title = Self.itemTitle(item: item)
             summary = Self.output(item: item)
+            baseString = Self.baseString(item: item)
             urlString = Self.itemUrl(item: item)
             dateText = Self.dateText(item: item)
             author = Self.itemAuthor(item: item)
@@ -45,6 +47,7 @@ class ArticleWebContent: ObservableObject {
         } else {
             title = "Untitled"
             summary = "No Summary"
+            baseString = ""
             urlString = ""
             dateText = ""
             author = ""
@@ -84,6 +87,7 @@ class ArticleWebContent: ObservableObject {
                 </title>
             <style>\(updateCssVariables())</style>
             <link rel="stylesheet" href="\(cssPath)" media="all">
+            <base href="\(baseString)">
             </head>
             <body>
                 <article>
@@ -135,6 +139,18 @@ class ArticleWebContent: ObservableObject {
         } catch(let error) {
             print(error.localizedDescription)
         }
+    }
+
+    private static func baseString(item: CDItem) -> String {
+        var result = ""
+
+        if let urlString = item.url,
+           let url = URL(string: urlString),
+           let scheme = url.scheme,
+           let host = url.host {
+            result = "\(scheme)://\(host)"
+        }
+        return result
     }
 
     private static func output(item: CDItem) -> String {

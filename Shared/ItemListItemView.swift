@@ -34,6 +34,15 @@ struct ItemListItemViev: View {
                     .alignmentGuide(.top) { d in
                         (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
                     }
+                    .task(priority: .background) { 
+                        if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
+                            return
+                        } else {
+                            do {
+                                try await ItemImageFetcher().itemURL(model.item!)
+                            } catch { }
+                        }
+                    }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(model: model)
