@@ -157,12 +157,14 @@ struct AppCommands: Commands {
                 }
             }
             .keyboardShortcut("p", modifiers: [])
+            .disabled(isCurrentItemDisabled())
             Button("Next") {
                 if let item = model.currentItem {
                     model.updateCurrentItem(model.currentNode.items.element(after: item))
                 }
             }
             .keyboardShortcut("n", modifiers: [])
+            .disabled(isCurrentItemDisabled())
             Divider()
             Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
                 Task {
