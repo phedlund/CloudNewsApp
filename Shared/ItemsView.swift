@@ -60,9 +60,6 @@ struct ItemsView: View {
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
-            .onChange(of: selectedItem) { newSelection in
-                node.updateCurrentItem(newSelection)
-            }
         }
     }
 

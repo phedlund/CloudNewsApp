@@ -141,6 +141,9 @@ struct ContentView: View {
                 model.updateCurrentNode(nodeId)
             }
         }
+        .onChange(of: itemSelection) {
+            model.updateCurrentItem($0)
+        }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $nodeSelection)
@@ -191,6 +194,7 @@ struct ContentView: View {
             path.removeLast(path.count)
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)
+                model.updateCurrentItem(nil)
                 switch model.currentNode.nodeType {
                 case .empty, .all, .starred:
                     break
@@ -200,6 +204,9 @@ struct ContentView: View {
                     selectedFeed = Int(id)
                 }
             }
+        }
+        .onChange(of: selectedItem) {
+            model.updateCurrentItem($0)
         }
 #endif
     }

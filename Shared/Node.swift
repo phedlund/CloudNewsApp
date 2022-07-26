@@ -18,7 +18,6 @@ final class Node: Identifiable, ObservableObject {
     @Published var title = ""
     @Published var icon = SystemImage()
     @Published var items = [ArticleModel]()
-    @Published var currentItem: ArticleModel?
 
     func item(for id: ArticleModel.ID) -> ArticleModel? {
         items.first(where: { $0.id == id} )
@@ -111,10 +110,6 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    func updateCurrentItem(_ current: ArticleModel?) {
-        currentItem = current
     }
 
     private func nodeTitle() -> String {

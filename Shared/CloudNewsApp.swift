@@ -158,13 +158,17 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut("n", modifiers: [])
             Divider()
-            Button(model.currentNode.currentItem?.unread ?? false ? "Read" : "Unread") {
-                print("Favorite selected")
+            Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
+                Task {
+                    try? await NewsManager.shared.markRead(items: [model.currentItem!.item!], unread: !model.currentItem!.item!.unread)
+                }
             }
             .keyboardShortcut("u", modifiers: [])
             .disabled(isCurrentItemDisabled())
-            Button(model.currentNode.currentItem?.starred ?? false ? "Unstar" : "Star") {
-                print("Category selected")
+            Button(model.currentItem?.starred ?? false ? "Unstar" : "Star") {
+                Task {
+                    try? await NewsManager.shared.markStarred(item: model.currentItem!.item!, starred: !model.currentItem!.starred)
+                }
             }
             .keyboardShortcut("s", modifiers: [])
             .disabled(isCurrentItemDisabled())
@@ -183,12 +187,7 @@ struct AppCommands: Commands {
     }
 
     private func isCurrentItemDisabled() -> Bool {
-        if let currentItem = model.currentNode.currentItem {
-            print(model.currentNode.title)
-            print(currentItem.title)
-            return false
-        }
-        return true
+        return model.currentItem == nil
     }
 
     private func isFolderRenameDisabled() -> Bool {
