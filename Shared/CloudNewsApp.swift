@@ -84,6 +84,8 @@ struct AppCommands: Commands {
         }
         CommandGroup(after: .sidebar) {
             Divider()
+            MarkReadButton(node: model.currentNode)
+            Divider()
             Button("Refresh") {
                 print("Refresh selected")
                 Task {
@@ -172,17 +174,15 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut("s", modifiers: [])
             .disabled(isCurrentItemDisabled())
-            Divider()
-            Button("Summary") {
-                print("Favorite selected")
-            }
-            .keyboardShortcut("1")
-            Button("Web") {
-                print("Category selected")
-            }
-            .keyboardShortcut("2")
-            Divider()
-            MarkReadButton(node: model.currentNode)
+//            Divider()
+//            Button("Summary") {
+//                print("Favorite selected")
+//            }
+//            .keyboardShortcut("1")
+//            Button("Web") {
+//                print("Category selected")
+//            }
+//            .keyboardShortcut("2")
         }
     }
 
