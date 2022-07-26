@@ -152,11 +152,15 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-                print("Favorite selected")
+                if let item = model.currentItem {
+                    model.updateCurrentItem(model.currentNode.items.element(before: item))
+                }
             }
             .keyboardShortcut("p", modifiers: [])
             Button("Next") {
-                print("Category selected")
+                if let item = model.currentItem {
+                    model.updateCurrentItem(model.currentNode.items.element(after: item))
+                }
             }
             .keyboardShortcut("n", modifiers: [])
             Divider()

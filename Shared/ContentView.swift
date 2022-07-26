@@ -208,6 +208,9 @@ struct ContentView: View {
         .onChange(of: selectedItem) {
             model.updateCurrentItem($0)
         }
+        .onChange(of: model.currentItem) {
+            selectedItem = $0
+        }
 #endif
     }
 
