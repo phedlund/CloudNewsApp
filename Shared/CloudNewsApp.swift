@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct CloudNewsApp: App {
     @StateObject private var settings = Preferences()
-    @StateObject private var nodeTree = FeedModel()
+    @StateObject private var feedModel = FeedModel()
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
@@ -21,13 +21,13 @@ struct CloudNewsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(model: nodeTree, settings: settings)
+            ContentView(model: feedModel, settings: settings)
         }
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(model: nodeTree)
+            AppCommands(model: feedModel)
         }
 #endif
 
@@ -94,6 +94,11 @@ struct AppCommands: Commands {
             Divider()
         }
         CommandMenu("Folder") {
+            Button("New Folder...") {
+                openWindow(id: ModalSheet.addFolder.rawValue)
+            }
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+            Divider()
             Button("Rename...") {
                 switch model.currentNode.nodeType {
                 case .empty, .all, .starred, .feed(id: _):
@@ -104,17 +109,18 @@ struct AppCommands: Commands {
             }
             .disabled(isFolderRenameDisabled())
             Divider()
-            Button("New Folder...") {
-                openWindow(id: ModalSheet.addFolder.rawValue)
-            }
-            .keyboardShortcut("n", modifiers: [.command, .shift])
-            Button("Delete Folder") {
-                print("Delete selected")
+            Button("Delete Folder...") {
+                NotificationCenter.default.post(name: .deleteFolder, object: nil)
             }
             .keyboardShortcut(.delete)
             .disabled(isFolderRenameDisabled())
         }
         CommandMenu("Feed") {
+            Button("New Feed...") {
+                openWindow(id: ModalSheet.addFeed.rawValue)
+            }
+            .keyboardShortcut("n")
+            Divider()
             Button("Previous") {
                 print("Favorite selected")
             }
@@ -134,12 +140,10 @@ struct AppCommands: Commands {
             }
             .disabled(isFeedSettingsDisabled())
             Divider()
-            Button("New Feed...") {
-                openWindow(id: ModalSheet.addFeed.rawValue)
-            }
-            .keyboardShortcut("n")
-            Button("Delete Feed") {
-                print("Delete selected")
+            Button {
+                NotificationCenter.default.post(name: .deleteFeed, object: nil)
+            } label: {
+                Text("Delete Feed...")
             }
             .keyboardShortcut(.delete)
             .disabled(isFeedSettingsDisabled())
@@ -154,14 +158,16 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut("n", modifiers: [])
             Divider()
-            Button("Mark") {
+            Button(model.currentNode.currentItem?.unread ?? false ? "Read" : "Unread") {
                 print("Favorite selected")
             }
             .keyboardShortcut("u", modifiers: [])
-            Button("Favorite") {
+            .disabled(isCurrentItemDisabled())
+            Button(model.currentNode.currentItem?.starred ?? false ? "Unstar" : "Star") {
                 print("Category selected")
             }
             .keyboardShortcut("s", modifiers: [])
+            .disabled(isCurrentItemDisabled())
             Divider()
             Button("Summary") {
                 print("Favorite selected")
@@ -174,6 +180,15 @@ struct AppCommands: Commands {
             Divider()
             MarkReadButton(node: model.currentNode)
         }
+    }
+
+    private func isCurrentItemDisabled() -> Bool {
+        if let currentItem = model.currentNode.currentItem {
+            print(model.currentNode.title)
+            print(currentItem.title)
+            return false
+        }
+        return true
     }
 
     private func isFolderRenameDisabled() -> Bool {

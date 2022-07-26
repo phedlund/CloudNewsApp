@@ -38,7 +38,7 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: Node.ID?
 
-    private var publisher = NotificationCenter.default
+    private var syncPublisher = NotificationCenter.default
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
@@ -128,8 +128,16 @@ struct SidebarView: View {
 #endif
             }
         }
-        .onReceive(publisher) { _ in
+        .onReceive(syncPublisher) { _ in
             isSyncing = false
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
+            confirmationNode = model.currentNode
+            isShowingConfirmation = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
+            confirmationNode = model.currentNode
+            isShowingConfirmation = true
         }
         .onChange(of: nodeSelection) {
             print("Selected node is \($0 ?? "")")
