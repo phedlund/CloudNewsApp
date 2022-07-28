@@ -123,15 +123,6 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut("n")
             Divider()
-            Button("Previous") {
-                print("Favorite selected")
-            }
-            .keyboardShortcut("d", modifiers: [])
-            Button("Next") {
-                print("Category selected")
-            }
-            .keyboardShortcut("f", modifiers: [])
-            Divider()
             Button("Settings...") {
                 switch model.currentNode.nodeType {
                 case .empty, .all, .starred, .folder(id: _):
