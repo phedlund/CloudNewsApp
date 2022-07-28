@@ -88,7 +88,7 @@ struct ContentView: View {
                                         .listRowBackground(Color.pbh.whiteBackground)
                                         .listRowSeparator(.hidden)
                                     }
-                                    .scrollContentBackground(Color.pbh.whiteBackground)
+                                    .scrollContentBackground(.hidden)
                                     .navigationDestination(for: ArticleModel.self) { item in
                                         ArticlesPageView(item: item, node: node)
                                             .environmentObject(settings)
@@ -140,9 +140,6 @@ struct ContentView: View {
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)
             }
-        }
-        .onChange(of: itemSelection) {
-            model.updateCurrentItem($0)
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
