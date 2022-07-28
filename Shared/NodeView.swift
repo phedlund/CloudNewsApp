@@ -17,6 +17,7 @@ struct NodeView: View {
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
     @State private var unreadCount = 0
+    @State private var errorCount = 0
     @State private var title = ""
 
 #if os(iOS)
@@ -45,7 +46,7 @@ struct NodeView: View {
             }
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
-            BadgeView(node: node)
+            BadgeView(unreadCount: unreadCount, errorCount: errorCount)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {
@@ -86,6 +87,9 @@ struct NodeView: View {
         }
         .onReceive(node.$title) {
             title = $0
+        }
+        .onReceive(node.$errorCount) {
+            errorCount = $0
         }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
