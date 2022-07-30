@@ -48,16 +48,15 @@ struct ContextMenuContent: View {
             }
         }
     }
-
 }
 
 struct TitleView: View {
-    @ObservedObject var model: ArticleModel
     let font = Font.headline.weight(.semibold)
+    var title: String
+    var textColor: Color
 
     var body: some View {
-        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(model.item!.title ?? "Untitled")
+        Text(title)
             .multilineTextAlignment(.leading)
             .font(font)
             .foregroundColor(textColor)
@@ -68,7 +67,6 @@ struct TitleView: View {
 
 struct ItemFavIconView: View {
     @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
-
     var nodeIcon: SystemImage
 
     @ViewBuilder
@@ -92,14 +90,16 @@ struct ItemFavIconView: View {
 }
 
 struct FavIconDateAuthorView: View {
-    @ObservedObject var model: ArticleModel
-
+    var feedIcon: SystemImage
+    var dateAuthorFeed: String
+    var textColor: Color
+    var itemOpacity: Double
+    
     var body: some View {
-        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         HStack {
-            ItemFavIconView(nodeIcon: model.feedIcon)
-                .opacity(model.unread ? 1.0 : 0.4)
-            Text(model.dateAuthorFeed)
+            ItemFavIconView(nodeIcon: feedIcon)
+                .opacity(itemOpacity)
+            Text(dateAuthorFeed)
                 .font(.subheadline)
                 .foregroundColor(textColor)
                 .italic()
@@ -109,12 +109,12 @@ struct FavIconDateAuthorView: View {
 }
 
 struct BodyView: View {
-    @ObservedObject var model: ArticleModel
+    var displayBody: String
+    var textColor: Color
 
     @ViewBuilder
     var body: some View {
-        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        Text(model.displayBody)
+        Text(displayBody)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.body)
@@ -124,12 +124,14 @@ struct BodyView: View {
 
 struct ItemImageView: View {
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-    @ObservedObject var model: ArticleModel
+    var imageLink: String?
     var size: CGSize
+    var itemOpacity: Double
 
-    init(model: ArticleModel, size: CGSize) {
-        self.model = model
+    init(imageLink: String?, size: CGSize, itemOpacity: Double) {
+        self.imageLink = imageLink
         self.size = size
+        self.itemOpacity = itemOpacity
         ImagePipeline.shared = ImagePipeline(configuration: .withDataCache)
     }
 
@@ -137,41 +139,39 @@ struct ItemImageView: View {
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
         if isShowingThumbnails,
-            let imageLink = model.imageLink,
+            let imageLink,
             imageLink != "data:null",
             let imageUrl = URL(string: imageLink) {
             LazyImage(url: imageUrl)
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)
                 .clipped()
-                .opacity(model.unread ? 1.0 : 0.4)
+                .opacity(itemOpacity)
         } else {
             Color.pbh.whiteCellBackground
                 .frame(width: 2, height: size.height)
         }
     }
-
 }
 
 struct ItemStarredView: View {
-    @ObservedObject var model: ArticleModel
+    var starred: Bool
+    var itemOpacity: Double
 
     @ViewBuilder
     var body: some View {
         VStack {
-            if model.starred {
+            if starred {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 16, height: 16, alignment: .center)
             } else {
-                HStack {
-                    Spacer()
-                }
-                .frame(width: 16)
+                Spacer()
+                    .frame(width: 16)
             }
         }
         .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-        .opacity(model.unread ? 1.0 : 0.4)
+        .opacity(itemOpacity)
     }
 }

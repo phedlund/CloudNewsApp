@@ -18,8 +18,7 @@ struct ItemListItemViev: View {
     @EnvironmentObject private var settings: Preferences
     @ObservedObject var model: ArticleModel
     @State private var cellHeight: CGFloat = 160.0
-    @State private var thumbnailWidth: CGFloat = 145.0
-    @State private var thumbnailHeight: CGFloat = 160.0
+    @State private var thumbnailSize = CGSize(width: 145.0, height: 160.0)
 
     @ViewBuilder
     var body: some View {
@@ -28,9 +27,13 @@ struct ItemListItemViev: View {
 #else
         let isHorizontalCompact = false
 #endif
+        let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
+        let itemOpacity = model.unread ? 1.0 : 0.4
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: 10) {
-                ItemImageView(model: model, size: CGSize(width: thumbnailWidth, height: thumbnailHeight))
+                ItemImageView(imageLink: model.imageLink,
+                              size: thumbnailSize,
+                              itemOpacity: itemOpacity)
                     .alignmentGuide(.top) { d in
                         (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
                     }
@@ -45,12 +48,15 @@ struct ItemListItemViev: View {
                     }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
-                        TitleView(model: model)
-                        FavIconDateAuthorView(model: model)
+                        TitleView(title: model.title, textColor: textColor)
+                        FavIconDateAuthorView(feedIcon: model.feedIcon,
+                                              dateAuthorFeed: model.dateAuthorFeed,
+                                              textColor: textColor,
+                                              itemOpacity: itemOpacity)
                         if settings.compactView || isHorizontalCompact {
                             EmptyView()
                         } else {
-                            BodyView(model: model)
+                            BodyView(displayBody: model.displayBody, textColor: textColor)
                         }
                         Spacer()
                     }
@@ -59,12 +65,12 @@ struct ItemListItemViev: View {
                     Spacer()
                 }
                 .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
-                ItemStarredView(model: model)
+                ItemStarredView(starred: model.starred, itemOpacity: itemOpacity)
             }
             if isHorizontalCompact && !settings.compactView  {
                 HStack {
                     VStack {
-                        BodyView(model: model)
+                        BodyView(displayBody: model.displayBody, textColor: textColor)
                             .padding([.leading], 12)
                         Spacer()
                     }
@@ -89,10 +95,10 @@ struct ItemListItemViev: View {
 #endif
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 85.0 : 160.0
-            thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
-            thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? cellHeight / 2 : cellHeight
+            let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
+            let thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? cellHeight / 2 : cellHeight
+            thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
         }
     }
     
 }
-
