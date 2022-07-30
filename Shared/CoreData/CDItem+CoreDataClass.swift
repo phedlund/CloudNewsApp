@@ -15,10 +15,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
     static let entityName = "CDItem"
 
     @objc dynamic var dateAuthorFeed: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .long
-
         var dateLabelText = ""
         let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
         let currentLocale = Locale.current
@@ -26,17 +22,17 @@ public class CDItem: NSManagedObject, ItemProtocol {
         let dateFormatString = DateFormatter.dateFormat(fromTemplate: dateComponents, options: 0, locale: currentLocale)
         let dateFormat = DateFormatter()
         dateFormat.dateFormat = dateFormatString
-        dateLabelText = dateLabelText + dateFormat.string(from: date)
+        dateLabelText.append(dateFormat.string(from: date))
 
         if !dateLabelText.isEmpty {
             dateLabelText.append(" | ")
         }
 
-        if let author = author, !author.isEmpty {
+        if let author, !author.isEmpty {
             let clipLength = 50
             if author.count > clipLength {
-                dateLabelText.append(contentsOf: author.replacingOccurrences(of: "\n", with: "").prefix(clipLength))
-                dateLabelText.append("…")
+                dateLabelText.append(contentsOf: author.filter( { !$0.isNewline }).prefix(clipLength))
+                dateLabelText.append(String(0x2026))
             } else {
                 dateLabelText.append(author)
             }
