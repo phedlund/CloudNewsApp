@@ -14,7 +14,7 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
     @Published public var imageLink: String?
     @Published public var unread = true
     @Published public var starred = false
-    @Published public var feedId: Int32 = 0
+    @Published public var feedIcon = SystemImage()
     @Published public var dateAuthorFeed = ""
     @Published public var displayBody = ""
 
@@ -53,8 +53,12 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             item
                 .publisher(for: \.feedId)
                 .receive(on: DispatchQueue.main)
-                .sink {
-                    self.feedId = $0
+                .sink { newId in
+                    if let data = CDFeed.feed(id: newId)?.favicon {
+                        self.feedIcon = SystemImage(data: data) ?? SystemImage()
+                    } else {
+                        self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
+                    }
                 }
                 .store(in: &cancellables)
             item

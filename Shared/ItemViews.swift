@@ -66,13 +66,38 @@ struct TitleView: View {
     }
 }
 
+struct ItemFavIconView: View {
+    @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
+
+    var nodeIcon: SystemImage
+
+    @ViewBuilder
+    var body: some View {
+        if showFavIcons ?? true {
+#if os(macOS)
+            Image(nsImage: nodeIcon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
+#else
+            Image(uiImage: nodeIcon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16, alignment: .center)
+#endif
+        } else {
+            EmptyView()
+        }
+    }
+}
+
 struct FavIconDateAuthorView: View {
     @ObservedObject var model: ArticleModel
 
     var body: some View {
         let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         HStack {
-            ItemFavIconView(nodeType: .feed(id: model.feedId))
+            ItemFavIconView(nodeIcon: model.feedIcon)
                 .opacity(model.unread ? 1.0 : 0.4)
             Text(model.dateAuthorFeed)
                 .font(.subheadline)
