@@ -42,11 +42,11 @@ struct ItemsView: View {
                     }
                 }
                 .listRowBackground(Color.pbh.whiteBackground)
-#if os(macOS)
-                .listStyle(.bordered)
-#endif
                 .listRowSeparator(.hidden)
             }
+#if os(macOS)
+            .listStyle(.plain)
+#endif
             .accentColor(Color.pbh.whiteBackground)
             .toolbar {
                 ItemListToolbarContent(node: node)
