@@ -31,48 +31,6 @@ struct MarkReadButton: View {
     }
 }
 
-struct OptionalNavigationStack<Content: View>: View {
-    let content: Content
-    let path: Binding<NavigationPath>
-
-    init(path: Binding<NavigationPath>, @ViewBuilder content: @escaping () -> Content) {
-        self.path = path
-        self.content = content()
-    }
-
-    var body: some View {
-#if os(iOS)
-        NavigationStack(path: path) {
-            content
-        }
-#else
-        content
-#endif
-    }
-
-}
-
-struct OptionalNavigationLink<Content: View>: View {
-    let content: Content
-    let model: ArticleModel
-
-    init(model: ArticleModel, @ViewBuilder content: @escaping () -> Content) {
-        self.model = model
-        self.content = content()
-    }
-
-    var body: some View {
-#if os(iOS)
-        NavigationLink(value: model) {
-            content
-        }
-#else
-        content
-#endif
-    }
-
-}
-
 struct LazyView<Content: View>: View {
     let build: () -> Content
     init(_ build: @autoclosure @escaping () -> Content) {

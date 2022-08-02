@@ -139,9 +139,6 @@ struct SidebarView: View {
             confirmationNode = model.currentNode
             isShowingConfirmation = true
         }
-        .onChange(of: nodeSelection) {
-            print("Selected node is \($0 ?? "")")
-        }
         .navigationTitle(Text("Feeds"))
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil

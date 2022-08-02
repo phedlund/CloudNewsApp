@@ -82,33 +82,6 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        preferences.$selectedNode.sink { [weak self] selection in
-            guard let self = self else { return }
-            print("Selected node with id \(selection)")
-
-            if let node = self.nodes.first(where: { $0.id == selection }) {
-                self.currentNode = node
-            } else {
-                let folderNodes = self.nodes.filter {
-                    switch $0.nodeType {
-                    case .folder:
-                        return true
-                    default:
-                        return false
-                    }
-                }
-                for folderNode in folderNodes {
-                    if let node = folderNode.children?.first(where: { $0.id == selection }) {
-                        self.currentNode = node
-                        break
-                    } else {
-                        self.currentNode = self.allNode
-                    }
-                }
-            }
-        }
-        .store(in: &cancellables)
-
         update()
         isInInit = false
     }

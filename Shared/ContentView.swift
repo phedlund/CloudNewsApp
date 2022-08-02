@@ -65,7 +65,7 @@ struct ContentView: View {
                 if let nodeSelection, node.id != EmptyNodeGuid {
                     GeometryReader { geometry in
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
-                        OptionalNavigationStack(path: $path) {
+                        NavigationStack(path: $path) {
                             ScrollViewReader { proxy in
                                 ScrollView {
                                     Rectangle()
@@ -74,7 +74,7 @@ struct ContentView: View {
                                         .id(topID)
                                     LazyVStack(spacing: 15.0) {
                                         ForEach(node.items, id: \.id) { item in
-                                            OptionalNavigationLink(model: item) {
+                                            NavigationLink(value: item) {
                                                 ItemListItemViev(model: item)
                                                     .tag(item.id)
                                                     .environmentObject(settings)
@@ -136,10 +136,24 @@ struct ContentView: View {
         }
         .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
         .onChange(of: nodeSelection) {
-            path.removeLast(path.count)
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)
+                model.updateCurrentItem(nil)
+                switch model.currentNode.nodeType {
+                case .empty, .all, .starred:
+                    break
+                case .folder(id:  let id):
+                    selectedFeed = Int(id)
+                case .feed(id: let id):
+                    selectedFeed = Int(id)
+                }
             }
+        }
+        .onChange(of: selectedItem) {
+            model.updateCurrentItem($0)
+        }
+        .onChange(of: model.currentItem) {
+            selectedItem = $0
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -188,7 +202,6 @@ struct ContentView: View {
             }
         }
         .onChange(of: nodeSelection) {
-            path.removeLast(path.count)
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)
                 model.updateCurrentItem(nil)
