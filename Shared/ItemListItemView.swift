@@ -30,63 +30,57 @@ struct ItemListItemViev: View {
         let textColor = model.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let itemOpacity = model.unread ? 1.0 : 0.4
         VStack(spacing: 0) {
-            HStack {
-                HStack(alignment: .top, spacing: 10) {
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Spacer()
-                                .frame(height: 3)
-                            ItemImageView(imageLink: model.imageLink,
-                                          size: thumbnailSize,
-                                          itemOpacity: itemOpacity)
-                            .task(priority: .background) {
-                                if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
-                                    return
-                                } else {
-                                    do {
-                                        try await ItemImageFetcher().itemURL(model.item!)
-                                    } catch { }
-                                }
-                            }
+            HStack(alignment: .top, spacing: 10) {
+                ItemImageView(imageLink: model.imageLink,
+                              size: thumbnailSize,
+                              itemOpacity: itemOpacity)
+                    .alignmentGuide(.top) { d in
+                        (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
+                    }
+                    .task(priority: .background) { 
+                        if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
+                            return
+                        } else {
+                            do {
+                                try await ItemImageFetcher().itemURL(model.item!)
+                            } catch { }
                         }
                     }
-                    HStack {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TitleView(title: model.title, textColor: textColor)
-                            FavIconDateAuthorView(feedIcon: model.feedIcon,
-                                                  dateAuthorFeed: model.dateAuthorFeed,
-                                                  textColor: textColor,
-                                                  itemOpacity: itemOpacity)
-                            if settings.compactView || isHorizontalCompact {
-                                EmptyView()
-                            } else {
-                                BodyView(displayBody: model.displayBody, textColor: textColor)
-                            }
-                            Spacer()
-                        }
-                        .padding(.zero)
-                        .padding(.top, 3)
-                        Spacer()
-                    }
-                    .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
-                    ItemStarredView(starred: model.starred, itemOpacity: itemOpacity)
-                }
-                if isHorizontalCompact && !settings.compactView  {
-                    HStack {
-                        VStack {
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TitleView(title: model.title, textColor: textColor)
+                        FavIconDateAuthorView(feedIcon: model.feedIcon,
+                                              dateAuthorFeed: model.dateAuthorFeed,
+                                              textColor: textColor,
+                                              itemOpacity: itemOpacity)
+                        if settings.compactView || isHorizontalCompact {
+                            EmptyView()
+                        } else {
                             BodyView(displayBody: model.displayBody, textColor: textColor)
-                                .padding([.leading], 12)
-                            Spacer()
                         }
                         Spacer()
-                            .frame(width: 26)  // 16 (star view width) + 10 (HStack spacing above)
                     }
-                } else {
-                    EmptyView()
+                    .padding(.zero)
+                    .padding(.top, 3)
+                    Spacer()
                 }
+                .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
+                ItemStarredView(starred: model.starred, itemOpacity: itemOpacity)
+            }
+            if isHorizontalCompact && !settings.compactView  {
+                HStack {
+                    VStack {
+                        BodyView(displayBody: model.displayBody, textColor: textColor)
+                            .padding([.leading], 12)
+                        Spacer()
+                    }
+                    Spacer(minLength: 26) // 16 (star view width) + 10 (HStack spacing above)
+                }
+            } else {
+                EmptyView()
             }
 #if os(macOS)
-            Spacer()
+            Spacer(minLength: 3)
             Rectangle()
                 .fill(.gray.opacity(0.25))
                 .frame(height: 1)
