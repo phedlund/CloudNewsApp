@@ -65,7 +65,7 @@ struct ItemListItemViev: View {
                     Spacer()
                 }
                 .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
-                ItemStarredView(starred: model.starred, itemOpacity: itemOpacity)
+                ItemStarredView(starred: model.starred, textColor: textColor)
             }
             if isHorizontalCompact && !settings.compactView  {
                 HStack {

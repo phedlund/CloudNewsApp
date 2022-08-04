@@ -156,7 +156,7 @@ struct ItemImageView: View {
 
 struct ItemStarredView: View {
     var starred: Bool
-    var itemOpacity: Double
+    var textColor: Color
 
     @ViewBuilder
     var body: some View {
@@ -165,13 +165,13 @@ struct ItemStarredView: View {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 16, height: 16, alignment: .center)
+                    .foregroundColor(textColor)
+                    .frame(width: 16, height: 16)
             } else {
                 Spacer()
                     .frame(width: 16)
             }
         }
         .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-        .opacity(itemOpacity)
     }
 }
