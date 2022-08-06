@@ -37,15 +37,6 @@ struct ItemListItemViev: View {
                     .alignmentGuide(.top) { d in
                         (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
                     }
-                    .task(priority: .background) { 
-                        if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
-                            return
-                        } else {
-                            do {
-                                try await ItemImageFetcher().itemURL(model.item!)
-                            } catch { }
-                        }
-                    }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(title: model.title, textColor: textColor)
@@ -93,6 +84,17 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
+        .onAppear {
+            if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
+                return
+            } else {
+                Task.detached(priority: .background) {
+                    do {
+                        try await ItemImageFetcher().itemURL(model.item!)
+                    } catch { }
+                }
+            }
+        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 82.0 : 157.0
             let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
