@@ -124,24 +124,14 @@ struct BodyView: View {
 
 struct ItemImageView: View {
     @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
-    var imageLink: String?
+    var imageUrl: URL?
     var size: CGSize
     var itemOpacity: Double
 
-    init(imageLink: String?, size: CGSize, itemOpacity: Double) {
-        self.imageLink = imageLink
-        self.size = size
-        self.itemOpacity = itemOpacity
-        ImagePipeline.shared = ImagePipeline(configuration: .withDataCache)
-    }
-
-    @ViewBuilder
     var body: some View {
         let isShowingThumbnails = showThumbnails ?? true
         if isShowingThumbnails,
-            let imageLink,
-            imageLink != "data:null",
-            let imageUrl = URL(string: imageLink) {
+            let imageUrl {
             LazyImage(url: imageUrl)
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)

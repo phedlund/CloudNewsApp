@@ -31,7 +31,7 @@ struct ItemListItemViev: View {
         let itemOpacity = model.unread ? 1.0 : 0.4
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: 10) {
-                ItemImageView(imageLink: model.imageLink,
+                ItemImageView(imageUrl: model.imageURL,
                               size: thumbnailSize,
                               itemOpacity: itemOpacity)
                     .alignmentGuide(.top) { d in

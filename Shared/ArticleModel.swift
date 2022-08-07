@@ -7,11 +7,10 @@
 
 import Combine
 import Foundation
-import Nuke
 
 class ArticleModel: NSObject, ObservableObject, Identifiable {
     @Published public var title = ""
-    @Published public var imageLink: String?
+    @Published public var imageURL: URL?
     @Published public var unread = true
     @Published public var starred = false
     @Published public var feedIcon = SystemImage()
@@ -31,8 +30,8 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             item
                 .publisher(for: \.imageLink)
                 .sink {
-                    if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null" {
-                        self.imageLink = imageLink
+                    if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
+                        self.imageURL = url
                     }
                 }
                 .store(in: &cancellables)
