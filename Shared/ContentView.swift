@@ -106,8 +106,10 @@ struct ContentView: View {
                                 .toolbar {
                                     ItemListToolbarContent(node: node)
                                 }
-                                .onReceive(offsetPublisher) {
-                                    markRead($0)
+                                .onReceive(offsetPublisher) { newOffset in
+                                    Task.detached {
+                                        await markRead(newOffset)
+                                    }
                                 }
                                 .onChange(of: nodeSelection) { _ in
                                     proxy.scrollTo(topID)
