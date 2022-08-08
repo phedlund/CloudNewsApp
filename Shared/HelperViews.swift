@@ -41,21 +41,6 @@ struct LazyView<Content: View>: View {
     }
 }
 
-class ScrollViewHelper: ObservableObject {
-    @Published var currentOffset: CGFloat = 0
-    @Published var offsetAtScrollEnd: CGFloat = 0
-
-    private var cancellable: AnyCancellable?
-
-    init() {
-        cancellable = AnyCancellable($currentOffset
-            .debounce(for: 0.2, scheduler: DispatchQueue.main)
-            .dropFirst()
-            .assign(to: \.offsetAtScrollEnd, on: self))
-    }
-
-}
-
 struct ViewOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat = .zero
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {

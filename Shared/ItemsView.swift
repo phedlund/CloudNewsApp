@@ -14,9 +14,20 @@ struct ItemsView: View {
 
     @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
     @EnvironmentObject private var settings: Preferences
-    @StateObject private var scrollViewHelper = ScrollViewHelper()
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = 160.0
+
+    private let offsetDetector = CurrentValueSubject<CGFloat, Never>(0)
+    private let offsetPublisher: AnyPublisher<CGFloat, Never>
+
+    init(node: Node, selectedItem: Binding<ArticleModel?>) {
+        self.node = node
+        self._selectedItem = selectedItem
+        self.offsetPublisher = offsetDetector
+            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
+            .dropFirst()
+            .eraseToAnyPublisher()
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -34,7 +45,7 @@ struct ItemsView: View {
                             }
                             .onPreferenceChange(ViewOffsetKey.self) {
                                 let offset = ($0 * (cellHeight + 15)) - geometry.size.height
-                                scrollViewHelper.currentOffset = offset
+                                offsetDetector.send(offset)
                             }
                     }
                     .contextMenu {
@@ -55,8 +66,10 @@ struct ItemsView: View {
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
-            .onReceive(scrollViewHelper.$offsetAtScrollEnd) {
-                markRead($0)
+            .onReceive(offsetPublisher) { newOffset in
+                Task.detached {
+                    await markRead(newOffset)
+                }
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
             .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
@@ -79,7 +92,6 @@ struct ItemsView: View {
                 }
             }
         }
-
     }
 }
 
