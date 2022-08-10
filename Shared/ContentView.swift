@@ -90,7 +90,7 @@ struct ContentView: View {
                                     }
                                     .scrollContentBackground(.hidden)
                                     .navigationDestination(for: ArticleModel.self) { item in
-                                        ArticlesPageView(item: item, node: node)
+                                        ArticlesPageView(item: item, node: model.currentNode)
                                             .environmentObject(settings)
                                     }
                                     .background(GeometryReader {
