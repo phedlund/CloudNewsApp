@@ -22,6 +22,7 @@ class ArticleWebContent: ObservableObject {
     let fileName: String
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
+    private var isInInit = false
 
     private var cssPath: String {
         if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
@@ -34,6 +35,7 @@ class ArticleWebContent: ObservableObject {
     }
 
     init(item: CDItem?) {
+        isInInit = true
         if let item = item {
             let feed = CDFeed.feed(id: item.feedId)
             title = Self.itemTitle(item: item)
@@ -56,21 +58,25 @@ class ArticleWebContent: ObservableObject {
         }
 
         preferences.$marginPortrait.sink { [weak self] _ in
-            self?.saveItemSummary()
+            guard let self, !self.isInInit else { return }
+            self.saveItemSummary()
         }
         .store(in: &cancellables)
 
-        preferences.$fontSize.sink { [weak self] newSize in
-            self?.saveItemSummary()
+        preferences.$fontSize.sink { [weak self] _ in
+            guard let self, !self.isInInit else { return }
+            self.saveItemSummary()
         }
         .store(in: &cancellables)
 
         preferences.$lineHeight.sink { [weak self] _ in
-            self?.saveItemSummary()
+            guard let self, !self.isInInit else { return }
+            self.saveItemSummary()
         }
         .store(in: &cancellables)
 
         saveItemSummary()
+        isInInit = false
     }
 
     private func saveItemSummary() {
@@ -176,9 +182,7 @@ class ArticleWebContent: ObservableObject {
                     for iframe in iframes {
                         let src = try iframe.attr("src")
                         if src.contains("youtu") || src.contains("vimeo") {
-                            try iframe.attr("width", "100%%")
-                            try iframe.attr("height", "100%%")
-                            try iframe.wrap("<div class=\"container\"><div class=\"articleVideo\"></div></div>")
+                            try iframe.wrap("<div class=\"video-wrapper\"></div>")
                         }
                     }
                 }
@@ -196,10 +200,8 @@ class ArticleWebContent: ObservableObject {
 
     private static func embedYTString(_ videoId: String) -> String {
         return """
-            <div class="container">
-                <div class="articleVideo">
-                    <iframe id="yt" src="https://www.youtube.com/embed/\(videoId)" type="text/html" frameborder="0" width="100%%" height="100%%" allowfullscreen></iframe>
-                </div>
+            <div class="video-wrapper">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/\(videoId)" frameborder="0" allowfullscreen></iframe>
             </div>
             """
     }
@@ -245,10 +247,6 @@ class ArticleWebContent: ObservableObject {
         """
     }
 
-    private func encodeStringTo64(fromString: String) -> String? {
-        let plainData = fromString.data(using: .utf8)
-        return plainData?.base64EncodedString(options: [])
-    }
 }
 
 extension String {

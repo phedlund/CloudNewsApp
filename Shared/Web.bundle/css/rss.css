@@ -162,18 +162,18 @@ div.footer {
     word-wrap: break-word;
 }
 
-div.container {
-    width: 100%;
-    padding-top: 56.25%;
+div.video-wrapper {
     position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
 }
 
-div.articleVideo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
+div.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 img {

@@ -121,19 +121,4 @@ public class ItemWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegat
 //        })
     }
 
-
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        if scrollView.isDragging || scrollView.isDecelerating {
-//            isUserScrolling = true
-//        }
-//    }
-//
-//    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-//        isUserScrolling = true
-//    }
-//
-//    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-//        isUserScrolling = false
-//    }
-
 }
