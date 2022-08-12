@@ -72,6 +72,13 @@ class ItemStorage: NSObject, ObservableObject {
 
         super.init()
 
+        do {
+            self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
+            self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
+        } catch {
+            print("Error: could not fetch items")
+        }
+
         preferences.$hideRead
             .sink { [weak self] hideRead in
                 self?.hideRead = hideRead
@@ -91,7 +98,6 @@ class ItemStorage: NSObject, ObservableObject {
                 guard let self = self else { return }
                 self.updatedObjects = NewsData.mainThreadContext.updatedObjects
                 self.insertedObjects = NewsData.mainThreadContext.insertedObjects
-//                self.deletedObjects = NewsData.mainThreadContext.deletedObjects
                 var localChanges = Set<NodeChange>()
                 if let updatedFolders = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
                     for updatedFolder in updatedFolders {
@@ -193,13 +199,6 @@ class ItemStorage: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
 
-        do {
-            self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
-            self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
-            self.publishItems()
-        } catch {
-            print("Error: could not fetch items")
-        }
     }
 
     private func publishItems() {

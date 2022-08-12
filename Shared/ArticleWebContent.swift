@@ -38,7 +38,7 @@ class ArticleWebContent: ObservableObject {
         isInInit = true
         if let item = item {
             let feed = CDFeed.feed(id: item.feedId)
-            title = Self.itemTitle(item: item)
+            title = item.title
             summary = Self.output(item: item)
             baseString = Self.baseString(item: item)
             urlString = Self.itemUrl(item: item)
@@ -204,10 +204,6 @@ class ArticleWebContent: ObservableObject {
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/\(videoId)" frameborder="0" allowfullscreen></iframe>
             </div>
             """
-    }
-
-    private static func itemTitle(item: CDItem) -> String {
-        return item.title ?? "Untitled"
     }
 
     private static func itemUrl(item: CDItem) -> String {
