@@ -74,7 +74,13 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
                     self.displayBody = $0 ?? ""
                 }
                 .store(in: &cancellables)
-            title = item.title ?? "Untitled"
+            item
+                .publisher(for: \.title)
+                .receive(on: DispatchQueue.main)
+                .sink {
+                    self.title = $0
+                }
+                .store(in: &cancellables)
         }
     }
 

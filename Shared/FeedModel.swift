@@ -12,25 +12,18 @@ import SwiftUI
 @MainActor
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
-    private let preferences = Preferences()
-
     @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
     @Published var currentItem: ArticleModel?
 
-    func node(for id: Node.ID) -> Node? {
-        if let node = nodes.first(where: { $0.id == id} ) {
-            return node
-        }
-        for node in nodes {
-            if let child = node.children?.first(where: { $0.id == id} ) {
-                return child
-            }
-        }
-        return nil
-    }
-
     private let allNode: Node
     private let starNode: Node
+    private let preferences = Preferences()
+    private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
+    private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
+    private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
+
+    private var cancellables = Set<AnyCancellable>()
+    private var isInInit = false
 
     private var folders = [CDFolder]() {
         didSet {
@@ -47,13 +40,6 @@ class FeedModel: ObservableObject {
         }
     }
     
-    private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
-    private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
-    private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
-
-    private var cancellables = Set<AnyCancellable>()
-    private var isInInit = false
-
     init() {
         isInInit = true
         allNode = Node(.all, id: AllNodeGuid)
@@ -73,7 +59,7 @@ class FeedModel: ObservableObject {
         changePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] changes in
-                guard let self = self else { return }
+                guard let self, !self.isInInit else { return }
                 if changes.contains(where: { $0.key == "folderId" }) {
                     self.update()
                 }
@@ -174,6 +160,18 @@ class FeedModel: ObservableObject {
                 }
             }
         }
+    }
+
+    func node(for id: Node.ID) -> Node? {
+        if let node = nodes.first(where: { $0.id == id} ) {
+            return node
+        }
+        for node in nodes {
+            if let child = node.children?.first(where: { $0.id == id} ) {
+                return child
+            }
+        }
+        return nil
     }
 
     private func folderNode(folder: CDFolder) -> Node {

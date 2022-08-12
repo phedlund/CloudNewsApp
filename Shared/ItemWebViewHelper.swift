@@ -17,7 +17,7 @@ class ItemWebViewHelper: ObservableObject {
     @Published public var title = ""
     @Published public var url: URL?
 
-    var item: ArticleModel? 
+    var model: ArticleModel?
     var urlRequest: URLRequest?
 
     var webView: WKWebView? {
@@ -30,7 +30,7 @@ class ItemWebViewHelper: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func markItemRead() {
-        if let model = item, let item = model.item {
+        if let model, let item = model.item {
             Task {
                 try? await NewsManager.shared.markRead(items: [item], unread: false)
             }
@@ -38,7 +38,7 @@ class ItemWebViewHelper: ObservableObject {
     }
 
     private func setupObservations() {
-        if let webView, let model = item {
+        if let webView, let model {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
                 self?.canGoBack = newValue
             }

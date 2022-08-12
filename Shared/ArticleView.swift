@@ -13,7 +13,7 @@ struct ArticleView: View {
 
     var body: some View {
         WebView { webView in
-            item.webViewHelper.item = item
+            item.webViewHelper.model = item
             item.webViewHelper.webView = webView
             if let urlRequest = item.webViewHelper.urlRequest {
                 webView.load(urlRequest)

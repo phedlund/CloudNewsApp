@@ -25,7 +25,7 @@ struct Item: Codable, ItemProtocol {
     var pubDate : Int32
     var rtl: Bool
     var starred : Bool
-    var title : String?
+    var title : String
     var unread : Bool
     var url : String?
     

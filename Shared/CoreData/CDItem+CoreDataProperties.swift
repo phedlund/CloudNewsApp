@@ -34,7 +34,7 @@ extension CDItem {
     @NSManaged public var rtl: Bool
     @NSManaged public var readable: String?
     @NSManaged public var starred: Bool
-    @NSManaged public var title: String?
+    @NSManaged public var title: String
     @NSManaged public var unread: Bool
     @NSManaged public var url: String?
 
