@@ -19,10 +19,10 @@ struct ShareLinkView: View {
         if let model, let url {
             subject = model.title
             if url.scheme?.hasPrefix("file") ?? false {
-                if let urlString = model.item?.url {
+                if let urlString = model.item.url {
                     self.url = URL(string: urlString) ?? nil
-                    subject = model.item?.title ?? "Untitled"
-                    message = model.item?.displayBody ?? ""
+                    subject = model.title
+                    message = model.displayBody
                 }
             }
         }

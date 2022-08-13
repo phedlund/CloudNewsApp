@@ -85,12 +85,12 @@ struct ItemListItemViev: View {
         )
 #endif
         .onAppear {
-            if let imageLink = model.item?.imageLink, !imageLink.isEmpty {
+            if let imageLink = model.item.imageLink, !imageLink.isEmpty {
                 return
             } else {
                 Task.detached(priority: .background) {
                     do {
-                        try await ItemImageFetcher().itemURL(model.item!)
+                        try await ItemImageFetcher().itemURL(model.item)
                     } catch { }
                 }
             }

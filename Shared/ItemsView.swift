@@ -82,11 +82,11 @@ struct ItemsView: View {
             let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
             print("Number of items \(numberOfItems)")
             if numberOfItems > 0 {
-                let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.item?.unread ?? false })
+                let itemsToMarkRead = node.items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
                 print("Number of unread items \(itemsToMarkRead.count)")
                 if !itemsToMarkRead.isEmpty {
                     Task(priority: .userInitiated) {
-                        let myItems = itemsToMarkRead.map( { $0.item! })
+                        let myItems = itemsToMarkRead.map( { $0.item })
                         try? await NewsManager.shared.markRead(items: myItems, unread: false)
                     }
                 }

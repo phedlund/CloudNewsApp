@@ -89,7 +89,7 @@ struct MacArticleView: View {
                     Image(systemName: "textformat.size")
                 }
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    ArticleSettingsView(item: item.item!)
+                    ArticleSettingsView(item: item.item)
                 }
                 .disabled(isLoading)
             }

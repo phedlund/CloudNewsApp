@@ -9,6 +9,7 @@ import Combine
 import Foundation
 
 class ArticleModel: NSObject, ObservableObject, Identifiable {
+    var item: CDItem
     @Published public var title = ""
     @Published public var imageURL: URL?
     @Published public var unread = true
@@ -21,67 +22,64 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     private var cancellables = Set<AnyCancellable>()
 
-    var item: CDItem?
-
-    init(item: CDItem?) {
+    init(item: CDItem) {
         self.item = item
         super.init()
-        if let item = item {
-            item
-                .publisher(for: \.imageLink)
-                .sink {
-                    if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
-                        self.imageURL = url
-                    }
+        item
+            .publisher(for: \.imageLink)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
+                    self.imageURL = url
                 }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.unread)
-                .receive(on: DispatchQueue.main)
-                .sink {
-                    self.unread = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.unread)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.unread = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.starred)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.starred = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.feedId)
+            .receive(on: DispatchQueue.main)
+            .sink { newId in
+                if let data = CDFeed.feed(id: newId)?.favicon {
+                    self.feedIcon = SystemImage(data: data) ?? SystemImage()
+                } else {
+                    self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
                 }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.starred)
-                .receive(on: DispatchQueue.main)
-                .sink {
-                    self.starred = $0
-                }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.feedId)
-                .receive(on: DispatchQueue.main)
-                .sink { newId in
-                    if let data = CDFeed.feed(id: newId)?.favicon {
-                        self.feedIcon = SystemImage(data: data) ?? SystemImage()
-                    } else {
-                        self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
-                    }
-                }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.dateAuthorFeed)
-                .receive(on: DispatchQueue.main)
-                .sink {
-                    self.dateAuthorFeed = $0
-                }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.displayBody)
-                .receive(on: DispatchQueue.main)
-                .sink {
-                    self.displayBody = $0 ?? ""
-                }
-                .store(in: &cancellables)
-            item
-                .publisher(for: \.title)
-                .receive(on: DispatchQueue.main)
-                .sink {
-                    self.title = $0
-                }
-                .store(in: &cancellables)
-        }
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.dateAuthorFeed)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.dateAuthorFeed = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.displayBody)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.displayBody = $0 ?? ""
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.title)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.title = $0
+            }
+            .store(in: &cancellables)
     }
 
 }

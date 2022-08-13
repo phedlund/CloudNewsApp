@@ -27,7 +27,7 @@ struct ContextMenuContent: View {
     var body: some View {
         Button {
             Task {
-                try? await NewsManager.shared.markRead(items: [model.item!], unread: !model.unread)
+                try? await NewsManager.shared.markRead(items: [model.item], unread: !model.unread)
             }
         } label: {
             Label {
@@ -38,7 +38,7 @@ struct ContextMenuContent: View {
         }
         Button {
             Task {
-                try? await NewsManager.shared.markStarred(item: model.item!, starred: !model.starred)
+                try? await NewsManager.shared.markStarred(item: model.item, starred: !model.starred)
             }
         } label: {
             Label {
