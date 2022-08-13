@@ -72,8 +72,14 @@ class FeedModel: ObservableObject {
 
         syncPublisher
             .sink { [weak self] _ in
-                self?.updateAllItems()
-                self?.updateCurrentNodeItems()
+                guard let self else { return }
+                DispatchQueue.main.async {
+                    self.updateAllItems()
+                    for node in self.nodes {
+                        node.items.removeAll()
+                    }
+                }
+                self.updateCurrentNodeItems()
             }
             .store(in: &cancellables)
 
@@ -224,7 +230,7 @@ class FeedModel: ObservableObject {
 
     private func updateCurrentNodeItems() {
         DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
+            guard let self, self.currentNode.items.isEmpty else { return }
             switch self.currentNode.nodeType {
             case .empty:
                 break
