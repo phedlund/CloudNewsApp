@@ -21,9 +21,11 @@ class FeedModel: ObservableObject {
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
     private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
+    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
 
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
+    private var allItems = [CDItem]()
 
     private var folders = [CDFolder]() {
         didSet {
@@ -68,6 +70,14 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        syncPublisher
+            .sink { [weak self] _ in
+                self?.updateAllItems()
+                self?.updateCurrentNodeItems()
+            }
+            .store(in: &cancellables)
+
+        updateAllItems()
         update()
         isInInit = false
     }
@@ -105,17 +115,14 @@ class FeedModel: ObservableObject {
             } else {
                 self.nodes.append(contentsOf: feedNodes)
             }
-            if let node = self.nodes.first(where: { $0.id == self.preferences.selectedNode }) {
-                self.currentNode = node
-            } else {
-                self.currentNode = self.allNode
-            }
+            self.updateCurrentNode(self.preferences.selectedNode)
         }
     }
 
     func updateCurrentNode(_ current: String) {
         preferences.selectedNode = current
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
+        updateCurrentNodeItems()
     }
 
     func updateCurrentItem(_ current: ArticleModel?) {
@@ -199,6 +206,48 @@ class FeedModel: ObservableObject {
         let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
         node.errorCount = Int(feed.updateErrorCount)
         return node
+    }
+
+    private func updateAllItems() {
+        let itemsFetchRequest = CDItem.fetchRequest()
+        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
+                                                ascending: preferences.sortOldestFirst ? true : false)]
+        let predicate = preferences.hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+        itemsFetchRequest.sortDescriptors = sortDescriptors
+        itemsFetchRequest.predicate = predicate
+        do {
+            allItems = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
+        } catch {
+            print("Failed to fetch items")
+        }
+    }
+
+    private func updateCurrentNodeItems() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            switch self.currentNode.nodeType {
+            case .empty:
+                break
+            case .all:
+                self.currentNode.items = self.allItems.map( { ArticleModel(item: $0) } )
+            case .starred:
+                self.currentNode.items = self.allItems
+                    .filter( { $0.starred == true } )
+                    .map( { ArticleModel(item: $0) } )
+            case .folder(let id):
+                if let feedIds = CDFeed.idsInFolder(folder: id) {
+                    self.currentNode.items = self.allItems
+                        .filter( { feedIds.contains($0.feedId) } )
+                        .map( { ArticleModel(item: $0) } )
+                } else {
+                    self.allItems = []
+                }
+            case .feed(let id):
+                self.currentNode.items = self.allItems
+                    .filter( { $0.feedId == id } )
+                    .map( { ArticleModel(item: $0) } )
+            }
+        }
     }
 
 }

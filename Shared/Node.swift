@@ -53,28 +53,6 @@ final class Node: Identifiable, ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { items in
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
-                switch nodeType {
-                case .empty:
-                    break
-                case .all:
-                    self.items = items.map( { ArticleModel(item: $0) } )
-                case .starred:
-                    self.items = items
-                        .filter( { $0.starred == true } )
-                        .map( { ArticleModel(item: $0) } )
-                case .folder(let id):
-                    if let feedIds = CDFeed.idsInFolder(folder: id) {
-                        self.items = items
-                            .filter( { feedIds.contains($0.feedId) } )
-                            .map( { ArticleModel(item: $0) } )
-                    } else {
-                        self.items = []
-                    }
-                case .feed(let id):
-                    self.items = items
-                        .filter( { $0.feedId == id } )
-                        .map( { ArticleModel(item: $0) } )
-                }
             }
             .store(in: &cancellables)
 
