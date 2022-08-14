@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct NodeView: View {
-    @EnvironmentObject var appDelegate: AppDelegate
     @EnvironmentObject private var model: FeedModel
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
@@ -16,9 +15,6 @@ struct NodeView: View {
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
-    @State private var unreadCount = 0
-    @State private var errorCount = 0
-    @State private var title = ""
 
 #if os(iOS)
     let noChildrenPadding = 21.0
@@ -29,7 +25,7 @@ struct NodeView: View {
     var body: some View {
         HStack {
             Label {
-                Text(title)
+                Text(node.title)
                     .lineLimit(1)
             } icon: {
 #if !os(macOS)
@@ -46,7 +42,7 @@ struct NodeView: View {
             }
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
-            BadgeView(unreadCount: unreadCount, errorCount: errorCount)
+            BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .contextMenu {
@@ -78,18 +74,6 @@ struct NodeView: View {
                     Label("Delete", systemImage: "trash")
                 }
             }
-        }
-        .onReceive(node.$unreadCount) { [unreadCount] newUnreadCount in
-            self.unreadCount = newUnreadCount
-            if node.nodeType == .all, unreadCount != newUnreadCount {
-                appDelegate.updateBadge(newUnreadCount)
-            }
-        }
-        .onReceive(node.$title) {
-            title = $0
-        }
-        .onReceive(node.$errorCount) {
-            errorCount = $0
         }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
