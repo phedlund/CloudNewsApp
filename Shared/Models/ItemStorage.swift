@@ -116,12 +116,14 @@ class ItemStorage: NSObject, ObservableObject {
                 if let updatedItems = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDItem.entity() }) as? Set<CDItem> {
                     for updatedItem in updatedItems {
                         for change in updatedItem.changedValues() {
-                            localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
-                            if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
-                                localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
+                            if ["unread", "starred"].contains(change.key) {
+                                localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
+                                if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
+                                    localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
+                                }
+                                localChanges.insert(NodeChange(nodeType: .all, key: change.key))
+                                localChanges.insert(NodeChange(nodeType: .starred, key: change.key))
                             }
-                            localChanges.insert(NodeChange(nodeType: .all, key: change.key))
-                            localChanges.insert(NodeChange(nodeType: .starred, key: change.key))
                         }
                     }
                 }
