@@ -87,7 +87,6 @@ struct AppCommands: Commands {
             MarkReadButton(node: model.currentNode)
             Divider()
             Button("Refresh") {
-                print("Refresh selected")
                 Task {
                     try await NewsManager.shared.sync()
                 }

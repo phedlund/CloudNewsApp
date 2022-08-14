@@ -140,7 +140,6 @@ class FeedModel: ObservableObject {
         case .empty, .all, .starred:
             break
         case .folder(let id):
-            print("\(id)")
             if let index = nodes.firstIndex(of: node) {
                 nodes.remove(at: index)
             }
@@ -159,7 +158,6 @@ class FeedModel: ObservableObject {
                 }
             }
         case .feed(let id):
-            print("\(id)")
             if let index = nodes.firstIndex(of: node) {
                 nodes.remove(at: index)
             }
