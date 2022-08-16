@@ -65,6 +65,9 @@ class FeedModel: ObservableObject {
                 if changes.contains(where: { $0.key == "folderId" }) {
                     self.update()
                 }
+                if changes.contains(where: { $0.key == "starred" }), self.currentNode.id == StarNodeGuid {
+                    self.updateCurrentNodeItems()
+                }
                 self.allNode.unreadCount = CDItem.unreadCount(nodeType: .all)
                 self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
             }

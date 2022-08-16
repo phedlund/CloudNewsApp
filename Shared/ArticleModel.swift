@@ -20,6 +20,8 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     public var webViewHelper = ItemWebViewHelper()
 
+    private let clipLength = 50
+
     private var cancellables = Set<AnyCancellable>()
 
     init(item: CDItem) {
@@ -60,10 +62,36 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             }
             .store(in: &cancellables)
         item
-            .publisher(for: \.dateAuthorFeed)
+            .publisher(for: \.pubDate)
             .receive(on: DispatchQueue.main)
             .sink {
-                self.dateAuthorFeed = $0
+                var dateLabelText = ""
+                let date = Date(timeIntervalSince1970: TimeInterval($0))
+                dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
+
+                if !dateLabelText.isEmpty {
+                    dateLabelText.append(" | ")
+                }
+
+                if let itemAuthor = item.author, !itemAuthor.isEmpty {
+                    if itemAuthor.count > self.clipLength {
+                        dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(self.clipLength))
+                        dateLabelText.append(String(0x2026))
+                    } else {
+                        dateLabelText.append(itemAuthor)
+                    }
+                }
+
+                if let feedTitle = CDFeed.feed(id: item.feedId)?.title {
+                    if let itemAuthor = item.author, !itemAuthor.isEmpty {
+                        if feedTitle != itemAuthor {
+                            dateLabelText.append(" | \(feedTitle)")
+                        }
+                    } else {
+                        dateLabelText.append(feedTitle)
+                    }
+                }
+                self.dateAuthorFeed = dateLabelText
             }
             .store(in: &cancellables)
         item

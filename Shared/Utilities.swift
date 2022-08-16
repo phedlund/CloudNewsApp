@@ -23,6 +23,17 @@ public typealias SystemImageView = UIImageView
 public typealias SystemButton = UIButton
 #endif
 
+extension DateFormatter {
+    static var dateAuthorFormatter: DateFormatter {
+        let currentLocale = Locale.current
+        let dateComponents = "MMM d"
+        let dateFormatString = DateFormatter.dateFormat(fromTemplate: dateComponents, options: 0, locale: currentLocale)
+        let dateFormat = DateFormatter()
+        dateFormat.dateFormat = dateFormatString
+        return dateFormat
+    }
+}
+
 extension TimeInterval {
     static let fiveMinutes: TimeInterval = 300
 }

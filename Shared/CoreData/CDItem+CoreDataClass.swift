@@ -14,44 +14,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
 
     static let entityName = "CDItem"
 
-    @objc dynamic var dateAuthorFeed: String {
-        var dateLabelText = ""
-        let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
-        let currentLocale = Locale.current
-        let dateComponents = "MMM d"
-        let dateFormatString = DateFormatter.dateFormat(fromTemplate: dateComponents, options: 0, locale: currentLocale)
-        let dateFormat = DateFormatter()
-        dateFormat.dateFormat = dateFormatString
-        dateLabelText.append(dateFormat.string(from: date))
-
-        if !dateLabelText.isEmpty {
-            dateLabelText.append(" | ")
-        }
-
-        if let author, !author.isEmpty {
-            let clipLength = 50
-            if author.count > clipLength {
-                dateLabelText.append(contentsOf: author.filter( { !$0.isNewline }).prefix(clipLength))
-                dateLabelText.append(String(0x2026))
-            } else {
-                dateLabelText.append(author)
-            }
-        }
-
-        if let feed = CDFeed.feed(id: feedId) {
-            if let title = feed.title {
-                if let author = author, !author.isEmpty {
-                    if title != author {
-                        dateLabelText.append(" | \(title)")
-                    }
-                } else {
-                    dateLabelText.append(title)
-                }
-            }
-        }
-        return dateLabelText
-    }
-
     static func unreadCount(nodeType: NodeType) -> Int {
         var result = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
