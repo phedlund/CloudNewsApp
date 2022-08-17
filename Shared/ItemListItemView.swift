@@ -84,17 +84,6 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
-        .onAppear {
-            if let imageLink = model.item.imageLink, !imageLink.isEmpty {
-                return
-            } else {
-                Task.detached(priority: .background) {
-                    do {
-                        try await ItemImageFetcher().itemURL(model.item)
-                    } catch { }
-                }
-            }
-        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 82.0 : 157.0
             let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
