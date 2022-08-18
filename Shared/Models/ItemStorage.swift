@@ -45,7 +45,6 @@ class ItemStorage: NSObject, ObservableObject {
     var changes = CurrentValueSubject<[NodeChange], Never>([])
     var folders = CurrentValueSubject<[CDFolder], Never>([])
     var feeds = CurrentValueSubject<[CDFeed], Never>([])
-    var items = CurrentValueSubject<[CDItem], Never>([])
     static let shared = ItemStorage()
 
     private let preferences = Preferences()
@@ -58,8 +57,6 @@ class ItemStorage: NSObject, ObservableObject {
     private var updatedObjects: Set<NSManagedObject>?
     private var deletedObjects: Set<NSManagedObject>?
     private var insertedObjects: Set<NSManagedObject>?
-    private var hideRead = false
-    private var sortOldestFirst = false
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -78,20 +75,6 @@ class ItemStorage: NSObject, ObservableObject {
         } catch {
             print("Error: could not fetch items")
         }
-
-        preferences.$hideRead
-            .sink { [weak self] hideRead in
-                self?.hideRead = hideRead
-                self?.publishItems()
-            }
-            .store(in: &cancellables)
-
-        preferences.$sortOldestFirst
-            .sink { [weak self] sortOldestFirst in
-                self?.sortOldestFirst = sortOldestFirst
-                self?.publishItems()
-            }
-            .store(in: &cancellables)
 
         willSavePublisher
             .sink { [weak self] _ in
@@ -148,7 +131,7 @@ class ItemStorage: NSObject, ObservableObject {
                                 self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Deleted Item")
-                                self.publishItems()
+                                self.changes.value = [NodeChange(nodeType: .all, key: "unread")]
                             default:
                                 break
                             }
@@ -165,7 +148,7 @@ class ItemStorage: NSObject, ObservableObject {
                                 self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Inserted Item")
-                                self.publishItems()
+                                self.changes.value = [NodeChange(nodeType: .all, key: "unread")]
                             default:
                                 break
                             }
@@ -197,24 +180,10 @@ class ItemStorage: NSObject, ObservableObject {
 
         syncPublisher
             .sink { [weak self] _ in
-                self?.publishItems()
+                self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
             }
             .store(in: &cancellables)
 
     }
 
-    private func publishItems() {
-        let itemsFetchRequest = CDItem.fetchRequest()
-        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
-                                                ascending: sortOldestFirst ? true : false)]
-        let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-        itemsFetchRequest.sortDescriptors = sortDescriptors
-        itemsFetchRequest.predicate = predicate
-        do {
-            let items = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
-            self.items.value = items
-        } catch {
-            print("Failed to fetch items")
-        }
-    }
 }

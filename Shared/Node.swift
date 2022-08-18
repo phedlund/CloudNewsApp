@@ -24,7 +24,6 @@ final class Node: Identifiable, ObservableObject {
     }
 
     var id: String
-    private let itemPublisher = ItemStorage.shared.items.eraseToAnyPublisher()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 
     fileprivate(set) var isExpanded = false
@@ -49,20 +48,13 @@ final class Node: Identifiable, ObservableObject {
         self.title = nodeTitle()
         self.icon = nodeIcon()
 
-        itemPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { items in
-                self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
-            }
-            .store(in: &cancellables)
-
         changePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] changes in
                 guard let self = self else { return }
+                self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
                 for change in changes {
                     if change.nodeType == self.nodeType {
-                        self.unreadCount = CDItem.unreadCount(nodeType: change.nodeType)
                         switch change.nodeType {
                         case .empty, .all:
                             break

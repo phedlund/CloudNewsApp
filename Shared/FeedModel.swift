@@ -26,6 +26,8 @@ class FeedModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
     private var allItems = [CDItem]()
+    private var hideRead = false
+    private var sortOldestFirst = false
 
     private var folders = [CDFolder]() {
         didSet {
@@ -76,13 +78,24 @@ class FeedModel: ObservableObject {
         syncPublisher
             .sink { [weak self] _ in
                 guard let self else { return }
-                DispatchQueue.main.async {
-                    self.updateAllItems()
-                    for node in self.nodes {
-                        node.items.removeAll()
-                    }
-                }
+                self.resetAllItems()
                 self.updateCurrentNodeItems()
+            }
+            .store(in: &cancellables)
+
+        preferences.$hideRead
+            .sink { [weak self] hideRead in
+                self?.hideRead = hideRead
+                self?.resetAllItems()
+                self?.updateCurrentNodeItems()
+            }
+            .store(in: &cancellables)
+
+        preferences.$sortOldestFirst
+            .sink { [weak self] sortOldestFirst in
+                self?.sortOldestFirst = sortOldestFirst
+                self?.resetAllItems()
+                self?.updateCurrentNodeItems()
             }
             .store(in: &cancellables)
 
@@ -215,11 +228,20 @@ class FeedModel: ObservableObject {
         return node
     }
 
+    private func resetAllItems() {
+        DispatchQueue.main.async {
+            self.updateAllItems()
+            for node in self.nodes {
+                node.items.removeAll()
+            }
+        }
+    }
+
     private func updateAllItems() {
         let itemsFetchRequest = CDItem.fetchRequest()
         let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
-                                                ascending: preferences.sortOldestFirst ? true : false)]
-        let predicate = preferences.hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+                                                ascending: sortOldestFirst ? true : false)]
+        let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
         itemsFetchRequest.sortDescriptors = sortDescriptors
         itemsFetchRequest.predicate = predicate
         do {

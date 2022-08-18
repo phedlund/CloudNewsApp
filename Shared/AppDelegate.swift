@@ -50,6 +50,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
 
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let didBecomActivePublisher = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification, object: nil).eraseToAnyPublisher()
+    private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -57,6 +58,15 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         super.init()
         
         syncPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                let unreadCount = CDItem.unreadCount(nodeType: .all)
+                self?.updateBadge(unreadCount)
+            }
+            .store(in: &cancellables)
+
+        changesPublisher
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 let unreadCount = CDItem.unreadCount(nodeType: .all)
                 self?.updateBadge(unreadCount)
