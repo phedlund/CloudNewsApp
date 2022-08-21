@@ -76,7 +76,6 @@ struct ContentView: View {
                                         ForEach(node.items, id: \.id) { item in
                                             NavigationLink(value: item) {
                                                 ItemListItemViev(model: item)
-                                                    .tag(item.id)
                                                     .environmentObject(settings)
                                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                                     .contextMenu {
@@ -131,6 +130,9 @@ struct ContentView: View {
             NavigationView {
                 SettingsView()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            nodeSelection = settings.selectedNode
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             print("Moving to the background!")

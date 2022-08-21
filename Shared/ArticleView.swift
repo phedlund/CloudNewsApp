@@ -17,7 +17,6 @@ struct ArticleView: View {
             item.webViewHelper.webView = webView
             if let urlRequest = item.webViewHelper.urlRequest {
                 webView.load(urlRequest)
-                item.webViewHelper.markItemRead()
             }
         }
         .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
