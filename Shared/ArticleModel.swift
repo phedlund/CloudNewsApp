@@ -27,44 +27,6 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
     init(item: CDItem) {
         self.item = item
         super.init()
-        let feed = CDFeed.feed(id: item.feedId)
-
-        if let data = feed?.favicon {
-            self.feedIcon = SystemImage(data: data) ?? SystemImage()
-        } else {
-            self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
-        }
-
-        var dateLabelText = ""
-        let date = Date(timeIntervalSince1970: TimeInterval(item.pubDate))
-        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
-
-        if !dateLabelText.isEmpty {
-            dateLabelText.append(" | ")
-        }
-
-        if let itemAuthor = item.author, !itemAuthor.isEmpty {
-            if itemAuthor.count > self.clipLength {
-                dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(self.clipLength))
-                dateLabelText.append(String(0x2026))
-            } else {
-                dateLabelText.append(itemAuthor)
-            }
-        }
-
-        if let feedTitle = feed?.title {
-            if let itemAuthor = item.author, !itemAuthor.isEmpty {
-                if feedTitle != itemAuthor {
-                    dateLabelText.append(" | \(feedTitle)")
-                }
-            } else {
-                dateLabelText.append(feedTitle)
-            }
-        }
-        self.dateAuthorFeed = dateLabelText
-        self.displayBody = item.displayBody ?? ""
-        self.title = item.title
-
         item
             .publisher(for: \.imageLink)
             .receive(on: DispatchQueue.main)
@@ -95,6 +57,64 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             .receive(on: DispatchQueue.main)
             .sink {
                 self.starred = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.feedId)
+            .receive(on: DispatchQueue.main)
+            .sink { newId in
+                if let data = CDFeed.feed(id: newId)?.favicon {
+                    self.feedIcon = SystemImage(data: data) ?? SystemImage()
+                } else {
+                    self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
+                }
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.pubDate)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                var dateLabelText = ""
+                let date = Date(timeIntervalSince1970: TimeInterval($0))
+                dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
+
+                if !dateLabelText.isEmpty {
+                    dateLabelText.append(" | ")
+                }
+
+                if let itemAuthor = item.author, !itemAuthor.isEmpty {
+                    if itemAuthor.count > self.clipLength {
+                        dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(self.clipLength))
+                        dateLabelText.append(String(0x2026))
+                    } else {
+                        dateLabelText.append(itemAuthor)
+                    }
+                }
+
+                if let feedTitle = CDFeed.feed(id: item.feedId)?.title {
+                    if let itemAuthor = item.author, !itemAuthor.isEmpty {
+                        if feedTitle != itemAuthor {
+                            dateLabelText.append(" | \(feedTitle)")
+                        }
+                    } else {
+                        dateLabelText.append(feedTitle)
+                    }
+                }
+                self.dateAuthorFeed = dateLabelText
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.displayBody)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.displayBody = $0 ?? ""
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.title)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.title = $0
             }
             .store(in: &cancellables)
     }
