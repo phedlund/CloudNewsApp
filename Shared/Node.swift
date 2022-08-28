@@ -24,12 +24,23 @@ final class Node: Identifiable, ObservableObject {
     }
 
     var id: String
+    var cdItems = [CDItem]() {
+        didSet {
+            currentItem = 0
+            canLoadMoreItems = cdItems.count > 0
+            loadMoreContent()
+        }
+    }
+
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 
-    fileprivate(set) var isExpanded = false
+    private(set) var isExpanded = false
     private(set) var nodeType: NodeType
     private(set) var children: [Node]?
 
+    private var currentItem = 0
+    private var canLoadMoreItems = false
+    private var isLoadingItem = false
     private var cancellables = Set<AnyCancellable>()
 
     convenience init() {
@@ -80,6 +91,31 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    func loadMoreItemsIfNeeded(currentItem item: ArticleModel?) {
+        guard item != nil else {
+            loadMoreContent()
+            return
+        }
+
+//        let thresholdIndex = items.index(items.endIndex, offsetBy: 0)
+        if items.count < cdItems.count {
+            loadMoreContent()
+        }
+    }
+
+    private func loadMoreContent() {
+        guard !isLoadingItem && canLoadMoreItems else {
+            return
+        }
+
+        isLoadingItem = true
+        let cdItem = cdItems[currentItem]
+        let model = ArticleModel(item: cdItem)
+        items.append(model)
+        currentItem += 1
+        isLoadingItem = false
     }
 
     private func nodeTitle() -> String {

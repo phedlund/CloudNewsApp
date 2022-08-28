@@ -81,6 +81,9 @@ struct ContentView: View {
                                                     .contextMenu {
                                                         ContextMenuContent(model: item)
                                                     }
+                                                    .onAppear {
+                                                      node.loadMoreItemsIfNeeded(currentItem: item)
+                                                    }
                                             }
                                             .buttonStyle(ClearSelectionStyle())
                                         }

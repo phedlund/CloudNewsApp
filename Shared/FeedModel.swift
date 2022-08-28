@@ -258,23 +258,20 @@ class FeedModel: ObservableObject {
             case .empty:
                 break
             case .all:
-                self.currentNode.items = self.allItems.map( { ArticleModel(item: $0) } )
+                self.currentNode.cdItems = self.allItems
             case .starred:
-                self.currentNode.items = self.allItems
+                self.currentNode.cdItems = self.allItems
                     .filter( { $0.starred == true } )
-                    .map( { ArticleModel(item: $0) } )
             case .folder(let id):
                 if let feedIds = CDFeed.idsInFolder(folder: id) {
-                    self.currentNode.items = self.allItems
+                    self.currentNode.cdItems = self.allItems
                         .filter( { feedIds.contains($0.feedId) } )
-                        .map( { ArticleModel(item: $0) } )
                 } else {
                     self.allItems = []
                 }
             case .feed(let id):
-                self.currentNode.items = self.allItems
+                self.currentNode.cdItems = self.allItems
                     .filter( { $0.feedId == id } )
-                    .map( { ArticleModel(item: $0) } )
             }
         }
     }
