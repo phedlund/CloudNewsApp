@@ -89,17 +89,18 @@ private extension WebView {
 
 public class ItemWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if webView.url?.scheme == "file" || webView.url?.scheme?.hasPrefix("itms") ?? false {
-            if let url = navigationAction.request.url {
-                if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
-//TODO                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                    decisionHandler(.cancel)
-                    return
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+        if let scheme = await webView.url?.scheme {
+            if scheme == "file" || scheme.hasPrefix("itms") {
+                if let url = navigationAction.request.url {
+                    if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
+                        //TODO                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        return .cancel
+                    }
                 }
             }
         }
-        decisionHandler(.allow);
+        return .allow
     }
 
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
