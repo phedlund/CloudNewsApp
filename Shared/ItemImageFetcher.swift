@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Nuke
 import SwiftSoup
 
 class ItemImageFetcher {
@@ -125,22 +124,22 @@ class ItemImageFetcher {
 
 }
 
-struct SizeProcessor: ImageProcessing {
-    // `identifier` should be the same for processors with the same properties/functionality
-    // It will be used when storing and retrieving the image to/from cache.
-    let identifier = "dev.pbh.sizeprocessor"
-    let item: CDItem
-
-    // Convert input data/image to target image and return it.
-    func process(_ image: PlatformImage) -> PlatformImage? {
-        let size = image.size
-        if size.height > 100, size.width > 100 {
-            return image
-        }
-        print("Small image: \(size)")
-        Task(priority: .high) {
-            try await CDItem.addImageLink(item: item, imageLink: "data:null")
-        }
-        return nil
-    }
-}
+//struct SizeProcessor: ImageProcessing {
+//    // `identifier` should be the same for processors with the same properties/functionality
+//    // It will be used when storing and retrieving the image to/from cache.
+//    let identifier = "dev.pbh.sizeprocessor"
+//    let item: CDItem
+//
+//    // Convert input data/image to target image and return it.
+//    func process(_ image: PlatformImage) -> PlatformImage? {
+//        let size = image.size
+//        if size.height > 100, size.width > 100 {
+//            return image
+//        }
+//        print("Small image: \(size)")
+//        Task(priority: .high) {
+//            try await CDItem.addImageLink(item: item, imageLink: "data:null")
+//        }
+//        return nil
+//    }
+//}

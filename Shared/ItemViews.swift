@@ -5,8 +5,7 @@
 //  Created by Peter Hedlund on 10/10/21.
 //
 
-import Nuke
-import NukeUI
+import Kingfisher
 import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
@@ -132,7 +131,8 @@ struct ItemImageView: View {
         let isShowingThumbnails = showThumbnails ?? true
         if isShowingThumbnails,
             let imageUrl {
-            LazyImage(url: imageUrl)
+            KFImage(imageUrl)
+                .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)
                 .clipped()
