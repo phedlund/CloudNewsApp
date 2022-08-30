@@ -7,6 +7,7 @@
 
 import CloudKit
 import Combine
+import Kingfisher
 
 let EmptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
 let AllNodeGuid = "72137d96-4ef2-11ec-81d3-0242ac130003"
@@ -16,7 +17,6 @@ final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = 0
     @Published var errorCount = 0
     @Published var title = ""
-    @Published var icon = SystemImage()
     @Published var items = [ArticleModel]()
 
     func item(for id: ArticleModel.ID) -> ArticleModel? {
@@ -57,7 +57,6 @@ final class Node: Identifiable, ObservableObject {
         self.id = id
         self.isExpanded = isExpanded
         self.title = nodeTitle()
-        self.icon = nodeIcon()
 
         changePublisher
             .receive(on: DispatchQueue.main)
@@ -83,7 +82,6 @@ final class Node: Identifiable, ObservableObject {
                         case .feed(let id):
                             if let feed = CDFeed.feed(id: id) {
                                 self.title = feed.title ?? "Untitled"
-                                self.icon = self.nodeIcon()
                                 self.errorCount = Int(feed.updateErrorCount)
                             }
                         }
@@ -130,23 +128,6 @@ final class Node: Identifiable, ObservableObject {
             return CDFolder.folder(id: id)?.name ?? "Untitled Folder"
         case .feed(let id):
             return CDFeed.feed(id: id)?.title ?? "Untitled Feed"
-        }
-    }
-
-    private func nodeIcon() -> SystemImage {
-        switch nodeType {
-        case .empty, .all:
-            return SystemImage(named: "rss")!
-        case .starred:
-            return SystemImage(symbolName: "star.fill")!
-        case .folder( _):
-            return SystemImage(symbolName: "folder")!
-        case .feed(let id):
-            if let feed = CDFeed.feed(id: id), let data = feed.favicon {
-                return SystemImage(data: data) ?? SystemImage(named: "rss") ?? SystemImage()
-            } else {
-                return SystemImage(named: "rss")!
-            }
         }
     }
 

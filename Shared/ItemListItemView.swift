@@ -19,6 +19,7 @@ struct ItemListItemViev: View {
     @ObservedObject var model: ArticleModel
     @State private var cellHeight: CGFloat = 160.0
     @State private var thumbnailSize = CGSize(width: 145.0, height: 157.0)
+    @State private var icon = SystemImage()
 
     @ViewBuilder
     var body: some View {
@@ -40,7 +41,7 @@ struct ItemListItemViev: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(title: model.title, textColor: textColor)
-                        FavIconDateAuthorView(feedIcon: model.feedIcon,
+                        FavIconDateAuthorView(feedIcon: icon,
                                               dateAuthorFeed: model.dateAuthorFeed,
                                               textColor: textColor,
                                               itemOpacity: itemOpacity)
@@ -84,6 +85,13 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
+        .onAppear {
+            Task {
+                if let feed = model.feed {
+                    icon = await FavIconHelper.icon(for: feed)
+                }
+            }
+        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 82.0 : 157.0
             let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0

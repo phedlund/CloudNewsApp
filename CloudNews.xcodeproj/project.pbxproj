@@ -76,6 +76,7 @@
 		D0B0B2F9267ED1D900A997DB /* ItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F8267ED1D900A997DB /* ItemsView.swift */; };
 		D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2FE267FF86300A997DB /* FeedModel.swift */; };
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
+		D0C8680028BC4514006DAFF6 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0C867FF28BC4514006DAFF6 /* Kingfisher */; };
 		D0CAF5E2270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5ED2713C43800BB9062 /* ItemViews.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
@@ -185,6 +186,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0C8680028BC4514006DAFF6 /* Kingfisher in Frameworks */,
 				D0818A7F2862C35B002264D6 /* NukeUI in Frameworks */,
 				D0818A7B2862C35B002264D6 /* Nuke in Frameworks */,
 				D0818A7D2862C35B002264D6 /* NukeExtensions in Frameworks */,
@@ -372,6 +374,7 @@
 				D0818A7A2862C35B002264D6 /* Nuke */,
 				D0818A7C2862C35B002264D6 /* NukeExtensions */,
 				D0818A7E2862C35B002264D6 /* NukeUI */,
+				D0C867FF28BC4514006DAFF6 /* Kingfisher */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -404,6 +407,7 @@
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0818A732862C326002264D6 /* XCRemoteSwiftPackageReference "Nuke" */,
+				D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -744,6 +748,14 @@
 				minimumVersion = 11.0.0;
 			};
 		};
+		D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -771,6 +783,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0818A732862C326002264D6 /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = NukeUI;
+		};
+		D0C867FF28BC4514006DAFF6 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 

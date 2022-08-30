@@ -6,9 +6,32 @@
 //
 
 import Foundation
+import Kingfisher
 
 enum FetchError: Error {
     case noImage
+}
+
+class FavIconHelper {
+
+    static func icon(for feed: CDFeed) async -> SystemImage {
+        if let link = feed.faviconLink, !link.isEmpty, link != "data:null", let url = URL(string: link) {
+            return await withCheckedContinuation({
+                (continuation: CheckedContinuation<SystemImage, Never>) in
+                KingfisherManager.shared.retrieveImage(with: url) { result in
+                    switch result {
+                    case .success(let value):
+                        continuation.resume(returning: value.image)
+                    case .failure( _):
+                        continuation.resume(returning: SystemImage(named: "rss")!)
+                    }
+                }
+            })
+        } else {
+            return SystemImage(named: "rss")!
+        }
+    }
+
 }
 
 actor FavIconFetcher {
@@ -16,36 +39,34 @@ actor FavIconFetcher {
     private let validSchemas = ["http", "https", "file"]
 
     func fetch() async throws {
-        var result = SystemImage(named: "rss")?.asPngData() ?? SystemImage().asPngData()
         if let feeds = CDFeed.all() {
             for feed in feeds {
                 if let link = feed.faviconLink,
-                   link != "rss",
+                   link != "data:null",
                    let url = URL(string: link),
                    let scheme = url.scheme,
                    validSchemas.contains(scheme) {
                     do {
-                        result = try await downloadImage(from: url)
-                        try await CDFeed.addFavIcon(feed: feed, iconData: result ?? Data())
+                        let _ = try await downloadImage(from: url)
                     } catch let error {
                         if error as? FetchError == FetchError.noImage {
-                            if let feedUrl = URL(string: feed.link ?? ""),
+                            if let feedUrl = URL(string: feed.link ?? "data:null"),
                                let host = feedUrl.host,
                                let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                                 do {
-                                    result = try await downloadImage(from: url)
-                                    try await CDFeed.addFavIcon(feed: feed, iconData: result ?? Data())
+                                    let _ = try await downloadImage(from: url)
+                                    try await CDFeed.addFavIconLink(feed: feed, link: url.absoluteString)
                                 } catch { }
                             }
                         }
                     }
                 } else {
-                    if let feedUrl = URL(string: feed.link ?? ""),
+                    if let feedUrl = URL(string: feed.link ?? "data:null"),
                        let host = feedUrl.host,
                        let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                         do {
-                            result = try await downloadImage(from: url)
-                            try await CDFeed.addFavIcon(feed: feed, iconData: result ?? Data())
+                            let _ = try await downloadImage(from: url)
+                            try await CDFeed.addFavIconLink(feed: feed, link: url.absoluteString)
                         } catch { }
                     }
                 }

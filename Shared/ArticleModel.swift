@@ -14,7 +14,7 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
     @Published public var imageURL: URL?
     @Published public var unread = true
     @Published public var starred = false
-    @Published public var feedIcon = SystemImage()
+    @Published public var feed: CDFeed?
     @Published public var dateAuthorFeed = ""
     @Published public var displayBody = ""
 
@@ -26,14 +26,8 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     init(item: CDItem) {
         self.item = item
+        feed = CDFeed.feed(id: item.feedId)
         super.init()
-        let feed = CDFeed.feed(id: item.feedId)
-
-        if let data = feed?.favicon {
-            self.feedIcon = SystemImage(data: data) ?? SystemImage()
-        } else {
-            self.feedIcon = SystemImage(named: "rss") ?? SystemImage()
-        }
 
         var dateLabelText = ""
         let date = Date(timeIntervalSince1970: TimeInterval(item.pubDate))

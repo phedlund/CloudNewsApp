@@ -15,6 +15,7 @@ struct NodeView: View {
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
+    @State private var icon = SystemImage()
 
 #if os(iOS)
     let noChildrenPadding = 21.0
@@ -29,12 +30,12 @@ struct NodeView: View {
                     .lineLimit(1)
             } icon: {
 #if !os(macOS)
-                Image(uiImage: node.icon)
+                Image(uiImage: icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22, alignment: .center)
 #else
-                Image(nsImage: node.icon)
+                Image(nsImage: icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 16, height: 16, alignment: .center)
@@ -45,6 +46,24 @@ struct NodeView: View {
             BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
+        .onAppear {
+            switch node.nodeType {
+            case .empty, .all:
+                icon = SystemImage(named: "rss")!
+            case .starred:
+                icon = SystemImage(symbolName: "star.fill")!
+            case .folder( _):
+                icon = SystemImage(symbolName: "folder")!
+            case .feed(let id):
+                if let feed = CDFeed.feed(id: id) {
+                    Task {
+                        icon = await FavIconHelper.icon(for: feed)
+                    }
+                } else {
+                    icon = SystemImage(named: "rss")!
+                }
+            }
+        }
         .contextMenu {
             switch node.nodeType {
             case .empty, .all, .starred:

@@ -94,16 +94,11 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         }
     }
 
-    static func addFavIcon(feed: CDFeed, iconData: Data) async throws {
+    static func addFavIconLink(feed: CDFeed, link: String) async throws {
         try await NewsData.mainThreadContext.perform {
             do {
-                let currentData = feed.favicon
-                if iconData == currentData {
-                    print("Same icon data")
-                } else {
-                    feed.favicon = iconData
-                    try NewsData.mainThreadContext.save()
-                }
+                feed.faviconLink = link
+                try NewsData.mainThreadContext.save()
             } catch {
                 throw PBHError.databaseError("Error adding favicon")
             }
