@@ -5,17 +5,18 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
+import Kingfisher
 import SwiftUI
 
 struct NodeView: View {
     @EnvironmentObject private var model: FeedModel
+    @EnvironmentObject private var favIconRepository: FavIconRepository
     @ObservedObject var node: Node
     @Binding var selectedFeed: Int
     @Binding var modalSheet: ModalSheet?
 
     @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
-    @State private var icon = SystemImage()
 
 #if os(iOS)
     let noChildrenPadding = 21.0
@@ -29,41 +30,14 @@ struct NodeView: View {
                 Text(node.title)
                     .lineLimit(1)
             } icon: {
-#if !os(macOS)
-                Image(uiImage: icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22, alignment: .center)
-#else
-                Image(nsImage: icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 16, height: 16, alignment: .center)
-#endif
+                NodeFavIconView(node: node)
+                    .environmentObject(favIconRepository)
             }
             .labelStyle(.titleAndIcon)
             Spacer(minLength: 12)
             BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
-        .onAppear {
-            switch node.nodeType {
-            case .empty, .all:
-                icon = SystemImage(named: "rss")!
-            case .starred:
-                icon = SystemImage(symbolName: "star.fill")!
-            case .folder( _):
-                icon = SystemImage(symbolName: "folder")!
-            case .feed(let id):
-                if let feed = CDFeed.feed(id: id) {
-                    Task {
-                        icon = await FavIconHelper.icon(for: feed)
-                    }
-                } else {
-                    icon = SystemImage(named: "rss")!
-                }
-            }
-        }
         .contextMenu {
             switch node.nodeType {
             case .empty, .all, .starred:
@@ -117,6 +91,38 @@ struct NodeView: View {
         }
     }
 
+}
+
+struct NodeFavIconView: View {
+    @ObservedObject var node: Node
+    @EnvironmentObject private var favIconRepository: FavIconRepository
+
+    @ViewBuilder
+    var body: some View {
+        VStack {
+            KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
+                .placeholder { _ in
+                    switch node.nodeType {
+                    case .all, .empty:
+#if os(macOS)
+                        Image(nsImage: SystemImage(named: "rss")!)
+#else
+                        Image(uiImage: SystemImage(named: "rss")!)
+#endif
+                    case .starred:
+                        Image(systemName: "star.fill")
+                    case .folder(id: _):
+                        Image(systemName: "folder")
+                    case .feed(id: _):
+                        Color.gray.opacity(0.25)
+                    }
+                }
+                .retry(maxCount: 3, interval: .seconds(5))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 22, height: 22)
+        }
+    }
 }
 
 //struct NodeView_Previews: PreviewProvider {

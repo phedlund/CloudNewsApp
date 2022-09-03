@@ -22,6 +22,7 @@ struct ContentView: View {
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
+    @ObservedObject var favIconRepository: FavIconRepository
     @ObservedObject private var node: Node
 
     @Namespace var topID
@@ -43,9 +44,10 @@ struct ContentView: View {
         return username.isEmpty || password.isEmpty
     }
 
-    init(model: FeedModel, settings: Preferences) {
+    init(model: FeedModel, settings: Preferences, favIconRepository: FavIconRepository) {
         self.model = model
         self.settings = settings
+        self.favIconRepository = favIconRepository
         _nodeSelection = State(initialValue: settings.selectedNode)
         node = model.currentNode
         self.offsetPublisher = offsetDetector
@@ -60,6 +62,7 @@ struct ContentView: View {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
+                .environmentObject(favIconRepository)
         } detail: {
             ZStack {
                 if let nodeSelection, node.id != EmptyNodeGuid {
@@ -77,6 +80,7 @@ struct ContentView: View {
                                             NavigationLink(value: item) {
                                                 ItemListItemViev(model: item)
                                                     .environmentObject(settings)
+                                                    .environmentObject(favIconRepository)
                                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                                     .contextMenu {
                                                         ContextMenuContent(model: item)

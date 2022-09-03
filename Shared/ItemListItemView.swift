@@ -41,7 +41,7 @@ struct ItemListItemViev: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(title: model.title, textColor: textColor)
-                        FavIconDateAuthorView(feedIcon: icon,
+                        FavIconDateAuthorView(feedIcon: model.feed?.faviconLinkResolved,
                                               dateAuthorFeed: model.dateAuthorFeed,
                                               textColor: textColor,
                                               itemOpacity: itemOpacity)
@@ -85,13 +85,11 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
-        .onAppear {
-            Task {
-                if let feed = model.feed {
-                    icon = await FavIconHelper.icon(for: feed)
-                }
-            }
-        }
+//        .onReceive(favIconRepository.icons) {
+//            if let feed = model.feed {
+//                icon = $0[.feed(id: feed.id)] ?? SystemImage(named: "rss")!
+//            }
+//        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 82.0 : 157.0
             let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0

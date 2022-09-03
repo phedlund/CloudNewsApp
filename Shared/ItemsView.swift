@@ -40,6 +40,9 @@ struct ItemsView: View {
                             .tag(item.id)
                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             .listRowBackground(Color.pbh.whiteBackground)
+                            .onAppear {
+                              node.loadMoreItemsIfNeeded(currentItem: item)
+                            }
                             .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
                                 prefKey = CGFloat(index)
                             }

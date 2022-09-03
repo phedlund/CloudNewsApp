@@ -3,8 +3,8 @@
     <entity name="CDFeed" representedClassName="CDFeed" versionHashModifier="Add index" syncable="YES">
         <attribute name="added" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="articleCount" optional="YES" attributeType="Integer 32" defaultValueString="250" usesScalarValueType="YES"/>
-        <attribute name="favicon" optional="YES" attributeType="Binary"/>
         <attribute name="faviconLink" optional="YES" attributeType="String"/>
+        <attribute name="faviconLinkResolved" optional="YES" attributeType="String"/>
         <attribute name="folderId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastModified" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>

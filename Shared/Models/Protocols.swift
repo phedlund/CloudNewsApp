@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum NodeType: Equatable {
+enum NodeType: Equatable, Hashable {
     case empty
     case all
     case starred

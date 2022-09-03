@@ -11,6 +11,7 @@ import SwiftUI
 struct CloudNewsApp: App {
     @StateObject private var settings = Preferences()
     @StateObject private var feedModel = FeedModel()
+    @StateObject private var favIconRepository = FavIconRepository()
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
@@ -21,7 +22,7 @@ struct CloudNewsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(model: feedModel, settings: settings)
+            ContentView(model: feedModel, settings: settings, favIconRepository: favIconRepository)
         }
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)

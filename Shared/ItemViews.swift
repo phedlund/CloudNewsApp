@@ -66,22 +66,23 @@ struct TitleView: View {
 
 struct ItemFavIconView: View {
     @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
-    var nodeIcon: SystemImage
-
+    var nodeIcon: String?
+    
     @ViewBuilder
     var body: some View {
         if showFavIcons ?? true {
+            KFImage(URL(string: nodeIcon ?? "data:null"))
+                .placeholder { _ in
 #if os(macOS)
-            Image(nsImage: nodeIcon)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 16, height: 16, alignment: .center)
+                    Image(nsImage: SystemImage(named: "rss")!)
 #else
-            Image(uiImage: nodeIcon)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 16, height: 16, alignment: .center)
+                    Image(uiImage: SystemImage(named: "rss")!)
 #endif
+                }
+                .retry(maxCount: 3, interval: .seconds(5))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 22, height: 22)
         } else {
             EmptyView()
         }
@@ -89,7 +90,7 @@ struct ItemFavIconView: View {
 }
 
 struct FavIconDateAuthorView: View {
-    var feedIcon: SystemImage
+    var feedIcon: String?
     var dateAuthorFeed: String
     var textColor: Color
     var itemOpacity: Double

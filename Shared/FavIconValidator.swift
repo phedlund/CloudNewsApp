@@ -15,7 +15,7 @@ enum FetchError: Error {
 class FavIconHelper {
 
     static func icon(for feed: CDFeed) async -> SystemImage {
-        if let link = feed.faviconLink, !link.isEmpty, link != "data:null", let url = URL(string: link) {
+        if let link = feed.faviconLinkResolved, !link.isEmpty, let url = URL(string: link) {
             return await withCheckedContinuation({
                 (continuation: CheckedContinuation<SystemImage, Never>) in
                 KingfisherManager.shared.retrieveImage(with: url) { result in
@@ -34,7 +34,7 @@ class FavIconHelper {
 
 }
 
-actor FavIconFetcher {
+actor FavIconValidator {
 
     private let validSchemas = ["http", "https", "file"]
 
@@ -42,20 +42,19 @@ actor FavIconFetcher {
         if let feeds = CDFeed.all() {
             for feed in feeds {
                 if let link = feed.faviconLink,
-                   link != "data:null",
+//                   link != "data:null",
                    let url = URL(string: link),
                    let scheme = url.scheme,
                    validSchemas.contains(scheme) {
                     do {
-                        let _ = try await downloadImage(from: url)
+                        try await validateImageUrl(from: url, feed: feed)
                     } catch let error {
                         if error as? FetchError == FetchError.noImage {
                             if let feedUrl = URL(string: feed.link ?? "data:null"),
                                let host = feedUrl.host,
                                let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                                 do {
-                                    let _ = try await downloadImage(from: url)
-                                    try await CDFeed.addFavIconLink(feed: feed, link: url.absoluteString)
+                                    try await validateImageUrl(from: url, feed: feed)
                                 } catch { }
                             }
                         }
@@ -65,8 +64,7 @@ actor FavIconFetcher {
                        let host = feedUrl.host,
                        let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                         do {
-                            let _ = try await downloadImage(from: url)
-                            try await CDFeed.addFavIconLink(feed: feed, link: url.absoluteString)
+                            try await validateImageUrl(from: url, feed: feed)
                         } catch { }
                     }
                 }
@@ -74,20 +72,17 @@ actor FavIconFetcher {
         }
     }
 
-    func downloadImage(from url: URL) async throws -> Data {
+    func validateImageUrl(from url: URL, feed: CDFeed) async throws {
         let request = URLRequest.init(url: url)
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
         if let httpResponse = response as? HTTPURLResponse {
-            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-            print(String(data: data, encoding: .utf8) ?? "")
             switch httpResponse.statusCode {
             case 200:
-                return data
+                try await CDFeed.addFavIconLinkResolved(feed: feed, link: url.absoluteString)
             default:
                 throw FetchError.noImage
             }
         }
-        return data
     }
 
 }

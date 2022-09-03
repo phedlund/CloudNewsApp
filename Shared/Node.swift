@@ -17,6 +17,7 @@ final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = 0
     @Published var errorCount = 0
     @Published var title = ""
+    @Published var favIconLink: String?
     @Published var items = [ArticleModel]()
 
     func item(for id: ArticleModel.ID) -> ArticleModel? {
@@ -82,6 +83,7 @@ final class Node: Identifiable, ObservableObject {
                         case .feed(let id):
                             if let feed = CDFeed.feed(id: id) {
                                 self.title = feed.title ?? "Untitled"
+                                self.favIconLink = feed.faviconLinkResolved
                                 self.errorCount = Int(feed.updateErrorCount)
                             }
                         }

@@ -27,6 +27,7 @@ struct SidebarView: View {
 #endif
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
+    @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
@@ -66,6 +67,7 @@ struct SidebarView: View {
             }
             OutlineGroup(model.nodes, id: \.id, children: \.children) { node in
                 NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                    .environmentObject(favIconRepository)
                     .tag(node.id)
                     .accentColor(.pbh.whiteIcon)
                     .contentShape(Rectangle())
@@ -106,12 +108,12 @@ struct SidebarView: View {
 #endif
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                Spacer()
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .opacity(isSyncing ? 1.0 : 0.0)
-#if os(macOS)
-                    .controlSize(.small)
+#if !os(macOS)
+                Button {
+                    modalSheet = .settings
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
 #endif
                 Button {
                     sync()
@@ -119,12 +121,11 @@ struct SidebarView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .disabled(isSyncing)
-#if !os(macOS)
-                Button {
-                    modalSheet = .settings
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .opacity(isSyncing ? 1.0 : 0.0)
+#if os(macOS)
+                    .controlSize(.small)
 #endif
             }
         }

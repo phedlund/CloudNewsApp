@@ -252,10 +252,6 @@ class NewsManager {
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(starredRouter.urlRequest())
             try await CDItem.deleteOldItems()
 
-            let favIconFetcher = FavIconFetcher()
-            Task {
-                try? await favIconFetcher.fetch()
-            }
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
             throw PBHError.networkError(error.localizedDescription)
@@ -367,10 +363,6 @@ class NewsManager {
             try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
             try await CDItem.deleteOldItems()
-            let favIconFetcher = FavIconFetcher()
-            Task {
-                try? await favIconFetcher.fetch()
-            }
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
