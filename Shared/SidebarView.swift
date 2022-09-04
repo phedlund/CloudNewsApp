@@ -107,27 +107,7 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-#if !os(macOS)
-                Button {
-                    modalSheet = .settings
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-#endif
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isSyncing)
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .opacity(isSyncing ? 1.0 : 0.0)
-#if os(macOS)
-                    .controlSize(.small)
-#endif
-            }
+            sidebarToolBarContent()
         }
         .onReceive(syncPublisher) { _ in
             isSyncing = false
@@ -210,6 +190,57 @@ struct SidebarView: View {
             } label: {
                 Label("Delete...", systemImage: "trash")
             }
+        }
+    }
+
+    @ToolbarContentBuilder
+    func sidebarToolBarContent() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+#if os(macOS)
+            Spacer()
+            ProgressView()
+                .progressViewStyle(.circular)
+                .opacity(isSyncing ? 1.0 : 0.0)
+                .controlSize(.small)
+            Button {
+                sync()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .disabled(isSyncing)
+#else
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                Button {
+                    modalSheet = .settings
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                Button {
+                    sync()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isSyncing)
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .opacity(isSyncing ? 1.0 : 0.0)
+            } else {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .opacity(isSyncing ? 1.0 : 0.0)
+                Button {
+                    sync()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isSyncing)
+                Button {
+                    modalSheet = .settings
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+#endif
         }
     }
 

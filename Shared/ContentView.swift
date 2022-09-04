@@ -175,6 +175,7 @@ struct ContentView: View {
             SidebarView(nodeSelection: $nodeSelection)
                 .environmentObject(model)
                 .environmentObject(settings)
+                .environmentObject(favIconRepository)
         } content: {
             if nodeSelection != nil, node.id != EmptyNodeGuid {
                 ItemsView(node: node, selectedItem: $selectedItem)
