@@ -38,6 +38,7 @@ struct ContentView: View {
     @State private var itemSelection: ArticleModel.ID?
     @State private var selectedItem: ArticleModel?
     @State private var path = NavigationPath()
+    @State private var items = [ArticleModel]()
     @State private var cellHeight: CGFloat = 160.0
 
     private var isNotLoggedIn: Bool {
@@ -76,7 +77,7 @@ struct ContentView: View {
                                         .frame(height: 1)
                                         .id(topID)
                                     LazyVStack(spacing: 15.0) {
-                                        ForEach(node.items, id: \.id) { item in
+                                        ForEach(items, id: \.id) { item in
                                             NavigationLink(value: item) {
                                                 ItemListItemViev(model: item)
                                                     .environmentObject(settings)
@@ -84,9 +85,6 @@ struct ContentView: View {
                                                     .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                                     .contextMenu {
                                                         ContextMenuContent(model: item)
-                                                    }
-                                                    .onAppear {
-                                                      node.loadMoreItemsIfNeeded(currentItem: item)
                                                     }
                                             }
                                             .buttonStyle(ClearSelectionStyle())
@@ -158,6 +156,9 @@ struct ContentView: View {
                 case .feed(id: let id):
                     selectedFeed = Int(id)
                 }
+                Task {
+                    await model.currentNode.fetchData()
+                }
             }
         }
         .onChange(of: selectedItem) {
@@ -165,6 +166,9 @@ struct ContentView: View {
         }
         .onChange(of: model.currentItem) {
             selectedItem = $0
+        }
+        .onChange(of: node.items) {
+            items = $0
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -223,6 +227,9 @@ struct ContentView: View {
                     selectedFeed = Int(id)
                 case .feed(id: let id):
                     selectedFeed = Int(id)
+                }
+                Task {
+                    await model.currentNode.fetchData()
                 }
             }
         }

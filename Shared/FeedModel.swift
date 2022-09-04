@@ -68,7 +68,9 @@ class FeedModel: ObservableObject {
                     self.update()
                 }
                 if changes.contains(where: { $0.key == "starred" }), self.currentNode.id == StarNodeGuid {
-                    self.updateCurrentNodeItems()
+                    Task {
+                        await self.updateCurrentNodeItems()
+                    }
                 }
                 self.allNode.unreadCount = CDItem.unreadCount(nodeType: .all)
                 self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
@@ -78,24 +80,30 @@ class FeedModel: ObservableObject {
         syncPublisher
             .sink { [weak self] _ in
                 guard let self else { return }
-                self.resetAllItems()
-                self.updateCurrentNodeItems()
+                Task {
+                    await self.resetAllItems()
+                    await self.updateCurrentNodeItems()
+                }
             }
             .store(in: &cancellables)
 
         preferences.$hideRead
             .sink { [weak self] hideRead in
                 self?.hideRead = hideRead
-                self?.resetAllItems()
-                self?.updateCurrentNodeItems()
+                Task {
+                    await self?.resetAllItems()
+                    await self?.updateCurrentNodeItems()
+                }
             }
             .store(in: &cancellables)
 
         preferences.$sortOldestFirst
             .sink { [weak self] sortOldestFirst in
                 self?.sortOldestFirst = sortOldestFirst
-                self?.resetAllItems()
-                self?.updateCurrentNodeItems()
+                Task {
+                    await self?.resetAllItems()
+                    await self?.updateCurrentNodeItems()
+                }
             }
             .store(in: &cancellables)
 
@@ -144,7 +152,9 @@ class FeedModel: ObservableObject {
     func updateCurrentNode(_ current: String) {
         preferences.selectedNode = current
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
-        updateCurrentNodeItems()
+        Task {
+            await updateCurrentNodeItems()
+        }
     }
 
     func updateCurrentItem(_ current: ArticleModel?) {
@@ -228,12 +238,11 @@ class FeedModel: ObservableObject {
         return node
     }
 
-    private func resetAllItems() {
-        DispatchQueue.main.async {
-            self.updateAllItems()
-            for node in self.nodes {
-                node.items.removeAll()
-            }
+    @MainActor
+    private func resetAllItems() async {
+        self.updateAllItems()
+        for node in self.nodes {
+            node.items.removeAll()
         }
     }
 
@@ -251,28 +260,27 @@ class FeedModel: ObservableObject {
         }
     }
 
-    private func updateCurrentNodeItems() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.currentNode.items.isEmpty else { return }
-            switch self.currentNode.nodeType {
-            case .empty:
-                break
-            case .all:
+    @MainActor
+    private func updateCurrentNodeItems() async {
+        guard self.currentNode.items.isEmpty else { return }
+        switch self.currentNode.nodeType {
+        case .empty:
+            break
+        case .all:
+            self.currentNode.cdItems = self.allItems
+        case .starred:
+            self.currentNode.cdItems = self.allItems
+                .filter( { $0.starred == true } )
+        case .folder(let id):
+            if let feedIds = CDFeed.idsInFolder(folder: id) {
                 self.currentNode.cdItems = self.allItems
-            case .starred:
-                self.currentNode.cdItems = self.allItems
-                    .filter( { $0.starred == true } )
-            case .folder(let id):
-                if let feedIds = CDFeed.idsInFolder(folder: id) {
-                    self.currentNode.cdItems = self.allItems
-                        .filter( { feedIds.contains($0.feedId) } )
-                } else {
-                    self.allItems = []
-                }
-            case .feed(let id):
-                self.currentNode.cdItems = self.allItems
-                    .filter( { $0.feedId == id } )
+                    .filter( { feedIds.contains($0.feedId) } )
+            } else {
+                self.allItems = []
             }
+        case .feed(let id):
+            self.currentNode.cdItems = self.allItems
+                .filter( { $0.feedId == id } )
         }
     }
 

@@ -40,9 +40,6 @@ struct ItemsView: View {
                             .tag(item.id)
                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             .listRowBackground(Color.pbh.whiteBackground)
-                            .onAppear {
-                              node.loadMoreItemsIfNeeded(currentItem: item)
-                            }
                             .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
                                 prefKey = CGFloat(index)
                             }
@@ -62,6 +59,9 @@ struct ItemsView: View {
             .listStyle(.plain)
 #endif
             .accentColor(Color.pbh.whiteBackground)
+            .task {
+                await node.fetchData()
+            }
             .toolbar {
                 ItemListToolbarContent(node: node)
             }

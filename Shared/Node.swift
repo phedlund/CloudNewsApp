@@ -27,9 +27,9 @@ final class Node: Identifiable, ObservableObject {
     var id: String
     var cdItems = [CDItem]() {
         didSet {
-            currentItem = 0
-            canLoadMoreItems = cdItems.count > 0
-            loadMoreContent()
+            Task {
+                await fetchData()
+            }
         }
     }
 
@@ -93,29 +93,14 @@ final class Node: Identifiable, ObservableObject {
             .store(in: &cancellables)
     }
 
-    func loadMoreItemsIfNeeded(currentItem item: ArticleModel?) {
-        guard item != nil else {
-            loadMoreContent()
-            return
+    @MainActor
+    func fetchData() async {
+        var tempModels = [ArticleModel]()
+        for cdItem in cdItems {
+            let model = ArticleModel(item: cdItem)
+            tempModels.append(model)
         }
-
-//        let thresholdIndex = items.index(items.endIndex, offsetBy: 0)
-        if items.count < cdItems.count {
-            loadMoreContent()
-        }
-    }
-
-    private func loadMoreContent() {
-        guard !isLoadingItem && canLoadMoreItems else {
-            return
-        }
-
-        isLoadingItem = true
-        let cdItem = cdItems[currentItem]
-        let model = ArticleModel(item: cdItem)
-        items.append(model)
-        currentItem += 1
-        isLoadingItem = false
+        items = tempModels
     }
 
     private func nodeTitle() -> String {
