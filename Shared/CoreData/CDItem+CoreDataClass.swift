@@ -111,7 +111,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 }
                 try NewsData.mainThreadContext.save()
             } catch {
-                throw PBHError.databaseError("Error marking items read")
+                throw PBHError.databaseError(message: "Error marking items read")
             }
         }
     }
@@ -122,7 +122,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 item.unread = unread
                 try NewsData.mainThreadContext.save()
             } catch {
-                throw PBHError.databaseError("Error marking items read")
+                throw PBHError.databaseError(message: "Error marking items read")
             }
         }
     }
@@ -139,7 +139,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 })
                 try NewsData.mainThreadContext.save()
             } catch {
-                throw PBHError.databaseError("Error marking item starred")
+                throw PBHError.databaseError(message: "Error marking item starred")
             }
         }
     }
@@ -198,7 +198,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     try NewsData.mainThreadContext.save()
                 }
             } catch {
-                throw PBHError.databaseError("Error adding imageLink")
+                throw PBHError.databaseError(message: "Error adding imageLink")
             }
         }
     }
@@ -223,7 +223,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     return result as? NSBatchDeleteResult
                 } catch let error as NSError {
                     print("Could not perform deletion \(error), \(error.userInfo)")
-                    throw PBHError.databaseError("Error deleting old items")
+                    throw PBHError.databaseError(message: "Error deleting old items")
                 }
             }
             return nil
@@ -244,7 +244,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 NewsData.mainThreadContext.reset()
             } catch let error as NSError {
                 print("Could not perform deletion \(error), \(error.userInfo)")
-                throw PBHError.databaseError("Error deleting items in feed \(feedId)")
+                throw PBHError.databaseError(message: "Error deleting items in feed \(feedId)")
             }
         }
         return result as? NSBatchDeleteResult

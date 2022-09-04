@@ -25,8 +25,8 @@ enum UrlSessionMethod: String {
 }
 
 enum PBHError: Error {
-    case networkError(String)
-    case databaseError(String)
+    case networkError(message: String)
+    case databaseError(message: String)
 }
 
 enum StatusRouter {
@@ -87,7 +87,7 @@ enum StatusRouter {
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
                 return urlRequest
             } else {
-                throw PBHError.networkError("Missing server address")
+                throw PBHError.networkError(message: "Missing server address")
             }
         }
     }

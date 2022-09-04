@@ -100,7 +100,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
                 feed.faviconLinkResolved = link
                 try NewsData.mainThreadContext.save()
             } catch {
-                throw PBHError.databaseError("Error adding favicon")
+                throw PBHError.databaseError(message: "Error adding favicon")
             }
         }
     }
@@ -117,7 +117,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
             }
             try NewsData.mainThreadContext.save()
         } catch {
-            throw PBHError.databaseError("Error deleting feed")
+            throw PBHError.databaseError(message: "Error deleting feed")
         }
     }
 

@@ -33,7 +33,7 @@ class FolderImporter {
                         try importContext.save()
                     }
                 default:
-                    throw PBHError.networkError("Error getting folders")
+                    throw PBHError.networkError(message: "Error getting folders")
                 }
             }
         } catch(let error) {
@@ -67,7 +67,7 @@ class FeedImporter {
                         try importContext.save()
                     }
                 default:
-                    throw PBHError.networkError("Error getting feeds")
+                    throw PBHError.networkError(message: "Error getting feeds")
                 }
             }
         } catch(let error) {
@@ -101,7 +101,7 @@ class ItemImporter {
                         try importContext.save()
                     }
                 default:
-                    throw PBHError.networkError("Error getting items")
+                    throw PBHError.networkError(message: "Error getting items")
                 }
             }
         } catch(let error) {

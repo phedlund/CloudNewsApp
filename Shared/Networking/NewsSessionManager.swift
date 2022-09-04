@@ -54,7 +54,7 @@ class NewsManager {
             let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
             return productStatus
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -66,7 +66,7 @@ class NewsManager {
             let result = try decoder.decode(Status.self, from: data)
             return result.version ?? ""
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -102,22 +102,22 @@ class NewsManager {
                                     try NewsData.mainThreadContext.save()
                                 }
                             default:
-                                throw PBHError.networkError("Error adding feed")
+                                throw PBHError.networkError(message: "Error adding feed")
                             }
                         }
                     }
                 case 405:
-                    throw PBHError.networkError("Method not allowed")
+                    throw PBHError.networkError(message: "Method not allowed")
                 case 409:
-                    throw PBHError.networkError("The feed already exists")
+                    throw PBHError.networkError(message: "The feed already exists")
                 case 422:
-                    throw PBHError.networkError("The feed could not be read. It most likely contains errors")
+                    throw PBHError.networkError(message: "The feed could not be read. It most likely contains errors")
                 default:
-                    throw PBHError.networkError("Error adding feed")
+                    throw PBHError.networkError(message: "Error adding feed")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
     
@@ -136,17 +136,17 @@ class NewsManager {
                         try NewsData.mainThreadContext.save()
                     }
                 case 405:
-                    throw PBHError.networkError("Method not allowed")
+                    throw PBHError.networkError(message: "Method not allowed")
                 case 409:
-                    throw PBHError.networkError("The folder already exists")
+                    throw PBHError.networkError(message: "The folder already exists")
                 case 422:
-                    throw PBHError.networkError("The folder name is invalid.")
+                    throw PBHError.networkError(message: "The folder name is invalid.")
                 default:
-                    throw PBHError.networkError("Error adding folder")
+                    throw PBHError.networkError(message: "Error adding folder")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -187,7 +187,7 @@ class NewsManager {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -220,7 +220,7 @@ class NewsManager {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -254,7 +254,7 @@ class NewsManager {
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
     
@@ -366,7 +366,7 @@ class NewsManager {
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -380,13 +380,13 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
-                    throw PBHError.networkError("The feed does not exist")
+                    throw PBHError.networkError(message: "The feed does not exist")
                 default:
-                    throw PBHError.networkError("Error moving feed")
+                    throw PBHError.networkError(message: "Error moving feed")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -400,15 +400,15 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
-                    throw PBHError.networkError("The feed does not exist")
+                    throw PBHError.networkError(message: "The feed does not exist")
                 case 405:
-                    throw PBHError.networkError("Please update the News app on the server to enable feed renaming.")
+                    throw PBHError.networkError(message: "Please update the News app on the server to enable feed renaming.")
                 default:
-                    throw PBHError.networkError("Error renaming feed")
+                    throw PBHError.networkError(message: "Error renaming feed")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -422,13 +422,13 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
-                    throw PBHError.networkError("The feed does not exist")
+                    throw PBHError.networkError(message: "The feed does not exist")
                 default:
-                    throw PBHError.networkError("Error deleting feed")
+                    throw PBHError.networkError(message: "Error deleting feed")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -442,17 +442,17 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
-                    throw PBHError.networkError("The folder does not exist")
+                    throw PBHError.networkError(message: "The folder does not exist")
                 case 409:
-                    throw PBHError.networkError("The folder already exists")
+                    throw PBHError.networkError(message: "The folder already exists")
                 case 422:
-                    throw PBHError.networkError("The folder name is invalid.")
+                    throw PBHError.networkError(message: "The folder name is invalid.")
                 default:
-                    throw PBHError.networkError("Error renaming folder")
+                    throw PBHError.networkError(message: "Error renaming folder")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
@@ -466,13 +466,13 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
-                    throw PBHError.networkError("The folder does not exist")
+                    throw PBHError.networkError(message: "The folder does not exist")
                 default:
-                    throw PBHError.networkError("Error deleting folder")
+                    throw PBHError.networkError(message: "Error deleting folder")
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(error.localizedDescription)
+            throw PBHError.networkError(message: error.localizedDescription)
         }
     }
 
