@@ -106,9 +106,7 @@ struct SidebarView: View {
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
-        .toolbar {
-            sidebarToolBarContent()
-        }
+        .toolbar(content: sidebarToolBarContent)
         .onReceive(syncPublisher) { _ in
             isSyncing = false
         }

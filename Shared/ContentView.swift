@@ -108,9 +108,7 @@ struct ContentView: View {
                                 }
                                 .navigationTitle(node.title)
                                 .coordinateSpace(name: "scroll")
-                                .toolbar {
-                                    ItemListToolbarContent(node: node)
-                                }
+                                .toolbar(content: ItemListToolbarContent(node: node))
                                 .onReceive(offsetPublisher) { newOffset in
                                     Task.detached {
                                         await markRead(newOffset)

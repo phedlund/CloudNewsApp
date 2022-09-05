@@ -63,9 +63,7 @@ struct ArticlesPageView: View {
                 title = $0
             }
         }
-        .toolbar {
-            pageViewToolBarContent()
-        }
+        .toolbar(content: pageViewToolBarContent)
     }
 
     @ToolbarContentBuilder
