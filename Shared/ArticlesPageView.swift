@@ -64,55 +64,70 @@ struct ArticlesPageView: View {
             }
         }
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarLeading) {
-                Button {
-                    webViewHelper.webView?.goBack()
-                } label: {
-                    Image(systemName: "chevron.backward")
-                }
-                .disabled(!canGoBack)
-                Button {
-                    webViewHelper.webView?.goForward()
-                } label: {
-                    Image(systemName: "chevron.forward")
-                }
-                .disabled(!canGoForward)
-                Button {
-                    if isLoading {
-                        webViewHelper.webView?.stopLoading()
-                    } else {
-                        webViewHelper.webView?.reload()
-                    }
-                } label: {
-                    if isLoading {
-                        Image(systemName: "xmark")
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
-            }
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                if let item = node.item(for: selection) {
-                    ShareLinkView(model: item, url: webViewHelper.url)
-                        .disabled(isLoading)
-                }
-                Button {
-                    isShowingPopover = true
-                } label: {
-                    Image(systemName: "textformat.size")
-                }
-                .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                    if let item = node.item(for: selection)?.item {
-                        ArticleSettingsView(item: item)
-                            .environmentObject(settings)
-                            .presentationDetents([.height(300.0)])
-                    }
-                }
-                .disabled(isLoading)
-            }
+            pageViewToolBarContent()
         }
     }
 
+    @ToolbarContentBuilder
+    func pageViewToolBarContent() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarLeading) {
+            Button {
+                webViewHelper.webView?.goBack()
+            } label: {
+                Image(systemName: "chevron.backward")
+            }
+            .disabled(!canGoBack)
+            Button {
+                webViewHelper.webView?.goForward()
+            } label: {
+                Image(systemName: "chevron.forward")
+            }
+            .disabled(!canGoForward)
+            Button {
+                if isLoading {
+                    webViewHelper.webView?.stopLoading()
+                } else {
+                    webViewHelper.webView?.reload()
+                }
+            } label: {
+                if isLoading {
+                    Image(systemName: "xmark")
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+        }
+        ToolbarItemGroup(placement: .primaryAction) {
+            if let item = node.item(for: selection) {
+                let subject = item.title
+                let message = item.displayBody
+                if let url = webViewHelper.url {
+                    if url.scheme?.hasPrefix("file") ?? false {
+                        if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
+                            ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+                        }
+                    } else {
+                        ShareLink(item: url, subject: Text(subject), message: Text(message))
+                    }
+                } else if !subject.isEmpty {
+                    ShareLink(item: subject, subject: Text(subject), message: Text(message))
+                }
+            }
+            Button {
+                isShowingPopover = true
+            } label: {
+                Image(systemName: "textformat.size")
+            }
+            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                if let item = node.item(for: selection)?.item {
+                    ArticleSettingsView(item: item)
+                        .environmentObject(settings)
+                        .presentationDetents([.height(300.0)])
+                }
+            }
+            .disabled(isLoading)
+        }
+    }
     private func markItemRead() {
         if let item = node.item(for: selection)?.item, item.unread {
             Task {
