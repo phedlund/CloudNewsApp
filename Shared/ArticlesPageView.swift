@@ -105,12 +105,15 @@ struct ArticlesPageView: View {
                     if url.scheme?.hasPrefix("file") ?? false {
                         if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
                             ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+                                .disabled(isLoading)
                         }
                     } else {
                         ShareLink(item: url, subject: Text(subject), message: Text(message))
+                            .disabled(isLoading)
                     }
                 } else if !subject.isEmpty {
                     ShareLink(item: subject, subject: Text(subject), message: Text(message))
+                        .disabled(isLoading)
                 }
             }
             Button {

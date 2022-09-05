@@ -26,7 +26,7 @@ struct MarkReadButton: View {
                 Image(systemName: "checkmark")
             }
         }
-        .keyboardShortcut("a", modifiers: [])
+        .keyboardShortcut("a", modifiers: [.control])
         .disabled(node.unreadCount == 0)
     }
 }
