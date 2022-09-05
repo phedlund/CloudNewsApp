@@ -256,8 +256,8 @@ struct SidebarView: View {
                 switch error {
                 case .networkError(let message):
                     errorMessage = message
-                default:
-                    errorMessage = error.localizedDescription
+                case .databaseError(let message):
+                    errorMessage = message
                 }
                 isShowingError = true
                 isSyncing = false

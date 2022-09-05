@@ -359,10 +359,10 @@ class NewsManager {
                                                     "id": 0]
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
+            try await CDItem.deleteOldItems()
             try await FolderImporter(persistentContainer: NewsData.persistentContainer).download(Router.folders.urlRequest())
             try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
-            try await CDItem.deleteOldItems()
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {
