@@ -17,6 +17,7 @@ struct ContentView: View {
 #endif
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
+    @AppStorage(StorageKeys.server) private var server = ""
     @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
     @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
 
@@ -42,7 +43,7 @@ struct ContentView: View {
     @State private var cellHeight: CGFloat = 160.0
 
     private var isNotLoggedIn: Bool {
-        return username.isEmpty || password.isEmpty
+        return server.isEmpty || username.isEmpty || password.isEmpty
     }
 
     init(model: FeedModel, settings: Preferences, favIconRepository: FavIconRepository) {
