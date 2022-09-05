@@ -96,34 +96,33 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let item = node.item(for: selection) {
-                let subject = item.title
-                let message = item.displayBody
-                if let url = webViewHelper.url {
-                    if url.scheme?.hasPrefix("file") ?? false {
-                        if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
-                            ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-                                .disabled(isLoading)
+            Group {
+                if let item = node.item(for: selection) {
+                    let subject = item.title
+                    let message = item.displayBody
+                    if let url = webViewHelper.url {
+                        if url.scheme?.hasPrefix("file") ?? false {
+                            if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
+                                ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+                            }
+                        } else {
+                            ShareLink(item: url, subject: Text(subject), message: Text(message))
                         }
-                    } else {
-                        ShareLink(item: url, subject: Text(subject), message: Text(message))
-                            .disabled(isLoading)
+                    } else if !subject.isEmpty {
+                        ShareLink(item: subject, subject: Text(subject), message: Text(message))
                     }
-                } else if !subject.isEmpty {
-                    ShareLink(item: subject, subject: Text(subject), message: Text(message))
-                        .disabled(isLoading)
                 }
-            }
-            Button {
-                isShowingPopover = true
-            } label: {
-                Image(systemName: "textformat.size")
-            }
-            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let item = node.item(for: selection)?.item {
-                    ArticleSettingsView(item: item)
-                        .environmentObject(settings)
-                        .presentationDetents([.height(300.0)])
+                Button {
+                    isShowingPopover = true
+                } label: {
+                    Image(systemName: "textformat.size")
+                }
+                .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                    if let item = node.item(for: selection)?.item {
+                        ArticleSettingsView(item: item)
+                            .environmentObject(settings)
+                            .presentationDetents([.height(300.0)])
+                    }
                 }
             }
             .disabled(isLoading)

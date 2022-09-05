@@ -54,48 +54,46 @@ struct MacArticleView: View {
 
     @ToolbarContentBuilder
     func articleToolBarContent() -> some ToolbarContent {
-            ToolbarItemGroup {
-                Button {
-                    item.webViewHelper.webView?.goBack()
-                } label: {
-                    Image(systemName: "chevron.backward")
+        ToolbarItemGroup {
+            Button {
+                item.webViewHelper.webView?.goBack()
+            } label: {
+                Image(systemName: "chevron.backward")
+            }
+            .disabled(!canGoBack)
+            Button {
+                item.webViewHelper.webView?.goForward()
+            } label: {
+                Image(systemName: "chevron.forward")
+            }
+            .disabled(!canGoForward)
+            Button {
+                if isLoading {
+                    item.webViewHelper.webView?.stopLoading()
+                } else {
+                    item.webViewHelper.webView?.reload()
                 }
-                .disabled(!canGoBack)
-                Button {
-                    item.webViewHelper.webView?.goForward()
-                } label: {
-                    Image(systemName: "chevron.forward")
+            } label: {
+                if isLoading {
+                    Image(systemName: "xmark")
+                } else {
+                    Image(systemName: "arrow.clockwise")
                 }
-                .disabled(!canGoForward)
-                Button {
-                    if isLoading {
-                        item.webViewHelper.webView?.stopLoading()
-                    } else {
-                        item.webViewHelper.webView?.reload()
-                    }
-                } label: {
-                    if isLoading {
-                        Image(systemName: "xmark")
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
-                Spacer()
+            }
+            Spacer()
+            Group {
                 let subject = item.title
                 let message = item.displayBody
                 if let url = item.webViewHelper.url {
                     if url.scheme?.hasPrefix("file") ?? false {
                         if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
                             ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-                                .disabled(isLoading)
                         }
                     } else {
                         ShareLink(item: url, subject: Text(subject), message: Text(message))
-                            .disabled(isLoading)
                     }
                 } else if !subject.isEmpty {
                     ShareLink(item: subject, subject: Text(subject), message: Text(message))
-                        .disabled(isLoading)
                 }
                 Button {
                     isShowingPopover = true
@@ -105,8 +103,9 @@ struct MacArticleView: View {
                 .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
                     ArticleSettingsView(item: item.item)
                 }
-                .disabled(isLoading)
             }
+            .disabled(isLoading)
+        }
     }
 
 }
