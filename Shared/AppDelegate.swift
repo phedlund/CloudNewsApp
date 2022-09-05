@@ -14,6 +14,30 @@ import UserNotifications
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
+    private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
+
+    private var cancellables = Set<AnyCancellable>()
+
+    override init() {
+        super.init()
+
+        syncPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                let unreadCount = CDItem.unreadCount(nodeType: .all)
+                self?.updateBadge(unreadCount)
+            }
+            .store(in: &cancellables)
+
+        changesPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                let unreadCount = CDItem.unreadCount(nodeType: .all)
+                self?.updateBadge(unreadCount)
+            }
+            .store(in: &cancellables)
+    }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -72,7 +96,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
                 self?.updateBadge(unreadCount)
             }
             .store(in: &cancellables)
-
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
