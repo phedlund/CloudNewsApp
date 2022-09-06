@@ -28,7 +28,7 @@ extension Color {
     }
 
     var hexaRGB: String? {
-        guard let rgba = rgba else { return nil }
+        guard let rgba else { return nil }
         return String(format: "#%02x%02x%02x",
                       Int(rgba.red * 255),
                       Int(rgba.green * 255),
@@ -36,7 +36,7 @@ extension Color {
     }
 
     var hexaRGBA: String? {
-        guard let rgba = rgba else { return nil }
+        guard let rgba else { return nil }
         return String(format: "#%02x%02x%02x%02x",
                       Int(rgba.red * 255),
                       Int(rgba.green * 255),

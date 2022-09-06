@@ -18,7 +18,7 @@ class SyncTimer {
     init() {
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(preferences.syncInterval), repeats: true) { _ in }
         preferences.$syncInterval.sink { [weak self] interval in
-            guard let self = self else {
+            guard let self else {
                 return
             }
             self.timer.invalidate()

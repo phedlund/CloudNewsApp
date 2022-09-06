@@ -114,7 +114,7 @@ class FeedModel: ObservableObject {
 
     func update() {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self else {
+            guard let self else {
                 return
             }
             var folderNodes = [Node]()

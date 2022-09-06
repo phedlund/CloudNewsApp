@@ -62,7 +62,7 @@ final class Node: Identifiable, ObservableObject {
         changePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] changes in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
                 for change in changes {
                     if change.nodeType == self.nodeType {

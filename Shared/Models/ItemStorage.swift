@@ -78,7 +78,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         willSavePublisher
             .sink { [weak self] _ in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.updatedObjects = NewsData.mainThreadContext.updatedObjects
                 self.insertedObjects = NewsData.mainThreadContext.insertedObjects
                 var localChanges = Set<NodeChange>()
@@ -118,7 +118,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         didSavePublisher
             .sink { [weak self] notification in
-                guard let self = self else { return }
+                guard let self else { return }
                 do {
                     if let deletedObjects = self.deletedObjects {
                         for deletedObject in deletedObjects {

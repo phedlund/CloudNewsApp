@@ -97,11 +97,11 @@ struct Item: Codable, ItemProtocol {
 }
 
 func itemDisplayTitle(_ title: String?) -> String {
-    guard let titleValue = title else {
+    guard let title else {
         return "Untitled"
     }
 
-    return plainSummary(raw: titleValue as String)
+    return plainSummary(raw: title as String)
 }
 
 func itemDisplayBody(_ body: String?, mediaDescription: String?) -> String {
