@@ -19,7 +19,7 @@ struct NodeView: View {
     @State private var isShowingConfirmation = false
 
 #if os(iOS)
-    let noChildrenPadding = 21.0
+    let noChildrenPadding = 18.0
 #else
     let noChildrenPadding = 0.0
 #endif
