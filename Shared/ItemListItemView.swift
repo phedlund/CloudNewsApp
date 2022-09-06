@@ -73,9 +73,7 @@ struct ItemListItemViev: View {
             }
 #if os(macOS)
             Spacer(minLength: 3)
-            Rectangle()
-                .fill(.gray.opacity(0.25))
-                .frame(height: 1)
+            Divider()
 #endif
         }
 #if os(iOS)
@@ -85,11 +83,6 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
-//        .onReceive(favIconRepository.icons) {
-//            if let feed = model.feed {
-//                icon = $0[.feed(id: feed.id)] ?? SystemImage(named: "rss")!
-//            }
-//        }
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? 82.0 : 157.0
             let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0

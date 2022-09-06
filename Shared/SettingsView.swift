@@ -195,9 +195,9 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("Settings")
-        .onAppear(perform: {
+        .onAppear {
             updateFooter()
-        })
+        }
         .sheet(item: $settingsSheet,
                onDismiss: { onDismiss() },
                content: { sheet in
@@ -214,7 +214,7 @@ struct SettingsView: View {
                     // Did finish action
                 }
 #else
-                EmptyView() //todo
+                EmptyView()
 #endif
             }
         })
