@@ -70,7 +70,6 @@ struct ArticleSettingsView: View {
                 Button {
                     if settings.fontSize > ArticleSettingsConstants.minFontSize {
                         settings.fontSize -= 1
-                        print("Font size \(settings.fontSize)")
                     }
                 } label: {
                     Image(systemName: "textformat.size.smaller")
@@ -81,7 +80,6 @@ struct ArticleSettingsView: View {
                 Button {
                     if settings.fontSize < ArticleSettingsConstants.maxFontSize {
                         settings.fontSize += 1
-                        print("Font size \(settings.fontSize)")
                     }
                 } label: {
                     Image(systemName: "textformat.size.larger")
