@@ -41,6 +41,8 @@ extension TimeInterval {
 extension CGFloat {
     static let defaultCellHeight: CGFloat = 160.0
     static let compactCellHeight: CGFloat = 85.0
+    static let defaultThumbnailWidth: CGFloat = 145.0
+    static let compactThumbnailWidth: CGFloat = 66.0
 }
 
 extension URL {

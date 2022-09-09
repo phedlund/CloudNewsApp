@@ -18,7 +18,7 @@ struct ItemListItemViev: View {
     @EnvironmentObject private var settings: Preferences
     @ObservedObject var model: ArticleModel
     @State private var cellHeight: CGFloat = .defaultCellHeight
-    @State private var thumbnailSize = CGSize(width: 145.0, height: 157.0)
+    @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
     @State private var icon = SystemImage()
 
     @ViewBuilder
@@ -85,8 +85,8 @@ struct ItemListItemViev: View {
 #endif
         .onReceive(settings.$compactView) { newCompactView in
             cellHeight = newCompactView ? .compactCellHeight : .defaultCellHeight
-            let thumbnailWidth = newCompactView ? 66.0 : isHorizontalCompact ? 66.0 : 145.0
-            let thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? cellHeight / 2 : cellHeight
+            let thumbnailWidth = newCompactView ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
+            let thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
             thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
         }
     }
