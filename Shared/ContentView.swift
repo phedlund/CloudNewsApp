@@ -40,7 +40,7 @@ struct ContentView: View {
     @State private var selectedItem: ArticleModel?
     @State private var path = NavigationPath()
     @State private var items = [ArticleModel]()
-    @State private var cellHeight: CGFloat = 160.0
+    @State private var cellHeight: CGFloat = .defaultCellHeight
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
@@ -144,7 +144,7 @@ struct ContentView: View {
             print("Moving to the background!")
             appDelegate.scheduleAppRefresh()
         }
-        .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
+        .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
         .onChange(of: nodeSelection) {
             if let nodeId = $0 {
                 model.updateCurrentNode(nodeId)

@@ -15,7 +15,7 @@ struct ItemsView: View {
     @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
     @EnvironmentObject private var settings: Preferences
     @State private var isMarkAllReadDisabled = true
-    @State private var cellHeight: CGFloat = 160.0
+    @State private var cellHeight: CGFloat = .defaultCellHeight
 
     private let offsetDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetPublisher: AnyPublisher<CGFloat, Never>
@@ -75,7 +75,7 @@ struct ItemsView: View {
                 }
             }
             .onReceive(node.$unreadCount) { isMarkAllReadDisabled = $0 == 0 }
-            .onReceive(settings.$compactView) { cellHeight = $0 ? 85.0 : 160.0 }
+            .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
         }
     }
 

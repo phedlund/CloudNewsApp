@@ -38,6 +38,11 @@ extension TimeInterval {
     static let fiveMinutes: TimeInterval = 300
 }
 
+extension CGFloat {
+    static let defaultCellHeight: CGFloat = 160.0
+    static let compactCellHeight: CGFloat = 85.0
+}
+
 extension URL {
 
     init?(withCheck string: String?) {
