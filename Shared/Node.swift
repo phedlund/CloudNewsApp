@@ -101,6 +101,11 @@ final class Node: Identifiable, ObservableObject {
             tempModels.append(model)
         }
         items = tempModels
+        do {
+            try await ItemImageFetcher().itemURLs()
+            let urls = tempModels.compactMap( { $0.imageURL })
+            ImagePrefetcher(urls: urls).start()
+        } catch  { }
     }
 
     private func nodeTitle() -> String {

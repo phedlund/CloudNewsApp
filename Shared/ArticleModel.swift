@@ -65,15 +65,6 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             .sink {
                 if let imageLink = $0, !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
                     self.imageURL = url
-                } else {
-                    if $0 != nil {
-                        return
-                    }
-                    Task.detached(priority: .background) {
-                        do {
-                            try await ItemImageFetcher().itemURL(item)
-                        } catch { }
-                    }
                 }
             }
             .store(in: &cancellables)
