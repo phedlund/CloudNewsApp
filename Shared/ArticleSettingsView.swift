@@ -21,14 +21,11 @@ struct ArticleSettingsConstants {
 }
 
 struct ArticleSettingsView: View {
-#if os(iOS)
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-#endif
     @EnvironmentObject private var settings: Preferences
     var item: CDItem
 
-    let buttonHeight = 25.0
-    let buttonWidth = 100.0
+    private let buttonHeight = 25.0
+    private let buttonWidth = 100.0
 
     var body: some View {
         Grid(alignment: .center, horizontalSpacing: 15, verticalSpacing: 20) {
