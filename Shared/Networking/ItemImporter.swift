@@ -13,7 +13,7 @@ class FolderImporter {
 
     init(persistentContainer: NSPersistentContainer) {
       importContext = persistentContainer.newBackgroundContext()
-      importContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+      importContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
     }
 
     func download( _ urlRequest: URLRequest) async throws {
@@ -47,7 +47,7 @@ class FeedImporter {
 
     init(persistentContainer: NSPersistentContainer) {
       importContext = persistentContainer.newBackgroundContext()
-      importContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+      importContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
     }
 
     func download( _ urlRequest: URLRequest) async throws {
@@ -81,7 +81,7 @@ class ItemImporter {
 
     init(persistentContainer: NSPersistentContainer) {
         importContext = persistentContainer.newBackgroundContext()
-        importContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+        importContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
     }
 
     func download( _ urlRequest: URLRequest) async throws {
