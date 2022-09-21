@@ -68,7 +68,7 @@ struct SettingsView: View {
     @State private var currentSettingsSheet: SettingsSheet = .login
 
     private let email = "support@pbh.dev"
-    private let subject = NSLocalizedString("CloudNotes Support Request", comment: "Support email subject")
+    private let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
     private let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
     var body: some View {
