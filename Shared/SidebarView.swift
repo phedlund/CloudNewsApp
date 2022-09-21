@@ -207,36 +207,19 @@ struct SidebarView: View {
             }
             .disabled(isSyncing)
 #else
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                Button {
-                    modalSheet = .settings
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isSyncing)
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .opacity(isSyncing ? 1.0 : 0.0)
-            } else {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .opacity(isSyncing ? 1.0 : 0.0)
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isSyncing)
-                Button {
-                    modalSheet = .settings
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
+            ProgressView()
+                .progressViewStyle(.circular)
+                .opacity(isSyncing ? 1.0 : 0.0)
+            Button {
+                sync()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .disabled(isSyncing)
+            Button {
+                modalSheet = .settings
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
 #endif
         }
