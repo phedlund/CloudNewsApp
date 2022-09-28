@@ -243,6 +243,11 @@ class FeedModel: ObservableObject {
         self.updateAllItems()
         for node in self.nodes {
             node.items.removeAll()
+            if let children = node.children {
+                for child in children {
+                    child.items.removeAll()
+                }
+            }
         }
     }
 
