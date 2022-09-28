@@ -15,6 +15,7 @@ struct ContentView: View {
 #if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
+    @Environment(\.scenePhase) var scenePhase
     @KeychainStorage(StorageKeys.username) var username: String = ""
     @KeychainStorage(StorageKeys.password) var password: String = ""
     @AppStorage(StorageKeys.server) private var server = ""
@@ -137,13 +138,6 @@ struct ContentView: View {
                 SettingsView()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            nodeSelection = settings.selectedNode
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-            print("Moving to the background!")
-            appDelegate.scheduleAppRefresh()
-        }
         .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
         .onChange(of: nodeSelection) {
             if let nodeId = $0 {
@@ -170,6 +164,20 @@ struct ContentView: View {
         }
         .onChange(of: node.items) {
             items = $0
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                print("Active")
+                nodeSelection = settings.selectedNode
+                Task {
+                    await model.currentNode.fetchData()
+                }
+            } else if newPhase == .inactive {
+                print("Inactive")
+            } else if newPhase == .background {
+                print("Background")
+                appDelegate.scheduleAppRefresh()
+            }
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
