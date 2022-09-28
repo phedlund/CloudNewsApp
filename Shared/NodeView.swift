@@ -38,36 +38,6 @@ struct NodeView: View {
             BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
         }
         .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
-        .contextMenu {
-            switch node.nodeType {
-            case .empty, .all, .starred:
-                EmptyView()
-            case .folder(let folderId):
-                Button {
-                    selectedFeed = Int(folderId)
-                    modalSheet = .folderRename
-                } label: {
-                    Label("Rename...", systemImage: "square.and.pencil")
-                }
-                Button(role: .destructive) {
-                    isShowingConfirmation = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-            case .feed(let feedId):
-                Button {
-                    selectedFeed = Int(feedId)
-                    modalSheet = .feedSettings
-                } label: {
-                    Label("Settings...", systemImage: "gearshape")
-                }
-                Button(role: .destructive) {
-                    isShowingConfirmation = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-            }
-        }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
             isPresented: $isShowingConfirmation,
