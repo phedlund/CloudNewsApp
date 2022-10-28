@@ -49,12 +49,6 @@ struct CloudNewsApp: App {
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(Text("Rename Folder"), id: ModalSheet.folderRename.rawValue, for: Int32.self) { folderId in
-            FolderRenameView(Int(folderId.wrappedValue!))
-                .frame(width: 500, height: 200)
-        }
-        .windowResizability(.contentSize)
-
         Window(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(.feed)
                 .frame(width: 500, height: 200)
@@ -102,12 +96,7 @@ struct AppCommands: Commands {
             .keyboardShortcut("n", modifiers: [.command, .shift])
             Divider()
             Button("Rename...") {
-                switch model.currentNode.nodeType {
-                case .empty, .all, .starred, .feed(id: _):
-                    break
-                case .folder(id: let id):
-                    openWindow(id: ModalSheet.folderRename.rawValue, value: id)
-                }
+                NotificationCenter.default.post(name: .renameFolder, object: nil)
             }
             .disabled(isFolderRenameDisabled())
             Divider()

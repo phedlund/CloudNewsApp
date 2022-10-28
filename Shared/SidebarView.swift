@@ -36,6 +36,9 @@ struct SidebarView: View {
     @State private var isShowingError = false
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
+    @State private var showRename = false
+    @State private var isShowingAlert = false
+    @State private var alertInput = ""
 
     @Binding var nodeSelection: Node.ID?
 
@@ -114,6 +117,11 @@ struct SidebarView: View {
             confirmationNode = model.currentNode
             isShowingConfirmation = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
+            confirmationNode = model.currentNode
+            alertInput = model.currentNode.title
+            showRename = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
             confirmationNode = model.currentNode
             isShowingConfirmation = true
@@ -127,10 +135,6 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
-            case .folderRename:
-                NavigationView {
-                    FolderRenameView(selectedFeed)
-                }
             case .feedSettings:
                 NavigationView {
                     FeedSettingsView(selectedFeed)
@@ -139,9 +143,47 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
-            case .addFeed, .addFolder:
+            case .addFeed, .addFolder, .folderRename:
                 EmptyView()
             }
+        })
+        .alert(Text(model.currentNode.title), isPresented: $showRename, actions: {
+            TextField("Title", text: $alertInput)
+            Button("Rename") {
+                switch model.currentNode.nodeType {
+                case .empty, .all, .starred, .feed( _):
+                    break
+                case .folder(let id):
+                    if let folder = CDFolder.folder(id: id) {
+                        if folder.name != alertInput {
+                            Task {
+                                do {
+                                    try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
+                                    folder.name = alertInput
+                                    try NewsData.mainThreadContext.save()
+                                } catch(let error as PBHError) {
+                                    switch error {
+                                    case .networkError(_):
+                                        break
+                                        //                                        folderName = initialName
+                                        //                                        footerMessage = message
+                                        //                                        footerSuccess = false
+                                    default:
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                showRename = false
+            }
+            .keyboardShortcut(.defaultAction)
+            Button("Cancel", role: .cancel) {
+                showRename = false
+            }
+        }, message: {
+            Text("Rename the folder")
         })
     }
 
@@ -155,12 +197,9 @@ struct SidebarView: View {
         case .folder(let folderId):
             MarkReadButton(node: node)
             Button {
-#if os(macOS)
-                openWindow(id: ModalSheet.folderRename.rawValue, value: folderId)
-#else
                 selectedFeed = Int(folderId)
-                modalSheet = .folderRename
-#endif
+                alertInput = model.currentNode.title
+                showRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
             }
