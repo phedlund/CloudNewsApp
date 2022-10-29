@@ -18,7 +18,7 @@ class FolderImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -52,7 +52,7 @@ class FeedImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -86,7 +86,7 @@ class ItemImporter {
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
-            let (data, response) = try await NewsManager.session.data(for: urlRequest, delegate: nil)
+            let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")

@@ -16,7 +16,7 @@ struct ProductStatus {
 class NewsManager {
 
     static let shared = NewsManager()
-    static let session = URLSession.shared
+    private let session = ServerStatus.shared.session
     var syncTimer: Timer?
     
     init() {
@@ -45,23 +45,10 @@ class NewsManager {
 #endif
     }
 
-    func status() async throws -> ProductStatus {
-        let router = StatusRouter.status
-        do {
-            let (data, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
-            let decoder = JSONDecoder()
-            let result = try decoder.decode(CloudStatus.self, from: data)
-            let productStatus = ProductStatus(name: result.productname, version: result.versionstring)
-            return productStatus
-        } catch(let error) {
-            throw PBHError.networkError(message: error.localizedDescription)
-        }
-    }
-
     func version() async throws -> String {
         let router = Router.version
         do {
-            let (data, _) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (data, _) = try await session.data(for: router.urlRequest(), delegate: nil)
             let decoder = JSONDecoder()
             let result = try decoder.decode(Status.self, from: data)
             return result.version ?? ""
@@ -73,7 +60,7 @@ class NewsManager {
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -90,7 +77,7 @@ class NewsManager {
                                                          "id": newFeedId,
                                                          "getRead": NSNumber(value: true)]
                         let router = Router.items(parameters: parameters)
-                        let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+                        let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
                         if let httpResponse = response as? HTTPURLResponse {
                             print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                             print(String(data: data, encoding: .utf8) ?? "")
@@ -124,7 +111,7 @@ class NewsManager {
     func addFolder(name: String) async throws {
         let router = Router.addFolder(name: name)
         do {
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -173,7 +160,7 @@ class NewsManager {
             } else {
                 router = Router.itemsRead(parameters: parameters)
             }
-            let (_, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (_, response) = try await session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 switch httpResponse.statusCode {
                 case 200:
@@ -204,7 +191,7 @@ class NewsManager {
                 CDUnstarred.update(items: [item.id])
                 router = Router.itemsUnstarred(parameters: parameters)
             }
-            let (data, response) = try await NewsManager.session.data(for: router.urlRequest(), delegate: nil)
+            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
@@ -291,7 +278,7 @@ class NewsManager {
             if let localRead = CDRead.all(), !localRead.isEmpty {
                 let readParameters = ["items": localRead]
                 let readRouter = Router.itemsRead(parameters: readParameters)
-                async let (_, readResponse) = NewsManager.session.data(for: readRouter.urlRequest(), delegate: nil)
+                async let (_, readResponse) = session.data(for: readRouter.urlRequest(), delegate: nil)
                 let readItemsResponse = try await readResponse
                 if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
                     switch httpReadResponse.statusCode {
@@ -314,7 +301,7 @@ class NewsManager {
                     }
                     let starredParameters = ["items": params]
                     let starredRouter = Router.itemsStarred(parameters: starredParameters)
-                    async let (_, starredResponse) = NewsManager.session.data(for: starredRouter.urlRequest(), delegate: nil)
+                    async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
                     let starredItemsResponse = try await starredResponse
                     if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
                         switch httpStarredResponse.statusCode {
@@ -338,7 +325,7 @@ class NewsManager {
                     }
                     let unStarredParameters = ["items": params]
                     let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
-                    async let (_, unStarredResponse) = NewsManager.session.data(for: unStarredRouter.urlRequest(), delegate: nil)
+                    async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
                     let unStarredItemsResponse = try await unStarredResponse
                     if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
                         switch httpUnStarredResponse.statusCode {
@@ -375,7 +362,7 @@ class NewsManager {
     func moveFeed(feed: CDFeed, to folder: Int32) async throws {
         let moveFeedRouter = Router.moveFeed(id: Int(feed.id), folder: Int(folder))
         do {
-            let (_, moveResponse) = try await NewsManager.session.data(for: moveFeedRouter.urlRequest(), delegate: nil)
+            let (_, moveResponse) = try await session.data(for: moveFeedRouter.urlRequest(), delegate: nil)
             if let httpResponse = moveResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
@@ -395,7 +382,7 @@ class NewsManager {
     func renameFeed(feed: CDFeed, to name: String) async throws {
         let renameRouter = Router.renameFeed(id: Int(feed.id), newName: name)
         do {
-            let (_, renameResponse) = try await NewsManager.session.data(for: renameRouter.urlRequest(), delegate: nil)
+            let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
             if let httpResponse = renameResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
@@ -417,7 +404,7 @@ class NewsManager {
     func deleteFeed(_ id: Int) async throws {
         let deleteRouter = Router.deleteFeed(id: id)
         do {
-            let (_, deleteResponse) = try await NewsManager.session.data(for: deleteRouter.urlRequest(), delegate: nil)
+            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
             if let httpResponse = deleteResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
@@ -437,7 +424,7 @@ class NewsManager {
     func renameFolder(folder: CDFolder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
         do {
-            let (_, renameResponse) = try await NewsManager.session.data(for: renameRouter.urlRequest(), delegate: nil)
+            let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
             if let httpResponse = renameResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
@@ -461,7 +448,7 @@ class NewsManager {
     func deleteFolder(_ id: Int) async throws {
         let deleteRouter = Router.deleteFolder(id: id)
         do {
-            let (_, deleteResponse) = try await NewsManager.session.data(for: deleteRouter.urlRequest(), delegate: nil)
+            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
             if let httpResponse = deleteResponse as? HTTPURLResponse {
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 switch httpResponse.statusCode {
