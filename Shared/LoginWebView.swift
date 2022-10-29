@@ -10,7 +10,7 @@ import WebKit
 
 struct LoginWebViewView: View {
     @StateObject var webViewManager = WebViewManager()
-    @AppStorage(StorageKeys.server) var server: String = ""
+    @AppStorage(StorageKeys.server) var server = ""
 
     var body: some View {
         VStack {

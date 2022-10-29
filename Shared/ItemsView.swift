@@ -12,7 +12,7 @@ struct ItemsView: View {
     @ObservedObject var node: Node
     @Binding var selectedItem: ArticleModel?
 
-    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
+    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @EnvironmentObject private var settings: Preferences
     @State private var isMarkAllReadDisabled = true
     @State private var cellHeight: CGFloat = .defaultCellHeight

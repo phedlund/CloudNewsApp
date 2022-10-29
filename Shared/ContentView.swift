@@ -5,22 +5,19 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
-//NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-
 import Combine
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
 #if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
     @Environment(\.scenePhase) var scenePhase
-    @KeychainStorage(StorageKeys.username) var username: String = ""
-    @KeychainStorage(StorageKeys.password) var password: String = ""
+    @KeychainStorage(StorageKeys.username) var username = ""
+    @KeychainStorage(StorageKeys.password) var password = ""
     @AppStorage(StorageKeys.server) private var server = ""
-    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling: Bool = true
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
+    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed = 0
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
