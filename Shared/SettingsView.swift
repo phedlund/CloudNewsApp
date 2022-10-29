@@ -26,6 +26,7 @@ enum SettingsSheet {
     case login
     case add
     case mail
+    case certificate
 }
 
 extension SettingsSheet: Identifiable {
@@ -45,6 +46,7 @@ struct SettingsView: View {
     @Environment(\.openURL) var openURL
 #endif
     @AppStorage(StorageKeys.server) var server = ""
+    @AppStorage(StorageKeys.allowUntrustedCertificate) var allowUntrustedCertificate = false
     @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
     @AppStorage(StorageKeys.syncInBackground) var syncInBackground = false
     @AppStorage(StorageKeys.productName) var productName = ""
@@ -66,6 +68,7 @@ struct SettingsView: View {
     @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
+    @State private var isShowingCertificateAlert = false
 
     private let email = "support@pbh.dev"
     private let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
@@ -85,13 +88,7 @@ struct SettingsView: View {
                 .disableAutocorrection(true)
                 .textFieldStyle(.roundedBorder)
                 Button {
-#if !os(macOS)
-                    currentSettingsSheet = .login
-                    settingsSheet = .login
-                    isShowingSheet = true
-#else
-                    openWindow(id: "login")
-#endif
+                    onLogin()
                 } label: {
                     Text("Log In")
                 }
@@ -208,6 +205,14 @@ struct SettingsView: View {
                 }
             case .login:
                 LoginWebViewView()
+            case .certificate:
+                if let host = URL(string: server)?.host {
+                    NavigationView {
+                        CertificateView(host: host)
+                    }
+                } else {
+                    EmptyView()
+                }
             case .mail:
 #if !os(macOS)
                 MailComposeView(recipients: [email], subject: subject, message: message) {
@@ -217,6 +222,37 @@ struct SettingsView: View {
                 EmptyView()
 #endif
             }
+        })
+        .alert(Text("The certificate for this server is invalid"), isPresented: $isShowingCertificateAlert, actions: {
+            Button {
+                if let host = URL(string: server)?.host {
+                    ServerStatus.shared.writeCertificate(host: host)
+                    allowUntrustedCertificate = true
+                    currentSettingsSheet = .login
+                    settingsSheet = .login
+                    isShowingSheet = true
+                }
+                isShowingCertificateAlert = false
+            } label: {
+                Text("Yes")
+            }
+            Button {
+                allowUntrustedCertificate = false
+                isShowingCertificateAlert = false
+            } label: {
+                Text("No")
+            }
+            Button {
+                currentSettingsSheet = .certificate
+                settingsSheet = .certificate
+                isShowingSheet = true
+                allowUntrustedCertificate = false
+                isShowingCertificateAlert = false
+            } label: {
+                Text("View Certificate")
+            }
+        }, message: {
+            Text("Do you want to connect to the server anyway?")
         })
         .onReceive(NotificationCenter.default.publisher(for: .loginComplete)) { _ in
             currentSettingsSheet = .login
@@ -245,9 +281,6 @@ struct SettingsView: View {
         case .login:
             Task {
                 do {
-                    let status = try await NewsManager.shared.status()
-                    productName = status.name
-                    productVersion = status.version
                     newsVersion = try await NewsManager.shared.version()
                     updateFooter()
                 } catch {
@@ -256,11 +289,38 @@ struct SettingsView: View {
                     updateFooter()
                 }
             }
-        case .add, .mail:
+        case .add, .mail, .certificate:
             break
         }
         settingsSheet = nil
         isShowingSheet = false
+    }
+
+    private func onLogin() {
+        ServerStatus.shared.reset()
+        Task {
+            do {
+                let status = try await ServerStatus.shared.check()
+                productName = status?.name ?? ""
+                productVersion = status?.version ?? ""
+#if !os(macOS)
+                currentSettingsSheet = .login
+                settingsSheet = .login
+                isShowingSheet = true
+#else
+                openWindow(id: "login")
+#endif
+            } catch (let error as NSError) {
+                print(error.localizedDescription)
+                if error.code == NSURLErrorServerCertificateUntrusted {
+                    isShowingCertificateAlert = true
+                } else {
+                    //                let alertController = UIAlertController(title: NSLocalizedString("Connection error", comment: ""), message: error.localizedDescription, preferredStyle: .alert)
+                    //                alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { _ in }))
+                    //                self.present(alertController, animated: true, completion: { })
+                }
+            }
+        }
     }
 
     private func updateFooter() {

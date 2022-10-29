@@ -78,6 +78,9 @@
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
+		D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */; };
+		D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = D0E88402290C9E1E001ACB25 /* OpenSSL */; };
+		D0E88405290CB7CD001ACB25 /* CertificateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E88404290CB7CD001ACB25 /* CertificateView.swift */; };
 		D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
 		D0F1B72C2867F13000C51BFF /* SyncTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */; };
 		D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F35C0527249B2F004BFC27 /* MailComposeView.swift */; };
@@ -162,6 +165,8 @@
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
+		D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatus.swift; sourceTree = "<group>"; };
+		D0E88404290CB7CD001ACB25 /* CertificateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateView.swift; sourceTree = "<group>"; };
 		D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		D0F1B72D2868DE7200C51BFF /* CloudNews.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudNews.entitlements; sourceTree = "<group>"; };
 		D0F35C0527249B2F004BFC27 /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MailComposeView.swift; path = Shared/MailComposeView.swift; sourceTree = SOURCE_ROOT; };
@@ -182,6 +187,7 @@
 				D0C8680028BC4514006DAFF6 /* Kingfisher in Frameworks */,
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
+				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +247,7 @@
 				D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */,
 				D045A15F26C5F6D4002E553F /* LoginWebView.swift */,
 				D00AFA1426937C9700BAED44 /* SettingsView.swift */,
+				D0E88404290CB7CD001ACB25 /* CertificateView.swift */,
 				D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
@@ -336,6 +343,7 @@
 				D02F44D2265C89F700A3505B /* NewsRouter.swift */,
 				D02F44C5265C89F700A3505B /* NewsSessionManager.swift */,
 				D02DE6C22754691800533EB0 /* ItemImporter.swift */,
+				D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -360,6 +368,7 @@
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
 				D0C867FF28BC4514006DAFF6 /* Kingfisher */,
+				D0E88402290C9E1E001ACB25 /* OpenSSL */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -392,6 +401,7 @@
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -435,6 +445,7 @@
 				D02F44EF265C89F700A3505B /* NewsSessionManager.swift in Sources */,
 				D0B0B2F9267ED1D900A997DB /* ItemsView.swift in Sources */,
 				D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */,
+				D0E88405290CB7CD001ACB25 /* CertificateView.swift in Sources */,
 				D02F450F265C8CAA00A3505B /* Items.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
@@ -457,6 +468,7 @@
 				D02F452F265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
 				D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */,
 				D02F4527265C8CE200A3505B /* CDFeed+CoreDataClass.swift in Sources */,
+				D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */,
 				D02F452D265C8CF400A3505B /* CDFeeds+CoreDataClass.swift in Sources */,
 				D02F4545265C8D2800A3505B /* CDRead+CoreDataClass.swift in Sources */,
 				D02F453F265C8D1800A3505B /* CDRead+CoreDataProperties.swift in Sources */,
@@ -730,6 +742,14 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1700;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -747,6 +767,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */;
+			productName = OpenSSL;
 		};
 /* End XCSwiftPackageProductDependency section */
 
