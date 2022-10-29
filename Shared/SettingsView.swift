@@ -298,7 +298,7 @@ struct SettingsView: View {
 
     private func onLogin() {
         ServerStatus.shared.reset()
-        Task {
+        Task { @MainActor in
             do {
                 let status = try await ServerStatus.shared.check()
                 productName = status?.name ?? ""
