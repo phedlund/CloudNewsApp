@@ -90,19 +90,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    static func itemsWithoutImageLink() -> [CDItem]? {
-        let request: NSFetchRequest<CDItem> = self.fetchRequest()
-        let predicate = NSPredicate(format: "imageLink == nil")
-        request.predicate = predicate
-        do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
-            return results
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
     static func markRead(items: [CDItem], unread: Bool) async throws {
         try await NewsData.mainThreadContext.perform {
             do {
@@ -192,7 +179,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
             do {
                 let currentData = item.imageLink
                 if imageLink == currentData {
-                    print("Same image link")
+                    print("Same image link \(imageLink)")
                 } else {
                     item.imageLink = imageLink
                     try NewsData.mainThreadContext.save()

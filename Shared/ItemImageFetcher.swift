@@ -11,62 +11,11 @@ import SwiftSoup
 
 class ItemImageFetcher {
 
-    private struct ItemURLContainer {
-        let item: CDItem
-        let url: URL
-    }
-
     private let validSchemas = ["http", "https", "file"]
 
-//    func prefetchImages(_ urlStrings: [String?]) {
-//        var imageRequests = [ImageRequest]()
-//        for urlString in urlStrings {
-//            if let urlString = urlString {
-//                imageRequests.append(ImageRequest(url: URL(string: urlString), processors: [SizeProcessor()], priority: .veryHigh, options: [], userInfo: nil))
-//            }
-//        }
-//        let prefetcher = ImagePrefetcher()
-//        prefetcher.startPrefetching(with: imageRequests)
-//    }
-
-    func itemURL(_ item: CDItem) async throws {
-            var itemImageUrl: String?
-            if let imageLink = item.imageLink,
-               !imageLink.isEmpty,
-               imageLink != "data:null" {
-                itemImageUrl = imageLink
-            } else if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
-                itemImageUrl = imgUrl.absoluteString
-            } else if let summary = item.body {
-                do {
-                    let doc: Document = try SwiftSoup.parse(summary)
-                    let srcs: Elements = try doc.select("img[src]")
-                    let images = try srcs.array().map({ try $0.attr("src") })
-                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                        itemImageUrl = imgUrl.absoluteString
-                    } else if let stepTwoUrl = stepTwo(item) {
-                        itemImageUrl = stepTwoUrl.absoluteString
-                    }
-                } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                    print(message)
-                } catch(let error) {
-                    print(error.localizedDescription)
-                }
-            } else {
-                itemImageUrl = stepTwo(item)?.absoluteString
-            }
-
-            if let imageUrlString = itemImageUrl, let _ = URL(withCheck: imageUrlString) {
-                try await CDItem.addImageLink(item: item, imageLink: imageUrlString)
-            } else {
-                try await CDItem.addImageLink(item: item, imageLink: "data:null")
-            }
-    }
-
-    func itemURLs() async throws {
-        if let items = CDItem.itemsWithoutImageLink() {
-            for item in items {
+    func itemURLs(_ items: [CDItem]) async throws {
+        for item in items {
+            if item.imageLink == nil {
                 var itemImageUrl: URL?
                 if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
                     itemImageUrl = imgUrl
@@ -78,7 +27,7 @@ class ItemImageFetcher {
                         let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
                         if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
                             itemImageUrl = imgUrl
-                        } else if let stepTwoUrl = stepTwo(item) {
+                        } else if let stepTwoUrl = await stepTwo(item) {
                             itemImageUrl = stepTwoUrl
                         }
                     } catch Exception.Error(_, let message) { // An exception from SwiftSoup
@@ -87,7 +36,7 @@ class ItemImageFetcher {
                         print(error.localizedDescription)
                     }
                 } else {
-                    itemImageUrl = stepTwo(item)
+                    itemImageUrl = await stepTwo(item)
                 }
 
                 if let imageUrl = itemImageUrl {
@@ -99,21 +48,23 @@ class ItemImageFetcher {
         }
     }
 
-    private func stepTwo(_ item: CDItem) -> URL? {
+    private func stepTwo(_ item: CDItem) async -> URL? {
         if let urlString = item.url, let url = URL(string: urlString) {
             do {
-                let html = try String(contentsOf: url)
-                let doc: Document = try SwiftSoup.parse(html)
-                if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                    let ogImage = try meta.attr("content")
-                    let ogUrl = URL(string: ogImage)
-                    return ogUrl
-                } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                    let twImage = try meta.attr("content")
-                    let twUrl = URL(string: twImage)
-                    return twUrl
-                } else {
-                    return nil
+                let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                if let html = String(data: data, encoding: .utf8) {
+                    let doc: Document = try SwiftSoup.parse(html)
+                    if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                        let ogImage = try meta.attr("content")
+                        let ogUrl = URL(string: ogImage)
+                        return ogUrl
+                    } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                        let twImage = try meta.attr("content")
+                        let twUrl = URL(string: twImage)
+                        return twUrl
+                    } else {
+                        return nil
+                    }
                 }
             } catch(let error) {
                 print(error.localizedDescription)

@@ -102,9 +102,12 @@ final class Node: Identifiable, ObservableObject {
         }
         items = tempModels
         do {
-            try await ItemImageFetcher().itemURLs()
-            let urls = tempModels.compactMap( { $0.imageURL })
-            ImagePrefetcher(urls: urls).start()
+            let itemsWithoutImageLink = cdItems.filter( { $0.imageLink == nil })
+            if !itemsWithoutImageLink.isEmpty {
+                try await ItemImageFetcher().itemURLs(itemsWithoutImageLink)
+                let urls = tempModels.compactMap( { $0.imageURL })
+                ImagePrefetcher(urls: urls).start()
+            }
         } catch  { }
     }
 
