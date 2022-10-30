@@ -85,12 +85,14 @@ class ServerStatus: NSObject {
         let certificateSavedPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("der")
         var isTrusted: Bool
 
-        if let serverTrust: SecTrust = protectionSpace.serverTrust, let certificate = SecTrustGetCertificateAtIndex(serverTrust, 0)  {
+        if let serverTrust: SecTrust = protectionSpace.serverTrust,
+           let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
+           let certificate = certificates.first {
             // extract certificate txt
             saveX509Certificate(certificate, host: host, directoryCertificate: directoryCertificate.path)
 
             var secresult = SecTrustResultType.invalid
-            let status = SecTrustEvaluate(serverTrust, &secresult)
+            let status = SecTrustGetTrustResult(serverTrust, &secresult)
             let isServerTrusted = SecTrustEvaluateWithError(serverTrust, nil)
 
             let certificateCopyData = SecCertificateCopyData(certificate)
