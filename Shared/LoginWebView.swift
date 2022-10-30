@@ -10,7 +10,7 @@ import WebKit
 
 struct LoginWebViewView: View {
     @StateObject var webViewManager = WebViewManager()
-    @AppStorage(StorageKeys.server) var server = ""
+    @AppStorage(SettingKeys.server) var server = ""
 
     var body: some View {
         VStack {
@@ -52,10 +52,10 @@ struct LoginWebView_Previews: PreviewProvider {
 struct LoginWebView: NSViewRepresentable {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage(StorageKeys.server) var server: String = ""
-    @AppStorage(StorageKeys.productVersion) var productVersion = ""
-    @KeychainStorage(StorageKeys.username) var username: String = ""
-    @KeychainStorage(StorageKeys.password) var password: String = ""
+    @AppStorage(SettingKeys.server) var server: String = ""
+    @AppStorage(SettingKeys.productVersion) var productVersion = ""
+    @KeychainStorage(SettingKeys.username) var username: String = ""
+    @KeychainStorage(SettingKeys.password) var password: String = ""
 
     public let webView: WKWebView
 
@@ -80,10 +80,10 @@ struct LoginWebView: NSViewRepresentable {
 struct LoginWebView: UIViewRepresentable {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage(StorageKeys.server) var server: String = ""
-    @AppStorage(StorageKeys.productVersion) var productVersion = ""
-    @KeychainStorage(StorageKeys.username) var username: String = ""
-    @KeychainStorage(StorageKeys.password) var password: String = ""
+    @AppStorage(SettingKeys.server) var server: String = ""
+    @AppStorage(SettingKeys.productVersion) var productVersion = ""
+    @KeychainStorage(SettingKeys.username) var username: String = ""
+    @KeychainStorage(SettingKeys.password) var password: String = ""
 
     public let webView: WKWebView
 

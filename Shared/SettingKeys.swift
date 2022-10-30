@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum StorageKeys {
+enum SettingKeys {
     static let username = "username"
     static let password = "password"
     static let server = "Server"

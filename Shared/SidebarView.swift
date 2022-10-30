@@ -28,7 +28,7 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
     @EnvironmentObject private var favIconRepository: FavIconRepository
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed = 0
+    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false

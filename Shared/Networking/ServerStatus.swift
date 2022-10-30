@@ -24,8 +24,8 @@ class ServerStatus: NSObject {
         let serverAddress = preferences.server
         if !serverAddress.isEmpty {
             preferences.server = ""
-            @KeychainStorage(StorageKeys.username) var username = ""
-            @KeychainStorage(StorageKeys.password) var password = ""
+            @KeychainStorage(SettingKeys.username) var username = ""
+            @KeychainStorage(SettingKeys.password) var password = ""
             var address = serverAddress.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
             if !address.contains("://"),
                !address.hasPrefix("http") {

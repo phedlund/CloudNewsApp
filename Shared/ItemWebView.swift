@@ -18,7 +18,7 @@ import SwiftUI
 import WebKit
 
 public struct WebView: WebViewRepresentable {
-    @AppStorage(StorageKeys.adBlock) var adBlock = true
+    @AppStorage(SettingKeys.adBlock) var adBlock = true
 
     private let configuration: (WKWebView) -> Void
 

@@ -45,21 +45,21 @@ struct SettingsView: View {
 #else
     @Environment(\.openURL) var openURL
 #endif
-    @AppStorage(StorageKeys.server) var server = ""
-    @AppStorage(StorageKeys.allowUntrustedCertificate) var allowUntrustedCertificate = false
-    @AppStorage(StorageKeys.syncOnStart) var syncOnStart = false
-    @AppStorage(StorageKeys.syncInBackground) var syncInBackground = false
-    @AppStorage(StorageKeys.productName) var productName = ""
-    @AppStorage(StorageKeys.productVersion) var productVersion = ""
-    @AppStorage(StorageKeys.newsVersion) var newsVersion = ""
-    @AppStorage(StorageKeys.showFavIcons) var showFavIcons = true
-    @AppStorage(StorageKeys.showThumbnails) var showThumbnails = true
-    @AppStorage(StorageKeys.markReadWhileScrolling) var markReadWhileScrolling = true
-    @AppStorage(StorageKeys.sortOldestFirst) var sortOldestFirst = false
-    @AppStorage(StorageKeys.compactView) var compactView = false
-    @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
-    @AppStorage(StorageKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
-    @AppStorage(StorageKeys.adBlock) var adBlock = true
+    @AppStorage(SettingKeys.server) var server = ""
+    @AppStorage(SettingKeys.allowUntrustedCertificate) var allowUntrustedCertificate = false
+    @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
+    @AppStorage(SettingKeys.syncInBackground) var syncInBackground = false
+    @AppStorage(SettingKeys.productName) var productName = ""
+    @AppStorage(SettingKeys.productVersion) var productVersion = ""
+    @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
+    @AppStorage(SettingKeys.showFavIcons) var showFavIcons = true
+    @AppStorage(SettingKeys.showThumbnails) var showThumbnails = true
+    @AppStorage(SettingKeys.markReadWhileScrolling) var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.sortOldestFirst) var sortOldestFirst = false
+    @AppStorage(SettingKeys.compactView) var compactView = false
+    @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
+    @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
+    @AppStorage(SettingKeys.adBlock) var adBlock = true
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false

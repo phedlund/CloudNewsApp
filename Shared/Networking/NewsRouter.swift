@@ -42,8 +42,8 @@ enum StatusRouter {
     }
 
     private var credentials: String {
-        @KeychainStorage(StorageKeys.username) var username = ""
-        @KeychainStorage(StorageKeys.password) var password = ""
+        @KeychainStorage(SettingKeys.username) var username = ""
+        @KeychainStorage(SettingKeys.password) var password = ""
         return Data("\(username):\(password)".utf8).base64EncodedString()
     }
 
@@ -54,7 +54,7 @@ enum StatusRouter {
     // MARK: URLRequest
 
     func urlRequest() throws -> URLRequest {
-        @AppStorage(StorageKeys.server) var server: String = ""
+        @AppStorage(SettingKeys.server) var server: String = ""
 
         switch self {
         case .status:
@@ -191,8 +191,8 @@ enum Router {
     }
 
     private var credentials: String {
-        @KeychainStorage(StorageKeys.username) var username: String = ""
-        @KeychainStorage(StorageKeys.password) var password: String = ""
+        @KeychainStorage(SettingKeys.username) var username: String = ""
+        @KeychainStorage(SettingKeys.password) var password: String = ""
         return Data("\(username):\(password)".utf8).base64EncodedString()
     }
 
@@ -204,7 +204,7 @@ enum Router {
     // MARK: URLRequestConvertible
     
     func urlRequest() throws -> URLRequest {
-        @AppStorage(StorageKeys.server) var server: String = ""
+        @AppStorage(SettingKeys.server) var server: String = ""
 
         let baseURLString = "\(server)/index.php/apps/news/api/v1-2"
         let url = URL(string: baseURLString)! //FIX

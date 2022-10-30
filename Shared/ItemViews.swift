@@ -65,7 +65,7 @@ struct TitleView: View {
 }
 
 struct ItemFavIconView: View {
-    @AppStorage(StorageKeys.showFavIcons) private var showFavIcons: Bool?
+    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
     var nodeIcon: String?
     
     @ViewBuilder
@@ -123,7 +123,7 @@ struct BodyView: View {
 }
 
 struct ItemImageView: View {
-    @AppStorage(StorageKeys.showThumbnails) private var showThumbnails: Bool?
+    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails: Bool?
     var imageUrl: URL?
     var size: CGSize
     var itemOpacity: Double

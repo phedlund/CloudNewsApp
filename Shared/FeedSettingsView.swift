@@ -11,7 +11,7 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @AppStorage(StorageKeys.keepDuration) var keepDuration: KeepDuration = .three
+    @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
     @State private var folderName: String?

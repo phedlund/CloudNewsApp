@@ -13,11 +13,11 @@ struct ContentView: View {
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
     @Environment(\.scenePhase) var scenePhase
-    @KeychainStorage(StorageKeys.username) var username = ""
-    @KeychainStorage(StorageKeys.password) var password = ""
-    @AppStorage(StorageKeys.server) private var server = ""
-    @AppStorage(StorageKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed = 0
+    @KeychainStorage(SettingKeys.username) var username = ""
+    @KeychainStorage(SettingKeys.password) var password = ""
+    @AppStorage(SettingKeys.server) private var server = ""
+    @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences

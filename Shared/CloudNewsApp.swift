@@ -70,7 +70,7 @@ struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
     @ObservedObject var model: FeedModel
 
-    @AppStorage(StorageKeys.selectedFeed) private var selectedFeed: Int = 0
+    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
 
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
