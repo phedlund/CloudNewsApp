@@ -32,6 +32,7 @@ struct CertificateView: View {
                         .symbolVariant(.circle.fill)
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.secondary)
+                        .accentColor(.secondary)
                 }
             }
         }

@@ -269,6 +269,7 @@ struct SettingsView: View {
                         .symbolVariant(.circle.fill)
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.secondary)
+                        .accentColor(.secondary)
                 }
             }
         }
@@ -281,6 +282,9 @@ struct SettingsView: View {
         case .login:
             Task {
                 do {
+                    let status = try await ServerStatus.shared.check()
+                    productName = status?.name ?? ""
+                    productVersion = status?.version ?? ""
                     newsVersion = try await NewsManager.shared.version()
                     updateFooter()
                 } catch {
