@@ -70,48 +70,47 @@ struct FeedSettingsView: View {
                         onTitleCommit()
                     }
                     .textFieldStyle(.roundedBorder)
-                    Picker("Folder", selection: $folderSelection) {
+                    Picker(selection: $folderSelection) {
                         ForEach(folderNames, id: \.self) {
                             Text($0)
                         }
                         .navigationTitle("Folder")
+                    } label: {
+                      Text("Folder")
                     }
-                    Toggle("View web version", isOn: $preferWeb)
+                    Toggle(isOn: $preferWeb) {
+                        Text("View web version")
+                    }
                 } header: {
                     Text("Settings")
                 } footer: {
                     FooterLabel(message: footerMessage, success: footerSuccess)
                 }
                 Section {
-                    HStack(alignment: .lastTextBaseline, spacing: 15) {
-                        Text("URL")
-                        Spacer()
+                    LabeledContent {
                         Text(verbatim: url)
-                            .lineLimit(2)
                             .textSelection(.enabled)
+                    } label: {
+                        Text("URL")
                     }
-                    HStack(spacing: 15) {
-                        Text("Date Added")
-                        Spacer()
+                    LabeledContent {
                         Text(verbatim: added)
-                            .lineLimit(1)
-                            .multilineTextAlignment(.trailing)
+                    } label: {
+                        Text("Date Added")
                     }
-                    Toggle("Pinned", isOn: $pinned)
-                        .disabled(true)
-                    HStack(spacing: 15) {
-                        Text("Update Error Count")
-                        Spacer()
+                    Toggle(isOn: $pinned) {
+                        Text("Pinned")
+                    }
+                    .disabled(true)
+                    LabeledContent {
                         Text(verbatim: updateErrorCount)
-                            .lineLimit(1)
-                            .multilineTextAlignment(.trailing)
+                    } label: {
+                        Text("Update Error Count")
                     }
-                    HStack(spacing: 15) {
-                        Text("Last Update Error")
-                        Spacer()
+                    LabeledContent {
                         Text(verbatim: lastUpdateError)
-                            .lineLimit(1)
-                            .multilineTextAlignment(.trailing)
+                    } label: {
+                        Text("Last Update Error")
                     }
                 } header: {
                     Text("Information")
