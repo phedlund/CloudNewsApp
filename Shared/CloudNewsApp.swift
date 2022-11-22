@@ -44,8 +44,10 @@ struct CloudNewsApp: App {
         .windowResizability(.contentSize)
 
         WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
-            FeedSettingsView(Int(feedId.wrappedValue!))
-                .frame(width: 600, height: 500)
+            if let value = feedId.wrappedValue {
+                FeedSettingsView(Int(value))
+                    .frame(width: 600, height: 500)
+            }
         }
         .windowResizability(.contentSize)
 
