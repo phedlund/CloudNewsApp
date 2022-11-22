@@ -94,7 +94,6 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(server.isEmpty)
-
             } header: {
                 Text("Server")
             } footer: {
@@ -109,12 +108,14 @@ struct SettingsView: View {
                     Text("Sync in Background")
                 }
 #else
-                Picker("Sync Every", selection: $syncInterval) {
+                Picker(selection: $syncInterval) {
                     Text("Never").tag(SyncInterval.zero)
                     Text("15 minutes").tag(SyncInterval.fifteen)
                     Text("30 minutes").tag(SyncInterval.thirty)
                     Text("60 minutes").tag(SyncInterval.sixty)
                         .navigationTitle("Sync Interval")
+                } label: {
+                    Text("Sync Every")
                 }
 #endif
             } header: {
