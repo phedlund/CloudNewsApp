@@ -34,19 +34,25 @@ struct AddView: View {
             Form {
                 Section {
 #if !os(macOS)
-                    Picker("Add", selection: $selectedAdd) {
-                        Text("Feed").tag(AddType.feed)
-                        Text("Folder").tag(AddType.folder)
+                    Picker(selection: $selectedAdd) {
+                        Text("Feed")
+                            .tag(AddType.feed)
+                        Text("Folder")
+                            .tag(AddType.folder)
+                    } label: {
+                        Text("Add")
                     }
                     .pickerStyle(.segmented)
 #endif
                     AddViewSegment(input: $input, addType: selectedAdd)
                     if selectedAdd == .feed {
-                        Picker("Folder", selection: $folderSelection) {
+                        Picker(selection: $folderSelection) {
                             ForEach(folderNames, id: \.self) {
                                 Text($0)
                             }
                             .navigationTitle("Folder")
+                        } label: {
+                            Text("Folder")
                         }
                         .disabled(input.isEmpty)
                     }
