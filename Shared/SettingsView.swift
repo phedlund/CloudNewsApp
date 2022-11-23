@@ -262,16 +262,10 @@ struct SettingsView: View {
 #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button {
+                Button("") {
                     dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.title2)
-                        .symbolVariant(.circle.fill)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.secondary)
-                        .accentColor(.secondary)
                 }
+                .buttonStyle(XButton())
             }
         }
 #endif
