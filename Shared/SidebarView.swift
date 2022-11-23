@@ -69,7 +69,7 @@ struct SidebarView: View {
                 .transition(.move(edge: .top))
             }
             OutlineGroup(model.nodes, id: \.id, children: \.children) { node in
-                NodeView(node: node, selectedFeed: $selectedFeed, modalSheet: $modalSheet)
+                NodeView(node: node)
                     .environmentObject(favIconRepository)
                     .tag(node.id)
                     .accentColor(.pbh.whiteIcon)

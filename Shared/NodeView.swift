@@ -12,10 +12,7 @@ struct NodeView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @ObservedObject var node: Node
-    @Binding var selectedFeed: Int
-    @Binding var modalSheet: ModalSheet?
 
-    @State private var isShowingFolderRename = false
     @State private var isShowingConfirmation = false
 
 #if os(iOS)
@@ -25,7 +22,10 @@ struct NodeView: View {
 #endif
 
     var body: some View {
-        HStack {
+        LabeledContent {
+            BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
+                .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
+        } label: {
             Label {
                 Text(node.title)
                     .lineLimit(1)
@@ -34,10 +34,7 @@ struct NodeView: View {
                     .environmentObject(favIconRepository)
             }
             .labelStyle(.titleAndIcon)
-            Spacer(minLength: 12)
-            BadgeView(unreadCount: node.unreadCount, errorCount: node.errorCount)
         }
-        .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
             isPresented: $isShowingConfirmation,
@@ -47,8 +44,9 @@ struct NodeView: View {
                 withAnimation {
                     model.delete(node)
                 }
-            }.keyboardShortcut(.defaultAction)
-            Button("No", role: .cancel) {}
+            }
+            .keyboardShortcut(.defaultAction)
+            Button("No", role: .cancel) { }
         } message: {
             switch node.nodeType {
             case .empty, .all, .starred:
@@ -69,29 +67,27 @@ struct NodeFavIconView: View {
 
     @ViewBuilder
     var body: some View {
-        VStack {
-            KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
-                .placeholder { _ in
-                    switch node.nodeType {
-                    case .all, .empty:
+        KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
+            .placeholder { _ in
+                switch node.nodeType {
+                case .all, .empty:
 #if os(macOS)
-                        Image(nsImage: SystemImage(named: "rss")!)
+                    Image(nsImage: SystemImage(named: "rss")!)
 #else
-                        Image(uiImage: SystemImage(named: "rss")!)
+                    Image(uiImage: SystemImage(named: "rss")!)
 #endif
-                    case .starred:
-                        Image(systemName: "star.fill")
-                    case .folder(id: _):
-                        Image(systemName: "folder")
-                    case .feed(id: _):
-                        Color.gray.opacity(0.25)
-                    }
+                case .starred:
+                    Image(systemName: "star.fill")
+                case .folder(id: _):
+                    Image(systemName: "folder")
+                case .feed(id: _):
+                    Color.gray.opacity(0.25)
                 }
-                .retry(maxCount: 3, interval: .seconds(5))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 22, height: 22)
-        }
+            }
+            .retry(maxCount: 3, interval: .seconds(5))
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 22, height: 22)
     }
 }
 
