@@ -29,15 +29,14 @@ struct SidebarView: View {
     @EnvironmentObject private var preferences: Preferences
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
-    @State private var isShowingAddModal = false
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
+    @State private var isShowingRename = false
+    @State private var isShowingAlert = false
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
-    @State private var showRename = false
-    @State private var isShowingAlert = false
     @State private var alertInput = ""
 
     @Binding var nodeSelection: Node.ID?
@@ -120,7 +119,7 @@ struct SidebarView: View {
         .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
             confirmationNode = model.currentNode
             alertInput = model.currentNode.title
-            showRename = true
+            isShowingRename = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
             confirmationNode = model.currentNode
@@ -147,7 +146,7 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
-        .alert(Text(model.currentNode.title), isPresented: $showRename, actions: {
+        .alert(Text(model.currentNode.title), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
                 switch model.currentNode.nodeType {
@@ -176,11 +175,11 @@ struct SidebarView: View {
                         }
                     }
                 }
-                showRename = false
+                isShowingRename = false
             }
             .keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {
-                showRename = false
+                isShowingRename = false
             }
         }, message: {
             Text("Rename the folder")
@@ -199,7 +198,7 @@ struct SidebarView: View {
             Button {
                 selectedFeed = Int(folderId)
                 alertInput = model.currentNode.title
-                showRename = true
+                isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
             }
