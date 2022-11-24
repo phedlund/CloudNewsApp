@@ -18,7 +18,7 @@
         <attribute name="updateErrorCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="String"/>
         <attribute name="useReader" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CDItem"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CDItem" inverseName="feed" inverseEntity="CDItem"/>
         <fetchIndex name="byId">
             <fetchIndexElement property="id" type="Binary" order="ascending"/>
         </fetchIndex>
@@ -52,7 +52,6 @@
         <attribute name="author" optional="YES" attributeType="String"/>
         <attribute name="body" optional="YES" attributeType="String"/>
         <attribute name="contentHash" optional="YES" attributeType="String"/>
-        <attribute name="displayBody" optional="YES" attributeType="String" defaultValueString="No Summary"/>
         <attribute name="enclosureLink" optional="YES" attributeType="String"/>
         <attribute name="enclosureMime" optional="YES" attributeType="String"/>
         <attribute name="feedId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -72,6 +71,10 @@
         <attribute name="unread" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="updatedDate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="String"/>
+        <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDFeed" inverseName="items" inverseEntity="CDFeed"/>
+        <fetchedProperty name="feedTitle" optional="YES">
+            <fetchRequest name="fetchedPropertyFetchRequest" entity="CDFeed" predicateString="id == $FETCH_SOURCE.feedId"/>
+        </fetchedProperty>
         <fetchIndex name="byId">
             <fetchIndexElement property="id" type="Binary" order="ascending"/>
         </fetchIndex>
