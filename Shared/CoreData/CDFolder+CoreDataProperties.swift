@@ -18,7 +18,7 @@ extension CDFolder {
     }
 
     @NSManaged public var id: Int32
-    @NSManaged public var expanded: Bool
+    @NSManaged public var opened: Bool
     @NSManaged public var lastModified: Int32
     @NSManaged public var name: String?
     @NSManaged public var unreadCount: Int32

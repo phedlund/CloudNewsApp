@@ -78,7 +78,7 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
                 request.predicate = predicate
                 let records = try NewsData.mainThreadContext.fetch(request)
                 records.forEach({ folder in
-                    folder.expanded = state
+                    folder.opened = state
                 })
                 try NewsData.mainThreadContext.save()
             } catch {

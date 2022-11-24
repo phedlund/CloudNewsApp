@@ -225,10 +225,10 @@ class FeedModel: ObservableObject {
             for feed in feeds {
                 children.append(feedNode(feed: feed))
             }
-            let node = Node(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.expanded)
+            let node = Node(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.opened)
             return node
         }
-        let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.expanded)
+        let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.opened)
         return node
     }
 

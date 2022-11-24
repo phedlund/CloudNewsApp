@@ -20,18 +20,20 @@ class FolderImporter {
         do {
             let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
+//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    let folders: Folders = try getType(from: data)
-                    if let folderDicts = folders.foldersAsDictionaries() {
-                        let request = NSBatchInsertRequest(entityName: CDFolder.entityName, objects: folderDicts)
-                        request.resultType = NSBatchInsertRequestResultType.count
-                        let result = try importContext.execute(request) as? NSBatchInsertResult
-                        print("Folders imported \(result?.result ?? -1)")
-                        try importContext.save()
+                    guard let foldersDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let folderDicts = foldersDict["folders"] as? [[String: Any]],
+                          !folderDicts.isEmpty else {
+                        return
                     }
+                    let request = NSBatchInsertRequest(entityName: CDFolder.entityName, objects: folderDicts)
+                    request.resultType = NSBatchInsertRequestResultType.count
+                    let result = try importContext.execute(request) as? NSBatchInsertResult
+                    print("Folders imported \(result?.result ?? -1)")
+                    try importContext.save()
                 default:
                     throw PBHError.networkError(message: "Error getting folders")
                 }
@@ -46,26 +48,28 @@ class FeedImporter {
     let importContext: NSManagedObjectContext
 
     init(persistentContainer: NSPersistentContainer) {
-      importContext = persistentContainer.newBackgroundContext()
-      importContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+        importContext = persistentContainer.newBackgroundContext()
+        importContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
     }
 
     func download( _ urlRequest: URLRequest) async throws {
         do {
             let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
+//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    let feeds: Feeds = try getType(from: data)
-                    if let feedDicts = feeds.feedsAsDictionaries() {
-                        let request = NSBatchInsertRequest(entityName: CDFeed.entityName, objects: feedDicts)
-                        request.resultType = NSBatchInsertRequestResultType.count
-                        let result = try importContext.execute(request) as? NSBatchInsertResult
-                        print("Feeds imported \(result?.result ?? -1)")
-                        try importContext.save()
+                    guard let feedsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let feedDicts = feedsDict["feeds"] as? [[String: Any]],
+                          !feedDicts.isEmpty else {
+                        return
                     }
+                    let request = NSBatchInsertRequest(entityName: CDFeed.entityName, objects: feedDicts)
+                    request.resultType = NSBatchInsertRequestResultType.count
+                    let result = try importContext.execute(request) as? NSBatchInsertResult
+                    print("Feeds imported \(result?.result ?? -1)")
+                    try importContext.save()
                 default:
                     throw PBHError.networkError(message: "Error getting feeds")
                 }
@@ -88,18 +92,20 @@ class ItemImporter {
         do {
             let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
+//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    let items: Items = try getType(from: data)
-                    if let itemDicts = items.itemsAsDictionaries() {
-                        let request = NSBatchInsertRequest(entityName: CDItem.entityName, objects: itemDicts)
-                        request.resultType = NSBatchInsertRequestResultType.count
-                        let result = try importContext.execute(request) as? NSBatchInsertResult
-                        print("Items imported \(result?.result ?? -1)")
-                        try importContext.save()
+                    guard let itemsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let itemDicts = itemsDict["items"] as? [[String: Any]],
+                          !itemDicts.isEmpty else {
+                        return
                     }
+                    let request = NSBatchInsertRequest(entityName: CDItem.entityName, objects: itemDicts)
+                    request.resultType = NSBatchInsertRequestResultType.count
+                    let result = try importContext.execute(request) as? NSBatchInsertResult
+                    print("Items imported \(result?.result ?? -1)")
+                    try importContext.save()
                 default:
                     throw PBHError.networkError(message: "Error getting items")
                 }

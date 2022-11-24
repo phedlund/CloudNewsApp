@@ -78,7 +78,7 @@ final class Node: Identifiable, ObservableObject {
                         case .folder(let id):
                             if let folder = CDFolder.folder(id: id) {
                                 self.title = folder.name ?? "Untitled"
-                                self.isExpanded = folder.expanded
+                                self.isExpanded = folder.opened
                             }
                         case .feed(let id):
                             if let feed = CDFeed.feed(id: id) {
