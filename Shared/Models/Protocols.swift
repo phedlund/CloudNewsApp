@@ -58,7 +58,7 @@ protocol ItemProtocol {
     var pubDate: Int32 { get set }
     var rtl: Bool { get set }
     var starred: Bool { get set }
-    var title: String { get set }
+    var title: String? { get set }
     var unread: Bool { get set }
     var url: String? { get set }
 }

@@ -33,7 +33,7 @@ extension CDItem {
     @NSManaged public var rtl: Bool
     @NSManaged public var readable: String?
     @NSManaged public var starred: Bool
-    @NSManaged public var title: String
+    @NSManaged public var title: String?
     @NSManaged public var unread: Bool
     @NSManaged public var url: String?
 
@@ -42,7 +42,11 @@ extension CDItem {
 extension CDItem: Identifiable {
 
     @objc dynamic var displayTitle: String {
-        plainSummary(raw: title as String)
+        if let title {
+            return plainSummary(raw: title as String)
+        } else {
+            return "Untitled"
+        }
     }
 
     @objc dynamic var displayBody: String {

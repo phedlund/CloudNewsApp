@@ -150,7 +150,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 newRecord.lastModified = item.lastModified
                 newRecord.pubDate = item.pubDate
                 newRecord.starred = item.starred
-                newRecord.title = itemDisplayTitle(item.title)
+                newRecord.title = item.title
                 newRecord.unread = item.unread
                 newRecord.url = item.url
                 current += 1
