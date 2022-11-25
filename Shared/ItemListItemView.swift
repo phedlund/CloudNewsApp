@@ -43,7 +43,6 @@ struct ItemListItemViev: View {
                         TitleView(title: model.title, textColor: textColor)
                         FavIconDateAuthorView(feedIcon: model.feed?.faviconLinkResolved,
                                               dateAuthorFeed: model.dateAuthorFeed,
-                                              textColor: textColor,
                                               itemOpacity: itemOpacity)
                         if settings.compactView || isHorizontalCompact {
                             EmptyView()

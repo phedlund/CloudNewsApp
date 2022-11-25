@@ -65,26 +65,36 @@ struct TitleView: View {
 }
 
 struct ItemFavIconView: View {
-    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
     var nodeIcon: String?
     
     @ViewBuilder
     var body: some View {
-        if showFavIcons ?? true {
-            KFImage(URL(string: nodeIcon ?? "data:null"))
-                .placeholder { _ in
+        KFImage(URL(string: nodeIcon ?? "data:null"))
+            .placeholder { _ in
 #if os(macOS)
-                    Image(nsImage: SystemImage(named: "rss")!)
+                Image(nsImage: SystemImage(named: "rss")!)
 #else
-                    Image(uiImage: SystemImage(named: "rss")!)
+                Image(uiImage: SystemImage(named: "rss")!)
 #endif
-                }
-                .retry(maxCount: 3, interval: .seconds(5))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 22, height: 22)
+            }
+            .retry(maxCount: 3, interval: .seconds(5))
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 22, height: 22)
+    }
+}
+
+struct FavIconLabelStyle: LabelStyle {
+    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
+
+    func makeBody(configuration: Configuration) -> some View {
+        if showFavIcons ?? true {
+            HStack {
+                configuration.icon
+                configuration.title
+            }
         } else {
-            EmptyView()
+            configuration.title
         }
     }
 }
@@ -92,19 +102,19 @@ struct ItemFavIconView: View {
 struct FavIconDateAuthorView: View {
     var feedIcon: String?
     var dateAuthorFeed: String
-    var textColor: Color
     var itemOpacity: Double
     
     var body: some View {
-        HStack {
-            ItemFavIconView(nodeIcon: feedIcon)
-                .opacity(itemOpacity)
+        Label {
             Text(dateAuthorFeed)
                 .font(.subheadline)
-                .foregroundColor(textColor)
                 .italic()
                 .lineLimit(1)
+        } icon: {
+            ItemFavIconView(nodeIcon: feedIcon)
         }
+        .labelStyle(FavIconLabelStyle())
+        .opacity(itemOpacity)
     }
 }
 
