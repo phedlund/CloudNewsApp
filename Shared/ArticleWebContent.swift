@@ -38,7 +38,7 @@ class ArticleWebContent: ObservableObject {
         isInInit = true
         if let item = item {
             let feed = CDFeed.feed(id: item.feedId)
-            title = item.title
+            title = item.title ?? "Untitled"
             summary = Self.output(item: item)
             baseString = Self.baseString(item: item)
             urlString = Self.itemUrl(item: item)
