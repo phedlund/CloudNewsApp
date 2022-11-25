@@ -249,15 +249,5 @@ public class CDItem: NSManagedObject, ItemProtocol {
             }
         }
     }
-
-    func plainSummary(raw: String) -> String {
-        guard let doc: Document = try? SwiftSoup.parse(raw) else {
-            return raw
-        } // parse html
-        guard let txt = try? doc.text() else {
-            return raw
-        }
-        return txt
-    }
     
 }

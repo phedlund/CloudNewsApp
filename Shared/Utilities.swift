@@ -5,7 +5,7 @@
 //  Created by Peter Hedlund on 9/6/21.
 //
 
-//import UIKit
+import SwiftSoup
 
 #if os(macOS)
 import AppKit
@@ -140,4 +140,14 @@ extension BidirectionalCollection where Element: Equatable {
         }
         return nil
     }
+}
+
+func plainSummary(raw: String) -> String {
+    guard let doc: Document = try? SwiftSoup.parse(raw) else {
+        return raw
+    } // parse html
+    guard let txt = try? doc.text() else {
+        return raw
+    }
+    return txt
 }
