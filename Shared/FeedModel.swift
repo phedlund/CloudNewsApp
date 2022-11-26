@@ -82,7 +82,6 @@ class FeedModel: ObservableObject {
                 guard let self else { return }
                 Task {
                     await self.resetAllItems()
-                    await self.updateCurrentNodeItems()
                 }
             }
             .store(in: &cancellables)
@@ -92,7 +91,6 @@ class FeedModel: ObservableObject {
                 self?.hideRead = hideRead
                 Task {
                     await self?.resetAllItems()
-                    await self?.updateCurrentNodeItems()
                 }
             }
             .store(in: &cancellables)
@@ -102,7 +100,6 @@ class FeedModel: ObservableObject {
                 self?.sortOldestFirst = sortOldestFirst
                 Task {
                     await self?.resetAllItems()
-                    await self?.updateCurrentNodeItems()
                 }
             }
             .store(in: &cancellables)
@@ -240,8 +237,8 @@ class FeedModel: ObservableObject {
 
     @MainActor
     private func resetAllItems() async {
-        self.updateAllItems()
-        for node in self.nodes {
+        updateAllItems()
+        for node in nodes {
             node.items.removeAll()
             if let children = node.children {
                 for child in children {
@@ -249,6 +246,7 @@ class FeedModel: ObservableObject {
                 }
             }
         }
+        await updateCurrentNodeItems()
     }
 
     private func updateAllItems() {

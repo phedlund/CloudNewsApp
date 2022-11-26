@@ -95,17 +95,12 @@ final class Node: Identifiable, ObservableObject {
 
     @MainActor
     func fetchData() async {
-        var tempModels = [ArticleModel]()
-        for cdItem in cdItems {
-            let model = ArticleModel(item: cdItem)
-            tempModels.append(model)
-        }
-        items = tempModels
+        items = cdItems.map({ ArticleModel(item: $0) })
         do {
-            let itemsWithoutImageLink = cdItems.filter( { $0.imageLink == nil })
+            let itemsWithoutImageLink = cdItems.filter({ $0.imageLink == nil })
             if !itemsWithoutImageLink.isEmpty {
                 try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-                let urls = tempModels.compactMap( { $0.imageURL })
+                let urls = items.compactMap({ $0.imageURL })
                 ImagePrefetcher(urls: urls).start()
             }
         } catch  { }
