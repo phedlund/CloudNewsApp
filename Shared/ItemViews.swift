@@ -70,7 +70,7 @@ struct ItemFavIconView: View {
     @ViewBuilder
     var body: some View {
         KFImage(URL(string: nodeIcon ?? "data:null"))
-            .placeholder { _ in
+            .placeholder {
 #if os(macOS)
                 Image(nsImage: SystemImage(named: "rss")!)
 #else

@@ -64,30 +64,30 @@ struct NodeView: View {
 struct NodeFavIconView: View {
     @ObservedObject var node: Node
     @EnvironmentObject private var favIconRepository: FavIconRepository
-
+    
     @ViewBuilder
     var body: some View {
-        KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
-            .placeholder { _ in
-                switch node.nodeType {
-                case .all, .empty:
+        switch node.nodeType {
+        case .all, .empty:
 #if os(macOS)
-                    Image(nsImage: SystemImage(named: "rss")!)
+            Image(nsImage: SystemImage(named: "rss")!)
 #else
-                    Image(uiImage: SystemImage(named: "rss")!)
+            Image(uiImage: SystemImage(named: "rss")!)
 #endif
-                case .starred:
-                    Image(systemName: "star.fill")
-                case .folder(id: _):
-                    Image(systemName: "folder")
-                case .feed(id: _):
+        case .starred:
+            Image(systemName: "star.fill")
+        case .folder(id: _):
+            Image(systemName: "folder")
+        case .feed(id: _):
+            KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
+                .placeholder {
                     Color.gray.opacity(0.25)
                 }
-            }
-            .retry(maxCount: 3, interval: .seconds(5))
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(width: 22, height: 22)
+                .retry(maxCount: 3, interval: .seconds(5))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 22, height: 22)
+        }
     }
 }
 
