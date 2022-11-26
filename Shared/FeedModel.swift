@@ -110,40 +110,35 @@ class FeedModel: ObservableObject {
     }
 
     func update() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else {
-                return
+        var folderNodes = [Node]()
+        var feedNodes = [Node]()
+
+        if let folders = CDFolder.all() {
+            for folder in folders {
+                folderNodes.append(folderNode(folder: folder))
             }
-            var folderNodes = [Node]()
-            var feedNodes = [Node]()
-            
-            if let folders = CDFolder.all() {
-                for folder in folders {
-                    folderNodes.append(self.folderNode(folder: folder))
-                }
-            }
-            
-            if let feeds = CDFeed.inFolder(folder: 0) {
-                for feed in feeds {
-                    feedNodes.append(self.feedNode(feed: feed))
-                }
-            }
-            
-            let firstFolderIndex = 2
-            if let lastFolderIndex = self.nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
-                self.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
-            } else {
-                self.nodes.append(contentsOf: folderNodes)
-            }
-            
-            if let firstFeedIndex = self.nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
-               let lastFeedIndex = self.nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
-                self.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
-            } else {
-                self.nodes.append(contentsOf: feedNodes)
-            }
-            self.updateCurrentNode(self.preferences.selectedNode)
         }
+
+        if let feeds = CDFeed.inFolder(folder: 0) {
+            for feed in feeds {
+                feedNodes.append(feedNode(feed: feed))
+            }
+        }
+
+        let firstFolderIndex = 2
+        if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+            nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
+        } else {
+            nodes.append(contentsOf: folderNodes)
+        }
+
+        if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+           let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+            nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+        } else {
+            nodes.append(contentsOf: feedNodes)
+        }
+        updateCurrentNode(preferences.selectedNode)
     }
 
     func updateCurrentNode(_ current: String) {
@@ -235,7 +230,6 @@ class FeedModel: ObservableObject {
         return node
     }
 
-    @MainActor
     private func resetAllItems() async {
         updateAllItems()
         for node in nodes {
@@ -263,7 +257,6 @@ class FeedModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func updateCurrentNodeItems() async {
         guard self.currentNode.items.isEmpty else { return }
         switch self.currentNode.nodeType {
