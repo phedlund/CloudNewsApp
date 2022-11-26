@@ -25,8 +25,8 @@ struct BadgeView: View {
                     .foregroundColor(.white)
                     .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
                     .background(Capsule()
-                                    .fill(.gray)
-                                    .opacity(text.isEmpty ? 0.0 : 1.0))
+                        .fill(.gray)
+                        .opacity(text.isEmpty ? 0.0 : 1.0))
             }
         }
     }
