@@ -16,7 +16,6 @@
 		D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44A0265C86BE00A3505B /* ContentView.swift */; };
 		D02F44BB265C86BF00A3505B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D02F44A2265C86BF00A3505B /* Assets.xcassets */; };
 		D02F44EF265C89F700A3505B /* NewsSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44C5265C89F700A3505B /* NewsSessionManager.swift */; };
-		D02F44F1265C89F700A3505B /* SyncHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44D4265C89F700A3505B /* SyncHelper.swift */; };
 		D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44D3265C89F700A3505B /* NotificationNames.swift */; };
 		D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44D2265C89F700A3505B /* NewsRouter.swift */; };
 		D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D02F44FE265C8BFD00A3505B /* KeychainAccess */; };
@@ -119,7 +118,6 @@
 		D02F44D0265C89F700A3505B /* Folders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Folders.swift; sourceTree = "<group>"; };
 		D02F44D2265C89F700A3505B /* NewsRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsRouter.swift; sourceTree = "<group>"; };
 		D02F44D3265C89F700A3505B /* NotificationNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationNames.swift; sourceTree = "<group>"; };
-		D02F44D4265C89F700A3505B /* SyncHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHelper.swift; sourceTree = "<group>"; };
 		D02F44D7265C89F700A3505B /* CoreDataExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataExtension.swift; sourceTree = "<group>"; };
 		D02F44D8265C89F700A3505B /* CDItem+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CDItem+CoreDataClass.swift"; sourceTree = "<group>"; };
 		D02F44D9265C89F700A3505B /* CDFeed+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CDFeed+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -221,7 +219,6 @@
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
 				D07A043626E2F61F00178EEE /* UserDefault.swift */,
 				D02F44D3265C89F700A3505B /* NotificationNames.swift */,
-				D02F44D4265C89F700A3505B /* SyncHelper.swift */,
 				D02F449F265C86BE00A3505B /* CloudNewsApp.swift */,
 				D0E60F11276E7988009CF78F /* AppDelegate.swift */,
 				D02F44A0265C86BE00A3505B /* ContentView.swift */,
@@ -452,7 +449,6 @@
 				D02F450F265C8CAA00A3505B /* Items.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
-				D02F44F1265C89F700A3505B /* SyncHelper.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,
 				D02F4533265C8D0000A3505B /* CDUnread+CoreDataProperties.swift in Sources */,
 				D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */,
