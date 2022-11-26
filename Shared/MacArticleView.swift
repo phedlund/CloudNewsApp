@@ -82,7 +82,7 @@ struct MacArticleView: View {
             }
             Spacer()
             Group {
-                let subject = item.title
+                let subject = item.displayTitle
                 let message = item.displayBody
                 if let url = item.webViewHelper.url {
                     if url.scheme?.hasPrefix("file") ?? false {

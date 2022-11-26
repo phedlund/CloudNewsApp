@@ -105,10 +105,12 @@ class ItemImporter {
                         let currentItem = itemDicts.removeFirst()
                         dict.addEntries(from: currentItem)
 
+                        var displayTitle = "Untitled"
                         if let title = currentItem["title"] as? String {
-                            dict["displayTitle"] = plainSummary(raw: title)
+                            displayTitle = plainSummary(raw: title)
                         }
-
+                        dict["displayTitle"] = displayTitle
+                        
                         var summary = ""
                         if let body = currentItem["body"] as? String {
                             summary = body
@@ -125,8 +127,8 @@ class ItemImporter {
                                     }
                                 }
                             }
-                            dict["displayBody"] = plainSummary(raw: summary)
                         }
+                        dict["displayBody"] = plainSummary(raw: summary)
 
                         let clipLength = 50
                         var dateLabelText = ""
