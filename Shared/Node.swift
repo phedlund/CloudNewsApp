@@ -104,7 +104,7 @@ final class Node: Identifiable, ObservableObject {
         do {
             let itemsWithoutImageLink = cdItems.filter( { $0.imageLink == nil })
             if !itemsWithoutImageLink.isEmpty {
-                try await ItemImageFetcher().itemURLs(itemsWithoutImageLink)
+                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
                 let urls = tempModels.compactMap( { $0.imageURL })
                 ImagePrefetcher(urls: urls).start()
             }

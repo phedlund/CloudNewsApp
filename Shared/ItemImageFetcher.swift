@@ -11,39 +11,48 @@ import SwiftSoup
 
 class ItemImageFetcher {
 
+    static let shared = ItemImageFetcher()
+
     private let validSchemas = ["http", "https", "file"]
+
+    private init() { }
 
     func itemURLs(_ items: [CDItem]) async throws {
         for item in items {
-            if item.imageLink == nil {
-                var itemImageUrl: URL?
-                if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
-                    itemImageUrl = imgUrl
-                } else if let summary = item.body {
-                    do {
-                        let doc: Document = try SwiftSoup.parse(summary)
-                        let srcs: Elements = try doc.select("img[src]")
-                        let images = try srcs.array().map({ try $0.attr("src") })
-                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                            itemImageUrl = imgUrl
-                        } else if let stepTwoUrl = await stepTwo(item) {
-                            itemImageUrl = stepTwoUrl
-                        }
-                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                        print(message)
-                    } catch(let error) {
-                        print(error.localizedDescription)
+            if let _ = item.imageLink {
+                continue
+            }
+            var itemImageUrl: URL?
+            if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
+                itemImageUrl = imgUrl
+            } else if let summary = item.body {
+                do {
+                    let doc: Document = try SwiftSoup.parse(summary)
+                    let srcs: Elements = try doc.select("img[src]")
+                    let images = try srcs.array().map({ try $0.attr("src") })
+                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                        itemImageUrl = imgUrl
+                    } else if let stepTwoUrl = await stepTwo(item) {
+                        itemImageUrl = stepTwoUrl
                     }
-                } else {
-                    itemImageUrl = await stepTwo(item)
+                } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                    print(message)
+                } catch(let error) {
+                    print(error.localizedDescription)
                 }
+            } else {
+                itemImageUrl = await stepTwo(item)
+            }
 
-                if let imageUrl = itemImageUrl {
-                    try await CDItem.addImageLink(item: item, imageLink: imageUrl.absoluteString)
-                } else {
-                    try await CDItem.addImageLink(item: item, imageLink: "data:null")
-                }
+            if let _ = item.imageLink {
+                continue
+            }
+
+            if let itemImageUrl {
+                try await CDItem.addImageLink(item: item, imageLink: itemImageUrl.absoluteString)
+            } else {
+                try await CDItem.addImageLink(item: item, imageLink: "data:null")
             }
         }
     }
