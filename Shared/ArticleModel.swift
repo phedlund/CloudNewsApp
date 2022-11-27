@@ -24,12 +24,16 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
 
     init(item: CDItem) {
         self.item = item
-        feed = CDFeed.feed(id: item.feedId)
+//        feed = CDFeed.feed(id: item.feedId)
         super.init()
-        self.dateAuthorFeed = item.dateFeedAuthor
-        self.displayBody = item.displayBody
-        self.title = item.displayTitle
 
+        item
+            .publisher(for: \.displayTitle)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.title = $0
+            }
+            .store(in: &cancellables)
         item
             .publisher(for: \.imageUrl)
             .receive(on: DispatchQueue.main)
@@ -49,6 +53,27 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             .receive(on: DispatchQueue.main)
             .sink {
                 self.starred = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.feedId)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.feed = CDFeed.feed(id: $0)
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.dateFeedAuthor)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.dateAuthorFeed = $0
+            }
+            .store(in: &cancellables)
+        item
+            .publisher(for: \.displayBody)
+            .receive(on: DispatchQueue.main)
+            .sink {
+                self.displayBody = $0
             }
             .store(in: &cancellables)
     }

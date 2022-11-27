@@ -110,40 +110,52 @@ class FeedModel: ObservableObject {
     }
 
     func update() {
-        var folderNodes = [Node]()
-        var feedNodes = [Node]()
+        Task(priority: .high) {
+            var folderNodes = [Node]()
+            var feedNodes = [Node]()
 
-        if let folders = CDFolder.all() {
-            for folder in folders {
-                folderNodes.append(folderNode(folder: folder))
+            if let folders = CDFolder.all() {
+                for folder in folders {
+                    folderNodes.append(folderNode(folder: folder))
+                }
             }
-        }
 
-        if let feeds = CDFeed.inFolder(folder: 0) {
-            for feed in feeds {
-                feedNodes.append(feedNode(feed: feed))
+            if let feeds = CDFeed.inFolder(folder: 0) {
+                for feed in feeds {
+                    feedNodes.append(feedNode(feed: feed))
+                }
             }
-        }
 
-        let firstFolderIndex = 2
-        if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
-            nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
-        } else {
-            nodes.append(contentsOf: folderNodes)
-        }
+            let firstFolderIndex = 2
+            if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
+                }
+            } else {
+                DispatchQueue.main.async { [weak self] in
+                    self?.nodes.append(contentsOf: folderNodes)
+                }
+            }
 
-        if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
-           let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
-            nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
-        } else {
-            nodes.append(contentsOf: feedNodes)
+            if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+               let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+                }
+            } else {
+                DispatchQueue.main.async { [weak self] in
+                    self?.nodes.append(contentsOf: feedNodes)
+                }
+            }
+            updateCurrentNode(preferences.selectedNode)
         }
-        updateCurrentNode(preferences.selectedNode)
     }
 
     func updateCurrentNode(_ current: String) {
         preferences.selectedNode = current
-        currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
+        DispatchQueue.main.async { [weak self] in
+            self?.currentNode = self?.node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
+        }
         Task {
             await updateCurrentNodeItems()
         }
@@ -244,16 +256,18 @@ class FeedModel: ObservableObject {
     }
 
     private func updateAllItems() {
-        let itemsFetchRequest = CDItem.fetchRequest()
-        let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
-                                                ascending: sortOldestFirst ? true : false)]
-        let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-        itemsFetchRequest.sortDescriptors = sortDescriptors
-        itemsFetchRequest.predicate = predicate
-        do {
-            allItems = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
-        } catch {
-            print("Failed to fetch items")
+        Task(priority: .high) {
+            let itemsFetchRequest = CDItem.fetchRequest()
+            let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
+                                                    ascending: sortOldestFirst ? true : false)]
+            let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
+            itemsFetchRequest.sortDescriptors = sortDescriptors
+            itemsFetchRequest.predicate = predicate
+            do {
+                allItems = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
+            } catch {
+                print("Failed to fetch items")
+            }
         }
     }
 
