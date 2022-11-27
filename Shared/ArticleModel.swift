@@ -34,7 +34,7 @@ class ArticleModel: NSObject, ObservableObject, Identifiable {
             .publisher(for: \.imageUrl)
             .receive(on: DispatchQueue.main)
             .sink {
-                self.imageURL = $0
+                self.imageURL = $0 as URL?
             }
             .store(in: &cancellables)
         item

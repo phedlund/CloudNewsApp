@@ -29,6 +29,7 @@ extension CDItem {
     @NSManaged public var guidHash: String?
     @NSManaged public var id: Int32
     @NSManaged public var imageLink: String?
+    @NSManaged public var imageUrl: NSURL?
     @NSManaged public var lastModified: Int32
     @NSManaged public var mediaThumbnail: String?
     @NSManaged public var mediaDescription: String?
@@ -42,28 +43,4 @@ extension CDItem {
 
 }
 
-extension CDItem: Identifiable {
-
-    @objc dynamic var imageUrl: URL? {
-        if let imageLink, !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
-            return url
-        }
-        return nil
-    }
-
-    override public class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
-        let keyPaths = super.keyPathsForValuesAffectingValue(forKey: key)
-        switch key {
-        case "displayTitle":
-            return keyPaths.union(Set(["title"]))
-        case "displayBody":
-            return keyPaths.union(Set(["body", "mediaDescription"]))
-        case "dateFeedAuthor":
-            return keyPaths.union(Set(["pubDate", "author", "feedTitle"]))
-        case "imageUrl":
-            return keyPaths.union(Set(["imageLink"]))
-        default:
-            return keyPaths
-        }
-    }
-}
+extension CDItem: Identifiable { }

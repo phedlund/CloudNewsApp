@@ -182,6 +182,9 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     print("Same image link \(imageLink)")
                 } else {
                     item.imageLink = imageLink
+                    if !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
+                        item.imageUrl = url as NSURL
+                    }
                     try NewsData.mainThreadContext.save()
                 }
             } catch {
