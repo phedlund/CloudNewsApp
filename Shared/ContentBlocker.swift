@@ -8,9 +8,13 @@
 import Foundation
 import WebKit
 
-struct ContentBlocker {
+class ContentBlocker {
 
-    static func loadJson() -> String? {
+    static let shared = ContentBlocker()
+
+    private var rules: WKContentRuleList?
+
+    func loadJson() -> String? {
         guard let path = Bundle.main.path(forResource: "block-ads", ofType: "json"),
             let source = try? String(contentsOfFile: path, encoding: .utf8) else {
                 assert(false)
@@ -19,13 +23,16 @@ struct ContentBlocker {
         return source
     }
 
-    static func ruleList() async throws -> WKContentRuleList? {
-        guard let blockRules = ContentBlocker.loadJson() else {
+    func ruleList() async throws -> WKContentRuleList? {
+        guard let blockRules = ContentBlocker.shared.loadJson() else {
             return nil
         }
         
         do {
-            return try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRules)
+            if rules == nil {
+                rules = try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRules)
+            }
+            return rules
         } catch {
             return nil
         }
