@@ -100,29 +100,18 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            //            Group {
-            //                if let item = NewsData.mainThreadContext.object(with: selection) as? CDItem {
-            //                    let subject = item.title
-            //                    let message = item.displayBody
-            //                    if let url = webViewHelper.url {
-            //                        if url.scheme?.hasPrefix("file") ?? false {
-            //                            if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
-            //                                ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-            //                            }
-            //                        } else {
-            //                            ShareLink(item: url, subject: Text(subject), message: Text(message))
-            //                        }
-            //                    } else if !subject.isEmpty {
-            //                        ShareLink(item: subject, subject: Text(subject), message: Text(message))
-            //                    }
-            //                } else {
-            //                    EmptyView()
-            //                }
+            if let item = NewsData.mainThreadContext.object(with: selection) as? CDItem {
+                ShareLinkButton(item: item)
+                    .disabled(isLoading)
+            } else {
+                EmptyView()
+            }
             Button {
                 isShowingPopover = true
             } label: {
                 Image(systemName: "textformat.size")
             }
+            .disabled(isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let item = moc.object(with: selection) as? CDItem {
                     ArticleSettingsView(item: item)
@@ -130,8 +119,6 @@ struct ArticlesPageView: View {
                         .presentationDetents([.height(300.0)])
                 }
             }
-            //            }
-            //            .disabled(isLoading)
         }
     }
 

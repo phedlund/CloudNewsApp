@@ -30,6 +30,27 @@ struct MarkReadButton: View {
     }
 }
 
+struct ShareLinkButton: View {
+    @ObservedObject var item: CDItem
+    
+    var body: some View {
+        let subject = item.title ?? "Untitled"
+        let message = item.displayBody
+        if let url = item.webViewHelper.url {
+            if url.scheme?.hasPrefix("file") ?? false {
+                if let urlString = item.url, let itemUrl = URL(string: urlString) {
+                    ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+                }
+            } else {
+                ShareLink(item: url, subject: Text(subject), message: Text(message))
+            }
+        } else if !subject.isEmpty {
+            ShareLink(item: subject, subject: Text(subject), message: Text(message))
+        }
+    }
+    
+}
+
 struct LazyView<Content: View>: View {
     let build: () -> Content
     init(_ build: @autoclosure @escaping () -> Content) {
