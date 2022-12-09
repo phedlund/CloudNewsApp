@@ -11,6 +11,7 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.managedObjectContext) private var moc
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
@@ -137,7 +138,7 @@ struct FeedSettingsView: View {
                 if let feed = self.feed {
                     feed.preferWeb = preferWeb
                     do {
-                        try NewsData.mainThreadContext.save()
+                        try moc.save()
                     } catch {
                         //
                     }
@@ -165,7 +166,7 @@ struct FeedSettingsView: View {
                     do {
                         try await NewsManager.shared.renameFeed(feed: feed, to: title)
                         feed.title = title
-                        try NewsData.mainThreadContext.save()
+                        try moc.save()
                     } catch(let error as PBHError) {
                         switch error {
                         case .networkError(let message):
@@ -191,7 +192,7 @@ struct FeedSettingsView: View {
                 do {
                     try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
                     feed.folderId = newFolderId
-                    try NewsData.mainThreadContext.save()
+                    try moc.save()
                 } catch(let error as PBHError) {
                     switch error {
                     case .networkError(let message):

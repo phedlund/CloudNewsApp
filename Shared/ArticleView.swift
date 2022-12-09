@@ -9,17 +9,17 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    var item: ArticleModel
+    var item: CDItem
 
     var body: some View {
         WebView { webView in
-            item.webViewHelper.model = item
+            item.webViewHelper.item = item
             item.webViewHelper.webView = webView
             if let urlRequest = item.webViewHelper.urlRequest {
                 webView.load(urlRequest)
             }
         }
-        .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
+        .id(item.objectID) //forces the web view to be recreated to get a unique WKWebView for each article
 #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
 #endif

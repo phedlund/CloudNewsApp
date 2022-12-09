@@ -23,6 +23,7 @@ struct CloudNewsApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(model: feedModel, settings: settings, favIconRepository: favIconRepository)
+                .environment(\.managedObjectContext, NewsData.mainThreadContext)
         }
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)

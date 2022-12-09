@@ -14,10 +14,9 @@ struct MarkReadButton: View {
 
     var body: some View {
         Button {
-            let unreadItems = node.items.filter( { $0.unread })
+            let unreadItems = CDItem.unreadItems(nodeType: node.nodeType)
             Task {
-                let myItems = unreadItems.map( { $0.item })
-                try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
             }
         } label: {
             Label {

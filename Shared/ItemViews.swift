@@ -21,29 +21,29 @@ struct ItemListToolbarContent: ToolbarContent {
 }
 
 struct ContextMenuContent: View {
-    @ObservedObject var model: ArticleModel
+    @ObservedObject var item: CDItem
 
     var body: some View {
         Button {
             Task {
-                try? await NewsManager.shared.markRead(items: [model.item], unread: !model.unread)
+                try? await NewsManager.shared.markRead(items: [item], unread: !item.unread)
             }
         } label: {
             Label {
-                Text(model.unread ? "Read" : "Unread")
+                Text(item.unread ? "Read" : "Unread")
             } icon: {
-                Image(systemName: model.unread ? "eye" : "eye.slash")
+                Image(systemName: item.unread ? "eye" : "eye.slash")
             }
         }
         Button {
             Task {
-                try? await NewsManager.shared.markStarred(item: model.item, starred: !model.starred)
+                try? await NewsManager.shared.markStarred(item: item, starred: !item.starred)
             }
         } label: {
             Label {
-                Text(model.starred ? "Unstar" : "Star")
+                Text(item.starred ? "Unstar" : "Star")
             } icon: {
-                Image(systemName: model.starred ? "star" : "star.fill")
+                Image(systemName: item.starred ? "star" : "star.fill")
             }
         }
     }

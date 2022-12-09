@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 
+#if os(macOS)
 struct ItemsView: View {
     @ObservedObject var node: Node
     @Binding var selectedItem: ArticleModel?
@@ -97,6 +98,7 @@ struct ItemsView: View {
         }
     }
 }
+#endif
 
 //struct ItemsView_Previews: PreviewProvider {
 //    static var previews: some View {

@@ -18,20 +18,8 @@ final class Node: Identifiable, ObservableObject {
     @Published var errorCount = 0
     @Published var title = ""
     @Published var favIconLink: String?
-    @Published var items = [ArticleModel]()
-
-    func item(for id: ArticleModel.ID) -> ArticleModel? {
-        items.first(where: { $0.id == id} )
-    }
 
     var id: String
-    var cdItems = [CDItem]() {
-        didSet {
-            Task {
-                await fetchData()
-            }
-        }
-    }
 
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 
@@ -39,9 +27,6 @@ final class Node: Identifiable, ObservableObject {
     private(set) var nodeType: NodeType
     private(set) var children: [Node]?
 
-    private var currentItem = 0
-    private var canLoadMoreItems = false
-    private var isLoadingItem = false
     private var cancellables = Set<AnyCancellable>()
 
     convenience init() {
@@ -67,14 +52,8 @@ final class Node: Identifiable, ObservableObject {
                 for change in changes {
                     if change.nodeType == self.nodeType {
                         switch change.nodeType {
-                        case .empty, .all:
+                        case .empty, .all, .starred:
                             break
-                        case .starred:
-                            if let starredItems = CDItem.starredItems() {
-                                self.items = starredItems.map( { ArticleModel(item: $0) } )
-                            } else {
-                                self.items.removeAll()
-                            }
                         case .folder(let id):
                             if let folder = CDFolder.folder(id: id) {
                                 self.title = folder.name ?? "Untitled"
@@ -91,19 +70,6 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    @MainActor
-    func fetchData() async {
-        items = cdItems.map({ ArticleModel(item: $0) })
-        do {
-            let itemsWithoutImageLink = cdItems.filter({ $0.imageLink == nil })
-            if !itemsWithoutImageLink.isEmpty {
-                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-                let urls = items.compactMap({ $0.imageURL })
-                ImagePrefetcher(urls: urls).start()
-            }
-        } catch  { }
     }
 
     private func nodeTitle() -> String {

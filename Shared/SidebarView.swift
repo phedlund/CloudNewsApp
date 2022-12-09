@@ -25,6 +25,7 @@ struct SidebarView: View {
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
 #endif
+    @Environment(\.managedObjectContext) private var moc
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var preferences: Preferences
     @EnvironmentObject private var favIconRepository: FavIconRepository
@@ -159,7 +160,7 @@ struct SidebarView: View {
                                 do {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
-                                    try NewsData.mainThreadContext.save()
+                                    try moc.save()
                                 } catch(let error as PBHError) {
                                     switch error {
                                     case .networkError(_):

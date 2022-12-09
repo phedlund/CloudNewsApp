@@ -15,6 +15,8 @@ public class CDItem: NSManagedObject, ItemProtocol {
 
     static let entityName = "CDItem"
 
+    var webViewHelper = ItemWebViewHelper()
+
     static func unreadCount(nodeType: NodeType) -> Int {
         var result = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
@@ -43,6 +45,39 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
         if let count = try? NewsData.mainThreadContext.count(for: request) {
             result = count
+        }
+
+        return result
+    }
+
+    static func unreadItems(nodeType: NodeType) -> [CDItem] {
+        var result = [CDItem]()
+        let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        switch nodeType {
+        case .empty:
+            break
+        case .all:
+            let predicate = NSPredicate(format: "unread == true")
+            request.predicate = predicate
+
+        case .starred:
+            let predicate = NSPredicate(format: "starred == true")
+            request.predicate = predicate
+
+        case .feed(let feedId):
+            let predicate1 = NSPredicate(format: "unread == true")
+            let predicate2 = NSPredicate(format: "feedId == %d", feedId)
+            request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+
+        case .folder(let folderId):
+            if let feedIds = CDFeed.idsInFolder(folder: folderId) {
+                let predicate1 = NSPredicate(format: "unread == true")
+                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
+                request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            }
+        }
+        if let items = try? NewsData.mainThreadContext.fetch(request) {
+            result = items
         }
 
         return result

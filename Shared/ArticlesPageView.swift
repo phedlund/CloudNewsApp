@@ -5,14 +5,15 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
+import CoreData
 import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
+    @Environment(\.managedObjectContext) private var moc
     @EnvironmentObject private var settings: Preferences
-    @ObservedObject private var node: Node
-    @ObservedObject private var model: ArticleModel
-    @State private var selection: ArticleModel.ID
+    @ObservedObject private var item: CDItem
+    @State private var selection: NSManagedObjectID
     @State private var isShowingPopover = false
     @State private var canGoBack = false
     @State private var canGoForward = false
@@ -20,16 +21,19 @@ struct ArticlesPageView: View {
     @State private var title = ""
     @State private var webViewHelper = ItemWebViewHelper()
 
-    init(item: ArticleModel, node: Node) {
-        self.model = item
-        self.node = node
-        self._selection = State(initialValue: item.id)
+    let items: [CDItem]
+
+    init(item: CDItem, items: [CDItem]) {
+        self.item = item
+        self.items = items
+        self._selection = State(initialValue: item.objectID)
     }
 
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(node.items, id: \.id) { item in
+            ForEach(items, id: \.id) { item in
                 ArticleView(item: item)
+                    .tag(item.objectID)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -39,13 +43,13 @@ struct ArticlesPageView: View {
         }
         .onAppear {
             markItemRead()
-            if let item = node.item(for: selection) {
+            if let item = moc.object(with: item.objectID) as? CDItem {
                 webViewHelper = item.webViewHelper
             }
         }
-        .onChange(of: selection) { _ in
+        .onChange(of: selection) {
             markItemRead()
-            if let item = node.item(for: selection) {
+            if let item = moc.object(with: $0) as? CDItem {
                 webViewHelper = item.webViewHelper
             }
         }
@@ -96,40 +100,43 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            Group {
-                if let item = node.item(for: selection) {
-                    let subject = item.title
-                    let message = item.displayBody
-                    if let url = webViewHelper.url {
-                        if url.scheme?.hasPrefix("file") ?? false {
-                            if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
-                                ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-                            }
-                        } else {
-                            ShareLink(item: url, subject: Text(subject), message: Text(message))
-                        }
-                    } else if !subject.isEmpty {
-                        ShareLink(item: subject, subject: Text(subject), message: Text(message))
-                    }
-                }
-                Button {
-                    isShowingPopover = true
-                } label: {
-                    Image(systemName: "textformat.size")
-                }
-                .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                    if let item = node.item(for: selection)?.item {
-                        ArticleSettingsView(item: item)
-                            .environmentObject(settings)
-                            .presentationDetents([.height(300.0)])
-                    }
+            //            Group {
+            //                if let item = NewsData.mainThreadContext.object(with: selection) as? CDItem {
+            //                    let subject = item.title
+            //                    let message = item.displayBody
+            //                    if let url = webViewHelper.url {
+            //                        if url.scheme?.hasPrefix("file") ?? false {
+            //                            if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
+            //                                ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+            //                            }
+            //                        } else {
+            //                            ShareLink(item: url, subject: Text(subject), message: Text(message))
+            //                        }
+            //                    } else if !subject.isEmpty {
+            //                        ShareLink(item: subject, subject: Text(subject), message: Text(message))
+            //                    }
+            //                } else {
+            //                    EmptyView()
+            //                }
+            Button {
+                isShowingPopover = true
+            } label: {
+                Image(systemName: "textformat.size")
+            }
+            .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
+                if let item = moc.object(with: selection) as? CDItem {
+                    ArticleSettingsView(item: item)
+                        .environmentObject(settings)
+                        .presentationDetents([.height(300.0)])
                 }
             }
-            .disabled(isLoading)
+            //            }
+            //            .disabled(isLoading)
         }
     }
+
     private func markItemRead() {
-        if let item = node.item(for: selection)?.item, item.unread {
+        if let item = moc.object(with: selection) as? CDItem, item.unread {
             Task {
                 try? await NewsManager.shared.markRead(items: [item], unread: false)
             }

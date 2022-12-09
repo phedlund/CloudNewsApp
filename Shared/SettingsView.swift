@@ -60,12 +60,12 @@ struct SettingsView: View {
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
     @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
     @AppStorage(SettingKeys.adBlock) var adBlock = true
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
     @State private var footerMessage = ""
     @State private var footerSuccess = true
-    @State private var preferences = Preferences()
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
     @State private var isShowingCertificateAlert = false
@@ -138,7 +138,7 @@ struct SettingsView: View {
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }
-                Toggle(isOn: $preferences.hideRead) {
+                Toggle(isOn: $hideRead) {
                     Text("Hide Read Items")
                 }
                 Toggle(isOn: $sortOldestFirst) {

@@ -153,12 +153,7 @@ class FeedModel: ObservableObject {
 
     func updateCurrentNode(_ current: String) {
         preferences.selectedNode = current
-        DispatchQueue.main.async { [weak self] in
-            self?.currentNode = self?.node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
-        }
-        Task {
-            await updateCurrentNodeItems()
-        }
+        currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
     func updateCurrentItem(_ current: ArticleModel?) {
@@ -244,14 +239,14 @@ class FeedModel: ObservableObject {
 
     private func resetAllItems() async {
         updateAllItems()
-        for node in nodes {
-            node.items.removeAll()
-            if let children = node.children {
-                for child in children {
-                    child.items.removeAll()
-                }
-            }
-        }
+//        for node in nodes {
+//            node.items.removeAll()
+//            if let children = node.children {
+//                for child in children {
+//                    child.items.removeAll()
+//                }
+//            }
+//        }
         await updateCurrentNodeItems()
     }
 
@@ -272,26 +267,26 @@ class FeedModel: ObservableObject {
     }
 
     private func updateCurrentNodeItems() async {
-        guard self.currentNode.items.isEmpty else { return }
-        switch self.currentNode.nodeType {
-        case .empty:
-            break
-        case .all:
-            self.currentNode.cdItems = self.allItems
-        case .starred:
-            self.currentNode.cdItems = self.allItems
-                .filter( { $0.starred == true } )
-        case .folder(let id):
-            if let feedIds = CDFeed.idsInFolder(folder: id) {
-                self.currentNode.cdItems = self.allItems
-                    .filter( { feedIds.contains($0.feedId) } )
-            } else {
-                self.allItems = []
-            }
-        case .feed(let id):
-            self.currentNode.cdItems = self.allItems
-                .filter( { $0.feedId == id } )
-        }
+//        guard self.currentNode.items.isEmpty else { return }
+//        switch self.currentNode.nodeType {
+//        case .empty:
+//            break
+//        case .all:
+//            self.currentNode.cdItems = self.allItems
+//        case .starred:
+//            self.currentNode.cdItems = self.allItems
+//                .filter( { $0.starred == true } )
+//        case .folder(let id):
+//            if let feedIds = CDFeed.idsInFolder(folder: id) {
+//                self.currentNode.cdItems = self.allItems
+//                    .filter( { feedIds.contains($0.feedId) } )
+//            } else {
+//                self.allItems = []
+//            }
+//        case .feed(let id):
+//            self.currentNode.cdItems = self.allItems
+//                .filter( { $0.feedId == id } )
+//        }
     }
 
 }

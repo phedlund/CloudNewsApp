@@ -73,6 +73,8 @@
 		D0B399EC292DC5D600406DF1 /* XButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B399EB292DC5D600406DF1 /* XButtonStyle.swift */; };
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0C8680028BC4514006DAFF6 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0C867FF28BC4514006DAFF6 /* Kingfisher */; };
+		D0CAB1282935A0FA006DF1BA /* ItemSort.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAB1272935A0FA006DF1BA /* ItemSort.swift */; };
+		D0CAB12A293C1DBB006DF1BA /* ArticlesFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAB129293C1DBB006DF1BA /* ArticlesFetchView.swift */; };
 		D0CAF5E2270A603000BB9062 /* ItemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5E1270A603000BB9062 /* ItemStorage.swift */; };
 		D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5ED2713C43800BB9062 /* ItemViews.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
@@ -160,6 +162,8 @@
 		D0B0B2FE267FF86300A997DB /* FeedModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedModel.swift; sourceTree = "<group>"; };
 		D0B399EB292DC5D600406DF1 /* XButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XButtonStyle.swift; sourceTree = "<group>"; };
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		D0CAB1272935A0FA006DF1BA /* ItemSort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSort.swift; sourceTree = "<group>"; };
+		D0CAB129293C1DBB006DF1BA /* ArticlesFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesFetchView.swift; sourceTree = "<group>"; };
 		D0CAF5E1270A603000BB9062 /* ItemStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemStorage.swift; sourceTree = "<group>"; };
 		D0CAF5ED2713C43800BB9062 /* ItemViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
@@ -222,12 +226,14 @@
 				D02F449F265C86BE00A3505B /* CloudNewsApp.swift */,
 				D0E60F11276E7988009CF78F /* AppDelegate.swift */,
 				D02F44A0265C86BE00A3505B /* ContentView.swift */,
+				D0CAB129293C1DBB006DF1BA /* ArticlesFetchView.swift */,
 				D0B0B2F5267ED1C600A997DB /* SidebarView.swift */,
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
 				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D035E343287A5C1D00E1FE5E /* HelperViews.swift */,
+				D0CAB1272935A0FA006DF1BA /* ItemSort.swift */,
 				D0B0B2F8267ED1D900A997DB /* ItemsView.swift */,
 				D0CAF5ED2713C43800BB9062 /* ItemViews.swift */,
 				D0698978268569BF005AA05B /* ItemListItemView.swift */,
@@ -449,6 +455,7 @@
 				D02F450F265C8CAA00A3505B /* Items.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
+				D0CAB12A293C1DBB006DF1BA /* ArticlesFetchView.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,
 				D02F4533265C8D0000A3505B /* CDUnread+CoreDataProperties.swift in Sources */,
 				D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */,
@@ -499,6 +506,7 @@
 				D02F4519265C8CBE00A3505B /* Protocols.swift in Sources */,
 				D02FA074269E2E7600A77875 /* FeedSettingsView.swift in Sources */,
 				D02F4535265C8D0300A3505B /* CDFolder+CoreDataProperties.swift in Sources */,
+				D0CAB1282935A0FA006DF1BA /* ItemSort.swift in Sources */,
 				D02F4531265C8CFC00A3505B /* CDStarred+CoreDataProperties.swift in Sources */,
 				D02F451D265C8CC800A3505B /* Status.swift in Sources */,
 				D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */,
