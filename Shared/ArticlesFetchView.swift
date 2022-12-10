@@ -17,7 +17,7 @@ struct ArticlesFetchView<Content: View>: View {
     private var nodeId: Node.ID
     private var node = Node(.empty, id: EmptyNodeGuid)
 
-    init(nodeId: Node.ID, model: FeedModel, hideRead: Bool, @ViewBuilder content: @escaping (FetchedResults<CDItem>) -> Content) {
+    init(nodeId: Node.ID, model: FeedModel, hideRead: Bool, sortOldestFirst: Bool, @ViewBuilder content: @escaping (FetchedResults<CDItem>) -> Content) {
         let _ = print(nodeId)
         self.model = model
         self.nodeId = nodeId
@@ -43,7 +43,7 @@ struct ArticlesFetchView<Content: View>: View {
             predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
         }
 
-        self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors,
+        self._items = FetchRequest(sortDescriptors: sortOldestFirst ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors,
                                          predicate: predicate)
         self.content = content
     }
@@ -60,6 +60,9 @@ struct ArticlesFetchView<Content: View>: View {
                         ImagePrefetcher(urls: urls).start()
                     }
                 } catch  { }
+            }
+            .onChange(of: nodeId) { _ in
+                print("Node id changed")
             }
     }
 }

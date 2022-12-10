@@ -27,10 +27,7 @@ struct ItemSort: Hashable, Identifiable {
         ])
     ]
 
-    // 4
     static var `default`: ItemSort { sorts[0] }
-
-
-
+    static var `oldestFirst`: ItemSort { sorts[1] }
 
 }

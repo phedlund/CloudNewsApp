@@ -19,6 +19,7 @@ struct ContentView: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
 
     @ObservedObject var model: FeedModel
     @ObservedObject var settings: Preferences
@@ -76,7 +77,7 @@ struct ContentView: View {
                                         .fill(.clear)
                                         .frame(height: 1)
                                         .id(topID)
-                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead) { items in
+                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
                                         LazyVStack(spacing: 15.0) {
                                             ForEach(items, id: \.id) { item in
                                                 NavigationLink(value: item) {
