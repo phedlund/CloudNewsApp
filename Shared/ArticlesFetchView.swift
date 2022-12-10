@@ -44,7 +44,7 @@ struct ArticlesFetchView<Content: View>: View {
         }
 
         self._items = FetchRequest(sortDescriptors: sortOldestFirst ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors,
-                                         predicate: predicate)
+                                   predicate: predicate)
         self.content = content
     }
 
@@ -60,9 +60,6 @@ struct ArticlesFetchView<Content: View>: View {
                         ImagePrefetcher(urls: urls).start()
                     }
                 } catch  { }
-            }
-            .onChange(of: nodeId) { _ in
-                print("Node id changed")
             }
     }
 }
