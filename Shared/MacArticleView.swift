@@ -12,7 +12,7 @@ import WebKit
 
 struct MacArticleView: View {
     @EnvironmentObject private var settings: Preferences
-    var item: ArticleModel
+    var item: CDItem
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -23,7 +23,7 @@ struct MacArticleView: View {
 
     var body: some View {
         WebView { webView in
-            item.webViewHelper.model = item
+            item.webViewHelper.item = item
             item.webViewHelper.webView = webView
             if let urlRequest = item.webViewHelper.urlRequest {
                 webView.load(urlRequest)
@@ -81,28 +81,15 @@ struct MacArticleView: View {
                 }
             }
             Spacer()
-            Group {
-                let subject = item.displayTitle
-                let message = item.displayBody
-                if let url = item.webViewHelper.url {
-                    if url.scheme?.hasPrefix("file") ?? false {
-                        if let urlString = item.item.url, let itemUrl = URL(string: urlString) {
-                            ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-                        }
-                    } else {
-                        ShareLink(item: url, subject: Text(subject), message: Text(message))
-                    }
-                } else if !subject.isEmpty {
-                    ShareLink(item: subject, subject: Text(subject), message: Text(message))
-                }
-                Button {
-                    isShowingPopover = true
-                } label: {
-                    Image(systemName: "textformat.size")
-                }
-                .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    ArticleSettingsView(item: item.item)
-                }
+            ShareLinkButton(item: item)
+                .disabled(isLoading)
+            Button {
+                isShowingPopover = true
+            } label: {
+                Image(systemName: "textformat.size")
+            }
+            .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                ArticleSettingsView(item: item)
             }
             .disabled(isLoading)
         }

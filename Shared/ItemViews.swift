@@ -143,6 +143,8 @@ struct ItemImageView: View {
         if isShowingThumbnails,
             let imageUrl {
             KFImage(imageUrl)
+                .fade(duration: 0.2)
+                .cancelOnDisappear(true)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)

@@ -6,12 +6,14 @@
 //
 
 import Combine
+import CoreData
 import SwiftUI
 
 struct ContentView: View {
 #if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
+    @Environment(\.managedObjectContext) private var moc
     @Environment(\.scenePhase) var scenePhase
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
@@ -36,10 +38,9 @@ struct ContentView: View {
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     @State private var nodeSelection: Node.ID?
-    @State private var itemSelection: ArticleModel.ID?
-    @State private var selectedItem: ArticleModel?
     @State private var path = NavigationPath()
     @State private var cellHeight: CGFloat = .defaultCellHeight
+    @State private var selectedItem: NSManagedObjectID?
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
@@ -132,7 +133,7 @@ struct ContentView: View {
                     }
                 } else {
                     Text("No Feed Selected")
-                        .font(.system(size: 36))
+                        .font(.largeTitle)
                         .foregroundColor(.secondary)
                 }
             }
@@ -160,12 +161,6 @@ struct ContentView: View {
                     node = model.currentNode
                 }
             }
-            .onChange(of: selectedItem) {
-                model.updateCurrentItem($0)
-            }
-            .onChange(of: model.currentItem) {
-                selectedItem = $0
-            }
             .onChange(of: scenePhase) { newPhase in
                 if newPhase == .active {
                     print("Active")
@@ -185,22 +180,83 @@ struct ContentView: View {
                 .environmentObject(settings)
                 .environmentObject(favIconRepository)
         } content: {
-            if nodeSelection != nil, node.id != EmptyNodeGuid {
-                ItemsView(node: node, selectedItem: $selectedItem)
-                    .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .environmentObject(settings)
+            if let nodeSelection, nodeSelection != EmptyNodeGuid {
+                GeometryReader { geometry in
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            Rectangle()
+                                .fill(.clear)
+                                .frame(height: 1)
+                                .id(topID)
+                            ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
+                                LazyVStack(spacing: 15.0) {
+                                    ForEach(items, id: \.id) { item in
+                                        ItemListItemViev(item: item)
+                                            .environmentObject(settings)
+                                            .environmentObject(favIconRepository)
+                                            .padding([.horizontal], 6)
+                                            .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
+                                            .contextMenu {
+                                                ContextMenuContent(item: item)
+                                            }
+                                            .onTapGesture { _ in
+                                                selectedItem = item.objectID
+                                            }
+                                    }
+                                    .listRowBackground(Color.pbh.whiteBackground)
+                                    .listRowSeparator(.hidden)
+                                }
+                                .background(GeometryReader {
+                                    Color.clear
+                                        .preference(key: ViewOffsetKey.self,
+                                                    value: -$0.frame(in: .named("scroll")).origin.y)
+                                })
+                                .onPreferenceChange(ViewOffsetKey.self) { offset in
+                                    let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
+                                    if numberOfItems > 0 {
+                                        let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
+                                        offsetItemsDetector.send(allItems)
+                                    }
+                                }
+                            }
+                            .background(Color.pbh.whiteBackground)
+                        }
+                        .coordinateSpace(name: "scroll")
+                        .navigationTitle(node.title)
+                        .background {
+                            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                        }
+                        .toolbar {
+                            ItemListToolbarContent(node: node)
+                        }
+                        .onReceive(offsetItemsPublisher) { newItems in
+                            Task.detached {
+                                Task(priority: .userInitiated) {
+                                    try? await NewsManager.shared.markRead(items: newItems, unread: false)
+                                }
+                            }
+                        }
+                        .onChange(of: nodeSelection) { _ in
+                            proxy.scrollTo(topID)
+                        }
+                        .onReceive(settings.$compactView) {
+                            cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+                        }
+                    }
+                }
+                .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
             } else {
                 Text("No Feed Selected")
-                    .font(.system(size: 36))
+                    .font(.largeTitle)
                     .foregroundColor(.secondary)
             }
         } detail: {
-            if let selectedItem {
-                MacArticleView(item: selectedItem)
+            if let selectedItem, let item = moc.object(with: selectedItem) as? CDItem {
+                MacArticleView(item: item)
                     .environmentObject(settings)
             } else {
                 Text("No Article Selected")
-                    .font(.system(size: 36))
+                    .font(.largeTitle)
                     .foregroundColor(.secondary)
             }
         }
@@ -237,16 +293,8 @@ struct ContentView: View {
                 case .feed(id: let id):
                     selectedFeed = Int(id)
                 }
-                Task {
-                    await model.currentNode.fetchData()
-                }
+                node = model.currentNode
             }
-        }
-        .onChange(of: selectedItem) {
-            model.updateCurrentItem($0)
-        }
-        .onChange(of: model.currentItem) {
-            selectedItem = $0
         }
 #endif
     }

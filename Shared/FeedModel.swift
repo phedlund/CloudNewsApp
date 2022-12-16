@@ -13,7 +13,7 @@ import SwiftUI
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
-    @Published var currentItem: ArticleModel?
+    @Published var currentItem: CDItem?
 
     private let allNode: Node
     private let starNode: Node
@@ -21,7 +21,6 @@ class FeedModel: ObservableObject {
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
     private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
-    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
 
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
@@ -67,44 +66,11 @@ class FeedModel: ObservableObject {
                 if changes.contains(where: { $0.key == "folderId" }) {
                     self.update()
                 }
-                if changes.contains(where: { $0.key == "starred" }), self.currentNode.id == StarNodeGuid {
-                    Task {
-                        await self.updateCurrentNodeItems()
-                    }
-                }
                 self.allNode.unreadCount = CDItem.unreadCount(nodeType: .all)
                 self.starNode.unreadCount = CDItem.unreadCount(nodeType: .starred)
             }
             .store(in: &cancellables)
 
-        syncPublisher
-            .sink { [weak self] _ in
-                guard let self else { return }
-                Task {
-                    await self.resetAllItems()
-                }
-            }
-            .store(in: &cancellables)
-
-        preferences.$hideRead
-            .sink { [weak self] hideRead in
-                self?.hideRead = hideRead
-                Task {
-                    await self?.resetAllItems()
-                }
-            }
-            .store(in: &cancellables)
-
-        preferences.$sortOldestFirst
-            .sink { [weak self] sortOldestFirst in
-                self?.sortOldestFirst = sortOldestFirst
-                Task {
-                    await self?.resetAllItems()
-                }
-            }
-            .store(in: &cancellables)
-
-        updateAllItems()
         update()
         isInInit = false
     }
@@ -156,7 +122,7 @@ class FeedModel: ObservableObject {
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
-    func updateCurrentItem(_ current: ArticleModel?) {
+    func updateCurrentItem(_ current: CDItem?) {
         currentItem = current
     }
 
@@ -235,58 +201,6 @@ class FeedModel: ObservableObject {
         let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
         node.errorCount = Int(feed.updateErrorCount)
         return node
-    }
-
-    private func resetAllItems() async {
-        updateAllItems()
-//        for node in nodes {
-//            node.items.removeAll()
-//            if let children = node.children {
-//                for child in children {
-//                    child.items.removeAll()
-//                }
-//            }
-//        }
-        await updateCurrentNodeItems()
-    }
-
-    private func updateAllItems() {
-        Task(priority: .high) {
-            let itemsFetchRequest = CDItem.fetchRequest()
-            let sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id,
-                                                    ascending: sortOldestFirst ? true : false)]
-            let predicate = hideRead ? NSPredicate(format: "unread == true") : NSPredicate(value: true)
-            itemsFetchRequest.sortDescriptors = sortDescriptors
-            itemsFetchRequest.predicate = predicate
-            do {
-                allItems = try NewsData.mainThreadContext.fetch(itemsFetchRequest)
-            } catch {
-                print("Failed to fetch items")
-            }
-        }
-    }
-
-    private func updateCurrentNodeItems() async {
-//        guard self.currentNode.items.isEmpty else { return }
-//        switch self.currentNode.nodeType {
-//        case .empty:
-//            break
-//        case .all:
-//            self.currentNode.cdItems = self.allItems
-//        case .starred:
-//            self.currentNode.cdItems = self.allItems
-//                .filter( { $0.starred == true } )
-//        case .folder(let id):
-//            if let feedIds = CDFeed.idsInFolder(folder: id) {
-//                self.currentNode.cdItems = self.allItems
-//                    .filter( { feedIds.contains($0.feedId) } )
-//            } else {
-//                self.allItems = []
-//            }
-//        case .feed(let id):
-//            self.currentNode.cdItems = self.allItems
-//                .filter( { $0.feedId == id } )
-//        }
     }
 
 }

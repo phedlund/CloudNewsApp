@@ -19,7 +19,7 @@ final class Node: Identifiable, ObservableObject {
     @Published var title = ""
     @Published var favIconLink: String?
 
-    var id: String
+    let id: String
 
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 

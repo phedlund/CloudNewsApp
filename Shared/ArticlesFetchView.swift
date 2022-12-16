@@ -56,8 +56,6 @@ struct ArticlesFetchView<Content: View>: View {
                     let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
                     if !itemsWithoutImageLink.isEmpty {
                         try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-                        let urls = items.compactMap({ $0.imageUrl as URL? })
-                        ImagePrefetcher(urls: urls).start()
                     }
                 } catch  { }
             }
