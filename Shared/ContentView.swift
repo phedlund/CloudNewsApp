@@ -162,14 +162,15 @@ struct ContentView: View {
                 }
             }
             .onChange(of: scenePhase) { newPhase in
-                if newPhase == .active {
-                    print("Active")
+                switch newPhase {
+                case .active:
                     nodeSelection = settings.selectedNode
-                } else if newPhase == .inactive {
-                    print("Inactive")
-                } else if newPhase == .background {
-                    print("Background")
+                case .inactive:
+                    break
+                case .background:
                     appDelegate.scheduleAppRefresh()
+                @unknown default:
+                    fatalError("Unknown scene phase")
                 }
             }
         }
@@ -294,6 +295,11 @@ struct ContentView: View {
                     selectedFeed = Int(id)
                 }
                 node = model.currentNode
+            }
+        }
+        .onChange(of: selectedItem) { newValue in
+            if let newValue, let item = moc.object(with: newValue) as? CDItem {
+                model.updateCurrentItem(item)
             }
         }
 #endif
