@@ -55,7 +55,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func updateBadge(_ badgeValue: Int) {
-        print("Badge updated")
         DispatchQueue.main.async {
             NSApp.dockTile.badgeLabel = badgeValue > 0 ? "\(badgeValue)" : ""
         }
