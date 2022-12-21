@@ -182,51 +182,41 @@ struct ContentView: View {
                 .environmentObject(favIconRepository)
         } content: {
             if let nodeSelection, nodeSelection != EmptyNodeGuid {
+                let _ = Self._printChanges()
                 GeometryReader { geometry in
                     ScrollViewReader { proxy in
-                        ScrollView {
-                            Rectangle()
-                                .fill(.clear)
-                                .frame(height: 1)
-                                .id(topID)
-                            ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
-                                LazyVStack(spacing: 15.0) {
-                                    ForEach(items, id: \.id) { item in
-                                        ItemListItemViev(item: item)
-                                            .environmentObject(settings)
-                                            .environmentObject(favIconRepository)
-                                            .padding([.horizontal], 6)
-                                            .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
-                                            .contextMenu {
-                                                ContextMenuContent(item: item)
-                                            }
-                                            .onTapGesture { _ in
-                                                selectedItem = item.objectID
-                                            }
+                        Rectangle()
+                            .fill(.clear)
+                            .frame(height: 1)
+                            .id(topID)
+                        ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
+                            List(items, id: \.objectID, selection: $selectedItem) { item in
+                                ItemListItemViev(item: item)
+                                    .environmentObject(settings)
+                                    .environmentObject(favIconRepository)
+                                    .padding([.horizontal], 6)
+                                    .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
                                     }
                                     .listRowBackground(Color.pbh.whiteBackground)
                                     .listRowSeparator(.hidden)
-                                }
-                                .background(GeometryReader {
-                                    Color.clear
-                                        .preference(key: ViewOffsetKey.self,
-                                                    value: -$0.frame(in: .named("scroll")).origin.y)
-                                })
-                                .onPreferenceChange(ViewOffsetKey.self) { offset in
-                                    let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                                    if numberOfItems > 0 {
-                                        let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-                                        offsetItemsDetector.send(allItems)
-                                    }
+                            }
+                            .background(GeometryReader {
+                                Color.clear
+                                    .preference(key: ViewOffsetKey.self,
+                                                value: -$0.frame(in: .named("scroll")).origin.y)
+                            })
+                            .onPreferenceChange(ViewOffsetKey.self) { offset in
+                                let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
+                                if numberOfItems > 0 {
+                                    let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
+                                    offsetItemsDetector.send(allItems)
                                 }
                             }
-                            .background(Color.pbh.whiteBackground)
                         }
                         .coordinateSpace(name: "scroll")
                         .navigationTitle(node.title)
-                        .background {
-                            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                        }
                         .toolbar {
                             ItemListToolbarContent(node: node)
                         }

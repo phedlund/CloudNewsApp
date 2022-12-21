@@ -151,14 +151,14 @@ struct AppCommands: Commands {
             Divider()
             Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
                 Task {
-                    try? await NewsManager.shared.markRead(items: [model.currentItem!.item], unread: !model.currentItem!.item.unread)
+                    try? await NewsManager.shared.markRead(items: [model.currentItem!], unread: !model.currentItem!.unread)
                 }
             }
             .keyboardShortcut("u", modifiers: [])
             .disabled(isCurrentItemDisabled())
             Button(model.currentItem?.starred ?? false ? "Unstar" : "Star") {
                 Task {
-                    try? await NewsManager.shared.markStarred(item: model.currentItem!.item, starred: !model.currentItem!.starred)
+                    try? await NewsManager.shared.markStarred(item: model.currentItem!, starred: !model.currentItem!.starred)
                 }
             }
             .keyboardShortcut("s", modifiers: [])
