@@ -9,7 +9,7 @@ import Kingfisher
 import SwiftUI
 
 struct ArticlesFetchView<Content: View>: View {
-    @FetchRequest var items: FetchedResults<CDItem>
+    @FetchRequest private var items: FetchedResults<CDItem>
     let content: (FetchedResults<CDItem>) -> Content
 
     private var predicate: NSPredicate

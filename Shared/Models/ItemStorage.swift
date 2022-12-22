@@ -47,7 +47,6 @@ class ItemStorage: NSObject, ObservableObject {
     var feeds = CurrentValueSubject<[CDFeed], Never>([])
     static let shared = ItemStorage()
 
-    private let preferences = Preferences()
     private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
     private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
