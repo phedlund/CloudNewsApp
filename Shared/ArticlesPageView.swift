@@ -11,7 +11,7 @@ import SwiftUI
 #if os(iOS)
 struct ArticlesPageView: View {
     @Environment(\.managedObjectContext) private var moc
-    @EnvironmentObject private var settings: Preferences
+//    @EnvironmentObject private var settings: Preferences
     @ObservedObject private var item: CDItem
     @State private var selection: NSManagedObjectID
     @State private var isShowingPopover = false

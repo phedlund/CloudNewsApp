@@ -33,6 +33,7 @@ struct ContentView: View {
     private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
 
     @State private var node = Node(.empty, id: EmptyNodeGuid)
+    @State private var items = [CDItem]()
     @State private var isShowingLogin = false
     @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
@@ -57,6 +58,7 @@ struct ContentView: View {
         let nodeSel = settings.selectedNode
         self.node = model.node(for: nodeSel) ?? Node(.empty, id: EmptyNodeGuid)
         _nodeSelection = State(initialValue: nodeSel)
+        items = model.currentItems
     }
 
     var body: some View {
@@ -73,61 +75,62 @@ struct ContentView: View {
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         NavigationStack(path: $path) {
                             ScrollViewReader { proxy in
-                                ScrollView {
+//                                ScrollView {
                                     Rectangle()
                                         .fill(.clear)
                                         .frame(height: 1)
                                         .id(topID)
-                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
-                                        LazyVStack(spacing: 15.0) {
-                                            ForEach(items, id: \.id) { item in
-                                                NavigationLink(value: item) {
-                                                    ItemListItemViev(item: item)
-                                                        .environmentObject(settings)
-                                                        .environmentObject(favIconRepository)
-                                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                                                        .contextMenu {
-                                                            ContextMenuContent(item: item)
-                                                        }
-                                                }
-                                                .buttonStyle(ClearSelectionStyle())
-                                            }
-                                            .listRowBackground(Color.pbh.whiteBackground)
-                                            .listRowSeparator(.hidden)
-                                        }
-                                        .scrollContentBackground(.hidden)
-                                        .navigationDestination(for: CDItem.self) { item in
-                                            ArticlesPageView(item: item, items: Array(items))
-                                                .environmentObject(settings)
-                                        }
-                                        .background(GeometryReader {
-                                            Color.clear
-                                                .preference(key: ViewOffsetKey.self,
-                                                            value: -$0.frame(in: .named("scroll")).origin.y)
-                                        })
-                                        .onPreferenceChange(ViewOffsetKey.self) { offset in
-                                            let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                                            if numberOfItems > 0 {
-                                                let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-                                                offsetItemsDetector.send(allItems)
-                                            }
-                                        }
-                                    }
-                                }
-                                .coordinateSpace(name: "scroll")
-                                .toolbar {
-                                    ItemListToolbarContent(node: node)
-                                }
-                                .onReceive(offsetItemsPublisher) { newItems in
-                                    Task.detached {
-                                        Task(priority: .userInitiated) {
-                                            try? await NewsManager.shared.markRead(items: newItems, unread: false)
-                                        }
-                                    }
-                                }
-                                .onChange(of: nodeSelection) { _ in
-                                    proxy.scrollTo(topID)
-                                }
+                                    ArticlesFetchView2(model: model, settings: settings) // { items in
+//                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
+//                                        LazyVStack(spacing: 15.0) {
+//                                            ForEach(items, id: \.id) { item in
+//                                                NavigationLink(value: item) {
+//                                                    ItemListItemViev(item: item)
+//                                                        .environmentObject(settings)
+//                                                        .environmentObject(favIconRepository)
+//                                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
+//                                                        .contextMenu {
+//                                                            ContextMenuContent(item: item)
+//                                                        }
+//                                                }
+//                                                .buttonStyle(ClearSelectionStyle())
+//                                            }
+//                                            .listRowBackground(Color.pbh.whiteBackground)
+//                                            .listRowSeparator(.hidden)
+//                                        }
+//                                        .scrollContentBackground(.hidden)
+//                                        .navigationDestination(for: CDItem.self) { item in
+//                                            ArticlesPageView(item: item, items: Array(items))
+//                                                .environmentObject(settings)
+//                                        }
+//                                        .background(GeometryReader {
+//                                            Color.clear
+//                                                .preference(key: ViewOffsetKey.self,
+//                                                            value: -$0.frame(in: .named("scroll")).origin.y)
+//                                        })
+//                                        .onPreferenceChange(ViewOffsetKey.self) { offset in
+//                                            let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
+//                                            if numberOfItems > 0 {
+//                                                let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
+//                                                offsetItemsDetector.send(allItems)
+//                                            }
+//                                        }
+//                                    }
+////                                }
+//                                .coordinateSpace(name: "scroll")
+//                                .toolbar {
+//                                    ItemListToolbarContent(node: node)
+//                                }
+//                                .onReceive(offsetItemsPublisher) { newItems in
+//                                    Task.detached {
+//                                        Task(priority: .userInitiated) {
+//                                            try? await NewsManager.shared.markRead(items: newItems, unread: false)
+//                                        }
+//                                    }
+//                                }
+//                                .onChange(of: nodeSelection) { _ in
+//                                    proxy.scrollTo(topID)
+//                                }
                             }
                         }
                     }
@@ -144,6 +147,10 @@ struct ContentView: View {
                 NavigationView {
                     SettingsView()
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                nodeSelection = nil
+                nodeSelection = settings.selectedNode
             }
             .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
             .onChange(of: nodeSelection) {
@@ -185,22 +192,25 @@ struct ContentView: View {
                 let _ = Self._printChanges()
                 GeometryReader { geometry in
                     ScrollViewReader { proxy in
-                        Rectangle()
-                            .fill(.clear)
-                            .frame(height: 1)
-                            .id(topID)
-                        ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
-                            List(items, id: \.objectID, selection: $selectedItem) { item in
-                                ItemListItemViev(item: item)
-                                    .environmentObject(settings)
-                                    .environmentObject(favIconRepository)
-                                    .padding([.horizontal], 6)
-                                    .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
-                                    .contextMenu {
-                                        ContextMenuContent(item: item)
-                                    }
-                                    .listRowBackground(Color.pbh.whiteBackground)
-                                    .listRowSeparator(.hidden)
+                        VStack {
+                            Rectangle()
+                                .fill(.clear)
+                                .frame(height: 1)
+                                .id(topID)
+                            //                        ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
+                            List(selection: $selectedItem) {
+                                ForEach(items, id: \.objectID) { item in
+                                    ItemListItemViev(item: item)
+                                        .environmentObject(settings)
+                                        .environmentObject(favIconRepository)
+                                        .padding([.horizontal], 6)
+                                        .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
+                                        .contextMenu {
+                                            ContextMenuContent(item: item)
+                                        }
+                                        .listRowBackground(Color.pbh.whiteBackground)
+                                        .listRowSeparator(.hidden)
+                                }
                             }
                             .background(GeometryReader {
                                 Color.clear
@@ -210,12 +220,14 @@ struct ContentView: View {
                             .onPreferenceChange(ViewOffsetKey.self) { offset in
                                 let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
                                 if numberOfItems > 0 {
-                                    let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
+                                    let allItems = model.currentItems.prefix(numberOfItems).filter( { $0.unread })
                                     offsetItemsDetector.send(allItems)
                                 }
                             }
+                            //                        }
+                            .coordinateSpace(name: "scroll")
                         }
-                        .coordinateSpace(name: "scroll")
+                        //                        .coordinateSpace(name: "scroll")
                         .navigationTitle(node.title)
                         .toolbar {
                             ItemListToolbarContent(node: node)
@@ -274,6 +286,7 @@ struct ContentView: View {
         }
         .onChange(of: nodeSelection) {
             if let nodeId = $0 {
+                settings.selectedNode = nodeId
                 model.updateCurrentNode(nodeId)
                 model.updateCurrentItem(nil)
                 switch model.currentNode.nodeType {
@@ -285,6 +298,7 @@ struct ContentView: View {
                     selectedFeed = Int(id)
                 }
                 node = model.currentNode
+                items = model.currentItems
             }
         }
         .onChange(of: selectedItem) { newValue in

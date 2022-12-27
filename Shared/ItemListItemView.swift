@@ -15,7 +15,7 @@ struct ItemListItemViev: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 #endif
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject private var settings: Preferences
+    @AppStorage(SettingKeys.compactView) private var compactView = false
     @ObservedObject var item: CDItem
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
@@ -35,7 +35,7 @@ struct ItemListItemViev: View {
                               size: thumbnailSize,
                               itemOpacity: itemOpacity)
                     .alignmentGuide(.top) { d in
-                        (d[explicit: .top] ?? 0) - (settings.compactView ? 3 : 0)
+                        (d[explicit: .top] ?? 0) - (compactView ? 3 : 0)
                     }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
@@ -43,7 +43,7 @@ struct ItemListItemViev: View {
                         FavIconDateAuthorView(feedIcon: CDFeed.feed(id: item.feedId)?.faviconLinkResolved,
                                               dateAuthorFeed: item.dateFeedAuthor,
                                               itemOpacity: itemOpacity)
-                        if settings.compactView || isHorizontalCompact {
+                        if compactView || isHorizontalCompact {
                             EmptyView()
                         } else {
                             BodyView(displayBody: item.displayBody, textColor: textColor)
@@ -54,10 +54,10 @@ struct ItemListItemViev: View {
                     .padding(.top, 3)
                     Spacer()
                 }
-                .padding([.leading], settings.compactView || isHorizontalCompact ? 0 : 6)
+                .padding([.leading], compactView || isHorizontalCompact ? 0 : 6)
                 ItemStarredView(starred: item.starred, textColor: textColor)
             }
-            if isHorizontalCompact && !settings.compactView  {
+            if isHorizontalCompact && !compactView  {
                 HStack {
                     VStack {
                         BodyView(displayBody: item.displayBody, textColor: textColor)
@@ -81,10 +81,10 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
-        .onReceive(settings.$compactView) { newCompactView in
-            cellHeight = newCompactView ? .compactCellHeight : .defaultCellHeight
-            let thumbnailWidth = newCompactView ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
-            let thumbnailHeight = newCompactView ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
+        .onChange(of: $compactView.wrappedValue) { newValue in
+            cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+            let thumbnailWidth = newValue ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
+            let thumbnailHeight = newValue ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
             thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
         }
     }

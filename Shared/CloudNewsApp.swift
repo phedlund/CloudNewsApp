@@ -135,16 +135,16 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-                if let item = model.currentItem {
-                    model.updateCurrentItem(model.currentNode.items.element(before: item))
-                }
+//                if let item = model.currentItem {
+//                    model.updateCurrentItem(model.currentNode.items.element(before: item))
+//                }
             }
             .keyboardShortcut("p", modifiers: [])
             .disabled(isCurrentItemDisabled())
             Button("Next") {
-                if let item = model.currentItem {
-                    model.updateCurrentItem(model.currentNode.items.element(after: item))
-                }
+//                if let item = model.currentItem {
+//                    model.updateCurrentItem(model.currentNode.items.element(after: item))
+//                }
             }
             .keyboardShortcut("n", modifiers: [])
             .disabled(isCurrentItemDisabled())

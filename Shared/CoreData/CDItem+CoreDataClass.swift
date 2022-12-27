@@ -210,7 +210,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func addImageLink(item: CDItem, imageLink: String) async throws {
-        try await NewsData.mainThreadContext.perform(schedule: .enqueued) {
+        try await NewsData.mainThreadContext.perform {
             do {
                 let currentData = item.imageLink
                 if imageLink == currentData {
