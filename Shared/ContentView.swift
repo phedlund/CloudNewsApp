@@ -83,7 +83,7 @@ struct ContentView: View {
             ZStack {
                 if selectedNode != EmptyNodeGuid {
                     GeometryReader { geometry in
-                        let cellWidth = min(geometry.size.width * 0.93, 700.0)
+//                        let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         NavigationStack(path: $path) {
 //                            ScrollViewReader { proxy in
                                 //                                ScrollView {
@@ -153,6 +153,7 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
             }
+            .navigationTitle(model.currentNode.title)
             .onAppear {
                 isShowingLogin = isNotLoggedIn
             }
