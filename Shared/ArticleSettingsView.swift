@@ -21,7 +21,7 @@ struct ArticleSettingsConstants {
 }
 
 struct ArticleSettingsView: View {
-    @EnvironmentObject private var settings: Preferences
+    private let settings =  Preferences()
     var item: CDItem
 
     private let buttonHeight = 25.0

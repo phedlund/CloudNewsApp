@@ -13,6 +13,8 @@ struct ContentView: View {
 #if !os(macOS)
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
+    @StateObject private var settings = Preferences()
+    @StateObject private var favIconRepository = FavIconRepository()
     @Environment(\.managedObjectContext) private var moc
     @Environment(\.scenePhase) var scenePhase
     @KeychainStorage(SettingKeys.username) var username = ""
@@ -22,65 +24,76 @@ struct ContentView: View {
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = EmptyNodeGuid
 
-    @ObservedObject var model: FeedModel
-    @ObservedObject var settings: Preferences
-    @ObservedObject var favIconRepository: FavIconRepository
+    @EnvironmentObject private var model: FeedModel
+//    @EnvironmentObject private var settings: Preferences
+//    @EnvironmentObject private var favIconRepository: FavIconRepository
 
     @Namespace var topID
 
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
     private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
 
-    @State private var node = Node(.empty, id: EmptyNodeGuid)
-    @State private var items = [CDItem]()
+//    @State private var node = Node(.empty, id: EmptyNodeGuid)
+//    @State private var items = [CDItem]()
     @State private var isShowingLogin = false
     @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
-    @State private var nodeSelection: Node.ID?
+//    @State private var nodeSelection: Node.ID?
     @State private var path = NavigationPath()
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var selectedItem: NSManagedObjectID?
+
+//    var nodeSelection: Binding<Node.ID?> {
+//            Binding {
+//                model.currentNode.id
+//            } set: { newValue in
+//                model.updateCurrentNode(newValue ?? EmptyNodeGuid)
+//            }
+//        }
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
     }
 
-    init(model: FeedModel, settings: Preferences, favIconRepository: FavIconRepository) {
+    init() {
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
-        self.model = model
-        self.settings = settings
-        self.favIconRepository = favIconRepository
-        let nodeSel = settings.selectedNode
-        self.node = model.node(for: nodeSel) ?? Node(.empty, id: EmptyNodeGuid)
-        _nodeSelection = State(initialValue: nodeSel)
-        items = model.currentItems
+//        self.model = model
+//        self.settings = settings
+//        self.favIconRepository = favIconRepository
+//        let nodeSel = settings.selectedNode
+//        self.node = model.node(for: nodeSel) ?? Node(.empty, id: EmptyNodeGuid)
+//        _nodeSelection = State(initialValue: nodeSel)
+//        items = model.currentItems
     }
 
     var body: some View {
+        let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: $nodeSelection)
+            SidebarView()
                 .environmentObject(model)
-                .environmentObject(settings)
                 .environmentObject(favIconRepository)
         } detail: {
             ZStack {
-                if let nodeSelection, nodeSelection != EmptyNodeGuid {
+                if selectedNode != EmptyNodeGuid {
                     GeometryReader { geometry in
                         let cellWidth = min(geometry.size.width * 0.93, 700.0)
                         NavigationStack(path: $path) {
-                            ScrollViewReader { proxy in
-//                                ScrollView {
-                                    Rectangle()
-                                        .fill(.clear)
-                                        .frame(height: 1)
-                                        .id(topID)
-                                    ArticlesFetchView2(model: model, settings: settings) // { items in
+//                            ScrollViewReader { proxy in
+                                //                                ScrollView {
+                                Rectangle()
+                                    .fill(.clear)
+                                    .frame(height: 1)
+                                    .id(topID)
+                                ArticlesFetchView2() // { items in
+                                    .environmentObject(model)
+                                    .environmentObject(favIconRepository)
 //                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
 //                                        LazyVStack(spacing: 15.0) {
 //                                            ForEach(items, id: \.id) { item in
@@ -131,12 +144,12 @@ struct ContentView: View {
 //                                .onChange(of: nodeSelection) { _ in
 //                                    proxy.scrollTo(topID)
 //                                }
-                            }
+//                            }
                         }
                     }
                 } else {
                     Text("No Feed Selected")
-                        .font(.largeTitle)
+                        .font(.largeTitle).fontWeight(.light)
                         .foregroundColor(.secondary)
                 }
             }
@@ -148,30 +161,26 @@ struct ContentView: View {
                     SettingsView()
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                nodeSelection = nil
-                nodeSelection = settings.selectedNode
-            }
             .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
-            .onChange(of: nodeSelection) {
-                if let nodeId = $0 {
-                    model.updateCurrentNode(nodeId)
-                    model.updateCurrentItem(nil)
-                    switch model.currentNode.nodeType {
-                    case .empty, .all, .starred:
-                        break
-                    case .folder(id:  let id):
-                        selectedFeed = Int(id)
-                    case .feed(id: let id):
-                        selectedFeed = Int(id)
-                    }
-                    node = model.currentNode
-                }
-            }
+//            .onChange(of: nodeSelection) {
+//                if let nodeId = $0 {
+//                    model.updateCurrentNode(nodeId)
+//                    model.updateCurrentItem(nil)
+//                    switch model.currentNode.nodeType {
+//                    case .empty, .all, .starred:
+//                        break
+//                    case .folder(id:  let id):
+//                        selectedFeed = Int(id)
+//                    case .feed(id: let id):
+//                        selectedFeed = Int(id)
+//                    }
+//                    node = model.currentNode
+//                }
+//            }
             .onChange(of: scenePhase) { newPhase in
                 switch newPhase {
                 case .active:
-                    nodeSelection = settings.selectedNode
+                    break //nodeSelection = settings.selectedNode
                 case .inactive:
                     break
                 case .background:

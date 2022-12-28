@@ -16,6 +16,39 @@ enum NodeType: Equatable, Hashable {
     case feed(id: Int32)
 }
 
+extension NodeType {
+
+    static func fromString(typeString: String) -> NodeType {
+        switch typeString {
+        case AllNodeGuid:
+            return .all
+        case StarNodeGuid:
+            return .starred
+        case EmptyNodeGuid:
+            return .empty
+        case _ where typeString.hasPrefix("folder"):
+            if let index = typeString.lastIndex(of: "_") {
+                let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
+                let myId = Int32(idString)
+                return .folder(id: myId ?? 0)
+            } else {
+                return .empty
+            }
+        case _ where typeString.hasPrefix("feed"):
+            if let index = typeString.lastIndex(of: "_") {
+                let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
+                let myId = Int32(idString)
+                return .feed(id: myId ?? 0)
+            } else {
+                return .empty
+            }
+        default:
+            return .empty
+        }
+    }
+
+}
+
 protocol FolderProtocol {
     var id: Int32 { get set }
     var name: String? { get set }

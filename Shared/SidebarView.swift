@@ -27,9 +27,9 @@ struct SidebarView: View {
 #endif
     @Environment(\.managedObjectContext) private var moc
     @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var preferences: Preferences
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = EmptyNodeGuid
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
@@ -40,18 +40,25 @@ struct SidebarView: View {
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
 
-    @Binding var nodeSelection: Node.ID?
+//    @Binding var nodeSelection: Node.ID?
+    var nodeSelection: Binding<Node.ID?> {
+            Binding {
+                selectedNode
+            } set: { newValue in
+                selectedNode = newValue ?? EmptyNodeGuid
+            }
+        }
 
     private var syncPublisher = NotificationCenter.default
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
-    init(nodeSelection: Binding<Node.ID?>) {
-        self._nodeSelection = nodeSelection
-    }
+//    init(nodeSelection: Binding<Node.ID?>) {
+//        self._nodeSelection = nodeSelection
+//    }
 
     var body: some View {
-        List(selection: $nodeSelection) {
+        List(selection: nodeSelection) {
             if isShowingError {
                 HStack {
                     Text(errorMessage)
@@ -75,7 +82,7 @@ struct SidebarView: View {
                     .accentColor(.pbh.whiteIcon)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        nodeSelection = node.id
+                        selectedNode = node.id
                     }
                     .contextMenu {
                         contextMenu(node: node)
