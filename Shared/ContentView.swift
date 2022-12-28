@@ -42,17 +42,9 @@ struct ContentView: View {
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
 //    @State private var nodeSelection: Node.ID?
-    @State private var path = NavigationPath()
-    @State private var cellHeight: CGFloat = .defaultCellHeight
+//    @State private var path = NavigationPath()
+//    @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var selectedItem: NSManagedObjectID?
-
-//    var nodeSelection: Binding<Node.ID?> {
-//            Binding {
-//                model.currentNode.id
-//            } set: { newValue in
-//                model.updateCurrentNode(newValue ?? EmptyNodeGuid)
-//            }
-//        }
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
@@ -82,71 +74,9 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNode != EmptyNodeGuid {
-                    GeometryReader { geometry in
-//                        let cellWidth = min(geometry.size.width * 0.93, 700.0)
-                        NavigationStack(path: $path) {
-//                            ScrollViewReader { proxy in
-                                //                                ScrollView {
-                                Rectangle()
-                                    .fill(.clear)
-                                    .frame(height: 1)
-                                    .id(topID)
-                                ArticlesFetchView2() // { items in
-                                    .environmentObject(model)
-                                    .environmentObject(favIconRepository)
-//                                    ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
-//                                        LazyVStack(spacing: 15.0) {
-//                                            ForEach(items, id: \.id) { item in
-//                                                NavigationLink(value: item) {
-//                                                    ItemListItemViev(item: item)
-//                                                        .environmentObject(settings)
-//                                                        .environmentObject(favIconRepository)
-//                                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
-//                                                        .contextMenu {
-//                                                            ContextMenuContent(item: item)
-//                                                        }
-//                                                }
-//                                                .buttonStyle(ClearSelectionStyle())
-//                                            }
-//                                            .listRowBackground(Color.pbh.whiteBackground)
-//                                            .listRowSeparator(.hidden)
-//                                        }
-//                                        .scrollContentBackground(.hidden)
-//                                        .navigationDestination(for: CDItem.self) { item in
-//                                            ArticlesPageView(item: item, items: Array(items))
-//                                                .environmentObject(settings)
-//                                        }
-//                                        .background(GeometryReader {
-//                                            Color.clear
-//                                                .preference(key: ViewOffsetKey.self,
-//                                                            value: -$0.frame(in: .named("scroll")).origin.y)
-//                                        })
-//                                        .onPreferenceChange(ViewOffsetKey.self) { offset in
-//                                            let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-//                                            if numberOfItems > 0 {
-//                                                let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-//                                                offsetItemsDetector.send(allItems)
-//                                            }
-//                                        }
-//                                    }
-////                                }
-//                                .coordinateSpace(name: "scroll")
-//                                .toolbar {
-//                                    ItemListToolbarContent(node: node)
-//                                }
-//                                .onReceive(offsetItemsPublisher) { newItems in
-//                                    Task.detached {
-//                                        Task(priority: .userInitiated) {
-//                                            try? await NewsManager.shared.markRead(items: newItems, unread: false)
-//                                        }
-//                                    }
-//                                }
-//                                .onChange(of: nodeSelection) { _ in
-//                                    proxy.scrollTo(topID)
-//                                }
-//                            }
-                        }
-                    }
+                    ArticlesFetchView2() // { items in
+                        .environmentObject(model)
+                        .environmentObject(favIconRepository)
                 } else {
                     Text("No Feed Selected")
                         .font(.largeTitle).fontWeight(.light)
@@ -162,22 +92,6 @@ struct ContentView: View {
                     SettingsView()
                 }
             }
-            .onReceive(settings.$compactView) { cellHeight = $0 ? .compactCellHeight : .defaultCellHeight }
-//            .onChange(of: nodeSelection) {
-//                if let nodeId = $0 {
-//                    model.updateCurrentNode(nodeId)
-//                    model.updateCurrentItem(nil)
-//                    switch model.currentNode.nodeType {
-//                    case .empty, .all, .starred:
-//                        break
-//                    case .folder(id:  let id):
-//                        selectedFeed = Int(id)
-//                    case .feed(id: let id):
-//                        selectedFeed = Int(id)
-//                    }
-//                    node = model.currentNode
-//                }
-//            }
             .onChange(of: scenePhase) { newPhase in
                 switch newPhase {
                 case .active:
