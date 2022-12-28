@@ -13,7 +13,6 @@ struct ArticlesFetchView2: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = EmptyNodeGuid
 
-    //    @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
 
     @FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: NSPredicate(value: false))
@@ -45,39 +44,49 @@ struct ArticlesFetchView2: View {
                     ArticlesPageView(item: item, items: Array(items))
                 }
             }
-            //        .task(id: model.currentNode.id) {
-            //            do {
-            //                let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-            //                if !itemsWithoutImageLink.isEmpty {
-            //                    try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-            //                }
-            //            } catch  { }
-            //        }
+            .task(id: selectedNode) {
+                do {
+                    let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
+                    if !itemsWithoutImageLink.isEmpty {
+                        try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+                    }
+                } catch  { }
+            }
+            .onAppear {
+                updatePredicate(nodeIdString: selectedNode)
+            }
             .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                 items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
             }
-            .onChange(of: $selectedNode.wrappedValue) {
-                var predicate1 = NSPredicate(value: true)
-                if hideRead {
-                    predicate1 = NSPredicate(format: "unread == true")
-                }
-                switch NodeType.fromString(typeString: $0) {
-                case .empty:
-                    items.nsPredicate = NSPredicate(value: false)
-                case .all:
-                    items.nsPredicate = NSPredicate(value: true)
-                case .starred:
-                    items.nsPredicate = NSPredicate(format: "starred == true")
-                case .folder(id:  let id):
-                    if let feedIds = CDFeed.idsInFolder(folder: id) {
-                        let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-                        items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-                    }
-                case .feed(id: let id):
-                    let predicate2 = NSPredicate(format: "feedId == %d", id)
-                    items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-                }
+            .onChange(of: $hideRead.wrappedValue) { _ in
+                updatePredicate(nodeIdString: selectedNode)
             }
+            .onChange(of: $selectedNode.wrappedValue) {
+                updatePredicate(nodeIdString: $0)
+            }
+        }
+    }
+
+    private func updatePredicate(nodeIdString: String) {
+        var predicate1 = NSPredicate(value: true)
+        if hideRead {
+            predicate1 = NSPredicate(format: "unread == true")
+        }
+        switch NodeType.fromString(typeString: nodeIdString) {
+        case .empty:
+            items.nsPredicate = NSPredicate(value: false)
+        case .all:
+            items.nsPredicate = NSPredicate(value: true)
+        case .starred:
+            items.nsPredicate = NSPredicate(format: "starred == true")
+        case .folder(id:  let id):
+            if let feedIds = CDFeed.idsInFolder(folder: id) {
+                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
+                items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            }
+        case .feed(id: let id):
+            let predicate2 = NSPredicate(format: "feedId == %d", id)
+            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
         }
     }
 }
