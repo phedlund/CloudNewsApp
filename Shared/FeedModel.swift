@@ -14,8 +14,6 @@ class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
     @Published var currentItem: CDItem?
-//    @Published var currentItems = [CDItem]()
-//    @Published var nsPredicate = NSPredicate(value: true)
 
     private let allNode: Node
     private let starNode: Node
@@ -70,23 +68,11 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        preferences.$hideRead.sink { [weak self] _ in
+        preferences.$selectedNode.sink { [weak self] newNode in
             guard let self, !self.isInInit else { return }
-            self.updateCurrentItems()
+            self.updateCurrentNode(newNode)
         }
         .store(in: &cancellables)
-
-        preferences.$sortOldestFirst.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.updateCurrentItems()
-        }
-        .store(in: &cancellables)
-
-//        preferences.$selectedNode.sink { [weak self] newNode in
-//            guard let self, !self.isInInit else { return }
-//            self.updateCurrentNode(newNode)
-//        }
-//        .store(in: &cancellables)
 
         update()
         isInInit = false
@@ -189,45 +175,6 @@ class FeedModel: ObservableObject {
             }
         }
         return nil
-    }
-
-    private func updateCurrentItems() {
-//        var result = [CDItem]()
-//
-//        var predicate1 = NSPredicate(value: true)
-//        if preferences.hideRead {
-//            predicate1 = NSPredicate(format: "unread == true")
-//        }
-//        var predicate = NSPredicate(value: true)
-//
-//        switch currentNode.nodeType {
-//        case .empty:
-//            predicate = NSPredicate(value: false)
-//        case .all:
-//            predicate = predicate1
-//        case .starred:
-//            predicate = NSPredicate(format: "starred == true")
-//        case .folder(id:  let id):
-//            if let feedIds = CDFeed.idsInFolder(folder: id) {
-//                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-//                predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-//            }
-//        case .feed(id: let id):
-//            let predicate2 = NSPredicate(format: "feedId == %d", id)
-//            predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-//        }
-//
-//        let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
-//        let sortDescriptors = NSSortDescriptor(key: "id", ascending: preferences.sortOldestFirst)
-//        request.sortDescriptors = [sortDescriptors]
-//        request.predicate = predicate
-//
-//        do {
-//           result = try NewsData.mainThreadContext.fetch(request)
-//        } catch {
-//            //
-//        }
-//        currentItems = result
     }
 
     private func folderNode(folder: CDFolder) -> Node {

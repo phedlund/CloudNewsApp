@@ -22,7 +22,6 @@ struct ArticlesFetchView: View {
 
     @FetchRequest private var items: FetchedResults<CDItem>
 
-    @State private var selectedSort = ItemSort.default
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var path = NavigationPath()
 
@@ -94,20 +93,13 @@ struct ArticlesFetchView: View {
                         } catch  { }
                     }
                     .coordinateSpace(name: "scroll")
-                    //                                .toolbar {
-                    //                                    ItemListToolbarContent(node: node)
-                    //                                }
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                         items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
-                    }
-                    .onChange(of: $hideRead.wrappedValue) { _ in
-                        items.nsPredicate = nodeRepository.predicate
                     }
                     .onChange(of: $compactView.wrappedValue) {
                         cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
                     }
-                    .onChange(of: nodeRepository.predicate) {
-                        items.nsPredicate = $0
+                    .onChange(of: nodeRepository.predicate) { _ in
                         proxy.scrollTo(topID)
                     }
                     .onReceive(offsetItemsPublisher) { newItems in
@@ -123,28 +115,4 @@ struct ArticlesFetchView: View {
             }
         }
     }
-
-//    private func updatePredicate(nodeIdString: String) {
-//        print("Setting predicate")
-//        var predicate1 = NSPredicate(value: true)
-//        if hideRead {
-//            predicate1 = NSPredicate(format: "unread == true")
-//        }
-//        switch NodeType.fromString(typeString: nodeIdString) {
-//        case .empty:
-//            items.nsPredicate = NSPredicate(value: false)
-//        case .all:
-//            items.nsPredicate = NSPredicate(value: true)
-//        case .starred:
-//            items.nsPredicate = NSPredicate(format: "starred == true")
-//        case .folder(id:  let id):
-//            if let feedIds = CDFeed.idsInFolder(folder: id) {
-//                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-//                items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-//            }
-//        case .feed(id: let id):
-//            let predicate2 = NSPredicate(format: "feedId == %d", id)
-//            items.nsPredicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
-//        }
-//    }
 }

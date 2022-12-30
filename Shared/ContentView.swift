@@ -63,6 +63,9 @@ struct ContentView: View {
                 if nodeRepository.currentNode != EmptyNodeGuid {
                     ArticlesFetchView(nodeRepository: nodeRepository)
                         .environmentObject(favIconRepository)
+                        .toolbar {
+                            ItemListToolbarContent(node: model.currentNode)
+                        }
                 } else {
                     Text("No Feed Selected")
                         .font(.largeTitle).fontWeight(.light)
