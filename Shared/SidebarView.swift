@@ -29,7 +29,6 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = EmptyNodeGuid
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
@@ -40,73 +39,43 @@ struct SidebarView: View {
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
 
-//    @Binding var nodeSelection: Node.ID?
-    var nodeSelection: Binding<Node.ID?> {
-            Binding {
-                selectedNode
-            } set: { newValue in
-                selectedNode = newValue ?? EmptyNodeGuid
-            }
-        }
+    @Binding var nodeSelection: Node.ID?
 
     private var syncPublisher = NotificationCenter.default
         .publisher(for: .syncComplete)
         .receive(on: DispatchQueue.main)
 
-//    init(nodeSelection: Binding<Node.ID?>) {
-//        self._nodeSelection = nodeSelection
-//    }
+    init(nodeSelection: Binding<Node.ID?>) {
+        self._nodeSelection = nodeSelection
+    }
 
     var body: some View {
-        List(selection: nodeSelection) {
-            if isShowingError {
-                HStack {
-                    Text(errorMessage)
-                    Button {
-                        isShowingError = false
-                    } label: {
-                        Text("Dismiss")
-                    }
-                    .buttonStyle(.bordered)
+        List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+            NodeView(node: node)
+                .environmentObject(favIconRepository)
+                .tag(node.id)
+                .contextMenu {
+                    contextMenu(node: node)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.red.opacity(0.75))
-                .cornerRadius(10.0)
-                .transition(.move(edge: .top))
-            }
-            OutlineGroup(model.nodes, id: \.id, children: \.children) { node in
-                NodeView(node: node)
-                    .environmentObject(favIconRepository)
-                    .tag(node.id)
-                    .accentColor(.pbh.whiteIcon)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedNode = node.id
+                .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
+                    Button {
+                        model.delete(detail)
+                    } label: {
+                        Text("Delete \(detail.title)")
                     }
-                    .contextMenu {
-                        contextMenu(node: node)
+                    Button("Cancel", role: .cancel) {
+                        confirmationNode = nil
                     }
-                    .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
-                        Button {
-                            model.delete(detail)
-                        } label: {
-                            Text("Delete \(detail.title)")
-                        }
-                        Button("Cancel", role: .cancel) {
-                            confirmationNode = nil
-                        }
-                    } message: { detail in
-                        switch detail.nodeType {
-                        case .all, .empty, .starred:
-                            EmptyView()
-                        case .feed(id: _):
-                            Text("This will delete the feed \(detail.title)")
-                        case .folder(id: _):
-                            Text("This will delete the folder \(detail.title) and all its feeds")
-                        }
+                } message: { detail in
+                    switch detail.nodeType {
+                    case .all, .empty, .starred:
+                        EmptyView()
+                    case .feed(id: _):
+                        Text("This will delete the feed \(detail.title)")
+                    case .folder(id: _):
+                        Text("This will delete the folder \(detail.title) and all its feeds")
                     }
-            }
+                }
         }
         .listStyle(.automatic)
         .accentColor(.pbh.darkIcon)

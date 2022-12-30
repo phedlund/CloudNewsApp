@@ -82,11 +82,11 @@ class FeedModel: ObservableObject {
         }
         .store(in: &cancellables)
 
-        preferences.$selectedNode.sink { [weak self] newNode in
-            guard let self, !self.isInInit else { return }
-            self.updateCurrentNode(newNode)
-        }
-        .store(in: &cancellables)
+//        preferences.$selectedNode.sink { [weak self] newNode in
+//            guard let self, !self.isInInit else { return }
+//            self.updateCurrentNode(newNode)
+//        }
+//        .store(in: &cancellables)
 
         update()
         isInInit = false

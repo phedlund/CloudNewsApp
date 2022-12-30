@@ -24,26 +24,20 @@ struct ContentView: View {
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = EmptyNodeGuid
+
+    @StateObject private var nodeRepository = NodeRepository()
 
     @EnvironmentObject private var model: FeedModel
-//    @EnvironmentObject private var settings: Preferences
-//    @EnvironmentObject private var favIconRepository: FavIconRepository
 
     @Namespace var topID
 
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
     private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
 
-//    @State private var node = Node(.empty, id: EmptyNodeGuid)
-//    @State private var items = [CDItem]()
     @State private var isShowingLogin = false
     @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
-//    @State private var nodeSelection: Node.ID?
-//    @State private var path = NavigationPath()
-//    @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var selectedItem: NSManagedObjectID?
 
     private var isNotLoggedIn: Bool {
@@ -55,27 +49,19 @@ struct ContentView: View {
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
-//        self.model = model
-//        self.settings = settings
-//        self.favIconRepository = favIconRepository
-//        let nodeSel = settings.selectedNode
-//        self.node = model.node(for: nodeSel) ?? Node(.empty, id: EmptyNodeGuid)
-//        _nodeSelection = State(initialValue: nodeSel)
-//        items = model.currentItems
     }
 
     var body: some View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView()
+            SidebarView(nodeSelection: $nodeRepository.currentNode)
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } detail: {
             ZStack {
-                if selectedNode != EmptyNodeGuid {
-                    ArticlesFetchView2() // { items in
-                        .environmentObject(model)
+                if nodeRepository.currentNode != EmptyNodeGuid {
+                    ArticlesFetchView(nodeRepository: nodeRepository)
                         .environmentObject(favIconRepository)
                 } else {
                     Text("No Feed Selected")
@@ -95,7 +81,7 @@ struct ContentView: View {
             .onChange(of: scenePhase) { newPhase in
                 switch newPhase {
                 case .active:
-                    break //nodeSelection = settings.selectedNode
+                    break
                 case .inactive:
                     break
                 case .background:
