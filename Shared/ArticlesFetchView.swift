@@ -9,6 +9,7 @@ import Combine
 import Kingfisher
 import SwiftUI
 
+#if os(iOS)
 struct ArticlesFetchView: View {
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
@@ -51,7 +52,7 @@ struct ArticlesFetchView: View {
                             .id(topID)
                         LazyVStack(spacing: 15.0) {
                             let _ = print("Items count \(items.count)")
-                            ForEach(items, id: \.id) { item in
+                            ForEach(items, id: \.objectID) { item in
                                 NavigationLink(value: item) {
                                     ItemListItemViev(item: item)
                                         .environmentObject(favIconRepository)
@@ -116,3 +117,4 @@ struct ArticlesFetchView: View {
         }
     }
 }
+#endif

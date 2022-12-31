@@ -39,14 +39,14 @@ struct ItemListItemViev: View {
                     }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
-                        TitleView(title: item.title ?? "Untitled", textColor: textColor)
+                        TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
                         FavIconDateAuthorView(feedIcon: CDFeed.feed(id: item.feedId)?.faviconLinkResolved,
                                               dateAuthorFeed: item.dateFeedAuthor,
                                               itemOpacity: itemOpacity)
                         if compactView || isHorizontalCompact {
                             EmptyView()
                         } else {
-                            BodyView(displayBody: item.displayBody, textColor: textColor)
+                            BodyView(displayBody: item.displayBody, textColor: textColor, itemOpacity: itemOpacity)
                         }
                         Spacer()
                     }
@@ -60,7 +60,7 @@ struct ItemListItemViev: View {
             if isHorizontalCompact && !compactView  {
                 HStack {
                     VStack {
-                        BodyView(displayBody: item.displayBody, textColor: textColor)
+                        BodyView(displayBody: item.displayBody, textColor: textColor, itemOpacity: itemOpacity)
                             .padding([.leading], 12)
                         Spacer()
                     }

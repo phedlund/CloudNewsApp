@@ -96,74 +96,21 @@ struct ContentView: View {
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            SidebarView(nodeSelection: $nodeSelection)
+            SidebarView(nodeSelection: $nodeRepository.currentNode)
                 .environmentObject(model)
-                .environmentObject(settings)
                 .environmentObject(favIconRepository)
         } content: {
-            if let nodeSelection, nodeSelection != EmptyNodeGuid {
+            if nodeRepository.currentNode != EmptyNodeGuid {
                 let _ = Self._printChanges()
-                GeometryReader { geometry in
-                    ScrollViewReader { proxy in
-                        VStack {
-                            Rectangle()
-                                .fill(.clear)
-                                .frame(height: 1)
-                                .id(topID)
-                            //                        ArticlesFetchView(nodeId: nodeSelection, model: model, hideRead: hideRead, sortOldestFirst: sortOldestFirst) { items in
-                            List(selection: $selectedItem) {
-                                ForEach(items, id: \.objectID) { item in
-                                    ItemListItemViev(item: item)
-                                        .environmentObject(settings)
-                                        .environmentObject(favIconRepository)
-                                        .padding([.horizontal], 6)
-                                        .frame(width: geometry.size.width, height: cellHeight, alignment: .center)
-                                        .contextMenu {
-                                            ContextMenuContent(item: item)
-                                        }
-                                        .listRowBackground(Color.pbh.whiteBackground)
-                                        .listRowSeparator(.hidden)
-                                }
-                            }
-                            .background(GeometryReader {
-                                Color.clear
-                                    .preference(key: ViewOffsetKey.self,
-                                                value: -$0.frame(in: .named("scroll")).origin.y)
-                            })
-                            .onPreferenceChange(ViewOffsetKey.self) { offset in
-                                let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                                if numberOfItems > 0 {
-                                    let allItems = model.currentItems.prefix(numberOfItems).filter( { $0.unread })
-                                    offsetItemsDetector.send(allItems)
-                                }
-                            }
-                            //                        }
-                            .coordinateSpace(name: "scroll")
-                        }
-                        //                        .coordinateSpace(name: "scroll")
-                        .navigationTitle(node.title)
-                        .toolbar {
-                            ItemListToolbarContent(node: node)
-                        }
-                        .onReceive(offsetItemsPublisher) { newItems in
-                            Task.detached {
-                                Task(priority: .userInitiated) {
-                                    try? await NewsManager.shared.markRead(items: newItems, unread: false)
-                                }
-                            }
-                        }
-                        .onChange(of: nodeSelection) { _ in
-                            proxy.scrollTo(topID)
-                        }
-                        .onReceive(settings.$compactView) {
-                            cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
-                        }
+                ArticlesFetchViewMac(nodeRepository: nodeRepository, selectedItem: $selectedItem)
+                    .environmentObject(favIconRepository)
+                    .toolbar {
+                        ItemListToolbarContent(node: model.currentNode)
                     }
-                }
-                .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
+                    .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
             } else {
                 Text("No Feed Selected")
-                    .font(.largeTitle)
+                    .font(.largeTitle).fontWeight(.light)
                     .foregroundColor(.secondary)
             }
         } detail: {
@@ -195,23 +142,6 @@ struct ContentView: View {
         .onAppear {
             if isNotLoggedIn {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            }
-        }
-        .onChange(of: nodeSelection) {
-            if let nodeId = $0 {
-                settings.selectedNode = nodeId
-                model.updateCurrentNode(nodeId)
-                model.updateCurrentItem(nil)
-                switch model.currentNode.nodeType {
-                case .empty, .all, .starred:
-                    break
-                case .folder(id:  let id):
-                    selectedFeed = Int(id)
-                case .feed(id: let id):
-                    selectedFeed = Int(id)
-                }
-                node = model.currentNode
-                items = model.currentItems
             }
         }
         .onChange(of: selectedItem) { newValue in

@@ -53,12 +53,17 @@ struct TitleView: View {
     let font = Font.headline.weight(.semibold)
     var title: String
     var textColor: Color
+    var itemOpacity: Double
 
     var body: some View {
         Text(title)
             .multilineTextAlignment(.leading)
             .font(font)
+        #if os(macOS)
+            .opacity(itemOpacity)
+        #else
             .foregroundColor(textColor)
+        #endif
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true) //force wrapping
     }
@@ -121,14 +126,19 @@ struct FavIconDateAuthorView: View {
 struct BodyView: View {
     var displayBody: String
     var textColor: Color
-
+    var itemOpacity: Double
+    
     @ViewBuilder
     var body: some View {
         Text(displayBody)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.body)
+#if os(macOS)
+            .opacity(itemOpacity)
+#else
             .foregroundColor(textColor)
+#endif
     }
 }
 
