@@ -11,44 +11,24 @@ import SwiftUI
 
 struct ContentView: View {
 #if !os(macOS)
+    @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var appDelegate: AppDelegate
 #endif
-    @StateObject private var settings = Preferences()
+    @EnvironmentObject private var model: FeedModel
     @StateObject private var favIconRepository = FavIconRepository()
+    @StateObject private var nodeRepository = NodeRepository()
     @Environment(\.managedObjectContext) private var moc
-    @Environment(\.scenePhase) var scenePhase
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
-    @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
-    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-
-    @StateObject private var nodeRepository = NodeRepository()
-
-    @EnvironmentObject private var model: FeedModel
-
-    @Namespace var topID
-
-    private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
-    private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
 
     @State private var isShowingLogin = false
-    @State private var addSheet: AddType?
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     @State private var selectedItem: NSManagedObjectID?
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
-    }
-
-    init() {
-        self.offsetItemsPublisher = offsetItemsDetector
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
-            .dropFirst()
-            .eraseToAnyPublisher()
     }
 
     var body: some View {
@@ -116,27 +96,10 @@ struct ContentView: View {
         } detail: {
             if let selectedItem, let item = moc.object(with: selectedItem) as? CDItem {
                 MacArticleView(item: item)
-                    .environmentObject(settings)
             } else {
                 Text("No Article Selected")
-                    .font(.largeTitle)
+                    .font(.largeTitle).fontWeight(.light)
                     .foregroundColor(.secondary)
-            }
-        }
-        .sheet(item: $addSheet) { sheet in
-            switch sheet {
-            case .feed:
-                VStack {
-                    AddView(.feed)
-                }
-                .padding()
-                .frame(minWidth: 400)
-            case .folder:
-                VStack {
-                    AddView(.folder)
-                }
-                .padding()
-                .frame(minWidth: 400)
             }
         }
         .onAppear {

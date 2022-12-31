@@ -11,7 +11,6 @@ import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
-    @EnvironmentObject private var settings: Preferences
     var item: CDItem
 
     @State private var title = ""
