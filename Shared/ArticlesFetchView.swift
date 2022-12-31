@@ -39,8 +39,6 @@ struct ArticlesFetchView: View {
     }
     
     var body: some View {
-        let _ = Self._printChanges()
-        let _ = print("Selected node \(nodeRepository.currentNode ?? EmptyNodeGuid)")
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack(path: $path) {
@@ -51,7 +49,6 @@ struct ArticlesFetchView: View {
                             .frame(height: 1)
                             .id(topID)
                         LazyVStack(spacing: 15.0) {
-                            let _ = print("Items count \(items.count)")
                             ForEach(items, id: \.objectID) { item in
                                 NavigationLink(value: item) {
                                     ItemListItemViev(item: item)
