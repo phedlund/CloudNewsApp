@@ -143,15 +143,12 @@ struct BodyView: View {
 }
 
 struct ItemImageView: View {
-    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails: Bool?
     var imageUrl: URL?
     var size: CGSize
     var itemOpacity: Double
 
     var body: some View {
-        let isShowingThumbnails = showThumbnails ?? true
-        if isShowingThumbnails,
-            let imageUrl {
+        if let imageUrl {
             KFImage(imageUrl)
                 .fade(duration: 0.2)
                 .cancelOnDisappear(true)
@@ -161,8 +158,7 @@ struct ItemImageView: View {
                 .clipped()
                 .opacity(itemOpacity)
         } else {
-            Color.pbh.whiteCellBackground
-                .frame(width: 2, height: size.height)
+            EmptyView()
         }
     }
 }

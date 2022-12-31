@@ -15,6 +15,7 @@ struct ItemListItemViev: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 #endif
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @ObservedObject var item: CDItem
     @State private var cellHeight: CGFloat = .defaultCellHeight
@@ -22,21 +23,27 @@ struct ItemListItemViev: View {
 
     @ViewBuilder
     var body: some View {
-#if !os(macOS)
-        let isHorizontalCompact = horizontalSizeClass == .compact
-#else
+#if os(macOS)
         let isHorizontalCompact = false
+#else
+        let isHorizontalCompact = horizontalSizeClass == .compact
 #endif
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let itemOpacity = item.unread ? 1.0 : 0.4
+        let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
+        let hSpacing: CGFloat = isShowingThumbnail ? 10 : 0
         VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 10) {
-                ItemImageView(imageUrl: item.imageUrl as URL?,
-                              size: thumbnailSize,
-                              itemOpacity: itemOpacity)
+            HStack(alignment: .top, spacing: hSpacing) {
+                if isShowingThumbnail {
+                    ItemImageView(imageUrl: item.imageUrl as URL?,
+                                  size: thumbnailSize,
+                                  itemOpacity: itemOpacity)
                     .alignmentGuide(.top) { d in
                         (d[explicit: .top] ?? 0) - (compactView ? 3 : 0)
                     }
+                } else {
+                    EmptyView()
+                }
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
