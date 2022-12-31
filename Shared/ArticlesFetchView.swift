@@ -11,6 +11,7 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesFetchView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -107,6 +108,16 @@ struct ArticlesFetchView: View {
                                     try? await NewsManager.shared.markRead(items: newItems, unread: false)
                                 }
                             }
+                        }
+                    }
+                    .onChange(of: scenePhase) { newPhase in
+                        switch newPhase {
+                        case .active:
+                            items.nsPredicate = nodeRepository.predicate
+                        case .inactive, .background:
+                            break
+                        @unknown default:
+                            fatalError("Unknown scene phase")
                         }
                     }
                 }
