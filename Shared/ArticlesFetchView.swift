@@ -49,7 +49,7 @@ struct ArticlesFetchView: View {
                             .fill(.clear)
                             .frame(height: 1)
                             .id(topID)
-                        LazyVStack(spacing: 15.0) {
+                        LazyVStack(spacing: 11.0) {
                             ForEach(items, id: \.objectID) { item in
                                 NavigationLink(value: item) {
                                     ItemListItemViev(item: item)
@@ -60,6 +60,9 @@ struct ArticlesFetchView: View {
                                         }
                                 }
                                 .buttonStyle(ClearSelectionStyle())
+                                Rectangle()
+                                    .fill(.clear)
+                                    .frame(height: 1)
                             }
                             .navigationDestination(for: CDItem.self) { item in
                                 ArticlesPageView(item: item, items: Array(items))
