@@ -12,22 +12,24 @@ struct ArticleView: View {
     var item: CDItem
 
     var body: some View {
-        WebView { webView in
-            item.webViewHelper.item = item
-            item.webViewHelper.webView = webView
-            if let urlRequest = item.webViewHelper.urlRequest {
-                webView.load(urlRequest)
+        GeometryReader { geometry in
+            WebView { webView in
+                item.webViewHelper.item = item
+                item.webViewHelper.webView = webView
+                if let urlRequest = item.webViewHelper.urlRequest {
+                    webView.load(urlRequest)
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+            .id(item.objectID) //forces the web view to be recreated to get a unique WKWebView for each article
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
         }
-        .id(item.objectID) //forces the web view to be recreated to get a unique WKWebView for each article
-#if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-#endif
-        .background {
-            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-        }
     }
-    
 }
 
 #if os(iOS)
