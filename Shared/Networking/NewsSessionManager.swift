@@ -353,7 +353,9 @@ class NewsManager {
             try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
             try NewsData.mainThreadContext.save()
 
-            NotificationCenter.default.post(name: .syncComplete, object: nil)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .syncComplete, object: nil)
+            }
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }
