@@ -20,7 +20,7 @@ struct ArticlesPageView: View {
     @State private var title = ""
     @State private var webViewHelper = ItemWebViewHelper()
 
-    let items: [CDItem]
+    private let items: [CDItem]
 
     init(item: CDItem, items: [CDItem]) {
         self.item = item
@@ -30,7 +30,7 @@ struct ArticlesPageView: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(items, id: \.id) { item in
+            ForEach(items, id: \.objectID) { item in
                 ArticleView(item: item)
                     .tag(item.objectID)
             }
