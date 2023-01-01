@@ -76,10 +76,6 @@ struct ItemListItemViev: View {
             } else {
                 EmptyView()
             }
-#if os(macOS)
-            Spacer(minLength: 3)
-            Divider()
-#endif
         }
 #if os(iOS)
         .padding([.trailing], 10)

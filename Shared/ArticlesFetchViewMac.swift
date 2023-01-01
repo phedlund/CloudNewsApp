@@ -43,8 +43,6 @@ struct ArticlesFetchViewMac: View {
     }
     
     var body: some View {
-        let _ = Self._printChanges()
-        let _ = print("Selected node \(nodeRepository.currentNode ?? EmptyNodeGuid)")
         GeometryReader { geometry in
             let cellWidth = geometry.size.width
             ScrollViewReader { proxy in
@@ -53,16 +51,19 @@ struct ArticlesFetchViewMac: View {
                         .fill(.clear)
                         .frame(height: 1)
                         .id(topID)
-                    let _ = print("Items count \(items.count)")
                     ForEach(items, id: \.objectID) { item in
                         ItemListItemViev(item: item)
+                            .tag(item.objectID)
                             .environmentObject(favIconRepository)
                             .frame(width: cellWidth, height: cellHeight, alignment: .center)
                             .contextMenu {
                                 ContextMenuContent(item: item)
                             }
+                            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                                return 0
+                            }
                     }
-                    .listRowSeparator(.hidden)
+                    .listRowSeparator(.visible)
                 }
                 .listStyle(.automatic)
                 .accentColor(.pbh.darkIcon)

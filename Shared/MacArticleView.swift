@@ -7,11 +7,13 @@
 
 #if os(macOS)
 import Combine
+import CoreData
 import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
-    var item: CDItem
+    @Environment(\.managedObjectContext) private var moc
+    var selectedItem: NSManagedObjectID?
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -21,38 +23,46 @@ struct MacArticleView: View {
     @State private var isShowingSharePopover = false
 
     var body: some View {
-        WebView { webView in
-            item.webViewHelper.item = item
-            item.webViewHelper.webView = webView
-            if let urlRequest = item.webViewHelper.urlRequest {
-                webView.load(urlRequest)
-                item.webViewHelper.markItemRead()
+        if let selectedItem, let item = moc.object(with: selectedItem) as? CDItem {
+            WebView { webView in
+                item.webViewHelper.item = item
+                item.webViewHelper.webView = webView
+                if let urlRequest = item.webViewHelper.urlRequest {
+                    webView.load(urlRequest)
+                    item.webViewHelper.markItemRead()
+                }
             }
-        }
-        .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
-        .navigationTitle(title)
-        .background {
-            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-        }
-        .onReceive(item.webViewHelper.$canGoBack) {
-            canGoBack = $0
-        }
-        .onReceive(item.webViewHelper.$canGoForward) {
-            canGoForward = $0
-        }
-        .onReceive(item.webViewHelper.$isLoading) {
-            isLoading = $0
-        }
-        .onReceive(item.webViewHelper.$title) {
-            if $0 != title {
-                title = $0
+            .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
+            .navigationTitle(title)
+            .background {
+                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
+            .onReceive(item.webViewHelper.$canGoBack) {
+                canGoBack = $0
+            }
+            .onReceive(item.webViewHelper.$canGoForward) {
+                canGoForward = $0
+            }
+            .onReceive(item.webViewHelper.$isLoading) {
+                isLoading = $0
+            }
+            .onReceive(item.webViewHelper.$title) {
+                if $0 != title {
+                    title = $0
+                }
+            }
+            .toolbar {
+                articleToolBarContent(item: item)
+            }
+        } else {
+            Text("No Article Selected")
+                .font(.largeTitle).fontWeight(.light)
+                .foregroundColor(.secondary)
         }
-        .toolbar(content: articleToolBarContent)
     }
 
     @ToolbarContentBuilder
-    func articleToolBarContent() -> some ToolbarContent {
+    func articleToolBarContent(item: CDItem) -> some ToolbarContent {
         ToolbarItemGroup {
             Button {
                 item.webViewHelper.webView?.goBack()

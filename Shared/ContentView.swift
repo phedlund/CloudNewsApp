@@ -94,13 +94,7 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         } detail: {
-            if let selectedItem, let item = moc.object(with: selectedItem) as? CDItem {
-                MacArticleView(item: item)
-            } else {
-                Text("No Article Selected")
-                    .font(.largeTitle).fontWeight(.light)
-                    .foregroundColor(.secondary)
-            }
+            MacArticleView(selectedItem: selectedItem)
         }
         .onAppear {
             if isNotLoggedIn {
