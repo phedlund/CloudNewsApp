@@ -43,69 +43,66 @@ struct ArticlesFetchViewMac: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            let cellWidth = geometry.size.width
-            ScrollViewReader { proxy in
-                List(selection: $selectedItem) {
-                    Rectangle()
-                        .fill(.clear)
-                        .frame(height: 1)
-                        .id(topID)
-                    ForEach(items, id: \.objectID) { item in
-                        ItemListItemViev(item: item)
-                            .tag(item.objectID)
-                            .environmentObject(favIconRepository)
-                            .frame(width: cellWidth, height: cellHeight, alignment: .center)
-                            .contextMenu {
-                                ContextMenuContent(item: item)
-                            }
-                            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
-                                return 0
-                            }
-                    }
-                    .listRowSeparator(.visible)
-                }
-                .listStyle(.automatic)
-                .accentColor(.pbh.darkIcon)
-                .background(GeometryReader {
-                    Color.clear
-                        .preference(key: ViewOffsetKey.self,
-                                    value: -$0.frame(in: .named("scroll")).origin.y)
-                })
-                .onPreferenceChange(ViewOffsetKey.self) { offset in
-                    let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                    if numberOfItems > 0 {
-                        let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-                        offsetItemsDetector.send(allItems)
-                    }
-                }
-                .onAppear {
-                    items.nsPredicate = nodeRepository.predicate
-                }
-                .task(id: nodeRepository.currentNode) {
-                    do {
-                        let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-                        if !itemsWithoutImageLink.isEmpty {
-                            try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+        ScrollViewReader { proxy in
+            List(selection: $selectedItem) {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(height: 1)
+                    .id(topID)
+                ForEach(items, id: \.objectID) { item in
+                    ItemListItemViev(item: item)
+                        .tag(item.objectID)
+                        .environmentObject(favIconRepository)
+                        .frame(height: cellHeight, alignment: .center)
+                        .contextMenu {
+                            ContextMenuContent(item: item)
                         }
-                    } catch  { }
+                        .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                            return 0
+                        }
                 }
-                .coordinateSpace(name: "scroll")
-                .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
-                    items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
+                .listRowSeparator(.visible)
+            }
+            .listStyle(.automatic)
+            .accentColor(.pbh.darkIcon)
+            .background(GeometryReader {
+                Color.clear
+                    .preference(key: ViewOffsetKey.self,
+                                value: -$0.frame(in: .named("scroll")).origin.y)
+            })
+            .onPreferenceChange(ViewOffsetKey.self) { offset in
+                let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
+                if numberOfItems > 0 {
+                    let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
+                    offsetItemsDetector.send(allItems)
                 }
-                .onChange(of: $compactView.wrappedValue) {
-                    cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
-                }
-                .onChange(of: nodeRepository.predicate) { _ in
-                    proxy.scrollTo(topID)
-                }
-                .onReceive(offsetItemsPublisher) { newItems in
-                    if markReadWhileScrolling {
-                        Task.detached {
-                            Task(priority: .userInitiated) {
-                                try? await NewsManager.shared.markRead(items: newItems, unread: false)
-                            }
+            }
+            .onAppear {
+                items.nsPredicate = nodeRepository.predicate
+            }
+            .task(id: nodeRepository.currentNode) {
+                do {
+                    let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
+                    if !itemsWithoutImageLink.isEmpty {
+                        try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+                    }
+                } catch  { }
+            }
+            .coordinateSpace(name: "scroll")
+            .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
+                items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
+            }
+            .onChange(of: $compactView.wrappedValue) {
+                cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+            }
+            .onChange(of: nodeRepository.predicate) { _ in
+                proxy.scrollTo(topID)
+            }
+            .onReceive(offsetItemsPublisher) { newItems in
+                if markReadWhileScrolling {
+                    Task.detached {
+                        Task(priority: .userInitiated) {
+                            try? await NewsManager.shared.markRead(items: newItems, unread: false)
                         }
                     }
                 }
