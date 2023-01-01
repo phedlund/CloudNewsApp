@@ -25,7 +25,6 @@ struct ArticlesFetchView: View {
     @FetchRequest private var items: FetchedResults<CDItem>
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
-    @State private var path = NavigationPath()
 
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
     private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
@@ -42,7 +41,7 @@ struct ArticlesFetchView: View {
     var body: some View {
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
-            NavigationStack(path: $path) {
+            NavigationStack {
                 ScrollViewReader { proxy in
                     ScrollView {
                         Rectangle()

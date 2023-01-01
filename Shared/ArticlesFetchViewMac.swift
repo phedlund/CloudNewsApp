@@ -26,7 +26,6 @@ struct ArticlesFetchViewMac: View {
     @FetchRequest private var items: FetchedResults<CDItem>
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
-    @State private var path = NavigationPath()
     @State private var itemSelected: NSManagedObjectID?
 
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
