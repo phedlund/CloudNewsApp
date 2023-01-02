@@ -34,7 +34,7 @@ enum StatusRouter {
 
     static let applicationJson = "application/json"
 
-    var method: UrlSessionMethod {
+    private var method: UrlSessionMethod {
         switch self {
         case .status:
             return .get
@@ -124,7 +124,7 @@ enum Router {
 
     static let applicationJson = "application/json"
 
-    var method: UrlSessionMethod {
+    private var method: UrlSessionMethod {
         switch self {
         case .feeds, .folders, .items, .updatedItems, .version:
             return .get
@@ -137,7 +137,7 @@ enum Router {
         }
     }
     
-    var path: String {
+    private var path: String {
         switch self {
         case .feeds:
             return "/feeds"
@@ -200,9 +200,8 @@ enum Router {
         return "Basic \(credentials)"
     }
 
-    
-    // MARK: URLRequestConvertible
-    
+    // MARK: URLRequest
+
     func urlRequest() throws -> URLRequest {
         @AppStorage(SettingKeys.server) var server: String = ""
 
