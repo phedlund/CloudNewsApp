@@ -24,6 +24,9 @@ struct ArticlesFetchView: View {
 
     @FetchRequest private var items: FetchedResults<CDItem>
 
+    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
+    @State private var refreshID = UUID()
+
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
@@ -39,6 +42,7 @@ struct ArticlesFetchView: View {
     }
     
     var body: some View {
+        let _ = Self._printChanges()
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack {
@@ -63,6 +67,7 @@ struct ArticlesFetchView: View {
                                     .fill(.clear)
                                     .frame(height: 1)
                             }
+                            .id(refreshID)
                             .navigationDestination(for: CDItem.self) { item in
                                 ArticlesPageView(item: item, items: Array(items))
                             }
@@ -74,6 +79,10 @@ struct ArticlesFetchView: View {
                                 .preference(key: ViewOffsetKey.self,
                                             value: -$0.frame(in: .named("scroll")).origin.y)
                         })
+                        .onReceive(didSync) { _ in
+                            refreshID = UUID()
+                            print("generated a new UUID")
+                        }
                         .onPreferenceChange(ViewOffsetKey.self) { offset in
                             let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
                             if numberOfItems > 0 {
