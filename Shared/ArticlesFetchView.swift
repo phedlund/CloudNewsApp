@@ -69,7 +69,7 @@ struct ArticlesFetchView: View {
                             }
                             .id(refreshID)
                             .navigationDestination(for: CDItem.self) { item in
-                                ArticlesPageView(item: item, items: Array(items))
+                                ArticlesPageView(item: item, items: items)
                             }
                             .listRowBackground(Color.pbh.whiteBackground)
                             .listRowSeparator(.hidden)
