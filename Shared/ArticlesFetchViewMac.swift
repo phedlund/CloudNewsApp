@@ -26,8 +26,8 @@ struct ArticlesFetchViewMac: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var itemSelected: NSManagedObjectID?
 
-    private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
-    private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
+    private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
+    private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
     init(nodeRepository: NodeRepository) {
         self.nodeRepository = nodeRepository
@@ -39,38 +39,38 @@ struct ArticlesFetchViewMac: View {
     }
     
     var body: some View {
-        ScrollViewReader { proxy in
-            List(selection: $nodeRepository.currentItem) {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(height: 1)
-                    .id(topID)
-                ForEach(items, id: \.objectID) { item in
-                    ItemListItemViev(item: item)
-                        .tag(item.objectID)
-                        .environmentObject(favIconRepository)
-                        .frame(height: cellHeight, alignment: .center)
-                        .contextMenu {
-                            ContextMenuContent(item: item)
-                        }
-                        .alignmentGuide(.listRowSeparatorLeading) { dimensions in
-                            return 0
-                        }
+        GeometryReader { geometry in
+            ScrollViewReader { proxy in
+                List(selection: $nodeRepository.currentItem) {
+                    ForEach(Array(items.enumerated()), id: \.1.objectID) { index, item in
+                        ItemListItemViev(item: item)
+                            .tag(item.objectID)
+                            .id(index == 0 ? topID : nil)
+                            .environmentObject(favIconRepository)
+                            .frame(height: cellHeight, alignment: .center)
+                            .contextMenu {
+                                ContextMenuContent(item: item)
+                            }
+                            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                                return 0
+                            }
+                            .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                                prefKey = CGFloat(index)
+                            }
+                            .onPreferenceChange(ViewOffsetKey.self) {
+                                let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                                offsetItemsDetector.send(offset)
+                            }
+                    }
+                    .listRowSeparator(.visible)
                 }
-                .listRowSeparator(.visible)
-            }
-            .listStyle(.automatic)
-            .accentColor(.pbh.darkIcon)
-            .background(GeometryReader {
-                Color.clear
-                    .preference(key: ViewOffsetKey.self,
-                                value: -$0.frame(in: .named("scroll")).origin.y)
-            })
-            .onPreferenceChange(ViewOffsetKey.self) { offset in
-                let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                if numberOfItems > 0 {
-                    let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-                    offsetItemsDetector.send(allItems)
+                .listStyle(.automatic)
+                .accentColor(.pbh.darkIcon)
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
+                .onChange(of: nodeRepository.predicate) { _ in
+                    proxy.scrollTo(topID)
                 }
             }
             .onAppear {
@@ -84,26 +84,39 @@ struct ArticlesFetchViewMac: View {
                     }
                 } catch  { }
             }
-            .coordinateSpace(name: "scroll")
             .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                 items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
             }
             .onChange(of: $compactView.wrappedValue) {
                 cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
             }
-            .onChange(of: nodeRepository.predicate) { _ in
-                proxy.scrollTo(topID)
-            }
-            .onReceive(offsetItemsPublisher) { newItems in
+            .onReceive(offsetItemsPublisher) { newOffset in
                 if markReadWhileScrolling {
                     Task.detached {
-                        Task(priority: .userInitiated) {
-                            try? await NewsManager.shared.markRead(items: newItems, unread: false)
-                        }
+                        await markRead(newOffset)
                     }
                 }
             }
         }
     }
+
+    private func markRead(_ offset: CGFloat) {
+        if markReadWhileScrolling {
+            print(offset)
+            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+            print("Number of items \(numberOfItems)")
+            if numberOfItems > 0 {
+                let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                print("Number of unread items \(itemsToMarkRead.count)")
+                if !itemsToMarkRead.isEmpty {
+                    Task(priority: .userInitiated) {
+                        let myItems = itemsToMarkRead.map( { $0 })
+                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                    }
+                }
+            }
+        }
+    }
+
 }
 #endif
