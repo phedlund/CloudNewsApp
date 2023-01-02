@@ -27,6 +27,9 @@ struct ArticlesFetchViewMac: View {
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
+    private var didSelectNextItem =  NotificationCenter.default.publisher(for: .nextItem)
+    private var didSelectPreviousItem =  NotificationCenter.default.publisher(for: .previousItem)
+
     init(nodeRepository: NodeRepository) {
         self.nodeRepository = nodeRepository
         self.offsetItemsPublisher = offsetItemsDetector
@@ -61,6 +64,18 @@ struct ArticlesFetchViewMac: View {
                             }
                     }
                     .listRowSeparator(.visible)
+                    .onReceive(didSelectPreviousItem) { _ in
+                        let current = nodeRepository.currentItem
+                        if let currentIndex = items.first(where: { $0.objectID == current }) {
+                            nodeRepository.currentItem = items.element(before: currentIndex)?.objectID
+                        }
+                    }
+                    .onReceive(didSelectNextItem) { _ in
+                        let current = nodeRepository.currentItem
+                        if let currentIndex = items.first(where: { $0.objectID == current }) {
+                            nodeRepository.currentItem = items.element(after: currentIndex)?.objectID
+                        }
+                    }
                 }
                 .listStyle(.automatic)
                 .accentColor(.pbh.darkIcon)

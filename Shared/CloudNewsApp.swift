@@ -135,18 +135,14 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-//                if let item = model.currentItem {
-//                    model.updateCurrentItem(model.currentNode.items.element(before: item))
-//                }
+                NotificationCenter.default.post(name: .previousItem, object: nil)
             }
-            .keyboardShortcut("p", modifiers: [])
+            .keyboardShortcut("p", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button("Next") {
-//                if let item = model.currentItem {
-//                    model.updateCurrentItem(model.currentNode.items.element(after: item))
-//                }
+                NotificationCenter.default.post(name: .nextItem, object: nil)
             }
-            .keyboardShortcut("n", modifiers: [])
+            .keyboardShortcut("n", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
             Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
@@ -154,14 +150,14 @@ struct AppCommands: Commands {
                     try? await NewsManager.shared.markRead(items: [model.currentItem!], unread: !model.currentItem!.unread)
                 }
             }
-            .keyboardShortcut("u", modifiers: [])
+            .keyboardShortcut("u", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button(model.currentItem?.starred ?? false ? "Unstar" : "Star") {
                 Task {
                     try? await NewsManager.shared.markStarred(item: model.currentItem!, starred: !model.currentItem!.starred)
                 }
             }
-            .keyboardShortcut("s", modifiers: [])
+            .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
 //            Divider()
 //            Button("Summary") {
