@@ -19,8 +19,6 @@ struct ArticlesFetchViewMac: View {
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @ObservedObject private var nodeRepository: NodeRepository
 
-    @Namespace private var topID
-
     @FetchRequest private var items: FetchedResults<CDItem>
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
@@ -45,7 +43,7 @@ struct ArticlesFetchViewMac: View {
                     ForEach(Array(items.enumerated()), id: \.1.objectID) { index, item in
                         ItemListItemViev(item: item)
                             .tag(item.objectID)
-                            .id(index == 0 ? topID : nil)
+                            .id(index)
                             .environmentObject(favIconRepository)
                             .frame(height: cellHeight, alignment: .center)
                             .contextMenu {
@@ -70,7 +68,7 @@ struct ArticlesFetchViewMac: View {
                     Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                 }
                 .onChange(of: nodeRepository.predicate) { _ in
-                    proxy.scrollTo(topID)
+                    proxy.scrollTo(0, anchor: .top)
                 }
             }
             .onAppear {
