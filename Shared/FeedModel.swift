@@ -75,6 +75,7 @@ class FeedModel: ObservableObject {
         .store(in: &cancellables)
 
         update()
+        updateCurrentNode(preferences.selectedNode)
         isInInit = false
     }
 
