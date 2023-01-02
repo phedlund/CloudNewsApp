@@ -23,9 +23,6 @@ struct ContentView: View {
     @AppStorage(SettingKeys.server) private var server = ""
 
     @State private var isShowingLogin = false
-    @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
-
-    @State private var selectedItem: NSManagedObjectID?
 
     private var isNotLoggedIn: Bool {
         return server.isEmpty || username.isEmpty || password.isEmpty
@@ -82,26 +79,27 @@ struct ContentView: View {
         } content: {
             if nodeRepository.currentNode != EmptyNodeGuid {
                 let _ = Self._printChanges()
-                ArticlesFetchViewMac(nodeRepository: nodeRepository, selectedItem: $selectedItem)
+                ArticlesFetchViewMac(nodeRepository: nodeRepository)
                     .environmentObject(favIconRepository)
                     .toolbar {
                         ItemListToolbarContent(node: model.currentNode)
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
+                    .navigationTitle(model.currentNode.title)
             } else {
                 Text("No Feed Selected")
                     .font(.largeTitle).fontWeight(.light)
                     .foregroundColor(.secondary)
             }
         } detail: {
-            MacArticleView(selectedItem: selectedItem)
+            MacArticleView(selectedItem: nodeRepository.currentItem)
         }
         .onAppear {
             if isNotLoggedIn {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
         }
-        .onChange(of: selectedItem) { newValue in
+        .onChange(of: nodeRepository.currentItem) { newValue in
             if let newValue, let item = moc.object(with: newValue) as? CDItem {
                 model.updateCurrentItem(item)
             }

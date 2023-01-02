@@ -16,8 +16,6 @@ struct ArticlesFetchViewMac: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
 
-    @Binding var selectedItem: NSManagedObjectID?
-
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @ObservedObject private var nodeRepository: NodeRepository
 
@@ -31,9 +29,8 @@ struct ArticlesFetchViewMac: View {
     private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
     private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
 
-    init(nodeRepository: NodeRepository, selectedItem: Binding<NSManagedObjectID?>) {
+    init(nodeRepository: NodeRepository) {
         self.nodeRepository = nodeRepository
-        self._selectedItem = selectedItem
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -43,7 +40,7 @@ struct ArticlesFetchViewMac: View {
     
     var body: some View {
         ScrollViewReader { proxy in
-            List(selection: $selectedItem) {
+            List(selection: $nodeRepository.currentItem) {
                 Rectangle()
                     .fill(.clear)
                     .frame(height: 1)

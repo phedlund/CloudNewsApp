@@ -6,6 +6,7 @@
 //
 
 import Combine
+import CoreData
 import Foundation
 
 class NodeRepository: ObservableObject {
@@ -13,9 +14,11 @@ class NodeRepository: ObservableObject {
     @Published var currentNode: Node.ID? {
         didSet {
             preferences.selectedNode = currentNode ?? AllNodeGuid
+            currentItem = nil
             updatePredicate()
         }
     }
+    @Published var currentItem: NSManagedObjectID?
 
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
