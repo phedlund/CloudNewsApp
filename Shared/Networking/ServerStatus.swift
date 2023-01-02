@@ -11,7 +11,7 @@ import OpenSSL
 
 class ServerStatus: NSObject {
     static let shared = ServerStatus()
-    let preferences = Preferences()
+    private let preferences = Preferences()
 
     var session = URLSession(configuration: .default)
 
@@ -66,7 +66,7 @@ class ServerStatus: NSObject {
         }
     }
 
-    func savedCert(host: String) -> SecCertificate? {
+    private func savedCert(host: String) -> SecCertificate? {
         if let directory = ServerStatus.certificatesDirectory {
             let certificateDerPath = directory.appendingPathComponent(host).appendingPathExtension("der")
             if let data = NSData(contentsOf: certificateDerPath) {
