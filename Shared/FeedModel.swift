@@ -178,15 +178,7 @@ class FeedModel: ObservableObject {
         return nil
     }
 
-    private func folderNode(folder: CDFolder) -> Node {
-
-        var basePredicate: NSPredicate {
-            if let feedIds = CDFeed.idsInFolder(folder: folder.id) {
-                return NSPredicate(format: "feedId IN %@", feedIds)
-            }
-            return NSPredicate(value: false)
-        }
-        
+    private func folderNode(folder: CDFolder) -> Node {        
         if let feeds = CDFeed.inFolder(folder: folder.id) {
             var children = [Node]()
             for feed in feeds {
