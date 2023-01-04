@@ -50,6 +50,27 @@ struct SidebarView: View {
     }
 
     var body: some View {
+        if isShowingError {
+            HStack {
+                Spacer(minLength: 10.0)
+                HStack {
+                    Text(errorMessage)
+                        .colorInvert()
+                    Spacer()
+                    Button {
+                        isShowingError = false
+                    } label: {
+                        Text("Dismiss")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 6.0)
+                .background(Color.red.opacity(0.95))
+                .cornerRadius(6.0)
+                .transition(.move(edge: .top))
+                Spacer(minLength: 10.0)
+            }
+        }
         List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
             NodeView(node: node)
                 .environmentObject(favIconRepository)
