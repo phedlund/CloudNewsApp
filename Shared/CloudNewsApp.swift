@@ -21,7 +21,7 @@ struct CloudNewsApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, NewsData.mainThreadContext)
+                .environment(\.managedObjectContext, NewsData.shared.container.viewContext)
                 .environmentObject(feedModel)
                 .environmentObject(appDelegate)
         }

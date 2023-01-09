@@ -45,10 +45,6 @@ class ItemImageFetcher {
                 itemImageUrl = await stepTwo(item)
             }
 
-            if let _ = item.imageLink {
-                continue
-            }
-
             if let itemImageUrl {
                 try await CDItem.addImageLink(item: item, imageLink: itemImageUrl.absoluteString)
             } else {

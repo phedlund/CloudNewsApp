@@ -16,11 +16,11 @@ public class CDFeeds: NSManagedObject {
     static private let entityName = "CDFeeds"
 
     static func reset() {
-        NewsData.mainThreadContext.performAndWait {
+        NewsData.shared.container.viewContext.performAndWait {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
             do {
-                try NewsData.mainThreadContext.executeAndMergeChanges(using: deleteRequest)
+                try NewsData.shared.container.viewContext.executeAndMergeChanges(using: deleteRequest)
             } catch {
                 let updateError = error as NSError
                 print("\(updateError), \(updateError.userInfo)")

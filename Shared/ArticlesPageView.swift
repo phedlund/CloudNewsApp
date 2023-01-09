@@ -99,7 +99,7 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let item = NewsData.mainThreadContext.object(with: selection) as? CDItem {
+            if let item = NewsData.shared.container.viewContext.object(with: selection) as? CDItem {
                 ShareLinkButton(item: item)
                     .disabled(isLoading)
             } else {

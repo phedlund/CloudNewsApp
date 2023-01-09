@@ -47,8 +47,8 @@ class ItemStorage: NSObject, ObservableObject {
     var feeds = CurrentValueSubject<[CDFeed], Never>([])
     static let shared = ItemStorage()
 
-    private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
-    private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.mainThreadContext).eraseToAnyPublisher()
+    private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
+    private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let foldersFetchRequest = CDFolder.fetchRequest()
     private let feedsFetchRequest = CDFeed.fetchRequest()
@@ -69,8 +69,8 @@ class ItemStorage: NSObject, ObservableObject {
         super.init()
 
         do {
-            self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
-            self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
+            self.folders.value = try NewsData.shared.container.viewContext.fetch(self.foldersFetchRequest)
+            self.feeds.value = try NewsData.shared.container.viewContext.fetch(self.feedsFetchRequest)
         } catch {
             print("Error: could not fetch items")
         }
@@ -78,24 +78,25 @@ class ItemStorage: NSObject, ObservableObject {
         willSavePublisher
             .sink { [weak self] _ in
                 guard let self else { return }
-                self.updatedObjects = NewsData.mainThreadContext.updatedObjects
-                self.insertedObjects = NewsData.mainThreadContext.insertedObjects
+                return
+                self.updatedObjects = NewsData.shared.container.viewContext.updatedObjects
+                self.insertedObjects = NewsData.shared.container.viewContext.insertedObjects
                 var localChanges = Set<NodeChange>()
-                if let updatedFolders = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
+                if let updatedFolders = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
                     for updatedFolder in updatedFolders {
                         for change in updatedFolder.changedValues() {
                             localChanges.insert(NodeChange(nodeType: .folder(id: updatedFolder.id), key: change.key))
                         }
                     }
                 }
-                if let updatedFeeds = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDFeed.entity() }) as? Set<CDFeed> {
+                if let updatedFeeds = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDFeed.entity() }) as? Set<CDFeed> {
                     for updatedFeed in updatedFeeds {
                         for change in updatedFeed.changedValues() {
                             localChanges.insert(NodeChange(nodeType: .feed(id: updatedFeed.id), key: change.key))
                         }
                     }
                 }
-                if let updatedItems = NewsData.mainThreadContext.updatedObjects.filter( { $0.entity == CDItem.entity() }) as? Set<CDItem> {
+                if let updatedItems = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDItem.entity() }) as? Set<CDItem> {
                     for updatedItem in updatedItems {
                         for change in updatedItem.changedValues() {
                             if ["unread", "starred"].contains(change.key) {
@@ -117,6 +118,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         didSavePublisher
             .sink { [weak self] notification in
+                return
                 guard let self else { return }
                 do {
                     if let deletedObjects = self.deletedObjects {
@@ -124,10 +126,10 @@ class ItemStorage: NSObject, ObservableObject {
                             switch deletedObject.entity {
                             case CDFolder.entity():
                                 print("Deleted Folder")
-                                self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
+                                self.folders.value = try NewsData.shared.container.viewContext.fetch(self.foldersFetchRequest)
                             case CDFeed.entity():
                                 print("Deleted Feed")
-                                self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
+                                self.feeds.value = try NewsData.shared.container.viewContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Deleted Item")
                                 self.changes.value = [NodeChange(nodeType: .all, key: "unread")]
@@ -141,10 +143,10 @@ class ItemStorage: NSObject, ObservableObject {
                             switch insertedObject.entity {
                             case CDFolder.entity():
                                 print("Inserted Folder")
-                                self.folders.value = try NewsData.mainThreadContext.fetch(self.foldersFetchRequest)
+                                self.folders.value = try NewsData.shared.container.viewContext.fetch(self.foldersFetchRequest)
                             case CDFeed.entity():
                                 print("Inserted Feed")
-                                self.feeds.value = try NewsData.mainThreadContext.fetch(self.feedsFetchRequest)
+                                self.feeds.value = try NewsData.shared.container.viewContext.fetch(self.feedsFetchRequest)
                             case CDItem.entity():
                                 print("Inserted Item")
                                 self.changes.value = [NodeChange(nodeType: .all, key: "unread")]
@@ -179,7 +181,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         syncPublisher
             .sink { [weak self] _ in
-                self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
+//                self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
             }
             .store(in: &cancellables)
 

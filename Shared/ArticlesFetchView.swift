@@ -24,8 +24,8 @@ struct ArticlesFetchView: View {
 
     @FetchRequest private var items: FetchedResults<CDItem>
 
-    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
-    @State private var refreshID = UUID()
+//    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
+//    @State private var refreshID = UUID()
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
@@ -53,6 +53,7 @@ struct ArticlesFetchView: View {
                             .frame(height: 1)
                             .id(topID)
                         LazyVStack(spacing: 11.0) {
+                            let _ = print("Items: \(items.count)")
                             ForEach(items, id: \.objectID) { item in
                                 NavigationLink(value: item) {
                                     ItemListItemViev(item: item)
@@ -67,7 +68,6 @@ struct ArticlesFetchView: View {
                                     .fill(.clear)
                                     .frame(height: 1)
                             }
-                            .id(refreshID)
                             .navigationDestination(for: CDItem.self) { item in
                                 ArticlesPageView(item: item, items: items)
                             }
@@ -79,10 +79,10 @@ struct ArticlesFetchView: View {
                                 .preference(key: ViewOffsetKey.self,
                                             value: -$0.frame(in: .named("scroll")).origin.y)
                         })
-                        .onReceive(didSync) { _ in
-                            refreshID = UUID()
-                            print("generated a new UUID")
-                        }
+//                        .onReceive(didSync) { _ in
+//                            refreshID = UUID()
+//                            print("generated a new UUID")
+//                        }
                         .onPreferenceChange(ViewOffsetKey.self) { offset in
                             let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
                             if numberOfItems > 0 {
@@ -124,7 +124,8 @@ struct ArticlesFetchView: View {
                     .onChange(of: scenePhase) { newPhase in
                         switch newPhase {
                         case .active:
-                            items.nsPredicate = nodeRepository.predicate
+                            break
+//                            refreshID = UUID()
                         case .inactive, .background:
                             break
                         @unknown default:

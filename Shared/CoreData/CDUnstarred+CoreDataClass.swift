@@ -16,21 +16,21 @@ public class CDUnstarred: NSManagedObject {
     static private let entityName = "CDUnstarred"
 
     static func update(items: [Int32]) {
-        NewsData.mainThreadContext.performAndWait {
+        NewsData.shared.container.viewContext.performAndWait {
             let request: NSFetchRequest<CDUnstarred> = CDUnstarred.fetchRequest()
             do {
                 for item in items {
                     let predicate = NSPredicate(format: "itemId == %d", item)
                     request.predicate = predicate
-                    let records = try NewsData.mainThreadContext.fetch(request)
+                    let records = try NewsData.shared.container.viewContext.fetch(request)
                     if let existingRecord = records.first {
                         existingRecord.itemId = item
                     } else {
-                        let newRecord = NSEntityDescription.insertNewObject(forEntityName: self.entityName, into: NewsData.mainThreadContext) as! CDUnstarred
+                        let newRecord = NSEntityDescription.insertNewObject(forEntityName: self.entityName, into: NewsData.shared.container.viewContext) as! CDUnstarred
                         newRecord.itemId = item
                     }
                 }
-                try NewsData.mainThreadContext.save()
+                try NewsData.shared.container.viewContext.save()
             } catch let error as NSError {
                 print("Could not fetch \(error), \(error.userInfo)")
             }
@@ -42,7 +42,7 @@ public class CDUnstarred: NSManagedObject {
 
         var itemList = [Int32]()
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             for record in results {
                 itemList.append(record.itemId)
             }
@@ -57,7 +57,7 @@ public class CDUnstarred: NSManagedObject {
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request )
         batchDeleteRequest.resultType = .resultTypeCount
         do {
-            let batchDeleteResult = try NewsData.mainThreadContext.execute(batchDeleteRequest) as! NSBatchDeleteResult
+            let batchDeleteResult = try NewsData.shared.container.viewContext.execute(batchDeleteRequest) as! NSBatchDeleteResult
             print("The batch delete request has deleted \(batchDeleteResult.result!) records.")
 //            NewsData.mainThreadContext.reset() // reset managed object context (need it for working)
         } catch {

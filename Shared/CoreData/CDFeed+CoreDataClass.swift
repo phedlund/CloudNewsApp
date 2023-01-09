@@ -23,7 +23,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
 
         var feedList = [CDFeed]()
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             for record in results {
                 feedList.append(record)
             }
@@ -39,7 +39,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         request.predicate = predicate
         request.fetchLimit = 1
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             return results.first
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
@@ -57,7 +57,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
 
         var feedList = [CDFeed]()
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             for record in results {
                 feedList.append(record)
             }
@@ -95,10 +95,10 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
     }
 
     static func addFavIconLinkResolved(feed: CDFeed, link: String) async throws {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             do {
                 feed.faviconLinkResolved = link
-                try NewsData.mainThreadContext.save()
+                try NewsData.shared.container.viewContext.save()
             } catch {
                 throw PBHError.databaseError(message: "Error adding favicon")
             }
@@ -111,22 +111,22 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         request.predicate = predicate
         request.fetchLimit = 1
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             if let feed = results.first {
-                NewsData.mainThreadContext.delete(feed)
+                NewsData.shared.container.viewContext.delete(feed)
             }
-            try NewsData.mainThreadContext.save()
+            try NewsData.shared.container.viewContext.save()
         } catch {
             throw PBHError.databaseError(message: "Error deleting feed")
         }
     }
 
     static func reset() {
-        NewsData.mainThreadContext.performAndWait {
+        NewsData.shared.container.viewContext.performAndWait {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
             do {
-                try NewsData.mainThreadContext.executeAndMergeChanges(using: deleteRequest)
+                try NewsData.shared.container.viewContext.executeAndMergeChanges(using: deleteRequest)
             } catch {
                 let updateError = error as NSError
                 print("\(updateError), \(updateError.userInfo)")

@@ -43,7 +43,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
             }
         }
-        if let count = try? NewsData.mainThreadContext.count(for: request) {
+        if let count = try? NewsData.shared.container.viewContext.count(for: request) {
             result = count
         }
 
@@ -76,7 +76,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 request.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
             }
         }
-        if let items = try? NewsData.mainThreadContext.fetch(request) {
+        if let items = try? NewsData.shared.container.viewContext.fetch(request) {
             result = items
         }
 
@@ -91,7 +91,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
         request.predicate = predicate
 
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             return results
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
@@ -104,7 +104,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
         let predicate = NSPredicate(format: "starred == true")
         request.predicate = predicate
         do {
-            return try NewsData.mainThreadContext.fetch(request)
+            return try NewsData.shared.container.viewContext.fetch(request)
         } catch {
             return nil
         }
@@ -118,7 +118,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
         request.predicate = predicate
 
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             return results
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
@@ -127,12 +127,12 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func markRead(items: [CDItem], unread: Bool) async throws {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             do {
                 for item in items {
                     item.unread = unread
                 }
-                try NewsData.mainThreadContext.save()
+//                try NewsData.shared.container.viewContext.save()
             } catch {
                 throw PBHError.databaseError(message: "Error marking items read")
             }
@@ -140,10 +140,10 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func markRead(item: CDItem, unread: Bool) async throws {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             do {
                 item.unread = unread
-                try NewsData.mainThreadContext.save()
+//                try NewsData.shared.container.viewContext.save()
             } catch {
                 throw PBHError.databaseError(message: "Error marking items read")
             }
@@ -151,16 +151,16 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func markStarred(itemId: Int32, state: Bool) async throws {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
             do {
                 let predicate = NSPredicate(format:"id == %d", itemId)
                 request.predicate = predicate
-                let records = try NewsData.mainThreadContext.fetch(request)
+                let records = try NewsData.shared.container.viewContext.fetch(request)
                 records.forEach({ (item) in
                     item.starred = state
                 })
-                try NewsData.mainThreadContext.save()
+                try NewsData.shared.container.viewContext.save()
             } catch {
                 throw PBHError.databaseError(message: "Error marking item starred")
             }
@@ -201,7 +201,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
         request.sortDescriptors = [sortDescriptor]
         request.fetchLimit = 1
         do {
-            let results  = try NewsData.mainThreadContext.fetch(request)
+            let results  = try NewsData.shared.container.viewContext.fetch(request)
             result = Int32(results.first?.lastModified ?? Int32(0))
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
@@ -210,7 +210,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func addImageLink(item: CDItem, imageLink: String) async throws {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             do {
                 let currentData = item.imageLink
                 if imageLink == currentData {
@@ -220,7 +220,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     if !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
                         item.imageUrl = url as NSURL
                     }
-                    try NewsData.mainThreadContext.save()
+//                    try NewsData.shared.container.viewContext.save()
                 }
             } catch {
                 throw PBHError.databaseError(message: "Error adding imageLink")
@@ -230,7 +230,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
 
     @discardableResult
     static func deleteOldItems() async throws -> NSBatchDeleteResult? {
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             let keepDuration = Preferences().keepDuration
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date())?.timeIntervalSince1970 {
                 let predicate1 = NSPredicate(format: "unread == false")
@@ -242,9 +242,9 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 request.predicate = predicate
                 let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
                 do {
-                    let result = try NewsData.mainThreadContext.execute(batchDeleteRequest)
-                    try NewsData.mainThreadContext.save()
-                    NewsData.mainThreadContext.reset()
+                    let result = try NewsData.shared.container.viewContext.execute(batchDeleteRequest)
+                    try NewsData.shared.container.viewContext.save()
+                    NewsData.shared.container.viewContext.reset()
                     return result as? NSBatchDeleteResult
                 } catch let error as NSError {
                     print("Could not perform deletion \(error), \(error.userInfo)")
@@ -258,15 +258,15 @@ public class CDItem: NSManagedObject, ItemProtocol {
     @discardableResult
     static func deleteItems(with feedId: Int32) async throws -> NSBatchDeleteResult? {
         var result: NSPersistentStoreResult?
-        try await NewsData.mainThreadContext.perform {
+        try await NewsData.shared.container.viewContext.perform {
             let predicate = NSPredicate(format: "feedId == %d", feedId)
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: Self.self))
             request.predicate = predicate
             let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
             do {
-                result = try NewsData.mainThreadContext.execute(batchDeleteRequest)
-                try NewsData.mainThreadContext.save()
-                NewsData.mainThreadContext.reset()
+                result = try NewsData.shared.container.viewContext.execute(batchDeleteRequest)
+//                try NewsData.shared.container.viewContext.save()
+                NewsData.shared.container.viewContext.reset()
             } catch let error as NSError {
                 print("Could not perform deletion \(error), \(error.userInfo)")
                 throw PBHError.databaseError(message: "Error deleting items in feed \(feedId)")
@@ -276,11 +276,11 @@ public class CDItem: NSManagedObject, ItemProtocol {
     }
 
     static func reset() {
-        NewsData.mainThreadContext.performAndWait {
+        NewsData.shared.container.viewContext.performAndWait {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
             do {
-                try NewsData.mainThreadContext.executeAndMergeChanges(using: deleteRequest)
+                try NewsData.shared.container.viewContext.executeAndMergeChanges(using: deleteRequest)
             } catch {
                 let updateError = error as NSError
                 print("\(updateError), \(updateError.userInfo)")

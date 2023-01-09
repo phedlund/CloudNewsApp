@@ -35,8 +35,7 @@ class NewsManager {
             case 3: timeInterval = 60 * 60
             default: timeInterval = 15 * 60
             }
-            self.syncTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { (_) in
-                NotificationCenter.default.post(name: .syncInitiated, object: nil)
+            self.syncTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
                 Task {
                     try await self.sync()
                 }
@@ -69,8 +68,8 @@ class NewsManager {
                     if let feeds: Feeds = try getType(from: data),
                        let feedArray = feeds.feeds, let newFeed = feedArray.first {
                         let newFeedId = newFeed.id
-                        try await CDFeed.add(feeds: feedArray, using: NewsData.mainThreadContext)
-                        try NewsData.mainThreadContext.save()
+                        try await CDFeed.add(feeds: feedArray, using: NewsData.shared.container.viewContext)
+                        try NewsData.shared.container.viewContext.save()
                         let parameters: ParameterDict = ["batchSize": 200,
                                                          "offset": 0,
                                                          "type": 0,
@@ -85,8 +84,8 @@ class NewsManager {
                             case 200:
                                 if let items: Items = try getType(from: data),
                                    let itemsArray = items.items {
-                                    try await CDItem.add(items: itemsArray, using: NewsData.mainThreadContext)
-                                    try NewsData.mainThreadContext.save()
+                                    try await CDItem.add(items: itemsArray, using: NewsData.shared.container.viewContext)
+                                    try NewsData.shared.container.viewContext.save()
                                 }
                             default:
                                 throw PBHError.networkError(message: "Error adding feed")
@@ -119,8 +118,8 @@ class NewsManager {
                 case 200:
                     if let folders: Folders = try getType(from: data),
                         let folderArray = folders.folders {
-                        try await CDFolder.add(folders: folderArray, using: NewsData.mainThreadContext)
-                        try NewsData.mainThreadContext.save()
+                        try await CDFolder.add(folders: folderArray, using: NewsData.shared.container.viewContext)
+                        try NewsData.shared.container.viewContext.save()
                     }
                 case 405:
                     throw PBHError.networkError(message: "Method not allowed")
@@ -165,9 +164,9 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-                        CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
+                        CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.shared.container.viewContext)
                     } else {
-                        CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.mainThreadContext)
+                        CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.shared.container.viewContext)
                     }
                 default:
                     break
@@ -198,9 +197,9 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
                     } else {
-                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.mainThreadContext)
+                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
                     }
                 default:
                     break
@@ -233,10 +232,10 @@ class NewsManager {
 
         do {
 
-            try await FolderImporter(persistentContainer: NewsData.persistentContainer).download(Router.folders.urlRequest())
-            try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
-            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(unreadRouter.urlRequest())
-            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(starredRouter.urlRequest())
+            try await FolderImporter().fetchFolders(Router.folders.urlRequest())
+            try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
+            try await ItemImporter().fetchItems(unreadRouter.urlRequest())
+            try await ItemImporter().fetchItems(starredRouter.urlRequest())
             try await CDItem.deleteOldItems()
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
@@ -261,13 +260,13 @@ class NewsManager {
 
      */
     func sync() async throws {
-//        CDFeeds.reset()
-//        CDFeed.reset()
-//        CDFolder.reset()
-//        CDItem.reset()
-//
+        //        CDFeeds.reset()
+        //        CDFeed.reset()
+        //        CDFolder.reset()
+        //        CDItem.reset()
+        //
         do {
-            let count = try NewsData.mainThreadContext.count(for: CDItem.fetchRequest())
+            let count = try NewsData.shared.container.viewContext.count(for: CDItem.fetchRequest())
             if count == 0 {
                 try await self.initialSync()
                 return
@@ -346,16 +345,16 @@ class NewsManager {
                                                     "id": 0]
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
-            try await CDItem.deleteOldItems()
-            try NewsData.mainThreadContext.save()
-            try await FolderImporter(persistentContainer: NewsData.persistentContainer).download(Router.folders.urlRequest())
-            try await FeedImporter(persistentContainer: NewsData.persistentContainer).download(Router.feeds.urlRequest())
-            try await ItemImporter(persistentContainer: NewsData.persistentContainer).download(updatedItemRouter.urlRequest())
-            try NewsData.mainThreadContext.save()
+            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+            try await FolderImporter().fetchFolders(Router.folders.urlRequest())
+            try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
+            try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
 
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .syncComplete, object: nil)
             }
+        } catch let error as PBHError {
+            throw error
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }
