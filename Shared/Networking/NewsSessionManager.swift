@@ -236,7 +236,7 @@ class NewsManager {
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
             try await ItemImporter().fetchItems(unreadRouter.urlRequest())
             try await ItemImporter().fetchItems(starredRouter.urlRequest())
-            try await CDItem.deleteOldItems()
+            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
 
             NotificationCenter.default.post(name: .syncComplete, object: nil)
         } catch(let error) {

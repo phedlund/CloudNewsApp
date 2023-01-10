@@ -17,10 +17,11 @@ class NewsData {
 
     private let inMemory: Bool
     private var notificationToken: NSObjectProtocol?
+    private var lastToken: NSPersistentHistoryToken?
 
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
-
+        retrieveHistoryToken()
         notificationToken = NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: nil, queue: nil) { _ in
             self.logger.debug("Received a persistent store remote change notification.")
             Task {
@@ -64,6 +65,14 @@ class NewsData {
         return container
     }()
 
+    private lazy var tokenFileURL: URL = {
+        let url = NSPersistentContainer.defaultDirectoryURL().appendingPathComponent("NewsData", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+        } catch { }
+        return url.appendingPathComponent("token", isDirectory: false).appendingPathExtension("dat")
+    }()
+
     func newTaskContext() -> NSManagedObjectContext {
         let taskContext = container.newBackgroundContext()
         taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
@@ -85,8 +94,7 @@ class NewsData {
         logger.debug("Start fetching persistent history changes from the store...")
 
         try await taskContext.perform {
-            let date = Date(timeIntervalSince1970: Double(Preferences().lastModified))
-            let changeRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: date)
+            let changeRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: self.lastToken)
             let historyResult = try taskContext.execute(changeRequest) as? NSPersistentHistoryResult
             if let history = historyResult?.result as? [NSPersistentHistoryTransaction],
                !history.isEmpty {
@@ -108,7 +116,24 @@ class NewsData {
             for transaction in history {
                 print("Transaction author: \(transaction.author ?? "Unknown transaction author")")
                 viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
+                self.storeHistoryToken(transaction.token)
             }
         }
     }
+
+    private func storeHistoryToken(_ token: NSPersistentHistoryToken) {
+        do {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true)
+            try data.write(to: tokenFileURL)
+            lastToken = token
+        } catch { }
+    }
+
+    private func retrieveHistoryToken() {
+        do {
+            let tokenData = try Data(contentsOf: tokenFileURL)
+            lastToken = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSPersistentHistoryToken.self, from: tokenData)
+        } catch { }
+    }
+
 }

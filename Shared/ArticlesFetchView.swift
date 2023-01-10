@@ -24,8 +24,7 @@ struct ArticlesFetchView: View {
 
     @FetchRequest private var items: FetchedResults<CDItem>
 
-//    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
-//    @State private var refreshID = UUID()
+    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
@@ -79,10 +78,11 @@ struct ArticlesFetchView: View {
                                 .preference(key: ViewOffsetKey.self,
                                             value: -$0.frame(in: .named("scroll")).origin.y)
                         })
-//                        .onReceive(didSync) { _ in
-//                            refreshID = UUID()
-//                            print("generated a new UUID")
-//                        }
+                        .onReceive(didSync) { _ in
+                            Task {
+                                await updateImageLinks()
+                            }
+                        }
                         .onPreferenceChange(ViewOffsetKey.self) { offset in
                             let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
                             if numberOfItems > 0 {
@@ -95,12 +95,7 @@ struct ArticlesFetchView: View {
                         items.nsPredicate = nodeRepository.predicate
                     }
                     .task(id: nodeRepository.currentNode) {
-                        do {
-                            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-                            if !itemsWithoutImageLink.isEmpty {
-                                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-                            }
-                        } catch  { }
+                        await updateImageLinks()
                     }
                     .coordinateSpace(name: "scroll")
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
@@ -135,6 +130,15 @@ struct ArticlesFetchView: View {
                 }
             }
         }
+    }
+
+    private func updateImageLinks() async {
+        do {
+            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
+            if !itemsWithoutImageLink.isEmpty {
+                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+            }
+        } catch  { }
     }
 }
 #endif
