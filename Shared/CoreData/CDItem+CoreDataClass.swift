@@ -220,7 +220,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                     if !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
                         item.imageUrl = url as NSURL
                     }
-//                    try NewsData.shared.container.viewContext.save()
+                    try NewsData.shared.container.viewContext.save()
                 }
             } catch {
                 throw PBHError.databaseError(message: "Error adding imageLink")

@@ -37,25 +37,27 @@ class NodeRepository: ObservableObject {
     private func updatePredicate() {
         guard let currentNode else { return }
         print("Setting predicate")
-        var predicate1 = NSPredicate(value: true)
-        if preferences.hideRead {
-            predicate1 = NSPredicate(format: "unread == true")
-        }
-        switch NodeType.fromString(typeString: currentNode) {
-        case .empty:
-            predicate = NSPredicate(value: false)
-        case .all:
-            predicate = NSPredicate(value: true)
-        case .starred:
-            predicate = NSPredicate(format: "starred == true")
-        case .folder(id:  let id):
-            if let feedIds = CDFeed.idsInFolder(folder: id) {
-                let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-                predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+        DispatchQueue.main.async {
+            var predicate1 = NSPredicate(value: true)
+            if self.preferences.hideRead {
+                predicate1 = NSPredicate(format: "unread == true")
             }
-        case .feed(id: let id):
-            let predicate2 = NSPredicate(format: "feedId == %d", id)
-            predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            switch NodeType.fromString(typeString: currentNode) {
+            case .empty:
+                self.predicate = NSPredicate(value: false)
+            case .all:
+                self.predicate = NSPredicate(value: true)
+            case .starred:
+                self.predicate = NSPredicate(format: "starred == true")
+            case .folder(id:  let id):
+                if let feedIds = CDFeed.idsInFolder(folder: id) {
+                    let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
+                    self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+                }
+            case .feed(id: let id):
+                let predicate2 = NSPredicate(format: "feedId == %d", id)
+                self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            }
         }
     }
 }

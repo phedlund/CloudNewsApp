@@ -32,6 +32,7 @@ struct ItemListItemViev: View {
         let itemOpacity = item.unread ? 1.0 : 0.4
         let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
         let hSpacing: CGFloat = isShowingThumbnail ? 10 : 0
+        let feed = CDFeed.feed(id: item.feedId)
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: hSpacing) {
                 if isShowingThumbnail {
@@ -47,7 +48,7 @@ struct ItemListItemViev: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
-                        FavIconDateAuthorView(feedIcon: CDFeed.feed(id: item.feedId)?.faviconLinkResolved,
+                        FavIconDateAuthorView(feedIcon: feed?.faviconLinkResolved,
                                               dateAuthorFeed: item.dateFeedAuthor,
                                               itemOpacity: itemOpacity)
                         if compactView || isHorizontalCompact {

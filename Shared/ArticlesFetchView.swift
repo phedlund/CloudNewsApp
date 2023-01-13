@@ -18,18 +18,15 @@ struct ArticlesFetchView: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
 
     @EnvironmentObject private var favIconRepository: FavIconRepository
-    @ObservedObject private var nodeRepository: NodeRepository
-
-    @Namespace private var topID
 
     @FetchRequest private var items: FetchedResults<CDItem>
-
-    private var didSync =  NotificationCenter.default.publisher(for: .syncComplete)
-
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
-    private let offsetItemsDetector = CurrentValueSubject<[CDItem], Never>([CDItem]())
-    private let offsetItemsPublisher: AnyPublisher<[CDItem], Never>
+    private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
+    private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
+
+    private var didSync = NotificationCenter.default.publisher(for: .syncComplete)
+    @ObservedObject private var nodeRepository: NodeRepository
 
     init(nodeRepository: NodeRepository) {
         self.nodeRepository = nodeRepository
@@ -46,49 +43,48 @@ struct ArticlesFetchView: View {
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack {
                 ScrollViewReader { proxy in
-                    ScrollView {
-                        Rectangle()
-                            .fill(.clear)
-                            .frame(height: 1)
-                            .id(topID)
-                        LazyVStack(spacing: 11.0) {
-                            let _ = print("Items: \(items.count)")
-                            ForEach(items, id: \.objectID) { item in
-                                NavigationLink(value: item) {
+                    List(selection: $nodeRepository.currentItem) {
+                        ForEach(Array(items.enumerated()), id: \.0) { index, item in
+                            ZStack {
+                                NavigationLink {
+                                    ArticlesPageView(item: item, items: items)
+                                } label: {
+                                    EmptyView()
+                                }
+                                .opacity(0)
+                                HStack {
+                                    Spacer()
                                     ItemListItemViev(item: item)
                                         .environmentObject(favIconRepository)
                                         .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                         .contextMenu {
                                             ContextMenuContent(item: item)
                                         }
+                                    Spacer()
                                 }
-                                .buttonStyle(ClearSelectionStyle())
-                                Rectangle()
-                                    .fill(.clear)
-                                    .frame(height: 1)
+                                .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                                    prefKey = CGFloat(index)
+                                }
+                                .onPreferenceChange(ViewOffsetKey.self) {
+                                    let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                                    offsetItemsDetector.send(offset)
+                                }
                             }
-                            .navigationDestination(for: CDItem.self) { item in
-                                ArticlesPageView(item: item, items: items)
-                            }
-                            .listRowBackground(Color.pbh.whiteBackground)
-                            .listRowSeparator(.hidden)
-                        }
-                        .background(GeometryReader {
-                            Color.clear
-                                .preference(key: ViewOffsetKey.self,
-                                            value: -$0.frame(in: .named("scroll")).origin.y)
-                        })
-                        .onReceive(didSync) { _ in
-                            Task {
-                                await updateImageLinks()
+                            .buttonStyle(ClearSelectionStyle())
+                            .onChange(of: nodeRepository.predicate) { _ in
+                                proxy.scrollTo(0)
                             }
                         }
-                        .onPreferenceChange(ViewOffsetKey.self) { offset in
-                            let numberOfItems = Int(max((offset / (cellHeight + 15.0)) - 1, 0))
-                            if numberOfItems > 0 {
-                                let allItems = Array(items).prefix(numberOfItems).filter( { $0.unread })
-                                offsetItemsDetector.send(allItems)
-                            }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.pbh.whiteBackground)
+                    }
+                    .background {
+                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                    }
+                    .scrollContentBackground(.hidden)
+                    .onReceive(didSync) { _ in
+                        Task {
+                            await updateImageLinks()
                         }
                     }
                     .onAppear {
@@ -97,34 +93,17 @@ struct ArticlesFetchView: View {
                     .task(id: nodeRepository.currentNode) {
                         await updateImageLinks()
                     }
-                    .coordinateSpace(name: "scroll")
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                         items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
                     }
                     .onChange(of: $compactView.wrappedValue) {
                         cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
                     }
-                    .onChange(of: nodeRepository.predicate) { _ in
-                        proxy.scrollTo(topID)
-                    }
-                    .onReceive(offsetItemsPublisher) { newItems in
+                    .onReceive(offsetItemsPublisher) { newOffset in
                         if markReadWhileScrolling {
                             Task.detached {
-                                Task(priority: .userInitiated) {
-                                    try? await NewsManager.shared.markRead(items: newItems, unread: false)
-                                }
+                                await markRead(newOffset)
                             }
-                        }
-                    }
-                    .onChange(of: scenePhase) { newPhase in
-                        switch newPhase {
-                        case .active:
-                            break
-//                            refreshID = UUID()
-                        case .inactive, .background:
-                            break
-                        @unknown default:
-                            fatalError("Unknown scene phase")
                         }
                     }
                 }
@@ -140,5 +119,24 @@ struct ArticlesFetchView: View {
             }
         } catch  { }
     }
+
+    private func markRead(_ offset: CGFloat) {
+        if markReadWhileScrolling {
+            print(offset)
+            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+            print("Number of items \(numberOfItems)")
+            if numberOfItems > 0 {
+                let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                print("Number of unread items \(itemsToMarkRead.count)")
+                if !itemsToMarkRead.isEmpty {
+                    Task(priority: .userInitiated) {
+                        let myItems = itemsToMarkRead.map( { $0 })
+                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                    }
+                }
+            }
+        }
+    }
+
 }
 #endif

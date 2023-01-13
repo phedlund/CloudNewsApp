@@ -78,7 +78,6 @@ class ItemStorage: NSObject, ObservableObject {
         willSavePublisher
             .sink { [weak self] _ in
                 guard let self else { return }
-                return
                 self.updatedObjects = NewsData.shared.container.viewContext.updatedObjects
                 self.insertedObjects = NewsData.shared.container.viewContext.insertedObjects
                 var localChanges = Set<NodeChange>()
@@ -118,7 +117,6 @@ class ItemStorage: NSObject, ObservableObject {
 
         didSavePublisher
             .sink { [weak self] notification in
-                return
                 guard let self else { return }
                 do {
                     if let deletedObjects = self.deletedObjects {
@@ -181,7 +179,7 @@ class ItemStorage: NSObject, ObservableObject {
 
         syncPublisher
             .sink { [weak self] _ in
-//                self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
+                self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
             }
             .store(in: &cancellables)
 
