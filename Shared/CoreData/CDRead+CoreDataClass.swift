@@ -15,10 +15,10 @@ public class CDRead: NSManagedObject {
 
     static private let entityName = "CDRead"
 
-    static func update(items: [Int32]) {
-        NewsData.shared.container.viewContext.performAndWait {
-            let request: NSFetchRequest<CDRead> = CDRead.fetchRequest()
+    static func update(items: [Int32]) async throws {
+        try await NewsData.shared.container.viewContext.perform {
             do {
+                let request: NSFetchRequest<CDRead> = CDRead.fetchRequest()
                 for item in items {
                     let predicate = NSPredicate(format: "itemId == %d", item)
                     request.predicate = predicate
@@ -31,8 +31,8 @@ public class CDRead: NSManagedObject {
                     }
                 }
                 try NewsData.shared.container.viewContext.save()
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
+            } catch {
+                throw PBHError.databaseError(message: error.localizedDescription)
             }
         }
     }

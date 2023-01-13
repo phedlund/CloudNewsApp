@@ -141,16 +141,12 @@ class NewsManager {
             return
         }
         do {
-            if items.count > 1 {
-                try await CDItem.markRead(items: items, unread: unread)
-            } else {
-                try await CDItem.markRead(item: items[0], unread: unread)
-            }
+            try await CDItem.markRead(items: items, unread: unread)
             let itemIds = items.map( { $0.id } )
             if unread {
-                CDUnread.update(items: itemIds)
+                try await CDUnread.update(items: itemIds)
             } else {
-                CDRead.update(items: itemIds)
+                try await CDRead.update(items: itemIds)
             }
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
@@ -184,10 +180,10 @@ class NewsManager {
                                                         "guidHash": item.guidHash as Any]]]
             var router: Router
             if starred {
-                CDStarred.update(items: [item.id])
+                try await CDStarred.update(items: [item.id])
                 router = Router.itemsStarred(parameters: parameters)
             } else {
-                CDUnstarred.update(items: [item.id])
+                try await CDUnstarred.update(items: [item.id])
                 router = Router.itemsUnstarred(parameters: parameters)
             }
             let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
