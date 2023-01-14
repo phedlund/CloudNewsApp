@@ -49,7 +49,7 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle(model.currentNode.title)
+            .navigationTitle(model.nodes.first(where: { $0.id == nodeRepository.currentNode })?.title ?? "Untitled")
             .onAppear {
                 isShowingLogin = isNotLoggedIn
             }
