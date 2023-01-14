@@ -86,6 +86,7 @@ struct ItemListItemViev: View {
         )
 #endif
         .onAppear {
+            thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight) 
             imageUrl = item.imageUrl as? URL
         }
         .onChange(of: $item.imageUrl.wrappedValue) { newValue in
