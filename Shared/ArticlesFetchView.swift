@@ -11,7 +11,6 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesFetchView: View {
-    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -28,6 +27,9 @@ struct ArticlesFetchView: View {
     private var didSync = NotificationCenter.default.publisher(for: .syncComplete)
     @ObservedObject private var nodeRepository: NodeRepository
 
+
+
+
     init(nodeRepository: NodeRepository) {
         self.nodeRepository = nodeRepository
         self.offsetItemsPublisher = offsetItemsDetector
@@ -38,7 +40,6 @@ struct ArticlesFetchView: View {
     }
     
     var body: some View {
-        let _ = Self._printChanges()
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack {
@@ -70,14 +71,15 @@ struct ArticlesFetchView: View {
                                     offsetItemsDetector.send(offset)
                                 }
                             }
-                            .buttonStyle(ClearSelectionStyle())
                             .onChange(of: nodeRepository.predicate) { _ in
-                                proxy.scrollTo(0)
+                                proxy.scrollTo(0, anchor: .top)
                             }
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.pbh.whiteBackground)
                     }
+                    .listStyle(.automatic)
+                    .accentColor(.pbh.darkIcon)
                     .background {
                         Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }

@@ -20,7 +20,7 @@ struct ItemListItemViev: View {
     @ObservedObject var item: CDItem
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-
+    @State private var imageUrl: URL?
     @ViewBuilder
     var body: some View {
 #if os(macOS)
@@ -36,7 +36,7 @@ struct ItemListItemViev: View {
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: hSpacing) {
                 if isShowingThumbnail {
-                    ItemImageView(imageUrl: item.imageUrl as URL?,
+                    ItemImageView(imageUrl: imageUrl,
                                   size: thumbnailSize,
                                   itemOpacity: itemOpacity)
                     .alignmentGuide(.top) { d in
@@ -85,6 +85,12 @@ struct ItemListItemViev: View {
             Color.pbh.whiteCellBackground.shadow(.drop(radius: 2, x: 0.5, y: 1))
         )
 #endif
+        .onAppear {
+            imageUrl = item.imageUrl as? URL
+        }
+        .onChange(of: $item.imageUrl.wrappedValue) { newValue in
+            imageUrl = newValue as? URL
+        }
         .onChange(of: $compactView.wrappedValue) { newValue in
             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
             let thumbnailWidth = newValue ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth

@@ -10,7 +10,6 @@ import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
     @ObservedObject var node: Node
-    @State private var isMarkAllReadDisabled = true
 
     @ToolbarContentBuilder
     var body: some ToolbarContent {

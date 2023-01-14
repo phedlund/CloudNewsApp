@@ -17,15 +17,15 @@ struct ArticlesFetchViewMac: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
 
     @EnvironmentObject private var favIconRepository: FavIconRepository
-    @ObservedObject private var nodeRepository: NodeRepository
 
     @FetchRequest private var items: FetchedResults<CDItem>
-
     @State private var cellHeight: CGFloat = .defaultCellHeight
-    @State private var itemSelected: NSManagedObjectID?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
+
+    private var didSync = NotificationCenter.default.publisher(for: .syncComplete)
+    @ObservedObject private var nodeRepository: NodeRepository
 
     private var didSelectNextItem =  NotificationCenter.default.publisher(for: .nextItem)
     private var didSelectPreviousItem =  NotificationCenter.default.publisher(for: .previousItem)
@@ -41,76 +41,90 @@ struct ArticlesFetchViewMac: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ScrollViewReader { proxy in
-                List(selection: $nodeRepository.currentItem) {
-                    ForEach(Array(items.enumerated()), id: \.1.objectID) { index, item in
-                        ItemListItemViev(item: item)
-                            .tag(item.objectID)
-                            .id(index)
-                            .environmentObject(favIconRepository)
-                            .frame(height: cellHeight, alignment: .center)
-                            .contextMenu {
-                                ContextMenuContent(item: item)
+            let cellWidth = CGFloat.infinity
+            VStack {
+                ScrollViewReader { proxy in
+                    List(selection: $nodeRepository.currentItem) {
+                        ForEach(Array(items.enumerated()), id: \.0) { index, item in
+                            ItemListItemViev(item: item)
+                                .tag(item.objectID)
+                                .id(index)
+                                .environmentObject(favIconRepository)
+                                .frame(height: cellHeight, alignment: .center)
+                                .contextMenu {
+                                    ContextMenuContent(item: item)
+                                }
+                                .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                                    return 0
+                                }
+                                .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                                    prefKey = CGFloat(index)
+                                }
+                                .onPreferenceChange(ViewOffsetKey.self) {
+                                    let offset = ($0 * (cellHeight + 15)) - geometry.size.height
+                                    offsetItemsDetector.send(offset)
+                                }
+                        }
+                        .listRowSeparator(.visible)
+                        .listRowBackground(EmptyView())
+                        .onChange(of: nodeRepository.predicate) { _ in
+                            proxy.scrollTo(0, anchor: .top)
+                        }
+                        .onReceive(didSelectPreviousItem) { _ in
+                            let current = nodeRepository.currentItem
+                            if let currentIndex = items.first(where: { $0.objectID == current }) {
+                                nodeRepository.currentItem = items.element(before: currentIndex)?.objectID
                             }
-                            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
-                                return 0
+                        }
+                        .onReceive(didSelectNextItem) { _ in
+                            let current = nodeRepository.currentItem
+                            if let currentIndex = items.first(where: { $0.objectID == current }) {
+                                nodeRepository.currentItem = items.element(after: currentIndex)?.objectID
                             }
-                            .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                                prefKey = CGFloat(index)
-                            }
-                            .onPreferenceChange(ViewOffsetKey.self) {
-                                let offset = ($0 * (cellHeight + 15)) - geometry.size.height
-                                offsetItemsDetector.send(offset)
-                            }
-                    }
-                    .listRowSeparator(.visible)
-                    .onReceive(didSelectPreviousItem) { _ in
-                        let current = nodeRepository.currentItem
-                        if let currentIndex = items.first(where: { $0.objectID == current }) {
-                            nodeRepository.currentItem = items.element(before: currentIndex)?.objectID
                         }
                     }
-                    .onReceive(didSelectNextItem) { _ in
-                        let current = nodeRepository.currentItem
-                        if let currentIndex = items.first(where: { $0.objectID == current }) {
-                            nodeRepository.currentItem = items.element(after: currentIndex)?.objectID
+                    .listStyle(.automatic)
+                    .accentColor(.pbh.darkIcon)
+                    .background {
+                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                    }
+                    .scrollContentBackground(.hidden)
+                    .onReceive(didSync) { _ in
+                        Task {
+                            await updateImageLinks()
                         }
                     }
-                }
-                .listStyle(.automatic)
-                .accentColor(.pbh.darkIcon)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-                .onChange(of: nodeRepository.predicate) { _ in
-                    proxy.scrollTo(0, anchor: .top)
-                }
-            }
-            .onAppear {
-                items.nsPredicate = nodeRepository.predicate
-            }
-            .task(id: nodeRepository.currentNode) {
-                do {
-                    let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-                    if !itemsWithoutImageLink.isEmpty {
-                        try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+                    .onAppear {
+                        items.nsPredicate = nodeRepository.predicate
                     }
-                } catch  { }
-            }
-            .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
-                items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
-            }
-            .onChange(of: $compactView.wrappedValue) {
-                cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
-            }
-            .onReceive(offsetItemsPublisher) { newOffset in
-                if markReadWhileScrolling {
-                    Task.detached {
-                        await markRead(newOffset)
+                    .task(id: nodeRepository.currentNode) {
+                        await updateImageLinks()
+                    }
+                    .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
+                        items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
+                    }
+                    .onChange(of: $compactView.wrappedValue) {
+                        cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+                    }
+                    .onReceive(offsetItemsPublisher) { newOffset in
+                        if markReadWhileScrolling {
+                            Task.detached {
+                                await markRead(newOffset)
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    private func updateImageLinks() async {
+        do {
+            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
+            if !itemsWithoutImageLink.isEmpty {
+                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+            }
+        } catch  { }
     }
 
     private func markRead(_ offset: CGFloat) {
