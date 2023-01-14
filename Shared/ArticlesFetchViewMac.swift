@@ -46,7 +46,7 @@ struct ArticlesFetchViewMac: View {
                 ScrollViewReader { proxy in
                     List(selection: $nodeRepository.currentItem) {
                         ForEach(Array(items.enumerated()), id: \.0) { index, item in
-                            ItemListItemViev(item: item)
+                            ListItemRow(item: item)
                                 .tag(item.objectID)
                                 .id(index)
                                 .environmentObject(favIconRepository)

@@ -55,7 +55,7 @@ struct ArticlesFetchView: View {
                                 .opacity(0)
                                 HStack {
                                     Spacer()
-                                    ItemListItemViev(item: item)
+                                    ListItemRow(item: item)
                                         .environmentObject(favIconRepository)
                                         .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                         .contextMenu {

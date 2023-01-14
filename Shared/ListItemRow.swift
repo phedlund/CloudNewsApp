@@ -9,7 +9,7 @@
 import SwiftSoup
 import SwiftUI
 
-struct ItemListItemViev: View {
+struct ListItemRow: View {
 #if !os(macOS)
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
