@@ -98,7 +98,6 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
         try await NewsData.shared.container.viewContext.perform {
             do {
                 feed.faviconLinkResolved = link
-                try NewsData.shared.container.viewContext.save()
             } catch {
                 throw PBHError.databaseError(message: "Error adding favicon")
             }

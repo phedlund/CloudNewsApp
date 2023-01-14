@@ -18,14 +18,14 @@ class FolderImporter {
             if let httpResponse = response as? HTTPURLResponse {
                 switch httpResponse.statusCode {
                 case 200:
-                    guard let itemsDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                          let itemDicts = itemsDict["items"] as? [[String: Any]],
-                          !itemDicts.isEmpty else {
+                    guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let folderDicts = foldersDict["folders"] as? [[String: Any]],
+                          !folderDicts.isEmpty else {
                         return
                     }
 
                     logger.debug("Start importing folder data to the store...")
-                    try await importFolders(from: itemDicts)
+                    try await importFolders(from: folderDicts)
                     logger.debug("Finished importing folder data.")
                 default:
                     throw PBHError.networkError(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
