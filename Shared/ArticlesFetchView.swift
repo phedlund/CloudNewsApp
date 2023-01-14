@@ -47,9 +47,7 @@ struct ArticlesFetchView: View {
                     List(selection: $nodeRepository.currentItem) {
                         ForEach(Array(items.enumerated()), id: \.0) { index, item in
                             ZStack {
-                                NavigationLink {
-                                    ArticlesPageView(item: item, items: items)
-                                } label: {
+                                NavigationLink(value: item) {
                                     EmptyView()
                                 }
                                 .opacity(0)
@@ -77,6 +75,9 @@ struct ArticlesFetchView: View {
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.pbh.whiteBackground)
+                    }
+                    .navigationDestination(for: CDItem.self) { item in
+                        ArticlesPageView(item: item, items: items)
                     }
                     .listStyle(.automatic)
                     .accentColor(.pbh.darkIcon)
