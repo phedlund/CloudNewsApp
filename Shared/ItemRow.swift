@@ -34,7 +34,7 @@ struct ItemRow: View {
         let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
         let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width : 0
         let feed = CDFeed.feed(id: item.feedId)
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     if isShowingThumbnail {
@@ -43,41 +43,42 @@ struct ItemRow: View {
                                       itemOpacity: itemOpacity)
                         .padding(.top, compactView ? 1 : 0)
                     } else {
-                        EmptyView()
+                        Rectangle()
+                            .foregroundColor(.pbh.whiteBackground)
+                            .frame(width: 1, height: thumbnailSize.height)
                     }
                     HStack(alignment: .top) {
                         HStack(alignment: .top) {
-                            VStack(alignment: .leading) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            HStack {
-                                                TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
-                                                Spacer()
-                                            }
-                                            .frame(maxWidth: .infinity)
-                                            FavIconDateAuthorView(feedIcon: feed?.faviconLinkResolved,
-                                                                  dateAuthorFeed: item.dateFeedAuthor,
-                                                                  itemOpacity: itemOpacity)
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
+                                            Spacer()
                                         }
+                                        .frame(maxWidth: .infinity)
+                                        FavIconDateAuthorView(feedIcon: feed?.faviconLinkResolved,
+                                                              dateAuthorFeed: item.dateFeedAuthor,
+                                                              itemOpacity: itemOpacity)
                                     }
-                                    .padding(.leading, thumbnailOffset)
-                                    VStack(alignment: .leading) {
-                                        if compactView {
-                                            EmptyView()
-                                        } else {
-                                            HStack {
-                                                BodyView(displayBody: item.displayBody, textColor: textColor, itemOpacity: itemOpacity)
-                                                Spacer()
-                                            }
-                                            .padding(.leading, isHorizontalCompact ? 0 : thumbnailOffset)
-                                        }
-                                    }
-                                    Spacer()
                                 }
-                                .padding(.top, isHorizontalCompact ? 0 : 8)
-                                .padding(.leading, 8)
+                                .padding(.leading, thumbnailOffset)
+                                VStack(alignment: .leading) {
+                                    if compactView {
+                                        EmptyView()
+                                    } else {
+                                        HStack {
+                                            BodyView(displayBody: item.displayBody, textColor: textColor, itemOpacity: itemOpacity)
+                                            Spacer()
+                                        }
+                                        .padding(.leading, isHorizontalCompact ? 0 : thumbnailOffset)
+                                    }
+                                }
+                                Spacer()
                             }
+                            .padding(.top, isHorizontalCompact ? 0 : 8)
+                            .padding(.leading, 8)
+
                         }
                         Spacer()
                         ItemStarredView(starred: item.starred, textColor: textColor)
