@@ -62,7 +62,7 @@ extension NSFetchRequestResult where Self: NSManagedObject {
         deleteRequest.resultType = .resultTypeCount
         do {
             let result = try context.execute(deleteRequest)
-            try context.save()
+//            try context.save()
             return result as? NSBatchDeleteResult
         } catch let error as NSError {
             print("Could not perform deletion \(error), \(error.userInfo)")

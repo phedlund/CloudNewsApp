@@ -92,7 +92,6 @@ class NewsData {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"
         logger.debug("Start fetching persistent history changes from the store...")
-
         try await taskContext.perform {
             let changeRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: self.lastToken)
             if let historyFetchRequest = NSPersistentHistoryTransaction.fetchRequest {
@@ -105,9 +104,7 @@ class NewsData {
                 self.mergePersistentHistoryChanges(from: history)
                 return
             }
-
             self.logger.debug("No persistent history transactions found.")
-            throw PBHError.databaseError(message: "History Change Error")
         }
 
         logger.debug("Finished merging history changes.")

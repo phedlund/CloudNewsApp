@@ -86,7 +86,7 @@ struct ArticlesFetchView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .onReceive(didSync) { _ in
-                        Task {
+                        Task(priority: .userInitiated) {
                             await updateImageLinks()
                         }
                     }
@@ -94,7 +94,7 @@ struct ArticlesFetchView: View {
                         cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                         items.nsPredicate = nodeRepository.predicate
                     }
-                    .task(id: nodeRepository.currentNode) {
+                    .task(id: nodeRepository.currentNode, priority: .userInitiated) {
                         await updateImageLinks()
                     }
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in

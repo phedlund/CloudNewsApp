@@ -33,7 +33,6 @@ struct ItemRow: View {
         let itemOpacity = item.unread ? 1.0 : 0.4
         let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
         let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
-        let feed = CDFeed.feed(id: item.feedId)
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
@@ -57,9 +56,7 @@ struct ItemRow: View {
                                             Spacer()
                                         }
                                         .frame(maxWidth: .infinity)
-                                        FavIconDateAuthorView(feedIcon: feed?.faviconLinkResolved,
-                                                              dateAuthorFeed: item.dateFeedAuthor,
-                                                              itemOpacity: itemOpacity)
+                                        FavIconDateAuthorView(item: item)
                                     }
                                 }
                                 .padding(.leading, thumbnailOffset)
@@ -103,6 +100,13 @@ struct ItemRow: View {
         .onAppear {
             thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
             imageUrl = item.imageUrl as? URL
+        }
+        .task(priority: .userInitiated) {
+            do {
+                if item.imageLink == nil || item.imageLink == "data:null" {
+                    try await ItemImageFetcher.shared.itemURLs([item])
+                }
+            } catch { }
         }
         .onChange(of: $item.imageUrl.wrappedValue) { newValue in
             imageUrl = newValue as? URL

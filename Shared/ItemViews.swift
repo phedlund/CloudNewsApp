@@ -104,21 +104,19 @@ struct FavIconLabelStyle: LabelStyle {
 }
 
 struct FavIconDateAuthorView: View {
-    var feedIcon: String?
-    var dateAuthorFeed: String
-    var itemOpacity: Double
-    
+    @ObservedObject var item: CDItem
+
     var body: some View {
         Label {
-            Text(dateAuthorFeed)
+            Text(item.dateFeedAuthor)
                 .font(.subheadline)
                 .italic()
                 .lineLimit(1)
         } icon: {
-            ItemFavIconView(nodeIcon: feedIcon)
+            ItemFavIconView(nodeIcon: CDFeed.feed(id: item.feedId)?.faviconLinkResolved)
         }
         .labelStyle(FavIconLabelStyle())
-        .opacity(itemOpacity)
+        .opacity(item.unread ? 1.0 : 0.4)
     }
 }
 
