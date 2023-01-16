@@ -53,9 +53,9 @@ struct ArticlesFetchView: View {
                                 .opacity(0)
                                 HStack {
                                     Spacer()
-                                    ListItemRow(item: item)
+                                    ItemRow(item: item, size: CGSize(width: cellWidth, height: cellHeight))
+                                        .id(index)
                                         .environmentObject(favIconRepository)
-                                        .frame(width: cellWidth, height: cellHeight, alignment: .center)
                                         .contextMenu {
                                             ContextMenuContent(item: item)
                                         }
@@ -79,7 +79,7 @@ struct ArticlesFetchView: View {
                     .navigationDestination(for: CDItem.self) { item in
                         ArticlesPageView(item: item, items: items)
                     }
-                    .listStyle(.automatic)
+                    .listStyle(.plain)
                     .accentColor(.pbh.darkIcon)
                     .background {
                         Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
@@ -91,6 +91,7 @@ struct ArticlesFetchView: View {
                         }
                     }
                     .onAppear {
+                        cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                         items.nsPredicate = nodeRepository.predicate
                     }
                     .task(id: nodeRepository.currentNode) {

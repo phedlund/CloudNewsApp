@@ -168,7 +168,7 @@ struct ItemStarredView: View {
 
     @ViewBuilder
     var body: some View {
-        VStack {
+        VStack(alignment: .trailing) {
             if starred {
                 Image(systemName: "star.fill")
                     .resizable()

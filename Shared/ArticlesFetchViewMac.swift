@@ -46,9 +46,9 @@ struct ArticlesFetchViewMac: View {
                 ScrollViewReader { proxy in
                     List(selection: $nodeRepository.currentItem) {
                         ForEach(Array(items.enumerated()), id: \.0) { index, item in
-                            ListItemRow(item: item)
-                                .tag(item.objectID)
+                            ItemRow(item: item, size: CGSize(width: cellWidth, height: cellHeight))
                                 .id(index)
+                                .tag(item.objectID)
                                 .environmentObject(favIconRepository)
                                 .frame(height: cellHeight, alignment: .center)
                                 .contextMenu {
