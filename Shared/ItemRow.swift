@@ -32,16 +32,16 @@ struct ItemRow: View {
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let itemOpacity = item.unread ? 1.0 : 0.4
         let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
-        let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width : 0
+        let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
         let feed = CDFeed.feed(id: item.feedId)
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 0) {
+        VStack(alignment: .leading, spacing: .zero) {
+            HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
                     if isShowingThumbnail {
                         ItemImageView(imageUrl: imageUrl,
                                       size: thumbnailSize,
                                       itemOpacity: itemOpacity)
-                        .padding(.top, compactView ? 1 : 0)
+                        .padding(.top, compactView ? 1 : .zero)
                     } else {
                         Rectangle()
                             .foregroundColor(.pbh.whiteBackground)
@@ -49,9 +49,9 @@ struct ItemRow: View {
                     }
                     HStack(alignment: .top) {
                         HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 6) {
+                            VStack(alignment: .leading, spacing: .paddingSix) {
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 6) {
+                                    VStack(alignment: .leading, spacing: .paddingSix) {
                                         HStack {
                                             TitleView(title: item.title ?? "Untitled", textColor: textColor, itemOpacity: itemOpacity)
                                             Spacer()
@@ -71,13 +71,13 @@ struct ItemRow: View {
                                             BodyView(displayBody: item.displayBody, textColor: textColor, itemOpacity: itemOpacity)
                                             Spacer()
                                         }
-                                        .padding(.leading, isHorizontalCompact ? 0 : thumbnailOffset)
+                                        .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
                                     }
                                 }
                                 Spacer()
                             }
-                            .padding(.top, isHorizontalCompact ? 0 : 8)
-                            .padding(.leading, 8)
+                            .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
+                            .padding(.leading, .paddingEight)
 
                         }
                         Spacer()
@@ -88,12 +88,12 @@ struct ItemRow: View {
             Spacer()
         }
         .listRowInsets(.none)
-        .padding(.top, isHorizontalCompact ? 0 : 8)
-        .padding(.top, isHorizontalCompact && compactView ? 22 : 0)
+        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
+        .padding(.top, isHorizontalCompact && compactView ? 22 : .zero)
 
 #if os(iOS)
         .frame(width: size.width, height: size.height)
-        .padding([.trailing], 10)
+        .padding([.trailing], .paddingSix)
         .background(in: RoundedRectangle(cornerRadius: 4.0))
         .backgroundStyle(
             Color.pbh.whiteCellBackground
