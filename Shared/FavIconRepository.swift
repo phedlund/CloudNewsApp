@@ -122,7 +122,7 @@ class FavIconRepository: NSObject, ObservableObject {
                     switch result {
                     case .success(let value):
                         ImageCache.default.store(value.image, forKey: "feed_\(feed.id)")
-                        self.icons.value["feed_\(feed.id)"] = FavIcon(image: value.image ??  KFCrossPlatformImage(named: "rss")!)
+                        self.icons.value["feed_\(feed.id)"] = FavIcon(image: value.image)
                         print(value.image)
                     case .failure(let error):
                         print(error)
