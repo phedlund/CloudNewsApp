@@ -32,7 +32,8 @@ class FavIcon: ObservableObject {
 
 @MainActor
 class FavIconRepository: NSObject, ObservableObject {
-    var icons = CurrentValueSubject<[String: FavIcon], Never>([:])
+    @Published var icons = [String: FavIcon]()
+    @Published var defaultIcon = FavIcon(image: KFCrossPlatformImage(named: "rss")!)
 
     private let validSchemas = ["http", "https", "file"]
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
@@ -52,8 +53,8 @@ class FavIconRepository: NSObject, ObservableObject {
                 self?.update()
             }
             .store(in: &cancellables)
-        icons.value["all"] = FavIcon(image: KFCrossPlatformImage(named: "rss")!)
-        icons.value["starred"] = FavIcon(image: KFCrossPlatformImage(symbolName: "star.fill")!)
+        icons["all"] = defaultIcon
+        icons["starred"] = FavIcon(image: KFCrossPlatformImage(symbolName: "star.fill")!)
         update()
     }
 
@@ -61,7 +62,7 @@ class FavIconRepository: NSObject, ObservableObject {
         if let folders = CDFolder.all() {
             for folder in folders {
                 Task {
-                    self.icons.value["folder_\(folder.id)"] = FavIcon(image: KFCrossPlatformImage(symbolName: "folder")!)
+                    self.icons["folder_\(folder.id)"] = FavIcon(image: KFCrossPlatformImage(symbolName: "folder")!)
                 }
             }
         }
@@ -70,9 +71,9 @@ class FavIconRepository: NSObject, ObservableObject {
                 ImageCache.default.retrieveImage(forKey: "feed_\(feed.id)") { result in
                     switch result {
                     case .success(let value):
-                        self.icons.value["feed_\(feed.id)"] = FavIcon(image: value.image ??  KFCrossPlatformImage(named: "rss")!)
+                        self.icons["feed_\(feed.id)"] = FavIcon(image: value.image ??  self.defaultIcon.image)
                     case .failure( _):
-                        self.icons.value["feed_\(feed.id)"] = FavIcon(image: KFCrossPlatformImage(named: "rss")!)
+                        self.icons["feed_\(feed.id)"] = self.defaultIcon
                     }
                 }
             }
@@ -122,7 +123,7 @@ class FavIconRepository: NSObject, ObservableObject {
                     switch result {
                     case .success(let value):
                         ImageCache.default.store(value.image, forKey: "feed_\(feed.id)")
-                        self.icons.value["feed_\(feed.id)"] = FavIcon(image: value.image)
+                        self.icons["feed_\(feed.id)"] = FavIcon(image: value.image)
                         print(value.image)
                     case .failure(let error):
                         print(error)

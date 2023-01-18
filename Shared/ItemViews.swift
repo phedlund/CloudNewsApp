@@ -94,7 +94,7 @@ struct FavIconDateAuthorView: View {
                 .italic()
                 .lineLimit(1)
         } icon: {
-            FavIconView(cacheKey: "feed_\(item.feedId)")
+            FavIconView(favIcon: favIconRepository.icons["feed_\(item.feedId)"] ?? favIconRepository.defaultIcon)
                 .environmentObject(favIconRepository)
         }
         .labelStyle(FavIconLabelStyle())

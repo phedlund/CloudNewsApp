@@ -9,19 +9,13 @@ import Kingfisher
 import SwiftUI
 
 struct FavIconView: View {
-    @EnvironmentObject private var favIconRepository: FavIconRepository
-    var cacheKey: String
-
-    @State private var icon = KFCrossPlatformImage(named: "rss")!
+    @ObservedObject var favIcon: FavIcon
 
     @ViewBuilder
     var body: some View {
-        Image(uiImage: favIconRepository.icons.value[cacheKey]?.image ?? UIImage())
+        Image(uiImage: favIcon.image)
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            .aspectRatio(contentMode: .fit)
             .frame(width: 22, height: 22)
-            .onReceive(favIconRepository.icons) { newValue in
-                icon = newValue[cacheKey]?.image ?? KFCrossPlatformImage(named: "rss")!
-            }
     }
 }

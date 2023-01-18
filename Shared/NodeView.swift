@@ -32,16 +32,16 @@ struct NodeView: View {
             } icon: {
                 switch node.nodeType {
                 case .all, .empty:
-                    FavIconView(cacheKey: "all")
+                    FavIconView(favIcon: favIconRepository.icons["all"] ?? favIconRepository.defaultIcon)
                         .environmentObject(favIconRepository)
                 case .starred:
-                    FavIconView(cacheKey: "starred")
+                    FavIconView(favIcon: favIconRepository.icons["starred"] ?? favIconRepository.defaultIcon)
                         .environmentObject(favIconRepository)
                 case .folder(let id):
-                    FavIconView(cacheKey: "folder_\(id)")
+                    FavIconView(favIcon: favIconRepository.icons["folder_\(id)"] ?? favIconRepository.defaultIcon)
                         .environmentObject(favIconRepository)
                 case .feed(let id):
-                    FavIconView(cacheKey: "feed_\(id)")
+                    FavIconView(favIcon: favIconRepository.icons["feed_\(id)"] ?? favIconRepository.defaultIcon)
                         .environmentObject(favIconRepository)
                 }
             }
