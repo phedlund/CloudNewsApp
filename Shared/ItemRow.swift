@@ -91,10 +91,10 @@ struct ItemRow: View {
 #if os(iOS)
         .frame(width: size.width, height: size.height)
         .padding([.trailing], .paddingSix)
-        .background(in: RoundedRectangle(cornerRadius: 4.0))
+        .background(in: RoundedRectangle(cornerRadius: 1.0))
         .backgroundStyle(
             Color.pbh.whiteCellBackground
-                .shadow(.drop(radius: 2, x: 0.5, y: 1))
+                .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
         )
 #endif
         .onAppear {
