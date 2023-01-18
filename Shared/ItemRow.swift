@@ -14,6 +14,7 @@ struct ItemRow: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 #endif
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @ObservedObject var item: CDItem
@@ -57,6 +58,7 @@ struct ItemRow: View {
                                         }
                                         .frame(maxWidth: .infinity)
                                         FavIconDateAuthorView(item: item)
+                                            .environmentObject(favIconRepository)
                                     }
                                 }
                                 .padding(.leading, thumbnailOffset)
@@ -99,7 +101,9 @@ struct ItemRow: View {
 #endif
         .onAppear {
             thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-            imageUrl = item.imageUrl as? URL
+            if let newValue = item.imageLink, !newValue.isEmpty, newValue != "data:null", let url = URL(string: newValue) {
+                imageUrl = url as URL
+            }
         }
         .task(priority: .userInitiated) {
             do {

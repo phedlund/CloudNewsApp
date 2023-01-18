@@ -30,8 +30,20 @@ struct NodeView: View {
                 Text(node.title)
                     .lineLimit(1)
             } icon: {
-                NodeFavIconView(node: node)
-                    .environmentObject(favIconRepository)
+                switch node.nodeType {
+                case .all, .empty:
+                    FavIconView(cacheKey: "all")
+                        .environmentObject(favIconRepository)
+                case .starred:
+                    FavIconView(cacheKey: "starred")
+                        .environmentObject(favIconRepository)
+                case .folder(let id):
+                    FavIconView(cacheKey: "folder_\(id)")
+                        .environmentObject(favIconRepository)
+                case .feed(let id):
+                    FavIconView(cacheKey: "feed_\(id)")
+                        .environmentObject(favIconRepository)
+                }
             }
             .labelStyle(.titleAndIcon)
         }
@@ -59,36 +71,6 @@ struct NodeView: View {
         }
     }
 
-}
-
-struct NodeFavIconView: View {
-    @ObservedObject var node: Node
-    @EnvironmentObject private var favIconRepository: FavIconRepository
-    
-    @ViewBuilder
-    var body: some View {
-        switch node.nodeType {
-        case .all, .empty:
-#if os(macOS)
-            Image(nsImage: SystemImage(named: "rss")!)
-#else
-            Image(uiImage: SystemImage(named: "rss")!)
-#endif
-        case .starred:
-            Image(systemName: "star.fill")
-        case .folder(id: _):
-            Image(systemName: "folder")
-        case .feed(id: _):
-            KFImage(URL(string: favIconRepository.icons.value[node.nodeType] ?? "data:null"))
-                .placeholder {
-                    Color.gray.opacity(0.25)
-                }
-                .retry(maxCount: 3, interval: .seconds(5))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 22, height: 22)
-        }
-    }
 }
 
 //struct NodeView_Previews: PreviewProvider {

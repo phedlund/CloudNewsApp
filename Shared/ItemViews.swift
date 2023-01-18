@@ -68,26 +68,6 @@ struct TitleView: View {
     }
 }
 
-struct ItemFavIconView: View {
-    var nodeIcon: String?
-    
-    @ViewBuilder
-    var body: some View {
-        KFImage(URL(string: nodeIcon ?? "data:null"))
-            .placeholder {
-#if os(macOS)
-                Image(nsImage: SystemImage(named: "rss")!)
-#else
-                Image(uiImage: SystemImage(named: "rss")!)
-#endif
-            }
-            .retry(maxCount: 3, interval: .seconds(5))
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(width: 22, height: 22)
-    }
-}
-
 struct FavIconLabelStyle: LabelStyle {
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
 
@@ -105,6 +85,7 @@ struct FavIconLabelStyle: LabelStyle {
 
 struct FavIconDateAuthorView: View {
     @ObservedObject var item: CDItem
+    @EnvironmentObject private var favIconRepository: FavIconRepository
 
     var body: some View {
         Label {
@@ -113,7 +94,8 @@ struct FavIconDateAuthorView: View {
                 .italic()
                 .lineLimit(1)
         } icon: {
-            ItemFavIconView(nodeIcon: CDFeed.feed(id: item.feedId)?.faviconLinkResolved)
+            FavIconView(cacheKey: "feed_\(item.feedId)")
+                .environmentObject(favIconRepository)
         }
         .labelStyle(FavIconLabelStyle())
         .opacity(item.unread ? 1.0 : 0.4)
