@@ -40,6 +40,7 @@ struct ArticlesFetchView: View {
     }
     
     var body: some View {
+        let _ = Self._printChanges()
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack {
@@ -53,7 +54,7 @@ struct ArticlesFetchView: View {
                                 .opacity(0)
                                 HStack {
                                     Spacer()
-                                    ItemRow(item: item, size: CGSize(width: cellWidth, height: cellHeight))
+                                    ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: CGSize(width: cellWidth, height: cellHeight))
                                         .id(index)
                                         .environmentObject(favIconRepository)
                                         .contextMenu {
@@ -69,7 +70,7 @@ struct ArticlesFetchView: View {
                                     offsetItemsDetector.send(offset)
                                 }
                             }
-                            .onChange(of: nodeRepository.predicate) { _ in
+                            .onChange(of: nodeRepository.currentNode) { _ in
                                 proxy.scrollTo(0, anchor: .top)
                             }
                         }
@@ -85,18 +86,18 @@ struct ArticlesFetchView: View {
                         Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
-                    .onReceive(didSync) { _ in
-                        Task(priority: .userInitiated) {
-                            await updateImageLinks()
-                        }
-                    }
+//                    .onReceive(didSync) { _ in
+//                        Task(priority: .userInitiated) {
+//                            await updateImageLinks()
+//                        }
+//                    }
                     .onAppear {
                         cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                         items.nsPredicate = nodeRepository.predicate
                     }
-                    .task(id: nodeRepository.currentNode, priority: .userInitiated) {
-                        await updateImageLinks()
-                    }
+//                    .task(id: nodeRepository.currentNode, priority: .userInitiated) {
+//                        await updateImageLinks()
+//                    }
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                         items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
                     }
@@ -115,14 +116,14 @@ struct ArticlesFetchView: View {
         }
     }
 
-    private func updateImageLinks() async {
-        do {
-            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-            if !itemsWithoutImageLink.isEmpty {
-                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-            }
-        } catch  { }
-    }
+//    private func updateImageLinks() async {
+//        do {
+//            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
+//            if !itemsWithoutImageLink.isEmpty {
+//                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
+//            }
+//        } catch  { }
+//    }
 
     private func markRead(_ offset: CGFloat) {
         if markReadWhileScrolling {

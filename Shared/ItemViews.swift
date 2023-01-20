@@ -122,22 +122,29 @@ struct BodyView: View {
 }
 
 struct ItemImageView: View {
-    var imageUrl: URL?
+    var image: KFCrossPlatformImage?
     var size: CGSize
     var itemOpacity: Double
 
+    init(image: KFCrossPlatformImage?, size: CGSize, itemOpacity: Double) {
+        self.image = image
+        self.size = size
+        self.itemOpacity = itemOpacity
+    }
+
     var body: some View {
-        if let imageUrl {
-            KFImage(imageUrl)
-                .fade(duration: 0.2)
-                .cancelOnDisappear(true)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: size.width, height: size.height)
-                .clipped()
-                .opacity(itemOpacity)
-        } else {
-            EmptyView()
+        VStack {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
+                    .opacity(itemOpacity)
+            } else {
+                EmptyView()
+                    .frame(width: .zero)
+            }
         }
     }
 }

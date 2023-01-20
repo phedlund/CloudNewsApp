@@ -18,12 +18,12 @@ struct ItemRow: View {
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @ObservedObject var item: CDItem
+    @ObservedObject var itemImageManager: ItemImageManager
 
     var size: CGSize
 
     @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-    @State private var imageUrl: URL?
-    
+
     var body: some View {
 #if os(macOS)
         let isHorizontalCompact = false
@@ -32,16 +32,19 @@ struct ItemRow: View {
 #endif
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let itemOpacity = item.unread ? 1.0 : 0.4
-        let isShowingThumbnail = (showThumbnails && item.imageUrl != nil)
+        let isShowingThumbnail = (showThumbnails && itemImageManager.image != nil)
         let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
                     if isShowingThumbnail {
-                        ItemImageView(imageUrl: imageUrl,
+                        ItemImageView(image: itemImageManager.image,
                                       size: thumbnailSize,
                                       itemOpacity: itemOpacity)
                         .padding(.top, compactView ? 1 : .zero)
+                        .onAppear {
+                            withAnimation(.easeInOut(duration: 0.3)) { }
+                        }
                     } else {
                         Rectangle()
                             .foregroundColor(.pbh.whiteBackground)
@@ -101,19 +104,6 @@ struct ItemRow: View {
 #endif
         .onAppear {
             thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-            if let newValue = item.imageLink, !newValue.isEmpty, newValue != "data:null", let url = URL(string: newValue) {
-                imageUrl = url as URL
-            }
-        }
-        .task(priority: .userInitiated) {
-            do {
-                if item.imageLink == nil || item.imageLink == "data:null" {
-                    try await ItemImageFetcher.shared.itemURLs([item])
-                }
-            } catch { }
-        }
-        .onChange(of: $item.imageUrl.wrappedValue) { newValue in
-            imageUrl = newValue as? URL
         }
         .onChange(of: $compactView.wrappedValue) { newValue in
             let cellHeight = newValue ? CGFloat.compactCellHeight : CGFloat.defaultCellHeight
