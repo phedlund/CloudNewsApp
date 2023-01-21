@@ -77,8 +77,6 @@ class ItemImageManager: NSObject, ObservableObject {
                     print(error)
                 }
             }
-//        } else {
-//            try await CDItem.addImageLink(item: item, imageLink: "data:null")
         }
     }
 

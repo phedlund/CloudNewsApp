@@ -90,7 +90,6 @@
 		D0F5BC10295FAF5E001E728A /* ArticlesFetchViewMac.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0F295FAF5E001E728A /* ArticlesFetchViewMac.swift */; };
 		D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
 		D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */; };
-		D0FEBD63268AC83F00AC0618 /* ItemImageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */; };
 		D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */; };
 		D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD6B268C09D200AC0618 /* HexColor.swift */; };
 		D0FEBD6F268D529600AC0618 /* ArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */; };
@@ -181,7 +180,6 @@
 		D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTimer.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PBHColors.swift; sourceTree = "<group>"; };
-		D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemImageFetcher.swift; sourceTree = "<group>"; };
 		D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleWebContent.swift; sourceTree = "<group>"; };
 		D0FEBD6B268C09D200AC0618 /* HexColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleSettingsView.swift; sourceTree = "<group>"; };
@@ -243,7 +241,6 @@
 				D0CAB1272935A0FA006DF1BA /* ItemSort.swift */,
 				D0CAF5ED2713C43800BB9062 /* ItemViews.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemRow.swift */,
-				D0FEBD62268AC83F00AC0618 /* ItemImageFetcher.swift */,
 				D055434F28BEE4EF0023F655 /* FavIconRepository.swift */,
 				D029FDC12978DF0C0099FD95 /* ItemImageManager.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
@@ -466,7 +463,6 @@
 				D02F4533265C8D0000A3505B /* CDUnread+CoreDataProperties.swift in Sources */,
 				D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */,
 				D06D072D274F01D100325770 /* Node.swift in Sources */,
-				D0FEBD63268AC83F00AC0618 /* ItemImageFetcher.swift in Sources */,
 				D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */,
 				D02F4511265C8CAD00A3505B /* Item.swift in Sources */,
 				D0B399EC292DC5D600406DF1 /* XButtonStyle.swift in Sources */,

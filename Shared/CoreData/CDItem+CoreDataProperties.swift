@@ -28,8 +28,6 @@ extension CDItem {
     @NSManaged public var guid: String?
     @NSManaged public var guidHash: String?
     @NSManaged public var id: Int32
-    @NSManaged public var imageLink: String?
-    @NSManaged public var imageUrl: NSURL?
     @NSManaged public var lastModified: Int32
     @NSManaged public var mediaThumbnail: String?
     @NSManaged public var mediaDescription: String?

@@ -116,15 +116,6 @@ struct ArticlesFetchView: View {
         }
     }
 
-//    private func updateImageLinks() async {
-//        do {
-//            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-//            if !itemsWithoutImageLink.isEmpty {
-//                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-//            }
-//        } catch  { }
-//    }
-
     private func markRead(_ offset: CGFloat) {
         if markReadWhileScrolling {
             print(offset)

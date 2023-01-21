@@ -209,25 +209,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return result
     }
 
-    static func addImageLink(item: CDItem, imageLink: String) async throws {
-        try await NewsData.shared.container.viewContext.perform {
-            do {
-                let currentData = item.imageLink
-                if imageLink == currentData {
-                    print("Same image link \(imageLink)")
-                } else {
-                    item.imageLink = imageLink
-                    if !imageLink.isEmpty, imageLink != "data:null", let url = URL(string: imageLink) {
-                        item.imageUrl = url as NSURL
-                    }
-                    try NewsData.shared.container.viewContext.save()
-                }
-            } catch {
-                throw PBHError.databaseError(message: "Error adding imageLink")
-            }
-        }
-    }
-
     @discardableResult
     static func deleteItems(with feedId: Int32) async throws -> NSBatchDeleteResult? {
         var result: NSPersistentStoreResult?
