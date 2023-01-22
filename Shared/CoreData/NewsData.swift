@@ -95,7 +95,8 @@ class NewsData {
         try await taskContext.perform {
             let changeRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: self.lastToken)
             if let historyFetchRequest = NSPersistentHistoryTransaction.fetchRequest {
-                historyFetchRequest.predicate = NSPredicate(format: "%K != %@", "author", "viewContext")
+                historyFetchRequest.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "%K != %@", "author", "viewContext"),
+                                                                                                NSPredicate(format: "%K != %@", "author", "readContext")])
                 changeRequest.fetchRequest = historyFetchRequest
             }
             let historyResult = try taskContext.execute(changeRequest) as? NSPersistentHistoryResult

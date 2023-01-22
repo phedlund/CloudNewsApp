@@ -127,7 +127,7 @@ struct ArticlesFetchView: View {
                 if !itemsToMarkRead.isEmpty {
                     Task(priority: .userInitiated) {
                         let myItems = itemsToMarkRead.map( { $0 })
-                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
+                        try? await ItemReadManager.shared.markRead(items: myItems, unread: false)
                     }
                 }
             }

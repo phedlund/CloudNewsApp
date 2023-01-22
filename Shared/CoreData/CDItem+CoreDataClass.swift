@@ -19,7 +19,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
 
     static func unreadCount(nodeType: NodeType) -> Int {
         var result = 0
-        let request : NSFetchRequest<CDItem> = self.fetchRequest()
+        let request: NSFetchRequest<CDItem> = self.fetchRequest()
         switch nodeType {
         case .empty:
             break
