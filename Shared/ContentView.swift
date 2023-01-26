@@ -10,13 +10,9 @@ import CoreData
 import SwiftUI
 
 struct ContentView: View {
-#if !os(macOS)
-    @Environment(\.scenePhase) var scenePhase
-    @EnvironmentObject var appDelegate: AppDelegate
-#endif
     @EnvironmentObject private var model: FeedModel
+    @EnvironmentObject private var nodeRepository: NodeRepository
     @StateObject private var favIconRepository = FavIconRepository()
-    @StateObject private var nodeRepository = NodeRepository()
     @Environment(\.managedObjectContext) private var moc
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
@@ -56,18 +52,6 @@ struct ContentView: View {
             .sheet(isPresented: $isShowingLogin) {
                 NavigationView {
                     SettingsView()
-                }
-            }
-            .onChange(of: scenePhase) { newPhase in
-                switch newPhase {
-                case .active:
-                    break
-                case .inactive:
-                    break
-                case .background:
-                    appDelegate.scheduleAppRefresh()
-                @unknown default:
-                    fatalError("Unknown scene phase")
                 }
             }
         }

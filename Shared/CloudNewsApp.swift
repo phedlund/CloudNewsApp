@@ -5,31 +5,55 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
+import BackgroundTasks
 import SwiftUI
 
 @main
 struct CloudNewsApp: App {
     @StateObject private var feedModel = FeedModel()
+    @StateObject private var nodeRepository = NodeRepository()
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    @Environment(\.scenePhase) var scenePhase
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
     private let syncTimer = SyncTimer()
 #endif
+
+    private let appRefreshTaskId = "dev.pbh.cloudnews.sync"
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, NewsData.shared.container.viewContext)
                 .environmentObject(feedModel)
-                .environmentObject(appDelegate)
+                .environmentObject(nodeRepository)
         }
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
             AppCommands(model: feedModel)
+        }
+#else
+        .onChange(of: scenePhase) { newPhase in
+            switch newPhase {
+            case .active:
+                break
+            case .inactive:
+                break
+            case .background:
+                scheduleAppRefresh()
+            @unknown default:
+                fatalError("Unknown scene phase")
+            }
+        }
+        .backgroundTask(.appRefresh(appRefreshTaskId)) {
+            do {
+                try await NewsManager().sync()
+                await scheduleAppRefresh()
+            } catch { }
         }
 #endif
 
@@ -66,6 +90,19 @@ struct CloudNewsApp: App {
 
 #endif
     }
+
+#if os(iOS)
+    func scheduleAppRefresh() {
+        let request = BGAppRefreshTaskRequest(identifier: appRefreshTaskId)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: .fiveMinutes)
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            print("Submit called")
+        } catch {
+            print("Could not schedule app refresh task \(error.localizedDescription)")
+        }
+    }
+#endif
 }
 
 #if os(macOS)
