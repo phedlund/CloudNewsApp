@@ -87,7 +87,6 @@
 		D0F1B72C2867F13000C51BFF /* SyncTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */; };
 		D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F35C0527249B2F004BFC27 /* MailComposeView.swift */; };
 		D0F5BC0C295A6E7C001E728A /* ArticlesFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0B295A6E7C001E728A /* ArticlesFetchView.swift */; };
-		D0F5BC0E295F97F4001E728A /* NodeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0D295F97F4001E728A /* NodeRepository.swift */; };
 		D0F5BC10295FAF5E001E728A /* ArticlesFetchViewMac.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0F295FAF5E001E728A /* ArticlesFetchViewMac.swift */; };
 		D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
 		D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */; };
@@ -177,7 +176,6 @@
 		D0F1B72D2868DE7200C51BFF /* CloudNews.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudNews.entitlements; sourceTree = "<group>"; };
 		D0F35C0527249B2F004BFC27 /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MailComposeView.swift; path = Shared/MailComposeView.swift; sourceTree = SOURCE_ROOT; };
 		D0F5BC0B295A6E7C001E728A /* ArticlesFetchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlesFetchView.swift; sourceTree = "<group>"; };
-		D0F5BC0D295F97F4001E728A /* NodeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeRepository.swift; sourceTree = "<group>"; };
 		D0F5BC0F295FAF5E001E728A /* ArticlesFetchViewMac.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlesFetchViewMac.swift; sourceTree = "<group>"; };
 		D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTimer.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
@@ -223,7 +221,6 @@
 				D0B0B2FE267FF86300A997DB /* FeedModel.swift */,
 				D0F9B04C2856AFDD00D91BF5 /* SyncTimer.swift */,
 				D06D072C274F01D000325770 /* Node.swift */,
-				D0F5BC0D295F97F4001E728A /* NodeRepository.swift */,
 				D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */,
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
 				D07A043626E2F61F00178EEE /* UserDefault.swift */,
@@ -504,7 +501,6 @@
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */,
-				D0F5BC0E295F97F4001E728A /* NodeRepository.swift in Sources */,
 				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D055435028BEE4EF0023F655 /* FavIconRepository.swift in Sources */,

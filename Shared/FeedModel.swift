@@ -14,6 +14,18 @@ class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
     @Published var currentItem: CDItem?
+    @Published var predicate = NSPredicate(value: false)
+    @Published var currentNodeID: Node.ID? {
+        didSet {
+            if let currentNodeID {
+                preferences.selectedNode = currentNodeID
+                currentItemID = nil
+                updatePredicate()
+                updateCurrentNode(currentNodeID)
+            }
+        }
+    }
+    @Published var currentItemID: NSManagedObjectID?
 
     private let allNode: Node
     private let starNode: Node
@@ -74,8 +86,16 @@ class FeedModel: ObservableObject {
         }
         .store(in: &cancellables)
 
+        preferences.$hideRead.sink { [weak self] _ in
+            guard let self else { return }
+            self.updatePredicate()
+        }
+        .store(in: &cancellables)
+
         update()
+        currentNodeID = preferences.selectedNode
         updateCurrentNode(preferences.selectedNode)
+        updatePredicate()
         isInInit = false
     }
 
@@ -120,7 +140,7 @@ class FeedModel: ObservableObject {
         }
     }
 
-    func updateCurrentNode(_ current: String) {
+    private func updateCurrentNode(_ current: String) {
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
@@ -166,7 +186,7 @@ class FeedModel: ObservableObject {
         }
     }
 
-    func node(for id: Node.ID) -> Node? {
+    private func node(for id: Node.ID) -> Node? {
         if let node = nodes.first(where: { $0.id == id} ) {
             return node
         }
@@ -176,6 +196,33 @@ class FeedModel: ObservableObject {
             }
         }
         return nil
+    }
+
+    private func updatePredicate() {
+        guard let currentNodeID else { return }
+        print("Setting predicate")
+        DispatchQueue.main.async {
+            var predicate1 = NSPredicate(value: true)
+            if self.preferences.hideRead {
+                predicate1 = NSPredicate(format: "unread == true")
+            }
+            switch NodeType.fromString(typeString: currentNodeID) {
+            case .empty:
+                self.predicate = NSPredicate(value: false)
+            case .all:
+                self.predicate = NSPredicate(value: true)
+            case .starred:
+                self.predicate = NSPredicate(format: "starred == true")
+            case .folder(id:  let id):
+                if let feedIds = CDFeed.idsInFolder(folder: id) {
+                    let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
+                    self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+                }
+            case .feed(id: let id):
+                let predicate2 = NSPredicate(format: "feedId == %d", id)
+                self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            }
+        }
     }
 
     private func folderNode(folder: CDFolder) -> Node {        

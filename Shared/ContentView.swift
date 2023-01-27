@@ -11,7 +11,6 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var nodeRepository: NodeRepository
     @StateObject private var favIconRepository = FavIconRepository()
     @Environment(\.managedObjectContext) private var moc
     @KeychainStorage(SettingKeys.username) var username = ""
@@ -28,13 +27,13 @@ struct ContentView: View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: $nodeRepository.currentNode)
+            SidebarView(nodeSelection: $model.currentNodeID)
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } detail: {
             ZStack {
-                if nodeRepository.currentNode != EmptyNodeGuid {
-                    ArticlesFetchView(predicate: nodeRepository.predicate)
+                if model.currentNodeID != EmptyNodeGuid {
+                    ArticlesFetchView(predicate: model.predicate)
                         .environmentObject(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: model.currentNode)
@@ -45,7 +44,7 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle(model.nodes.first(where: { $0.id == nodeRepository.currentNode })?.title ?? "Untitled")
+            .navigationTitle(model.currentNode.title)
             .onAppear {
                 isShowingLogin = isNotLoggedIn
             }
