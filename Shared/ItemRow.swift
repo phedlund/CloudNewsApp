@@ -8,11 +8,6 @@
 import SwiftUI
 
 struct ItemRow: View {
-    
-#if !os(macOS)
-    @Environment(\.verticalSizeClass) var verticalSizeClass
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-#endif
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
@@ -21,15 +16,11 @@ struct ItemRow: View {
     @ObservedObject var itemImageManager: ItemImageManager
 
     var size: CGSize
+    var isHorizontalCompact: Bool
 
     @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
 
     var body: some View {
-#if os(macOS)
-        let isHorizontalCompact = false
-#else
-        let isHorizontalCompact = horizontalSizeClass == .compact
-#endif
         let textColor = item.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
         let itemOpacity = item.unread ? 1.0 : 0.4
         let isShowingThumbnail = (showThumbnails && itemImageManager.image != nil)
@@ -104,6 +95,7 @@ struct ItemRow: View {
 #endif
         .onAppear {
             thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+            let _ = print(thumbnailSize)
         }
         .onChange(of: $compactView.wrappedValue) { newValue in
             let cellHeight = newValue ? CGFloat.compactCellHeight : CGFloat.defaultCellHeight

@@ -12,6 +12,8 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesFetchView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -23,6 +25,7 @@ struct ArticlesFetchView: View {
     @FetchRequest private var items: FetchedResults<CDItem>
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var currentItem: NSManagedObjectID?
+    @State private var isHorizontalCompact = false
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
@@ -44,6 +47,7 @@ struct ArticlesFetchView: View {
         let _ = Self._printChanges()
         GeometryReader { geometry in
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
+            let cellSize = CGSize(width: cellWidth, height: cellHeight)
             NavigationStack {
                 ScrollViewReader { proxy in
                     List(selection: $currentItem) {
@@ -55,7 +59,7 @@ struct ArticlesFetchView: View {
                                 .opacity(0)
                                 HStack {
                                     Spacer()
-                                    ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: CGSize(width: cellWidth, height: cellHeight))
+                                    ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize, isHorizontalCompact: isHorizontalCompact)
                                         .id(index)
                                         .environmentObject(favIconRepository)
                                         .contextMenu {
@@ -101,6 +105,14 @@ struct ArticlesFetchView: View {
                             Task.detached {
                                 await markRead(newOffset)
                             }
+                        }
+                    }
+                    .onChange(of: scenePhase) { newPhase in
+                        switch newPhase {
+                        case .active:
+                            isHorizontalCompact = horizontalSizeClass == .compact
+                        default:
+                            break
                         }
                     }
                 }
