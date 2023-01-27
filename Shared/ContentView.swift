@@ -34,7 +34,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if nodeRepository.currentNode != EmptyNodeGuid {
-                    ArticlesFetchView(nodeRepository: nodeRepository)
+                    ArticlesFetchView(predicate: nodeRepository.predicate)
                         .environmentObject(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: model.currentNode)

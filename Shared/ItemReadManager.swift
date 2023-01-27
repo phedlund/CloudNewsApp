@@ -32,8 +32,9 @@ class ItemReadManager {
                 if let result = try self.readContext.execute(batchUpdateRequest) as? NSBatchUpdateResult,
                    let objectIDArray = result.result as? [NSManagedObjectID] {
                     let changes = [NSUpdatedObjectsKey: objectIDArray]
-                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [NewsData.shared.container.viewContext])
-                    try NewsData.shared.container.viewContext.save()
+                    DispatchQueue.main.async {
+                        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [NewsData.shared.container.viewContext])
+                    }
                 }
             }
 

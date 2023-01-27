@@ -21,6 +21,7 @@ final class Node: Identifiable, ObservableObject {
     let id: String
 
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
+    private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
 
     private(set) var isExpanded = false
     private(set) var nodeType: NodeType
@@ -68,6 +69,14 @@ final class Node: Identifiable, ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        didChangePublisher
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
+            }
+            .store(in: &cancellables)
+
     }
 
     private func nodeTitle() -> String {

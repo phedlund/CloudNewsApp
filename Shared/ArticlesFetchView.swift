@@ -6,6 +6,7 @@
 //
 
 import Combine
+import CoreData
 import Kingfisher
 import SwiftUI
 
@@ -15,28 +16,28 @@ struct ArticlesFetchView: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
     @EnvironmentObject private var favIconRepository: FavIconRepository
 
     @FetchRequest private var items: FetchedResults<CDItem>
     @State private var cellHeight: CGFloat = .defaultCellHeight
+    @State private var currentItem: NSManagedObjectID?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
     private var didSync = NotificationCenter.default.publisher(for: .syncComplete)
-    @ObservedObject private var nodeRepository: NodeRepository
 
 
 
 
-    init(nodeRepository: NodeRepository) {
-        self.nodeRepository = nodeRepository
+    init(predicate: NSPredicate) {
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
-        self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: nodeRepository.predicate)
+        self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: predicate)
     }
     
     var body: some View {
@@ -45,7 +46,7 @@ struct ArticlesFetchView: View {
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             NavigationStack {
                 ScrollViewReader { proxy in
-                    List(selection: $nodeRepository.currentItem) {
+                    List(selection: $currentItem) {
                         ForEach(Array(items.enumerated()), id: \.0) { index, item in
                             ZStack {
                                 NavigationLink(value: item) {
@@ -70,7 +71,7 @@ struct ArticlesFetchView: View {
                                     offsetItemsDetector.send(offset)
                                 }
                             }
-                            .onChange(of: nodeRepository.currentNode) { _ in
+                            .onChange(of: $selectedNode.wrappedValue) { _ in
                                 proxy.scrollTo(0, anchor: .top)
                             }
                         }
@@ -86,18 +87,9 @@ struct ArticlesFetchView: View {
                         Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
-//                    .onReceive(didSync) { _ in
-//                        Task(priority: .userInitiated) {
-//                            await updateImageLinks()
-//                        }
-//                    }
                     .onAppear {
                         cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
-                        items.nsPredicate = nodeRepository.predicate
                     }
-//                    .task(id: nodeRepository.currentNode, priority: .userInitiated) {
-//                        await updateImageLinks()
-//                    }
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                         items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
                     }
