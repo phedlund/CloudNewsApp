@@ -71,6 +71,7 @@ final class Node: Identifiable, ObservableObject {
             .store(in: &cancellables)
 
         didChangePublisher
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
                 self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
