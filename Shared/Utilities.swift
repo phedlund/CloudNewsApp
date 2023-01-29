@@ -132,7 +132,7 @@ extension Collection where Element: Equatable {
 extension BidirectionalCollection where Element: Equatable {
 
     func element(before element: Element, wrapping: Bool = false) -> Element? {
-        if let index = self.firstIndex(of: element){
+        if let index = self.firstIndex(of: element) {
             let precedingIndex = self.index(before: index)
             if precedingIndex >= self.startIndex {
                 return self[precedingIndex]

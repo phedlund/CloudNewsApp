@@ -207,7 +207,7 @@ struct AppCommands: Commands {
     }
 
     private func isCurrentItemDisabled() -> Bool {
-        return model.currentItem == nil
+        return model.currentItemID == nil
     }
 
     private func isFolderRenameDisabled() -> Bool {
