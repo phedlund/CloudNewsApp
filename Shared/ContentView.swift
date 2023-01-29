@@ -56,13 +56,13 @@ struct ContentView: View {
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            SidebarView(nodeSelection: $nodeRepository.currentNode)
+            SidebarView(nodeSelection: $model.currentNodeID)
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } content: {
-            if nodeRepository.currentNode != EmptyNodeGuid {
+            if model.currentNodeID != EmptyNodeGuid {
                 let _ = Self._printChanges()
-                ArticlesFetchViewMac(nodeRepository: nodeRepository)
+                ArticlesFetchViewMac(predicate: model.predicate)
                     .environmentObject(favIconRepository)
                     .toolbar {
                         ItemListToolbarContent(node: model.currentNode)
@@ -75,16 +75,11 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         } detail: {
-            MacArticleView(selectedItem: nodeRepository.currentItem)
+            MacArticleView(selectedItem: model.currentItemID)
         }
         .onAppear {
             if isNotLoggedIn {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            }
-        }
-        .onChange(of: nodeRepository.currentItem) { newValue in
-            if let newValue, let item = moc.object(with: newValue) as? CDItem {
-                model.updateCurrentItem(item)
             }
         }
 #endif

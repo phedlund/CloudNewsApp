@@ -6,9 +6,14 @@
 //
 
 import Combine
-import UIKit
 import Kingfisher
 import SwiftSoup
+
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 class ItemImageManager: NSObject, ObservableObject {
     @Published var image: KFCrossPlatformImage?

@@ -6,8 +6,13 @@
 //
 
 import Combine
-import UIKit
 import Kingfisher
+
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 enum FetchError: Error {
     case noImage

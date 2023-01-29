@@ -15,8 +15,10 @@ struct ArticlesFetchViewMac: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
     @EnvironmentObject private var favIconRepository: FavIconRepository
+    @EnvironmentObject private var model: FeedModel
 
     @FetchRequest private var items: FetchedResults<CDItem>
     @State private var cellHeight: CGFloat = .defaultCellHeight
@@ -25,28 +27,27 @@ struct ArticlesFetchViewMac: View {
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
     private var didSync = NotificationCenter.default.publisher(for: .syncComplete)
-    @ObservedObject private var nodeRepository: NodeRepository
 
     private var didSelectNextItem =  NotificationCenter.default.publisher(for: .nextItem)
     private var didSelectPreviousItem =  NotificationCenter.default.publisher(for: .previousItem)
 
-    init(nodeRepository: NodeRepository) {
-        self.nodeRepository = nodeRepository
+    init(predicate: NSPredicate) {
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
-        self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: nodeRepository.predicate)
+        self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: predicate)
     }
     
     var body: some View {
         GeometryReader { geometry in
             let cellWidth = CGFloat.infinity
+            let cellSize = CGSize(width: cellWidth, height: cellHeight)
             VStack {
                 ScrollViewReader { proxy in
-                    List(selection: $nodeRepository.currentItem) {
+                    List(selection: $model.currentItemID) {
                         ForEach(Array(items.enumerated()), id: \.0) { index, item in
-                            ItemRow(item: item, size: CGSize(width: cellWidth, height: cellHeight))
+                            ItemRow(itemImageManager: ItemImageManager(item: item), itemDisplay: item.toDisplayItem(), size: cellSize, isHorizontalCompact: false)
                                 .id(index)
                                 .tag(item.objectID)
                                 .environmentObject(favIconRepository)
@@ -67,19 +68,19 @@ struct ArticlesFetchViewMac: View {
                         }
                         .listRowSeparator(.visible)
                         .listRowBackground(EmptyView())
-                        .onChange(of: nodeRepository.predicate) { _ in
+                        .onChange(of: $selectedNode.wrappedValue) { _ in
                             proxy.scrollTo(0, anchor: .top)
                         }
                         .onReceive(didSelectPreviousItem) { _ in
-                            let current = nodeRepository.currentItem
+                            let current = model.currentItemID
                             if let currentIndex = items.first(where: { $0.objectID == current }) {
-                                nodeRepository.currentItem = items.element(before: currentIndex)?.objectID
+                                model.currentItemID = items.element(before: currentIndex)?.objectID
                             }
                         }
                         .onReceive(didSelectNextItem) { _ in
-                            let current = nodeRepository.currentItem
+                            let current = model.currentItemID
                             if let currentIndex = items.first(where: { $0.objectID == current }) {
-                                nodeRepository.currentItem = items.element(after: currentIndex)?.objectID
+                                model.currentItemID = items.element(after: currentIndex)?.objectID
                             }
                         }
                     }
@@ -89,16 +90,8 @@ struct ArticlesFetchViewMac: View {
                         Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
-                    .onReceive(didSync) { _ in
-                        Task {
-                            await updateImageLinks()
-                        }
-                    }
                     .onAppear {
-                        items.nsPredicate = nodeRepository.predicate
-                    }
-                    .task(id: nodeRepository.currentNode) {
-                        await updateImageLinks()
+                        cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                     }
                     .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
                         items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
@@ -116,15 +109,6 @@ struct ArticlesFetchViewMac: View {
                 }
             }
         }
-    }
-
-    private func updateImageLinks() async {
-        do {
-            let itemsWithoutImageLink = items.filter({ $0.imageLink == nil || $0.imageLink == "data:null" })
-            if !itemsWithoutImageLink.isEmpty {
-                try await ItemImageFetcher.shared.itemURLs(itemsWithoutImageLink)
-            }
-        } catch  { }
     }
 
     private func markRead(_ offset: CGFloat) {

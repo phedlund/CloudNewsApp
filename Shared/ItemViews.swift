@@ -137,12 +137,21 @@ struct ItemImageView: View {
     var body: some View {
         VStack {
             if let image {
+#if os(macOS)
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
+                    .opacity(itemOpacity)
+#else
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: size.width, height: size.height)
                     .clipped()
                     .opacity(itemOpacity)
+#endif
             } else {
                 EmptyView()
                     .frame(width: .zero)
