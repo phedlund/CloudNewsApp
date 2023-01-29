@@ -16,7 +16,7 @@ import UIKit
 #endif
 
 class ItemImageManager: NSObject, ObservableObject {
-    @Published var image: KFCrossPlatformImage?
+    @Published var image: SystemImage?
 
     var item: CDItem
 
@@ -38,7 +38,7 @@ class ItemImageManager: NSObject, ObservableObject {
                         try? await self.downloadImage()
                     }
                 default:
-                    self.image = value.image ?? KFCrossPlatformImage()
+                    self.image = value.image ?? SystemImage()
                 }
             case .failure( _):
                 Task {

@@ -38,7 +38,7 @@ class FavIcon: ObservableObject {
 @MainActor
 class FavIconRepository: NSObject, ObservableObject {
     @Published var icons = [String: FavIcon]()
-    @Published var defaultIcon = FavIcon(image: KFCrossPlatformImage(named: "rss")!)
+    @Published var defaultIcon = FavIcon(image: SystemImage(named: "rss")!)
 
     private let validSchemas = ["http", "https", "file"]
     private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
@@ -59,7 +59,7 @@ class FavIconRepository: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
         icons["all"] = defaultIcon
-        icons["starred"] = FavIcon(image: KFCrossPlatformImage(symbolName: "star.fill")!)
+        icons["starred"] = FavIcon(image: SystemImage(symbolName: "star.fill")!)
         update()
     }
 
@@ -67,7 +67,7 @@ class FavIconRepository: NSObject, ObservableObject {
         if let folders = CDFolder.all() {
             for folder in folders {
                 Task {
-                    self.icons["folder_\(folder.id)"] = FavIcon(image: KFCrossPlatformImage(symbolName: "folder")!)
+                    self.icons["folder_\(folder.id)"] = FavIcon(image: SystemImage(symbolName: "folder")!)
                 }
             }
         }

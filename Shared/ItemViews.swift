@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 10/10/21.
 //
 
-import Kingfisher
 import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
@@ -124,11 +123,11 @@ struct BodyView: View {
 }
 
 struct ItemImageView: View {
-    var image: KFCrossPlatformImage?
+    var image: SystemImage?
     var size: CGSize
     var itemOpacity: Double
 
-    init(image: KFCrossPlatformImage?, size: CGSize, itemOpacity: Double) {
+    init(image: SystemImage?, size: CGSize, itemOpacity: Double) {
         self.image = image
         self.size = size
         self.itemOpacity = itemOpacity

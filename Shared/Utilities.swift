@@ -10,17 +10,11 @@ import SwiftSoup
 #if os(macOS)
 import AppKit
 public typealias SystemImage = NSImage
-public typealias SystemView = NSView
 public typealias SystemColor = NSColor
-public typealias SystemImageView = NSImageView
-public typealias SystemButton = NSButton
 #else
 import UIKit
 public typealias SystemImage = UIImage
-public typealias SystemView = UIView
 public typealias SystemColor = UIColor
-public typealias SystemImageView = UIImageView
-public typealias SystemButton = UIButton
 #endif
 
 extension DateFormatter {
@@ -82,27 +76,7 @@ extension SystemImage {
         self.init(systemName: symbolName)
 #endif
     }
-
-    func asPngData() -> Data? {
-#if os(macOS)
-        return self.png
-#else
-        return self.pngData()
-#endif
-    }
 }
-
-#if os(macOS)
-extension NSBitmapImageRep {
-    var png: Data? { representation(using: .png, properties: [:]) }
-}
-extension Data {
-    var bitmap: NSBitmapImageRep? { NSBitmapImageRep(data: self) }
-}
-extension NSImage {
-    var png: Data? { tiffRepresentation?.bitmap?.png }
-}
-#endif
 
 func tempDirectory() -> URL? {
     let tempDirURL = FileManager.default.temporaryDirectory.appendingPathComponent("CloudNews", isDirectory: true)
