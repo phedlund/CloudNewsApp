@@ -137,37 +137,8 @@ class NewsManager {
     }
 
     func markRead(items: [CDItem], unread: Bool) async throws {
-        guard !items.isEmpty else {
-            return
-        }
         do {
-            try await CDItem.markRead(items: items, unread: unread)
-            let itemIds = items.map( { $0.id } )
-            if unread {
-                try await CDUnread.update(items: itemIds)
-            } else {
-                try await CDRead.update(items: itemIds)
-            }
-            let parameters: ParameterDict = ["items": itemIds]
-            var router: Router
-            if unread {
-                router = Router.itemsUnread(parameters: parameters)
-            } else {
-                router = Router.itemsRead(parameters: parameters)
-            }
-            let (_, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                switch httpResponse.statusCode {
-                case 200:
-                    if unread {
-                        CDUnread.deleteItemIds(itemIds: itemIds, in: NewsData.shared.container.viewContext)
-                    } else {
-                        CDRead.deleteItemIds(itemIds: itemIds, in: NewsData.shared.container.viewContext)
-                    }
-                default:
-                    break
-                }
-            }
+            try await ItemReadManager.shared.markRead(items: items, unread: unread)
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }

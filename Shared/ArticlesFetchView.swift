@@ -37,7 +37,7 @@ struct ArticlesFetchView: View {
 
     init(predicate: NSPredicate) {
         self.offsetItemsPublisher = offsetItemsDetector
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
+            .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
         self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: predicate)
@@ -59,7 +59,7 @@ struct ArticlesFetchView: View {
                                 .opacity(0)
                                 HStack {
                                     Spacer()
-                                    ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize, isHorizontalCompact: isHorizontalCompact)
+                                    ItemRow(itemImageManager: ItemImageManager(item: item), itemDisplay: item.toDisplayItem(), size: cellSize, isHorizontalCompact: isHorizontalCompact)
                                         .id(index)
                                         .environmentObject(favIconRepository)
                                         .contextMenu {
@@ -131,7 +131,7 @@ struct ArticlesFetchView: View {
                 if !itemsToMarkRead.isEmpty {
                     Task(priority: .userInitiated) {
                         let myItems = itemsToMarkRead.map( { $0 })
-                        try? await ItemReadManager.shared.markRead(items: myItems, unread: false)
+                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
                     }
                 }
             }

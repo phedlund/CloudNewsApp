@@ -84,21 +84,23 @@ struct FavIconLabelStyle: LabelStyle {
 }
 
 struct FavIconDateAuthorView: View {
-    @ObservedObject var item: CDItem
+    var title: String
+    var feedId: Int32
+    var itemOpacity: Double
     @EnvironmentObject private var favIconRepository: FavIconRepository
 
     var body: some View {
         Label {
-            Text(item.dateFeedAuthor)
+            Text(title)
                 .font(.subheadline)
                 .italic()
                 .lineLimit(1)
         } icon: {
-            FavIconView(favIcon: favIconRepository.icons["feed_\(item.feedId)"] ?? favIconRepository.defaultIcon)
+            FavIconView(favIcon: favIconRepository.icons["feed_\(feedId)"] ?? favIconRepository.defaultIcon)
                 .environmentObject(favIconRepository)
         }
         .labelStyle(FavIconLabelStyle())
-        .opacity(item.unread ? 1.0 : 0.4)
+        .opacity(itemOpacity)
     }
 }
 

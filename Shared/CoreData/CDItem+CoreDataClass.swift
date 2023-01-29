@@ -126,30 +126,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    static func markRead(items: [CDItem], unread: Bool) async throws {
-        try await NewsData.shared.container.viewContext.perform {
-            do {
-                for item in items {
-                    item.unread = unread
-                }
-//                try NewsData.shared.container.viewContext.save()
-            } catch {
-                throw PBHError.databaseError(message: "Error marking items read")
-            }
-        }
-    }
-
-    static func markRead(item: CDItem, unread: Bool) async throws {
-        try await NewsData.shared.container.viewContext.perform {
-            do {
-                item.unread = unread
-//                try NewsData.shared.container.viewContext.save()
-            } catch {
-                throw PBHError.databaseError(message: "Error marking items read")
-            }
-        }
-    }
-
     static func markStarred(itemId: Int32, state: Bool) async throws {
         try await NewsData.shared.container.viewContext.perform {
             let request: NSFetchRequest<CDItem> = CDItem.fetchRequest()
@@ -242,4 +218,27 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
     
+}
+
+struct ItemDisplay {
+    let itemId: Int32
+    let unread: Bool
+    let title: String
+    let author: String
+    let feedId: Int32
+    let body: String
+    let starred: Bool
+}
+
+extension CDItem {
+
+    func toDisplayItem() -> ItemDisplay {
+        ItemDisplay(itemId: id,
+                    unread: unread,
+                    title: title ?? "Untitled",
+                    author: dateFeedAuthor,
+                    feedId: feedId,
+                    body: displayBody,
+                    starred: starred)
+    }
 }
