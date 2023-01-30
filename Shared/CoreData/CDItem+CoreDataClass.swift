@@ -99,17 +99,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         return nil
     }
 
-    static func starredItems() -> [CDItem]? {
-        let request : NSFetchRequest<CDItem> = self.fetchRequest()
-        let predicate = NSPredicate(format: "starred == true")
-        request.predicate = predicate
-        do {
-            return try NewsData.shared.container.viewContext.fetch(request)
-        } catch {
-            return nil
-        }
-    }
-
     static func items(lastModified: Int32) -> [CDItem]? {
         let request: NSFetchRequest<CDItem> = self.fetchRequest()
         let sortDescription = NSSortDescriptor(key: "id", ascending: false)
@@ -143,33 +132,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
         }
     }
 
-    static func add(items: [ItemProtocol], using context: NSManagedObjectContext) async throws {
-        await context.perform {
-            let itemCount = items.count
-            var current = 0
-            for item in items {
-                let newRecord = NSEntityDescription.insertNewObject(forEntityName: CDItem.entityName, into: context) as! CDItem
-                newRecord.author = item.author
-                newRecord.body = item.body
-                newRecord.enclosureLink = item.enclosureLink
-                newRecord.enclosureMime = item.enclosureMime
-                newRecord.feedId = item.feedId
-                newRecord.fingerprint = item.fingerprint
-                newRecord.guid = item.guid
-                newRecord.guidHash = item.guidHash
-                newRecord.id = item.id
-                newRecord.lastModified = item.lastModified
-                newRecord.pubDate = item.pubDate
-                newRecord.starred = item.starred
-                newRecord.title = item.title
-                newRecord.unread = item.unread
-                newRecord.url = item.url
-                current += 1
-                print("Count \(itemCount), Current \(current)")
-            }
-        }
-    }
-
     static func lastModified() -> Int32 {
         var result: Int32 = 0
         let request : NSFetchRequest<CDItem> = self.fetchRequest()
@@ -195,7 +157,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
             let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
             do {
                 result = try NewsData.shared.container.viewContext.execute(batchDeleteRequest)
-//                try NewsData.shared.container.viewContext.save()
                 NewsData.shared.container.viewContext.reset()
             } catch let error as NSError {
                 print("Could not perform deletion \(error), \(error.userInfo)")

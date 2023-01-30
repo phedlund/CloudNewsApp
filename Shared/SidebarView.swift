@@ -79,7 +79,7 @@ struct SidebarView: View {
                     contextMenu(node: node)
                 }
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
-                    Button {
+                    Button(role: .destructive) {
                         model.delete(detail)
                     } label: {
                         Text("Delete \(detail.title)")

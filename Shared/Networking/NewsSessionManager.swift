@@ -66,7 +66,8 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if let feeds: Feeds = try getType(from: data),
-                       let feedArray = feeds.feeds, let newFeed = feedArray.first {
+                       let feedArray = feeds.feeds,
+                       let newFeed = feedArray.first {
                         let newFeedId = newFeed.id
                         try await CDFeed.add(feeds: feedArray, using: NewsData.shared.container.viewContext)
                         try NewsData.shared.container.viewContext.save()
@@ -76,21 +77,7 @@ class NewsManager {
                                                          "id": newFeedId,
                                                          "getRead": NSNumber(value: true)]
                         let router = Router.items(parameters: parameters)
-                        let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-                        if let httpResponse = response as? HTTPURLResponse {
-                            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                            print(String(data: data, encoding: .utf8) ?? "")
-                            switch httpResponse.statusCode {
-                            case 200:
-                                if let items: Items = try getType(from: data),
-                                   let itemsArray = items.items {
-                                    try await CDItem.add(items: itemsArray, using: NewsData.shared.container.viewContext)
-                                    try NewsData.shared.container.viewContext.save()
-                                }
-                            default:
-                                throw PBHError.networkError(message: "Error adding feed")
-                            }
-                        }
+                        try await ItemImporter().fetchItems(router.urlRequest())
                     }
                 case 405:
                     throw PBHError.networkError(message: "Method not allowed")
@@ -102,6 +89,8 @@ class NewsManager {
                     throw PBHError.networkError(message: "Error adding feed")
                 }
             }
+        } catch(let error as PBHError) {
+            throw error
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }
@@ -131,6 +120,8 @@ class NewsManager {
                     throw PBHError.networkError(message: "Error adding folder")
                 }
             }
+        } catch(let error as PBHError) {
+            throw error
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }
