@@ -370,11 +370,15 @@ class NewsManager {
                 case 200:
                     break
                 case 404:
+                    try await CDItem.deleteItems(with: Int32(id))
+                    try await CDFeed.delete(id: Int32(id))
                     throw PBHError.networkError(message: "The feed does not exist")
                 default:
                     throw PBHError.networkError(message: "Error deleting feed")
                 }
             }
+        } catch let error as PBHError {
+            throw error
         } catch(let error) {
             throw PBHError.networkError(message: error.localizedDescription)
         }
