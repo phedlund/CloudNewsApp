@@ -106,7 +106,7 @@ public class CDFeed: NSManagedObject, FeedProtocol, Identifiable {
             }
             try NewsData.shared.container.viewContext.save()
         } catch {
-            throw PBHError.databaseError(message: "Error deleting feed")
+            throw DatabaseError.feedErrorDeleting
         }
     }
 

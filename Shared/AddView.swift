@@ -66,14 +66,15 @@ struct AddView: View {
                                         try await NewsManager.shared.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
-                                    } catch(let error as PBHError) {
-                                        switch error {
-                                        case .networkError(let message):
-                                            footerMessage = message
-                                            footerSuccess = false
-                                        default:
-                                            break
-                                        }
+                                    } catch let error as NetworkError {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
+                                    } catch let error as DatabaseError {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
+                                    } catch let error {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
                                     }
                                     isAdding = false
                                 }
@@ -84,14 +85,15 @@ struct AddView: View {
                                         try await NewsManager.shared.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
-                                    } catch(let error as PBHError) {
-                                        switch error {
-                                        case .networkError(let message):
-                                            footerMessage = message
-                                            footerSuccess = false
-                                        default:
-                                            break
-                                        }
+                                    } catch let error as NetworkError {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
+                                    } catch let error as DatabaseError {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
+                                    } catch let error {
+                                        footerMessage = error.localizedDescription
+                                        footerSuccess = false
                                     }
                                     isAdding = false
                                 }

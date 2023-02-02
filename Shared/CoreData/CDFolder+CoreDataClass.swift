@@ -82,7 +82,7 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
                 })
                 try NewsData.shared.container.viewContext.save()
             } catch {
-                throw PBHError.databaseError(message: "Error marking folder expanded")
+                throw DatabaseError.folderErrorMarkingExpanded
             }
         }
     }
@@ -99,7 +99,7 @@ public class CDFolder: NSManagedObject, FolderProtocol, Identifiable {
             }
             try NewsData.shared.container.viewContext.save()
         } catch {
-            throw PBHError.databaseError(message: "Error deleting folder")
+            throw DatabaseError.folderErrorDeleting
         }
     }
 

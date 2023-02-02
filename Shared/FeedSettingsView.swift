@@ -167,15 +167,18 @@ struct FeedSettingsView: View {
                         try await NewsManager.shared.renameFeed(feed: feed, to: title)
                         feed.title = title
                         try moc.save()
-                    } catch(let error as PBHError) {
-                        switch error {
-                        case .networkError(let message):
-                            title = initialTitle
-                            footerMessage = message
-                            footerSuccess = false
-                        default:
-                            break
-                        }
+                    } catch let error as NetworkError {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
+                    } catch let error as DatabaseError {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
+                    } catch let error {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
                     }
                 }
             }
@@ -193,15 +196,18 @@ struct FeedSettingsView: View {
                     try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
                     feed.folderId = newFolderId
                     try moc.save()
-                } catch(let error as PBHError) {
-                    switch error {
-                    case .networkError(let message):
-                        folderSelection = initialFolderSelection
-                        footerMessage = message
-                        footerSuccess = false
-                    default:
-                        break
-                    }
+                } catch let error as NetworkError {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error as DatabaseError {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
                 }
             }
         }

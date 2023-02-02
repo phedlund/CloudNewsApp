@@ -32,7 +32,7 @@ public class CDStarred: NSManagedObject {
                 }
                 try NewsData.shared.container.viewContext.save()
             } catch {
-                throw PBHError.databaseError(message: error.localizedDescription)
+                throw DatabaseError.generic(message: error.localizedDescription)
             }
         }
     }

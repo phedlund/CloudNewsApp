@@ -83,7 +83,7 @@ class ItemReadManager {
                 }
             }
         } catch(let error) {
-            throw PBHError.networkError(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 

@@ -28,13 +28,13 @@ class FolderImporter {
                     try await importFolders(from: folderDicts)
                     logger.debug("Finished importing folder data.")
                 default:
-                    throw PBHError.networkError(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                    throw NetworkError.generic(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
             }
-        } catch let error as PBHError {
+        } catch let error as NetworkError {
             throw error
         } catch(let error) {
-            throw PBHError.networkError(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
@@ -53,7 +53,7 @@ class FolderImporter {
                 return
             }
             self.logger.debug("Failed to execute batch insert request.")
-            throw PBHError.databaseError(message: "Failed to execute batch insert request.")
+            throw DatabaseError.foldersFailedImport
         }
 
         logger.debug("Successfully inserted folder data.")
@@ -97,13 +97,13 @@ class FeedImporter {
                     try await importFeeds(from: feedDicts)
                     logger.debug("Finished importing folder data.")
                 default:
-                    throw PBHError.networkError(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                    throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
             }
-        } catch let error as PBHError {
+        } catch let error as NetworkError {
             throw error
         } catch(let error) {
-            throw PBHError.networkError(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
@@ -122,7 +122,7 @@ class FeedImporter {
                 return
             }
             self.logger.debug("Failed to execute batch insert request.")
-            throw PBHError.databaseError(message: "Failed to execute batch insert request.")
+            throw DatabaseError.feedsFailedImport
         }
 
         logger.debug("Successfully inserted feed data.")
@@ -163,13 +163,13 @@ class ItemImporter {
                     try await importItems(from: itemDicts)
                     logger.debug("Finished importing data.")
                 default:
-                    throw PBHError.networkError(message: "Error getting items: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                    throw NetworkError.generic(message: "Error getting items: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
             }
-        } catch let error as PBHError {
+        } catch let error as NetworkError {
             throw error
         } catch(let error) {
-            throw PBHError.networkError(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
@@ -188,7 +188,7 @@ class ItemImporter {
                 return
             }
             self.logger.debug("Failed to execute batch insert request.")
-            throw PBHError.databaseError(message: "Failed to execute batch insert request.")
+            throw DatabaseError.itemsFailedImport
         }
 
         logger.debug("Successfully inserted item data.")
@@ -287,7 +287,7 @@ class ItemPruner {
                 return
             }
             self.logger.debug("Failed to execute batch delete request.")
-            throw PBHError.databaseError(message: "Failed to execute batch delete request.")
+            throw DatabaseError.failedDeletion
         }
 
         logger.debug("Successfully deleted item data.")

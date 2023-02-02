@@ -158,16 +158,18 @@ struct SidebarView: View {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
                                     try moc.save()
-                                } catch(let error as PBHError) {
-                                    switch error {
-                                    case .networkError(_):
-                                        break
-                                        //                                        folderName = initialName
-                                        //                                        footerMessage = message
-                                        //                                        footerSuccess = false
-                                    default:
-                                        break
-                                    }
+//                                } catch let error as NetworkError {
+//                                    folderName = initialName
+//                                    footerMessage = message
+//                                    footerSuccess = false
+//                                } catch let error as DatabaseError {
+//                                    folderName = initialName
+//                                    footerMessage = message
+//                                    footerSuccess = false
+                                } catch _ {
+//                                    folderName = initialName
+//                                    footerMessage = message
+//                                    footerSuccess = false
                                 }
                             }
                         }
@@ -269,13 +271,16 @@ struct SidebarView: View {
                 isShowingError = false
                 errorMessage = ""
                 model.update()
-            } catch(let error as PBHError) {
-                switch error {
-                case .networkError(let message):
-                    errorMessage = message
-                case .databaseError(let message):
-                    errorMessage = message
-                }
+            } catch let error as NetworkError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+                isSyncing = false
+            } catch let error as DatabaseError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+                isSyncing = false
+            } catch let error {
+                errorMessage = error.localizedDescription
                 isShowingError = true
                 isSyncing = false
             }

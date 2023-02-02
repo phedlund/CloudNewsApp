@@ -127,7 +127,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 })
                 try NewsData.shared.container.viewContext.save()
             } catch {
-                throw PBHError.databaseError(message: "Error marking item starred")
+                throw DatabaseError.itemErrorMarkingStarred
             }
         }
     }
@@ -160,7 +160,7 @@ public class CDItem: NSManagedObject, ItemProtocol {
                 NewsData.shared.container.viewContext.reset()
             } catch let error as NSError {
                 print("Could not perform deletion \(error), \(error.userInfo)")
-                throw PBHError.databaseError(message: "Error deleting items in feed \(feedId)")
+                throw DatabaseError.itemErrorDeleting
             }
         }
         return result as? NSBatchDeleteResult
