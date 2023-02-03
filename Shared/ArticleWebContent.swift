@@ -268,8 +268,9 @@ extension String {
             let startIndex = String.Index(utf16Offset: firstMatchingRange.lowerBound, in: self)
             let endIndex = String.Index(utf16Offset: firstMatchingRange.upperBound, in: self)
             return String(self[startIndex..<endIndex])
-        } catch { }
-        return nil
+        } catch {
+            return nil
+        }
     }
 
     var vimeoID: String? {
@@ -281,8 +282,9 @@ extension String {
                 return nil
             }
             return (self as NSString).substring(with: result.range)
-        } catch { }
-        return nil
+        } catch {
+            return nil
+        }
     }
     
 }

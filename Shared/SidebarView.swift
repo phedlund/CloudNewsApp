@@ -158,18 +158,15 @@ struct SidebarView: View {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
                                     try moc.save()
-//                                } catch let error as NetworkError {
-//                                    folderName = initialName
-//                                    footerMessage = message
-//                                    footerSuccess = false
-//                                } catch let error as DatabaseError {
-//                                    folderName = initialName
-//                                    footerMessage = message
-//                                    footerSuccess = false
-                                } catch _ {
-//                                    folderName = initialName
-//                                    footerMessage = message
-//                                    footerSuccess = false
+                                } catch let error as NetworkError {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
+                                } catch let error as DatabaseError {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
+                                } catch let error {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
                                 }
                             }
                         }
