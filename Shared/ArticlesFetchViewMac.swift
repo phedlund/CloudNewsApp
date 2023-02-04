@@ -65,7 +65,7 @@ struct ArticlesFetchViewMac: View {
                                     }
                                 }
                                 .overlay {
-                                    if !item.unread {
+                                    if !item.unread, !item.starred {
                                         Color.white.opacity(0.6)
                                     }
                                 }
