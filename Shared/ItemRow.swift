@@ -39,40 +39,36 @@ struct ItemRow: View {
                             .frame(width: 1, height: thumbnailSize.height)
                     }
                     HStack(alignment: .top) {
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: .paddingSix) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: .paddingSix) {
-                                        HStack {
-                                            TitleView(title: itemDisplay.title)
-                                            Spacer()
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        FavIconDateAuthorView(title: itemDisplay.author, feedId: itemDisplay.feedId)
-                                            .environmentObject(favIconRepository)
+                        VStack(alignment: .leading, spacing: .paddingSix) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: .paddingSix) {
+                                    HStack {
+                                        TitleView(title: itemDisplay.title)
+                                        Spacer()
                                     }
+                                    .frame(maxWidth: .infinity)
+                                    FavIconDateAuthorView(title: itemDisplay.author, feedId: itemDisplay.feedId)
+                                        .environmentObject(favIconRepository)
                                 }
-                                .padding(.leading, thumbnailOffset)
-                                VStack(alignment: .leading) {
-                                    if compactView {
-                                        EmptyView()
-                                    } else {
-                                        HStack {
-                                            BodyView(displayBody: itemDisplay.body)
-                                            Spacer()
-                                        }
-                                        .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
-                                    }
-                                }
-                                Spacer()
                             }
-                            .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-                            .padding(.leading, .paddingEight)
-
+                            .padding(.leading, thumbnailOffset)
+                            VStack(alignment: .leading) {
+                                if compactView {
+                                    EmptyView()
+                                } else {
+                                    HStack {
+                                        BodyView(displayBody: itemDisplay.body)
+                                        Spacer()
+                                    }
+                                    .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
+                                }
+                            }
+                            Spacer()
                         }
-                        Spacer()
-                        ItemStarredView(starred: itemDisplay.starred)
+                        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
+                        .padding(.leading, .paddingEight)
                     }
+                    .padding(.trailing, 16)
                 }
             }
             Spacer()

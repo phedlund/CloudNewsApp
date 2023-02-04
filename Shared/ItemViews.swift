@@ -144,24 +144,3 @@ struct ItemImageView: View {
         }
     }
 }
-
-struct ItemStarredView: View {
-    var starred: Bool
-
-    @ViewBuilder
-    var body: some View {
-        VStack(alignment: .trailing) {
-            if starred {
-                Image(systemName: "star.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .foregroundColor(.pbh.whiteText)
-                    .frame(width: 16, height: 16)
-            } else {
-                Spacer()
-                    .frame(width: 16)
-            }
-        }
-        .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-    }
-}

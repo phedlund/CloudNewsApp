@@ -65,8 +65,14 @@ struct ArticlesFetchView: View {
                                         .contextMenu {
                                             ContextMenuContent(item: item)
                                         }
+                                        .overlay(alignment: .topTrailing) {
+                                            if item.starred {
+                                                Image(systemName: "star.fill")
+                                                    .padding([.top, .trailing], 5)
+                                            }
+                                        }
                                         .overlay {
-                                            if !item.unread {
+                                            if !item.unread, !item.starred {
                                                 Color.white.opacity(0.6)
                                             }
                                         }

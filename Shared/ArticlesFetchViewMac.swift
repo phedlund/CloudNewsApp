@@ -58,6 +58,12 @@ struct ArticlesFetchViewMac: View {
                                 .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                                     return 0
                                 }
+                                .overlay(alignment: .topTrailing) {
+                                    if item.starred {
+                                        Image(systemName: "star.fill")
+                                            .padding([.top, .trailing], 5)
+                                    }
+                                }
                                 .overlay {
                                     if !item.unread {
                                         Color.white.opacity(0.6)
