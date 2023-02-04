@@ -183,7 +183,6 @@ public class CDItem: NSManagedObject, ItemProtocol {
 
 struct ItemDisplay {
     let itemId: Int32
-    let unread: Bool
     let title: String
     let author: String
     let feedId: Int32
@@ -195,7 +194,6 @@ extension CDItem {
 
     func toDisplayItem() -> ItemDisplay {
         ItemDisplay(itemId: id,
-                    unread: unread,
                     title: title ?? "Untitled",
                     author: dateFeedAuthor,
                     feedId: feedId,

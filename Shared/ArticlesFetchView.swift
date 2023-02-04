@@ -65,6 +65,11 @@ struct ArticlesFetchView: View {
                                         .contextMenu {
                                             ContextMenuContent(item: item)
                                         }
+                                        .overlay {
+                                            if !item.unread {
+                                                Color.white.opacity(0.6)
+                                            }
+                                        }
                                     Spacer()
                                 }
                                 .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in

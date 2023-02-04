@@ -58,6 +58,11 @@ struct ArticlesFetchViewMac: View {
                                 .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                                     return 0
                                 }
+                                .overlay {
+                                    if !item.unread {
+                                        Color.white.opacity(0.6)
+                                    }
+                                }
                                 .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
                                     prefKey = CGFloat(index)
                                 }

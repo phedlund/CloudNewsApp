@@ -21,8 +21,6 @@ struct ItemRow: View {
     @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
 
     var body: some View {
-        let textColor = itemDisplay.unread ? Color.pbh.whiteText : Color.pbh.whiteReadText
-        let itemOpacity = itemDisplay.unread ? 1.0 : 0.4
         let isShowingThumbnail = (showThumbnails && itemImageManager.image != nil)
         let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
         VStack(alignment: .leading, spacing: .zero) {
@@ -30,8 +28,7 @@ struct ItemRow: View {
                 ZStack(alignment: .topLeading) {
                     if isShowingThumbnail {
                         ItemImageView(image: itemImageManager.image,
-                                      size: thumbnailSize,
-                                      itemOpacity: itemOpacity)
+                                      size: thumbnailSize)
                         .padding(.top, compactView ? 1 : .zero)
                         .onAppear {
                             withAnimation(.easeInOut(duration: 0.3)) { }
@@ -47,11 +44,11 @@ struct ItemRow: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: .paddingSix) {
                                         HStack {
-                                            TitleView(title: itemDisplay.title, textColor: textColor, itemOpacity: itemOpacity)
+                                            TitleView(title: itemDisplay.title)
                                             Spacer()
                                         }
                                         .frame(maxWidth: .infinity)
-                                        FavIconDateAuthorView(title: itemDisplay.author, feedId: itemDisplay.feedId, itemOpacity: itemOpacity)
+                                        FavIconDateAuthorView(title: itemDisplay.author, feedId: itemDisplay.feedId)
                                             .environmentObject(favIconRepository)
                                     }
                                 }
@@ -61,7 +58,7 @@ struct ItemRow: View {
                                         EmptyView()
                                     } else {
                                         HStack {
-                                            BodyView(displayBody: itemDisplay.body, textColor: textColor, itemOpacity: itemOpacity)
+                                            BodyView(displayBody: itemDisplay.body)
                                             Spacer()
                                         }
                                         .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
@@ -74,7 +71,7 @@ struct ItemRow: View {
 
                         }
                         Spacer()
-                        ItemStarredView(starred: itemDisplay.starred, textColor: textColor)
+                        ItemStarredView(starred: itemDisplay.starred)
                     }
                 }
             }

@@ -50,17 +50,13 @@ struct ContextMenuContent: View {
 struct TitleView: View {
     let font = Font.headline.weight(.semibold)
     var title: String
-    var textColor: Color
-    var itemOpacity: Double
 
     var body: some View {
         Text(title)
             .multilineTextAlignment(.leading)
             .font(font)
-        #if os(macOS)
-            .opacity(itemOpacity)
-        #else
-            .foregroundColor(textColor)
+        #if os(iOS)
+            .foregroundColor(.pbh.whiteText)
         #endif
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true) //force wrapping
@@ -85,7 +81,6 @@ struct FavIconLabelStyle: LabelStyle {
 struct FavIconDateAuthorView: View {
     var title: String
     var feedId: Int32
-    var itemOpacity: Double
     @EnvironmentObject private var favIconRepository: FavIconRepository
 
     var body: some View {
@@ -99,25 +94,20 @@ struct FavIconDateAuthorView: View {
                 .environmentObject(favIconRepository)
         }
         .labelStyle(FavIconLabelStyle())
-        .opacity(itemOpacity)
     }
 }
 
 struct BodyView: View {
     var displayBody: String
-    var textColor: Color
-    var itemOpacity: Double
-    
+
     @ViewBuilder
     var body: some View {
         Text(displayBody)
             .multilineTextAlignment(.leading)
             .lineLimit(4)
             .font(.body)
-#if os(macOS)
-            .opacity(itemOpacity)
-#else
-            .foregroundColor(textColor)
+#if os(iOS)
+            .foregroundColor(.pbh.whiteText)
 #endif
     }
 }
@@ -125,12 +115,10 @@ struct BodyView: View {
 struct ItemImageView: View {
     var image: SystemImage?
     var size: CGSize
-    var itemOpacity: Double
 
-    init(image: SystemImage?, size: CGSize, itemOpacity: Double) {
+    init(image: SystemImage?, size: CGSize) {
         self.image = image
         self.size = size
-        self.itemOpacity = itemOpacity
     }
 
     var body: some View {
@@ -142,14 +130,12 @@ struct ItemImageView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: size.width, height: size.height)
                     .clipped()
-                    .opacity(itemOpacity)
 #else
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: size.width, height: size.height)
                     .clipped()
-                    .opacity(itemOpacity)
 #endif
             } else {
                 EmptyView()
@@ -161,7 +147,6 @@ struct ItemImageView: View {
 
 struct ItemStarredView: View {
     var starred: Bool
-    var textColor: Color
 
     @ViewBuilder
     var body: some View {
@@ -170,7 +155,7 @@ struct ItemStarredView: View {
                 Image(systemName: "star.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .foregroundColor(textColor)
+                    .foregroundColor(.pbh.whiteText)
                     .frame(width: 16, height: 16)
             } else {
                 Spacer()
