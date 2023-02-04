@@ -68,7 +68,7 @@ struct ArticlesFetchView: View {
                                         .overlay(alignment: .topTrailing) {
                                             if item.starred {
                                                 Image(systemName: "star.fill")
-                                                    .padding([.top, .trailing], 5)
+                                                    .padding([.top, .trailing],  .paddingSix)
                                             }
                                         }
                                         .overlay {

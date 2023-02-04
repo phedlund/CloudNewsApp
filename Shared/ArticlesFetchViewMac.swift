@@ -55,13 +55,13 @@ struct ArticlesFetchViewMac: View {
                                 .contextMenu {
                                     ContextMenuContent(item: item)
                                 }
-                                .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                                .alignmentGuide(.listRowSeparatorLeading) { _ in
                                     return 0
                                 }
                                 .overlay(alignment: .topTrailing) {
                                     if item.starred {
                                         Image(systemName: "star.fill")
-                                            .padding([.top, .trailing], 5)
+                                            .padding([.top, .trailing], .paddingSix)
                                     }
                                 }
                                 .overlay {
