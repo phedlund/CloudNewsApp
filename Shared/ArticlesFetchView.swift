@@ -89,9 +89,9 @@ struct ArticlesFetchView: View {
                         .onChange(of: $selectedNode.wrappedValue) { _ in
                             proxy.scrollTo(0, anchor: .top)
                         }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.pbh.whiteBackground)
                     }
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.pbh.whiteBackground)
                 }
                 .navigationDestination(for: CDItem.self) { item in
                     ArticlesPageView(item: item, items: items)
