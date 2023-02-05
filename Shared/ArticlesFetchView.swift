@@ -50,81 +50,80 @@ struct ArticlesFetchView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             NavigationStack {
                 ScrollViewReader { proxy in
-                    List(selection: $currentItem) {
-                        ForEach(Array(items.enumerated()), id: \.0) { index, item in
-                            ZStack {
-                                NavigationLink(value: item) {
-                                    EmptyView()
-                                }
-                                .opacity(0)
-                                HStack {
-                                    Spacer()
-                                    ItemRow(itemImageManager: ItemImageManager(item: item), itemDisplay: item.toDisplayItem(), size: cellSize, isHorizontalCompact: isHorizontalCompact)
-                                        .id(index)
-                                        .environmentObject(favIconRepository)
-                                        .contextMenu {
-                                            ContextMenuContent(item: item)
-                                        }
-                                        .overlay(alignment: .topTrailing) {
-                                            if item.starred {
-                                                Image(systemName: "star.fill")
-                                                    .padding([.top, .trailing],  .paddingSix)
-                                            }
-                                        }
-                                        .overlay {
-                                            if !item.unread, !item.starred {
-                                                Color.white.opacity(0.6)
-                                            }
-                                        }
-                                    Spacer()
-                                }
-                                .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                                    prefKey = CGFloat(index)
-                                }
-                                .onPreferenceChange(ViewOffsetKey.self) {
-                                    let offset = ($0 * (cellHeight + 15)) - geometry.size.height
-                                    offsetItemsDetector.send(offset)
-                                }
+                    List(items.indices, id: \.self, selection: $currentItem) { index in
+                        let item = items[index]
+                        ZStack {
+                            NavigationLink(value: item) {
+                                EmptyView()
                             }
-                            .onChange(of: $selectedNode.wrappedValue) { _ in
-                                proxy.scrollTo(0, anchor: .top)
+                            .opacity(0)
+                            HStack {
+                                Spacer()
+                                ItemRow(itemImageManager: ItemImageManager(item: item), itemDisplay: item.toDisplayItem(), size: cellSize, isHorizontalCompact: isHorizontalCompact)
+                                    .id(index)
+                                    .environmentObject(favIconRepository)
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
+                                    }
+                                    .overlay(alignment: .topTrailing) {
+                                        if item.starred {
+                                            Image(systemName: "star.fill")
+                                                .padding([.top, .trailing],  .paddingSix)
+                                        }
+                                    }
+                                    .overlay {
+                                        if !item.unread, !item.starred {
+                                            Color.white.opacity(0.6)
+                                        }
+                                    }
+                                Spacer()
+                            }
+                            .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+                                prefKey = CGFloat(index)
+                            }
+                            .onPreferenceChange(ViewOffsetKey.self) {
+                                let offset = ($0 * (cellHeight + 21)) - geometry.size.height
+                                offsetItemsDetector.send(offset)
                             }
                         }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.pbh.whiteBackground)
-                    }
-                    .navigationDestination(for: CDItem.self) { item in
-                        ArticlesPageView(item: item, items: items)
-                    }
-                    .listStyle(.plain)
-                    .accentColor(.pbh.darkIcon)
-                    .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                    }
-                    .scrollContentBackground(.hidden)
-                    .onAppear {
-                        cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
-                    }
-                    .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
-                        items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
-                    }
-                    .onChange(of: $compactView.wrappedValue) {
-                        cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
-                    }
-                    .onReceive(offsetItemsPublisher) { newOffset in
-                        if markReadWhileScrolling {
-                            Task.detached {
-                                await markRead(newOffset)
-                            }
+                        .onChange(of: $selectedNode.wrappedValue) { _ in
+                            proxy.scrollTo(0, anchor: .top)
                         }
                     }
-                    .onChange(of: scenePhase) { newPhase in
-                        switch newPhase {
-                        case .active:
-                            isHorizontalCompact = horizontalSizeClass == .compact
-                        default:
-                            break
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.pbh.whiteBackground)
+                }
+                .navigationDestination(for: CDItem.self) { item in
+                    ArticlesPageView(item: item, items: items)
+                }
+                .listStyle(.plain)
+                .accentColor(.pbh.darkIcon)
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
+                .scrollContentBackground(.hidden)
+                .onAppear {
+                    cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
+                }
+                .onChange(of: $sortOldestFirst.wrappedValue) { newValue in
+                    items.sortDescriptors = newValue ? ItemSort.oldestFirst.descriptors : ItemSort.default.descriptors
+                }
+                .onChange(of: $compactView.wrappedValue) {
+                    cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+                }
+                .onReceive(offsetItemsPublisher) { newOffset in
+                    if markReadWhileScrolling {
+                        Task.detached {
+                            await markRead(newOffset)
                         }
+                    }
+                }
+                .onChange(of: scenePhase) { newPhase in
+                    switch newPhase {
+                    case .active:
+                        isHorizontalCompact = horizontalSizeClass == .compact
+                    default:
+                        break
                     }
                 }
             }
@@ -134,7 +133,7 @@ struct ArticlesFetchView: View {
     private func markRead(_ offset: CGFloat) {
         if markReadWhileScrolling {
             print(offset)
-            let numberOfItems = max((offset / (cellHeight + 15.0)) - 1, 0)
+            let numberOfItems = max((offset / (cellHeight + 21)) - 1, 0)
             print("Number of items \(numberOfItems)")
             if numberOfItems > 0 {
                 let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })

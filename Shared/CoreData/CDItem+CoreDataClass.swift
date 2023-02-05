@@ -182,22 +182,18 @@ public class CDItem: NSManagedObject, ItemProtocol {
 }
 
 struct ItemDisplay {
-    let itemId: Int32
     let title: String
     let author: String
     let feedId: Int32
     let body: String
-    let starred: Bool
 }
 
 extension CDItem {
 
     func toDisplayItem() -> ItemDisplay {
-        ItemDisplay(itemId: id,
-                    title: title ?? "Untitled",
+        ItemDisplay(title: title ?? "Untitled",
                     author: dateFeedAuthor,
                     feedId: feedId,
-                    body: displayBody,
-                    starred: starred)
+                    body: displayBody)
     }
 }
