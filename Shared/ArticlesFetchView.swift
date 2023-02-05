@@ -37,7 +37,7 @@ struct ArticlesFetchView: View {
 
     init(predicate: NSPredicate) {
         self.offsetItemsPublisher = offsetItemsDetector
-            .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
+            .debounce(for: .seconds(0.7), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
         self._items = FetchRequest(sortDescriptors: ItemSort.default.descriptors, predicate: predicate)
@@ -112,10 +112,8 @@ struct ArticlesFetchView: View {
                     cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
-                    if markReadWhileScrolling {
-                        Task.detached {
-                            await markRead(newOffset)
-                        }
+                    Task.detached {
+                        await markRead(newOffset)
                     }
                 }
                 .onChange(of: scenePhase) { newPhase in
