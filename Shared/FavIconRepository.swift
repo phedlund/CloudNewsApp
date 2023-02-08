@@ -18,27 +18,19 @@ enum FetchError: Error {
     case noImage
 }
 
-class FavIcon: ObservableObject {
+struct FavIcon {
+    var name = ""
     #if os(macOS)
-    @Published var image: NSImage
-
-    init(image: NSImage) {
-        self.image = image
-    }
-
+    var image: NSImage
     #else
-    @Published var image: UIImage
-
-    init(image: UIImage) {
-        self.image = image
-    }
+    var image: UIImage
     #endif
 }
 
 @MainActor
 class FavIconRepository: NSObject, ObservableObject {
     @Published var icons = [String: FavIcon]()
-    @Published var defaultIcon = FavIcon(image: SystemImage(named: "rss")!)
+    let defaultIcon = FavIcon(name: "rss", image: SystemImage())
 
     private let validSchemas = ["http", "https", "file"]
     private var cancellables = Set<AnyCancellable>()
@@ -58,7 +50,7 @@ class FavIconRepository: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
         icons["all"] = defaultIcon
-        icons["starred"] = FavIcon(image: SystemImage(symbolName: "star.fill")!)
+        icons["starred"] = FavIcon(name: "star.fill", image: SystemImage())
         update()
     }
 
@@ -66,7 +58,7 @@ class FavIconRepository: NSObject, ObservableObject {
         if let folders = CDFolder.all() {
             for folder in folders {
                 Task {
-                    self.icons["folder_\(folder.id)"] = FavIcon(image: SystemImage(symbolName: "folder")!)
+                    self.icons["folder_\(folder.id)"] = FavIcon(name: "folder", image: SystemImage())
                 }
             }
         }
