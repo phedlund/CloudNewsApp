@@ -6,6 +6,7 @@
 //  Copyright © 2018-2022 Peter Hedlund. All rights reserved.
 //
 
+import Combine
 import Foundation
 
 struct ProductStatus {
@@ -17,6 +18,8 @@ class NewsManager {
 
     static let shared = NewsManager()
     private let session = ServerStatus.shared.session
+    let syncSubject = PassthroughSubject<TimeInterval, Never>()
+
     var syncTimer: Timer?
     
     init() {
@@ -195,8 +198,9 @@ class NewsManager {
             try await ItemImporter().fetchItems(unreadRouter.urlRequest())
             try await ItemImporter().fetchItems(starredRouter.urlRequest())
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
-
-            NotificationCenter.default.post(name: .syncComplete, object: nil)
+            DispatchQueue.main.async {
+                NewsManager.shared.syncSubject.send(Date().timeIntervalSinceReferenceDate)
+            }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
@@ -309,7 +313,7 @@ class NewsManager {
             try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
 
             DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .syncComplete, object: nil)
+                NewsManager.shared.syncSubject.send(Date().timeIntervalSinceReferenceDate)
             }
         } catch let error as NetworkError {
             throw error

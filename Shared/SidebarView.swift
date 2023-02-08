@@ -41,8 +41,7 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: Node.ID?
 
-    private var syncPublisher = NotificationCenter.default
-        .publisher(for: .syncComplete)
+    private var syncPublisher = NewsManager.shared.syncSubject
         .receive(on: DispatchQueue.main)
 
     init(nodeSelection: Binding<Node.ID?>) {
@@ -267,7 +266,6 @@ struct SidebarView: View {
                 try await NewsManager().sync()
                 isShowingError = false
                 errorMessage = ""
-                model.update()
             } catch let error as NetworkError {
                 errorMessage = error.localizedDescription
                 isShowingError = true

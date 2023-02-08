@@ -12,9 +12,9 @@ struct ItemRow: View {
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
     @AppStorage(SettingKeys.compactView) private var compactView = false
+    @ObservedObject var item: CDItem
     @ObservedObject var itemImageManager: ItemImageManager
 
-    var itemDisplay: ItemDisplay
     var size: CGSize
     var isHorizontalCompact: Bool
 
@@ -35,7 +35,7 @@ struct ItemRow: View {
                         }
                     } else {
                         Rectangle()
-                            .foregroundColor(.pbh.whiteBackground)
+                            .foregroundColor(.clear)
                             .frame(width: 1, height: thumbnailSize.height)
                     }
                     HStack(alignment: .top) {
@@ -43,11 +43,11 @@ struct ItemRow: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: .paddingSix) {
                                     HStack {
-                                        TitleView(title: itemDisplay.title)
+                                        TitleView(title: item.title ?? "Untitled")
                                         Spacer()
                                     }
                                     .frame(maxWidth: .infinity)
-                                    FavIconDateAuthorView(title: itemDisplay.author, feedId: itemDisplay.feedId)
+                                    FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
                                         .environmentObject(favIconRepository)
                                 }
                             }
@@ -57,7 +57,7 @@ struct ItemRow: View {
                                     EmptyView()
                                 } else {
                                     HStack {
-                                        BodyView(displayBody: itemDisplay.body)
+                                        BodyView(displayBody: item.displayBody)
                                         Spacer()
                                     }
                                     .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
@@ -85,6 +85,25 @@ struct ItemRow: View {
             Color.pbh.whiteCellBackground
                 .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
         )
+        .overlay(alignment: .topTrailing) {
+            if item.starred {
+                Image(systemName: "star.fill")
+                    .padding([.top, .trailing],  .paddingSix)
+            }
+        }
+        .overlay {
+            if !item.unread, !item.starred {
+                Color.white.opacity(0.6)
+            }
+        }
+#else
+        .overlay(alignment: .topTrailing) {
+            if item.starred {
+                Image(systemName: "star.fill")
+                    .padding([.top, .trailing],  .paddingSix)
+            }
+        }
+        .opacity(item.unread ? 1.0 : 0.4 )
 #endif
         .onAppear {
             thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)

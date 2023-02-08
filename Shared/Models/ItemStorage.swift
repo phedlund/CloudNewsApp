@@ -49,7 +49,6 @@ class ItemStorage: NSObject, ObservableObject {
 
     private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
     private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
-    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let foldersFetchRequest = CDFolder.fetchRequest()
     private let feedsFetchRequest = CDFeed.fetchRequest()
 
@@ -177,7 +176,8 @@ class ItemStorage: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
 
-        syncPublisher
+        NewsManager.shared.syncSubject
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.changes.value = [NodeChange(nodeType: .all, key: "unread")]
             }

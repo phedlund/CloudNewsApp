@@ -41,13 +41,12 @@ class FavIconRepository: NSObject, ObservableObject {
     @Published var defaultIcon = FavIcon(image: SystemImage(named: "rss")!)
 
     private let validSchemas = ["http", "https", "file"]
-    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private var cancellables = Set<AnyCancellable>()
 
     override init() {
         super.init()
 
-        syncPublisher
+        NewsManager.shared.syncSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 Task {

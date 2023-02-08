@@ -13,14 +13,14 @@ import SwiftUI
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
     @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
+    @Published var currentItems = [CDItem]()
     @Published var currentItem: CDItem?
-    @Published var predicate = NSPredicate(value: false)
     @Published var currentNodeID: Node.ID? {
         didSet {
-            if let currentNodeID {
+            if let currentNodeID, currentNodeID != preferences.selectedNode {
                 preferences.selectedNode = currentNodeID
                 currentItemID = nil
-                updatePredicate()
+                publishItems()
                 updateCurrentNode(currentNodeID)
             }
         }
@@ -36,6 +36,8 @@ class FeedModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
+
+    private let fetchRequest = NSFetchRequest<CDItem>(entityName: CDItem.entityName)
 
     private var folders = [CDFolder]() {
         didSet {
@@ -87,19 +89,34 @@ class FeedModel: ObservableObject {
         .store(in: &cancellables)
 
         preferences.$hideRead.sink { [weak self] _ in
+            guard let self, !self.isInInit else { return }
+            self.publishItems()
+        }
+        .store(in: &cancellables)
+
+        preferences.$sortOldestFirst.sink { [weak self] newValue in
             guard let self else { return }
-            self.updatePredicate()
+            self.fetchRequest.sortDescriptors = newValue ? [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .forward))] : [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
+            self.publishItems()
+        }
+        .store(in: &cancellables)
+
+        NewsManager.shared.syncSubject.sink { [weak self] newValue in
+            guard let self else { return }
+            self.update()
+            self.publishItems()
         }
         .store(in: &cancellables)
 
         update()
         currentNodeID = preferences.selectedNode
         updateCurrentNode(preferences.selectedNode)
-        updatePredicate()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
+        publishItems()
         isInInit = false
     }
 
-    func update() {
+    private func update() {
         Task(priority: .high) {
             var folderNodes = [Node]()
             var feedNodes = [Node]()
@@ -198,7 +215,7 @@ class FeedModel: ObservableObject {
         return nil
     }
 
-    private func updatePredicate() {
+    func publishItems() {
         guard let currentNodeID else { return }
         print("Setting predicate")
         DispatchQueue.main.async {
@@ -208,19 +225,28 @@ class FeedModel: ObservableObject {
             }
             switch NodeType.fromString(typeString: currentNodeID) {
             case .empty:
-                self.predicate = NSPredicate(value: false)
+                self.fetchRequest.predicate = NSPredicate(value: false)
             case .all:
-                self.predicate = NSPredicate(value: true)
+                self.fetchRequest.predicate = NSPredicate(value: true)
             case .starred:
-                self.predicate = NSPredicate(format: "starred == true")
+                self.fetchRequest.predicate = NSPredicate(format: "starred == true")
             case .folder(id:  let id):
                 if let feedIds = CDFeed.idsInFolder(folder: id) {
                     let predicate2 = NSPredicate(format: "feedId IN %@", feedIds)
-                    self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+                    self.fetchRequest.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
                 }
             case .feed(id: let id):
                 let predicate2 = NSPredicate(format: "feedId == %d", id)
-                self.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+                self.fetchRequest.predicate = NSCompoundPredicate(type: .and, subpredicates: [predicate1, predicate2])
+            }
+            Task {
+                do {
+                    try await NewsData.shared.container.viewContext.perform {
+                        try self.currentItems = self.fetchRequest.execute()
+                    }
+                } catch let error {
+                    print(error.localizedDescription)
+                }
             }
         }
     }

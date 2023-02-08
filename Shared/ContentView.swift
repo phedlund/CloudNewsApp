@@ -33,7 +33,8 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if model.currentNodeID != EmptyNodeGuid {
-                    ArticlesFetchView(predicate: model.predicate)
+                    ArticlesFetchView()
+                        .environmentObject(model)
                         .environmentObject(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: model.currentNode)

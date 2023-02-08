@@ -20,9 +20,9 @@ struct ArticlesPageView: View {
     @State private var title = ""
     @State private var webViewHelper = ItemWebViewHelper()
 
-    private let items: FetchedResults<CDItem>
+    private let items: [CDItem]
 
-    init(item: CDItem, items: FetchedResults<CDItem>) {
+    init(item: CDItem, items: [CDItem]) {
         self.item = item
         self.items = items
         self._selection = State(initialValue: item.objectID)

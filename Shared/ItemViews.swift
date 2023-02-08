@@ -139,7 +139,6 @@ struct ItemImageView: View {
 #endif
             } else {
                 EmptyView()
-                    .frame(width: .zero)
             }
         }
     }
