@@ -93,7 +93,9 @@ struct ItemRow: View {
         }
         .overlay {
             if !item.unread, !item.starred {
-                Color.white.opacity(0.6)
+                Color.primary
+                    .colorInvert()
+                    .opacity(0.6)
             }
         }
 #else
