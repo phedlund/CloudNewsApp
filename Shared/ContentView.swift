@@ -63,7 +63,8 @@ struct ContentView: View {
         } content: {
             if model.currentNodeID != EmptyNodeGuid {
                 let _ = Self._printChanges()
-                ArticlesFetchViewMac(predicate: model.predicate)
+                ArticlesFetchViewMac()
+                    .environmentObject(model)
                     .environmentObject(favIconRepository)
                     .toolbar {
                         ItemListToolbarContent(node: model.currentNode)

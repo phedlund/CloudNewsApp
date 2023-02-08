@@ -30,7 +30,7 @@ final class Node: Identifiable, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     convenience init() {
-        self.init(.all, id: AllNodeGuid, isExpanded: false)
+        self.init(.empty, id: AllNodeGuid, isExpanded: false)
     }
 
     convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {

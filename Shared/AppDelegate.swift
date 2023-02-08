@@ -14,7 +14,6 @@ import UserNotifications
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-    private let syncPublisher = NotificationCenter.default.publisher(for: .syncComplete, object: nil).eraseToAnyPublisher()
     private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
 
@@ -23,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     override init() {
         super.init()
 
-        syncPublisher
+        NewsManager.shared.syncSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 let unreadCount = CDItem.unreadCount(nodeType: .all)
@@ -76,7 +75,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-
     private let didBecomActivePublisher = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification, object: nil).eraseToAnyPublisher()
     private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
