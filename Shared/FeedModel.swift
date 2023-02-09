@@ -25,7 +25,15 @@ class FeedModel: ObservableObject {
             }
         }
     }
-    @Published var currentItemID: NSManagedObjectID?
+    @Published var currentItemID: NSManagedObjectID? {
+        didSet {
+            if let currentItemID, let item = NewsData.shared.container.viewContext.object(with: currentItemID) as? CDItem {
+                currentItem = item
+            } else {
+                currentItem = nil
+            }
+        }
+    }
 
     private let allNode: Node
     private let starNode: Node
