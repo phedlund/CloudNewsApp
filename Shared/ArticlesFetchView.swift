@@ -76,6 +76,7 @@ struct ArticlesFetchView: View {
                         .onChange(of: $selectedNode.wrappedValue) { [oldValue = selectedNode] newValue in
                             if newValue != oldValue {
                                 proxy.scrollTo(0, anchor: .top)
+                                offsetItemsDetector.send(0.0)
                             }
                         }
                         .listRowSeparator(.hidden)

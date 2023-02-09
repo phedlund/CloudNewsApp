@@ -161,10 +161,6 @@ class FeedModel: ObservableObject {
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
-    func updateCurrentItem(_ current: CDItem?) {
-        currentItem = current
-    }
-
     func delete(_ node: Node) {
         switch node.nodeType {
         case .empty, .all, .starred:
@@ -215,7 +211,7 @@ class FeedModel: ObservableObject {
         return nil
     }
 
-    func publishItems() {
+    private func publishItems() {
         guard let currentNodeID else { return }
         print("Setting predicate")
         DispatchQueue.main.async {
