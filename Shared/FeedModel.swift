@@ -125,43 +125,33 @@ class FeedModel: ObservableObject {
     }
 
     private func update() {
-        Task(priority: .high) {
-            var folderNodes = [Node]()
-            var feedNodes = [Node]()
+        var folderNodes = [Node]()
+        var feedNodes = [Node]()
 
-            if let folders = CDFolder.all() {
-                for folder in folders {
-                    folderNodes.append(folderNode(folder: folder))
-                }
+        if let folders = CDFolder.all() {
+            for folder in folders {
+                folderNodes.append(folderNode(folder: folder))
             }
+        }
 
-            if let feeds = CDFeed.inFolder(folder: 0) {
-                for feed in feeds {
-                    feedNodes.append(feedNode(feed: feed))
-                }
+        if let feeds = CDFeed.inFolder(folder: 0) {
+            for feed in feeds {
+                feedNodes.append(feedNode(feed: feed))
             }
+        }
 
-            let firstFolderIndex = 2
-            if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
-                DispatchQueue.main.async { [weak self] in
-                    self?.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
-                }
-            } else {
-                DispatchQueue.main.async { [weak self] in
-                    self?.nodes.append(contentsOf: folderNodes)
-                }
-            }
+        let firstFolderIndex = 2
+        if let lastFolderIndex = nodes.lastIndex(where: { $0.id.hasPrefix("folder") }) {
+            self.nodes.replaceSubrange(firstFolderIndex...lastFolderIndex, with: folderNodes)
+        } else {
+            self.nodes.append(contentsOf: folderNodes)
+        }
 
-            if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
-               let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
-                DispatchQueue.main.async { [weak self] in
-                    self?.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
-                }
-            } else {
-                DispatchQueue.main.async { [weak self] in
-                    self?.nodes.append(contentsOf: feedNodes)
-                }
-            }
+        if let firstFeedIndex = nodes.firstIndex(where: { $0.id.hasPrefix("feed") }),
+           let lastFeedIndex = nodes.lastIndex(where: { $0.id.hasPrefix("feed") }) {
+            self.nodes.replaceSubrange(firstFeedIndex...lastFeedIndex, with: feedNodes)
+        } else {
+            self.nodes.append(contentsOf: feedNodes)
         }
     }
 
