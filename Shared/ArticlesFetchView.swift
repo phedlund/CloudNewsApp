@@ -12,7 +12,6 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesFetchView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
@@ -25,7 +24,6 @@ struct ArticlesFetchView: View {
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var currentItem: NSManagedObjectID?
-    @State private var isHorizontalCompact = false
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
@@ -57,7 +55,7 @@ struct ArticlesFetchView: View {
                             .opacity(0)
                             HStack {
                                 Spacer()
-                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize, isHorizontalCompact: isHorizontalCompact)
+                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize)
                                     .id(index)
                                     .environmentObject(favIconRepository)
                                     .contextMenu {
@@ -101,14 +99,6 @@ struct ArticlesFetchView: View {
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
                         await markRead(newOffset)
-                    }
-                }
-                .onChange(of: scenePhase) { newPhase in
-                    switch newPhase {
-                    case .active:
-                        isHorizontalCompact = horizontalSizeClass == .compact
-                    default:
-                        break
                     }
                 }
             }

@@ -45,7 +45,7 @@ struct ArticlesFetchViewMac: View {
                 ScrollViewReader { proxy in
                     List(model.currentItems.indices, id: \.self, selection: $model.currentItemID) { index in
                         let item = model.currentItems[index]
-                        ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize, isHorizontalCompact: false)
+                        ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize)
                                 .id(index)
                                 .tag(item.objectID)
                                 .environmentObject(favIconRepository)
