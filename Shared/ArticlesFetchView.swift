@@ -12,9 +12,7 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesFetchView: View {
-    @Environment(\.scenePhase) private var scenePhase
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
@@ -22,6 +20,7 @@ struct ArticlesFetchView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
 
+    @State private var isHorizontalCompact = true
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var currentItem: NSManagedObjectID?
 
@@ -55,7 +54,7 @@ struct ArticlesFetchView: View {
                             .opacity(0)
                             HStack {
                                 Spacer()
-                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), size: cellSize)
+                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
                                     .id(index)
                                     .environmentObject(favIconRepository)
                                     .contextMenu {
@@ -91,6 +90,7 @@ struct ArticlesFetchView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .onAppear {
+                    isHorizontalCompact = horizontalSizeClass == .compact
                     cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                 }
                 .onChange(of: $compactView.wrappedValue) {
@@ -100,6 +100,9 @@ struct ArticlesFetchView: View {
                     Task.detached {
                         await markRead(newOffset)
                     }
+                }
+                .onChange(of: horizontalSizeClass) {
+                    isHorizontalCompact = $0 == .compact
                 }
             }
         }

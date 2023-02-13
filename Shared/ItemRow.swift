@@ -8,26 +8,28 @@
 import SwiftUI
 
 struct ItemRow: View {
-#if os(iOS)
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-#endif
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
-    @AppStorage(SettingKeys.compactView) private var compactView = false
     @ObservedObject var item: CDItem
     @ObservedObject var itemImageManager: ItemImageManager
-    @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-
+//    @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+    
+    var isHorizontalCompact: Bool
+    var isCompact: Bool
     var size: CGSize
 
     var body: some View {
-#if os(macOS)
-        let isHorizontalCompact = false
-#else
-        let isHorizontalCompact = horizontalSizeClass == .compact
-#endif
         let isShowingThumbnail = (showThumbnails && itemImageManager.image != nil)
+        let cellHeight = isCompact ? CGFloat.compactCellHeight : CGFloat.defaultCellHeight
+#if os(macOS)
+        let thumbnailWidth = isCompact ? CGFloat.compactThumbnailWidth : .defaultThumbnailWidth
+        let thumbnailHeight = isCompact ? cellHeight : .defaultCellHeight
+#else
+        let thumbnailWidth = isCompact ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
+        let thumbnailHeight = isCompact ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
+#endif
+        let thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
         let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
@@ -35,7 +37,7 @@ struct ItemRow: View {
                     if isShowingThumbnail {
                         ItemImageView(image: itemImageManager.image,
                                       size: thumbnailSize)
-                        .padding(.top, compactView ? 1 : .zero)
+                        .padding(.top, isCompact ? 1 : .zero)
                         .onAppear {
                             withAnimation(.easeInOut(duration: 0.3)) { }
                         }
@@ -66,7 +68,7 @@ struct ItemRow: View {
                             .padding(.leading, thumbnailOffset)
                             .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
                             VStack(alignment: .leading) {
-                                if compactView {
+                                if isCompact {
                                     EmptyView()
                                 } else {
                                     HStack(alignment: .top) {
@@ -87,7 +89,7 @@ struct ItemRow: View {
         }
         .listRowInsets(.none)
         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-        .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
+        .padding(.top, isHorizontalCompact && isCompact ? .paddingEight : .zero)
 
 #if os(iOS)
         .frame(width: size.width, height: size.height)
@@ -119,34 +121,6 @@ struct ItemRow: View {
         }
         .opacity(item.unread ? 1.0 : 0.4 )
 #endif
-        .onAppear {
-#if os(macOS)
-            let isHorizontalCompact = false
-#else
-            let isHorizontalCompact = horizontalSizeClass == .compact
-#endif
-            thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-            let _ = print(thumbnailSize)
-        }
-        .onChange(of: $compactView.wrappedValue) { newValue in
-            let cellHeight = newValue ? CGFloat.compactCellHeight : CGFloat.defaultCellHeight
-#if os(macOS)
-            let isHorizontalCompact = false
-            let thumbnailWidth = newValue ? CGFloat.compactThumbnailWidth : .defaultThumbnailWidth
-            let thumbnailHeight = newValue ? cellHeight : .defaultCellHeight
-#else
-            let isHorizontalCompact = horizontalSizeClass == .compact
-            let thumbnailWidth = newValue ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
-            let thumbnailHeight = newValue ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
-#endif
-            thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
-        }
-#if os(iOS)
-        .onChange(of: horizontalSizeClass) { newValue in
-            let isHorizontalCompact = newValue == .compact
-            thumbnailSize = (compactView || isHorizontalCompact) ? CGSize(width: .compactThumbnailWidth, height: .compactCellHeight) : CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-        }
-#endif
     }
 }
 
@@ -156,7 +130,7 @@ struct ItemRow: View {
 //    }
 //}
 
-struct BodyFrameModifier : ViewModifier {
+struct BodyFrameModifier: ViewModifier {
     let active: Bool
     let height: CGFloat
 
