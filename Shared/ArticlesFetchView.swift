@@ -80,9 +80,7 @@ struct ArticlesFetchView: View {
                         .listRowBackground(Color.pbh.whiteBackground)
                     }
                 }
-                .navigationDestination(for: CDItem.self) { item in
-                    ArticlesPageView(item: item, items: model.currentItems)
-                }
+                .newsNavigationDestination(type: CDItem.self, model: model)
                 .listStyle(.plain)
                 .accentColor(.pbh.darkIcon)
                 .background {
@@ -128,3 +126,26 @@ struct ArticlesFetchView: View {
 
 }
 #endif
+
+struct NavigationDestinationModifier: ViewModifier {
+    let type: CDItem.Type
+    let model: FeedModel
+
+    @ViewBuilder func body(content: Content) -> some View {
+#if os(iOS)
+        content
+            .navigationDestination(for: type) { item in
+                ArticlesPageView(item: item, items: model.currentItems)
+            }
+
+#else
+        content
+#endif
+    }
+}
+
+extension View {
+    func newsNavigationDestination(type: CDItem.Type, model: FeedModel) -> some View {
+        modifier(NavigationDestinationModifier(type: CDItem.self, model: model))
+    }
+}

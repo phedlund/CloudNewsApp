@@ -81,6 +81,7 @@ struct ArticlesFetchViewMac: View {
                             }
                         }
                     }
+                    .modifier(NavigationDestinationModifier(type: CDItem.self, model: model))
                     .listStyle(.automatic)
                     .accentColor(.pbh.darkIcon)
                     .background {
