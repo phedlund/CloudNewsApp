@@ -111,8 +111,15 @@ class FeedModel: ObservableObject {
 
         NewsManager.shared.syncSubject.sink { [weak self] newValue in
             guard let self else { return }
-            self.update()
-            self.publishItems()
+            if newValue.previous == 0 {
+                self.update()
+                self.currentNodeID = AllNodeGuid
+                self.updateCurrentNode(AllNodeGuid)
+                self.publishItems()
+            } else {
+                self.update()
+                self.publishItems()
+            }
         }
         .store(in: &cancellables)
 

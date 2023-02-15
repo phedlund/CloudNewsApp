@@ -14,11 +14,16 @@ struct ProductStatus {
     var version: String
 }
 
+struct SyncTimes {
+    let previous: TimeInterval
+    let current: TimeInterval
+}
+
 class NewsManager {
 
     static let shared = NewsManager()
     private let session = ServerStatus.shared.session
-    let syncSubject = PassthroughSubject<TimeInterval, Never>()
+    let syncSubject = PassthroughSubject<SyncTimes, Never>()
 
     var syncTimer: Timer?
     
@@ -199,7 +204,7 @@ class NewsManager {
             try await ItemImporter().fetchItems(starredRouter.urlRequest())
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
-                NewsManager.shared.syncSubject.send(Date().timeIntervalSinceReferenceDate)
+                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
@@ -313,7 +318,7 @@ class NewsManager {
             try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
 
             DispatchQueue.main.async {
-                NewsManager.shared.syncSubject.send(Date().timeIntervalSinceReferenceDate)
+                NewsManager.shared.syncSubject.send(SyncTimes(previous: Double(newestKnownLastModified), current: Date().timeIntervalSinceReferenceDate))
             }
         } catch let error as NetworkError {
             throw error
