@@ -25,33 +25,8 @@ class NewsManager {
     private let session = ServerStatus.shared.session
     let syncSubject = PassthroughSubject<SyncTimes, Never>()
 
-    var syncTimer: Timer?
+    init() { }
     
-    init() {
-        self.setupSyncTimer()
-    }
-    
-    func setupSyncTimer() {
-#if os(macOS)
-        self.syncTimer?.invalidate()
-        self.syncTimer = nil
-        let interval = UserDefaults.standard.integer(forKey: "interval")
-        if interval > 0 {
-            var timeInterval: TimeInterval = 900
-            switch interval {
-            case 2: timeInterval = 30 * 60
-            case 3: timeInterval = 60 * 60
-            default: timeInterval = 15 * 60
-            }
-            self.syncTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
-                Task {
-                    try await self.sync()
-                }
-            }
-        }
-#endif
-    }
-
     func version() async throws -> String {
         let router = Router.version
         do {

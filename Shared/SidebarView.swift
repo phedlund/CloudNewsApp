@@ -24,6 +24,9 @@ extension ModalSheet: Identifiable {
 struct SidebarView: View {
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
+    @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
+    @State private var timerStart = Date.now
+    private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
     @Environment(\.managedObjectContext) private var moc
     @EnvironmentObject private var model: FeedModel
@@ -122,6 +125,16 @@ struct SidebarView: View {
             confirmationNode = model.currentNode
             isShowingConfirmation = true
         }
+#if os(macOS)
+        .onReceive(syncTimer) { _ in
+            if syncInterval.rawValue > .zero {
+                if Date.now.timeIntervalSince(timerStart) > TimeInterval(syncInterval.rawValue) {
+                    timerStart = Date.now
+                    sync()
+                }
+            }
+        }
+#endif
         .navigationTitle(Text("Feeds"))
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
