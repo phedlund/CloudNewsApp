@@ -9,7 +9,7 @@ import Combine
 import Kingfisher
 import SwiftUI
 
-struct ArticlesFetchView: View {
+struct ItemsListView: View {
 #if os(macOS)
     @State private var isHorizontalCompact = false
     let cellSpacing: CGFloat = 15.0

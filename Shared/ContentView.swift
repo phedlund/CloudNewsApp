@@ -33,7 +33,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if model.currentNodeID != EmptyNodeGuid {
-                    ArticlesFetchView()
+                    ItemsListView()
                         .environmentObject(model)
                         .environmentObject(favIconRepository)
                         .toolbar {
@@ -63,7 +63,7 @@ struct ContentView: View {
         } content: {
             if model.currentNodeID != EmptyNodeGuid {
                 let _ = Self._printChanges()
-                ArticlesFetchView()
+                ItemsListView()
                     .environmentObject(model)
                     .environmentObject(favIconRepository)
                     .toolbar {
