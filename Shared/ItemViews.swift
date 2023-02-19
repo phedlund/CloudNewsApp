@@ -126,20 +126,26 @@ struct ItemImageView: View {
             if let image {
 #if os(macOS)
                 Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: size.width, height: size.height)
-                    .clipped()
+                    .imageStyle(size: size)
 #else
                 Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: size.width, height: size.height)
-                    .clipped()
+                    .imageStyle(size: size)
 #endif
             } else {
                 EmptyView()
             }
         }
     }
+}
+
+extension Image {
+
+    func imageStyle(size: CGSize) -> some View {
+        self
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: size.width, height: size.height)
+            .clipped()
+    }
+
 }
