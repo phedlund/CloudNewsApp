@@ -13,7 +13,6 @@ struct ItemRow: View {
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
     @ObservedObject var item: CDItem
     @ObservedObject var itemImageManager: ItemImageManager
-//    @State private var thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
     
     var isHorizontalCompact: Bool
     var isCompact: Bool
