@@ -17,7 +17,6 @@ struct CloudNewsApp: App {
     @Environment(\.scenePhase) var scenePhase
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
-    private let syncTimer = SyncTimer()
 #endif
 
     private let appRefreshTaskId = "dev.pbh.cloudnews.sync"
