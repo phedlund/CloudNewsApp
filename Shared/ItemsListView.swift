@@ -34,11 +34,6 @@ struct ItemsListView: View {
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-
-
-    private var didSelectNextItem = NotificationCenter.default.publisher(for: .nextItem)
-    private var didSelectPreviousItem = NotificationCenter.default.publisher(for: .previousItem)
-
     init() {
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
@@ -91,18 +86,6 @@ struct ItemsListView: View {
                         if newValue != oldValue {
                             proxy.scrollTo(0, anchor: .top)
                             offsetItemsDetector.send(0.0)
-                        }
-                    }
-                    .onReceive(didSelectPreviousItem) { _ in
-                        let current = model.currentItemID
-                        if let currentIndex = model.currentItems.first(where: { $0.objectID == current }) {
-                            model.currentItemID = model.currentItems.element(before: currentIndex)?.objectID
-                        }
-                    }
-                    .onReceive(didSelectNextItem) { _ in
-                        let current = model.currentItemID
-                        if let currentIndex = model.currentItems.first(where: { $0.objectID == current }) {
-                            model.currentItemID = model.currentItems.element(after: currentIndex)?.objectID
                         }
                     }
                 }

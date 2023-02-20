@@ -166,6 +166,18 @@ class FeedModel: ObservableObject {
         currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
     }
 
+    func selectPreviousItem() {
+        if let currentIndex = currentItems.first(where: { $0.objectID == currentItemID }) {
+            currentItemID = currentItems.element(before: currentIndex)?.objectID
+        }
+    }
+
+    func selectNextItem() {
+        if let currentIndex = currentItems.first(where: { $0.objectID == currentItemID }) {
+            currentItemID = currentItems.element(after: currentIndex)?.objectID
+        }
+    }
+
     func delete(_ node: Node) {
         switch node.nodeType {
         case .empty, .all, .starred:

@@ -170,12 +170,12 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-                NotificationCenter.default.post(name: .previousItem, object: nil)
+                model.selectPreviousItem()
             }
             .keyboardShortcut("p", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button("Next") {
-                NotificationCenter.default.post(name: .nextItem, object: nil)
+                model.selectNextItem()
             }
             .keyboardShortcut("n", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
