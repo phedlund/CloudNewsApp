@@ -13,7 +13,7 @@ import WebKit
 
 struct MacArticleView: View {
     @Environment(\.managedObjectContext) private var moc
-    var selectedItem: NSManagedObjectID?
+    var item: CDItem?
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -23,7 +23,7 @@ struct MacArticleView: View {
     @State private var isShowingSharePopover = false
 
     var body: some View {
-        if let selectedItem, let item = moc.object(with: selectedItem) as? CDItem {
+        if let item {
             WebView { webView in
                 item.webViewHelper.item = item
                 item.webViewHelper.webView = webView

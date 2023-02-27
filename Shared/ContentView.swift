@@ -77,7 +77,7 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         } detail: {
-            MacArticleView(selectedItem: model.currentItemID)
+            MacArticleView(item: model.currentItem)
         }
         .onAppear {
             if isNotLoggedIn {
