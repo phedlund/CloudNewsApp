@@ -31,13 +31,3 @@ struct ArticleView: View {
         }
     }
 }
-
-#if os(iOS)
-extension UINavigationController {
-
-  open override func viewWillLayoutSubviews() {
-    navigationBar.topItem?.backButtonDisplayMode = .minimal
-  }
-
-}
-#endif

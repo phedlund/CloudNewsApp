@@ -67,6 +67,7 @@ struct ArticlesPageView: View {
             }
         }
         .toolbar(content: pageViewToolBarContent)
+        .toolbarRole(.editor)
     }
 
     @ToolbarContentBuilder
