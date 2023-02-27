@@ -17,7 +17,7 @@ class FeedModel: ObservableObject {
     @Published var currentItem: CDItem?
     @Published var currentNodeID: Node.ID? {
         didSet {
-            if let currentNodeID, currentNodeID != preferences.selectedNode {
+            if let currentNodeID {
                 preferences.selectedNode = currentNodeID
                 currentItemID = nil
                 publishItems()
@@ -69,14 +69,19 @@ class FeedModel: ObservableObject {
         nodes.append(allNode)
         nodes.append(starNode)
 
-        feedPublisher.sink { feeds in
-            self.feeds = feeds
-        }
-        .store(in: &cancellables)
-        folderPublisher.sink { folders in
-            self.folders = folders
-        }
-        .store(in: &cancellables)
+        feedPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { feeds in
+                self.feeds = feeds
+            }
+            .store(in: &cancellables)
+
+        folderPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { folders in
+                self.folders = folders
+            }
+            .store(in: &cancellables)
 
         changePublisher
             .receive(on: DispatchQueue.main)
@@ -90,38 +95,46 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        preferences.$selectedNode.sink { [weak self] newNode in
-            guard let self, !self.isInInit else { return }
-            self.updateCurrentNode(newNode)
-        }
-        .store(in: &cancellables)
+        preferences.$selectedNode
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newNode in
+                guard let self, !self.isInInit else { return }
+                self.updateCurrentNode(newNode)
+            }
+            .store(in: &cancellables)
 
-        preferences.$hideRead.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.publishItems()
-        }
-        .store(in: &cancellables)
-
-        preferences.$sortOldestFirst.sink { [weak self] newValue in
-            guard let self else { return }
-            self.fetchRequest.sortDescriptors = newValue ? [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .forward))] : [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
-            self.publishItems()
-        }
-        .store(in: &cancellables)
-
-        NewsManager.shared.syncSubject.sink { [weak self] newValue in
-            guard let self else { return }
-            if newValue.previous == 0 {
-                self.update()
-                self.currentNodeID = AllNodeGuid
-                self.updateCurrentNode(AllNodeGuid)
-                self.publishItems()
-            } else {
-                self.update()
+        preferences.$hideRead
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, !self.isInInit else { return }
                 self.publishItems()
             }
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
+
+        preferences.$sortOldestFirst
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                guard let self else { return }
+                self.fetchRequest.sortDescriptors = newValue ? [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .forward))] : [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
+                self.publishItems()
+            }
+            .store(in: &cancellables)
+
+        NewsManager.shared.syncSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                guard let self else { return }
+                if newValue.previous == 0 {
+                    self.update()
+                    self.currentNodeID = AllNodeGuid
+                    self.updateCurrentNode(AllNodeGuid)
+                    self.publishItems()
+                } else {
+                    self.update()
+                    self.publishItems()
+                }
+            }
+            .store(in: &cancellables)
 
         update()
         currentNodeID = preferences.selectedNode

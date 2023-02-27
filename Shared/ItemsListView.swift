@@ -22,6 +22,7 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.pbh.whiteBackground
 #endif
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
@@ -108,6 +109,14 @@ struct ItemsListView: View {
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
                         await markRead(newOffset)
+                    }
+                }
+                .onChange(of: scenePhase) { phase in
+                    switch phase {
+                    case .active:
+                        model.currentNodeID = selectedNode
+                    default:
+                        break
                     }
                 }
 #if !os(macOS)
