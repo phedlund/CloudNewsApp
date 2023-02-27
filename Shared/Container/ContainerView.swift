@@ -55,19 +55,16 @@ struct ZStackGroup<Content: View>: View {
     var content: () -> Content
 
     var body: some View {
-        Group {
 #if os(macOS)
-            Group(content: content)
+        Group(content: content)
 #else
-            ZStack {
-                NavigationLink(value: item) {
-                    EmptyView()
-                }
-                .opacity(0)
-                Group(content: content)
+        ZStack {
+            NavigationLink(value: item) {
+                EmptyView()
             }
-#endif
+            .opacity(0)
+            Group(content: content)
         }
+#endif
     }
 }
-
