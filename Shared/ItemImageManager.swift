@@ -18,32 +18,30 @@ import UIKit
 class ItemImageManager: NSObject, ObservableObject {
     @Published var image: SystemImage?
 
-    var item: CDItem
-
     private let validSchemas = ["http", "https", "file"]
+    private let item: CDItem
+    private let key: String
 
     init(item: CDItem) {
         self.item = item
-        super .init()
+        key = "item_\(item.id)"
+        super.init()
         load()
     }
 
     private func load() {
-        ImageCache.default.retrieveImage(forKey: "item_\(item.id)") { result in
-            switch result {
-            case .success(let value):
-                switch value {
-                case .none:
-                    Task {
-                        try? await self.downloadImage()
-                    }
-                default:
+        if ImageCache.default.isCached(forKey: key) {
+            ImageCache.default.retrieveImage(forKey: key) { result in
+                switch result {
+                case .success(let value):
                     self.image = value.image ?? SystemImage()
+                case .failure( _):
+                    break
                 }
-            case .failure( _):
-                Task {
-                    try? await self.downloadImage()
-                }
+            }
+        } else {
+            Task {
+                try? await self.downloadImage()
             }
         }
     }
@@ -76,7 +74,7 @@ class ItemImageManager: NSObject, ObservableObject {
             ImageDownloader.default.downloadImage(with: itemImageUrl, options: []) { result in
                 switch result {
                 case .success(let value):
-                    ImageCache.default.store(value.image, forKey: "item_\(self.item.id)")
+                    ImageCache.default.store(value.image, forKey: self.key)
                     self.image = value.image
                 case .failure(let error):
                     print(error)
