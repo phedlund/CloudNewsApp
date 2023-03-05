@@ -32,6 +32,7 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
+    @AppStorage(SettingKeys.server) var server = ""
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
@@ -262,7 +263,7 @@ struct SidebarView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing)
+            .disabled(isSyncing || server.isEmpty)
             Button {
                 modalSheet = .settings
             } label: {

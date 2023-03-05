@@ -88,6 +88,21 @@ class NewsData {
         }
     }
 
+    func resetDatabase() {
+        do {
+            try container.managedObjectModel.entities.forEach { entity in
+                if let name = entity.name {
+                    let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                    let request = NSBatchDeleteRequest(fetchRequest: fetch)
+                    try container.viewContext.execute(request)
+                }
+            }
+            try container.viewContext.save()
+        } catch let error {
+            print("error resetting the database: \(error.localizedDescription)")
+        }
+    }
+
     private func fetchPersistentHistoryTransactionsAndChanges() async throws {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"

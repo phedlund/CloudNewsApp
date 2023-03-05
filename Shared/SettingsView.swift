@@ -64,6 +64,7 @@ struct SettingsView: View {
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
+    @State private var isShowingConfirmation = false
     @State private var footerMessage = ""
     @State private var footerSuccess = true
     @State private var settingsSheet: SettingsSheet?
@@ -168,6 +169,11 @@ struct SettingsView: View {
                     Text("Add Feed or Folder...")
                 }
 #endif
+                Button(role: .destructive) {
+                    isShowingConfirmation = true
+                } label: {
+                    Text("Reset Local Data")
+                }
             } header: {
                 Text("Maintenance")
             }
@@ -254,6 +260,21 @@ struct SettingsView: View {
             }
         }, message: {
             Text("Do you want to connect to the server anyway?")
+        })
+        .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
+            Button("Reset Data", role: .destructive) {
+                NewsData.shared.resetDatabase()
+                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: 0))
+                server = ""
+                productName = ""
+                productVersion = ""
+                updateFooter()
+            }
+            Button("Cancel", role: .cancel) {
+                isShowingConfirmation = false
+            }
+        }, message: {
+            Text("Do you want to remove all feeds and articles from this device? You will also be signed out.")
         })
         .onReceive(NotificationCenter.default.publisher(for: .loginComplete)) { _ in
             currentSettingsSheet = .login
