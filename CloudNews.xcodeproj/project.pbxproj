@@ -83,7 +83,7 @@
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
 		D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */; };
-		D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = D0E88402290C9E1E001ACB25 /* OpenSSL */; };
+		D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = D0E88402290C9E1E001ACB25 /* OpenSSL */; settings = {ATTRIBUTES = (Required, ); }; };
 		D0E88405290CB7CD001ACB25 /* CertificateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E88404290CB7CD001ACB25 /* CertificateView.swift */; };
 		D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EBDB5D269D29D10066A2AD /* WebViewManager.swift */; };
 		D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F35C0527249B2F004BFC27 /* MailComposeView.swift */; };
@@ -111,8 +111,6 @@
 		D02F44A2265C86BF00A3505B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D02F44A7265C86BF00A3505B /* CloudNews.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudNews.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D02F44AA265C86BF00A3505B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D02F44B1265C86BF00A3505B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D02F44B2265C86BF00A3505B /* macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macOS.entitlements; sourceTree = "<group>"; };
 		D02F44C5265C89F700A3505B /* NewsSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsSessionManager.swift; sourceTree = "<group>"; };
 		D02F44C7265C89F700A3505B /* Items.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Items.swift; sourceTree = "<group>"; };
 		D02F44C8265C89F700A3505B /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
@@ -200,21 +198,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D029FDD1299DC73A0099FD95 /* Container */ = {
-			isa = PBXGroup;
-			children = (
-				D029FDD2299DC7540099FD95 /* ContainerView.swift */,
-			);
-			path = Container;
-			sourceTree = "<group>";
-		};
 		D02F4497265C86BE00A3505B = {
 			isa = PBXGroup;
 			children = (
+				D02F44AA265C86BF00A3505B /* Info.plist */,
 				D0F1B72D2868DE7200C51BFF /* CloudNews.entitlements */,
 				D02F449C265C86BE00A3505B /* Shared */,
-				D02F44A9265C86BF00A3505B /* iOS */,
-				D02F44B0265C86BF00A3505B /* macOS */,
 				D02F44A8265C86BF00A3505B /* Products */,
 				D02F4506265C8C5500A3505B /* Frameworks */,
 			);
@@ -223,7 +212,6 @@
 		D02F449C265C86BE00A3505B /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				D029FDD1299DC73A0099FD95 /* Container */,
 				D02F44D6265C89F700A3505B /* CoreData */,
 				D02F44C6265C89F700A3505B /* Models */,
 				D0B0B2EF267C2A4D00A997DB /* Networking */,
@@ -248,6 +236,7 @@
 				D0CAB1272935A0FA006DF1BA /* ItemSort.swift */,
 				D0CAF5ED2713C43800BB9062 /* ItemViews.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemRow.swift */,
+				D029FDD2299DC7540099FD95 /* ContainerView.swift */,
 				D055434F28BEE4EF0023F655 /* FavIconRepository.swift */,
 				D029FDC12978DF0C0099FD95 /* ItemImageManager.swift */,
 				D029FDC5297B7D540099FD95 /* ItemReadManager.swift */,
@@ -264,6 +253,7 @@
 				D045A15F26C5F6D4002E553F /* LoginWebView.swift */,
 				D00AFA1426937C9700BAED44 /* SettingsView.swift */,
 				D0E88404290CB7CD001ACB25 /* CertificateView.swift */,
+				D0F35C0527249B2F004BFC27 /* MailComposeView.swift */,
 				D0B399EB292DC5D600406DF1 /* XButtonStyle.swift */,
 				D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
@@ -282,24 +272,6 @@
 				D02F44A7265C86BF00A3505B /* CloudNews.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		D02F44A9265C86BF00A3505B /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				D0F35C0527249B2F004BFC27 /* MailComposeView.swift */,
-				D02F44AA265C86BF00A3505B /* Info.plist */,
-			);
-			path = iOS;
-			sourceTree = "<group>";
-		};
-		D02F44B0265C86BF00A3505B /* macOS */ = {
-			isa = PBXGroup;
-			children = (
-				D02F44B1265C86BF00A3505B /* Info.plist */,
-				D02F44B2265C86BF00A3505B /* macOS.entitlements */,
-			);
-			path = macOS;
 			sourceTree = "<group>";
 		};
 		D02F44C6265C89F700A3505B /* Models */ = {
@@ -566,6 +538,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1767;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -584,6 +557,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -629,6 +603,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1767;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -641,6 +616,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -658,21 +634,28 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1762;
-				DEVELOPMENT_TEAM = 73AQJ77PZ5;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1767;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 73AQJ77PZ5;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@executable_path/MacOS/Frameworks",
 				);
 				MARKETING_VERSION = 4.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "CloudNews Store Distribution";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CloudNews Mac Store Distribution";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
@@ -689,21 +672,28 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1762;
-				DEVELOPMENT_TEAM = 73AQJ77PZ5;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1767;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 73AQJ77PZ5;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@executable_path/MacOS/Frameworks",
 				);
 				MARKETING_VERSION = 4.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "CloudNews Store Distribution";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CloudNews Mac Store Distribution";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
