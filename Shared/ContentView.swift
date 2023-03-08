@@ -16,11 +16,12 @@ struct ContentView: View {
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
+    @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
 
     @State private var isShowingLogin = false
 
     private var isNotLoggedIn: Bool {
-        return server.isEmpty || username.isEmpty || password.isEmpty
+        return isNewInstall || server.isEmpty || username.isEmpty || password.isEmpty
     }
 
     var body: some View {

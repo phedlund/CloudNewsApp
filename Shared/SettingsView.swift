@@ -61,6 +61,7 @@ struct SettingsView: View {
     @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
     @AppStorage(SettingKeys.adBlock) var adBlock = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
@@ -303,6 +304,7 @@ struct SettingsView: View {
                     productVersion = status?.version ?? ""
                     newsVersion = try await NewsManager.shared.version()
                     updateFooter()
+                    isNewInstall = false
                 } catch {
                     productName = ""
                     productVersion = ""

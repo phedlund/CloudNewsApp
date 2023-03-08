@@ -58,4 +58,5 @@ enum SettingKeys {
     static let keepDuration = "KeepDuration"
     static let syncInterval = "SyncInterval"
     static let adBlock = "AdBlock"
+    static let isNewInstall = "IsNewInstall"
 }
