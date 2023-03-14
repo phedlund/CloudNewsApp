@@ -269,6 +269,7 @@ struct SettingsView: View {
                 server = ""
                 productName = ""
                 productVersion = ""
+                isNewInstall = true
                 updateFooter()
             }
             Button("Cancel", role: .cancel) {

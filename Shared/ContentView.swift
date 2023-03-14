@@ -20,10 +20,6 @@ struct ContentView: View {
 
     @State private var isShowingLogin = false
 
-    private var isNotLoggedIn: Bool {
-        return isNewInstall || server.isEmpty || username.isEmpty || password.isEmpty
-    }
-
     var body: some View {
         let _ = Self._printChanges()
 #if os(iOS)
@@ -48,7 +44,7 @@ struct ContentView: View {
             }
             .navigationTitle(model.currentNode.title)
             .onAppear {
-                isShowingLogin = isNotLoggedIn
+                isShowingLogin = isNewInstall
             }
             .sheet(isPresented: $isShowingLogin) {
                 NavigationView {
