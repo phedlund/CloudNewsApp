@@ -77,7 +77,7 @@ struct ContentView: View {
             MacArticleView(item: model.currentItem)
         }
         .onAppear {
-            if isNotLoggedIn {
+            if isNewInstall {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
         }

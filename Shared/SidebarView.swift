@@ -32,7 +32,7 @@ struct SidebarView: View {
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
-    @AppStorage(SettingKeys.server) var server = ""
+    @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
@@ -253,7 +253,7 @@ struct SidebarView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing)
+            .disabled(isSyncing || isNewInstall)
 #else
             ProgressView()
                 .progressViewStyle(.circular)
@@ -263,7 +263,7 @@ struct SidebarView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing || server.isEmpty)
+            .disabled(isSyncing || isNewInstall)
             Button {
                 modalSheet = .settings
             } label: {
