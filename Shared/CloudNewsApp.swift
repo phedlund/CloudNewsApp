@@ -59,7 +59,7 @@ struct CloudNewsApp: App {
             SettingsView()
         }
 
-        Window(Text("Log In"), id: "login") {
+        WindowGroup(Text("Log In"), id: "login") {
             LoginWebViewView()
                 .frame(width: 600, height: 750)
         }
@@ -73,19 +73,19 @@ struct CloudNewsApp: App {
         }
         .windowResizability(.contentSize)
 
-        Window(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
+        WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(.feed)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
 
-        Window(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
+        WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
             AddView(.folder)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
 
-        Window(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
+        WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }
