@@ -76,9 +76,6 @@ class Preferences: ObservableObject {
     @UserDefault(SettingKeys.fontSize) var fontSize = 14
     @UserDefault(SettingKeys.lineHeight) var lineHeight = 1.4
     @UserDefault(SettingKeys.lastModified) var lastModified: Int32 = 0
-    @UserDefault(SettingKeys.compactView) var compactView = false
     @UserDefault(SettingKeys.keepDuration) var keepDuration = 3
-    @UserDefault(SettingKeys.syncInterval) var syncInterval = 900
     @UserDefault(SettingKeys.selectedNode) var selectedNode = Constants.allNodeGuid
-    @UserDefault(SettingKeys.selectedFeed) var selectedFeed = 0
 }
