@@ -66,9 +66,10 @@ struct SidebarView: View {
                     } label: {
                         Text("Dismiss")
                     }
+                    .buttonStyle(.borderedProminent)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 6.0)
+                .padding(.all, 10.0)
                 .background(Color.red.opacity(0.95))
                 .cornerRadius(6.0)
                 .transition(.move(edge: .top))
