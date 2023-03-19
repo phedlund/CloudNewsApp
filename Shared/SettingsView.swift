@@ -27,6 +27,7 @@ enum SettingsSheet {
     case add
     case mail
     case certificate
+    case acknowledgement
 }
 
 extension SettingsSheet: Identifiable {
@@ -92,9 +93,9 @@ struct SettingsView: View {
                 Button {
                     onLogin()
                 } label: {
-                    Text("Log In")
+                    Text("Log In...")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .disabled(server.isEmpty)
             } header: {
                 Text("Server")
@@ -175,6 +176,7 @@ struct SettingsView: View {
                 } label: {
                     Text("Reset Local Data")
                 }
+                .buttonStyle(.plain)
             } header: {
                 Text("Maintenance")
             }
@@ -193,7 +195,22 @@ struct SettingsView: View {
                 Link(destination: URL(string: "https://pbh.dev/cloudnews")!) {
                     Label("Web Site", systemImage: "link")
                 }
-
+#if os(macOS)
+                Button {
+                    currentSettingsSheet = .acknowledgement
+                    settingsSheet = .acknowledgement
+                    isShowingSheet = true
+                } label: {
+                    Text("Acknowledgements...")
+                }
+                .buttonStyle(.plain)
+#else
+                NavigationLink {
+                    AcknowledgementsView()
+                } label: {
+                    Text("Acknowledgements...")
+                }
+#endif
             } header: {
                 Text("Support")
             }
@@ -207,6 +224,11 @@ struct SettingsView: View {
                onDismiss: { onDismiss() },
                content: { sheet in
             switch sheet {
+            case .acknowledgement:
+                ScrollView {
+                    AcknowledgementsView()
+                }
+                .frame(width: 600, height: 600)
             case .add:
                 NavigationView {
                     AddView(.feed)
@@ -315,7 +337,7 @@ struct SettingsView: View {
                     updateFooter()
                 }
             }
-        case .add, .mail, .certificate:
+        case .acknowledgement, .add, .mail, .certificate:
             break
         }
         settingsSheet = nil
