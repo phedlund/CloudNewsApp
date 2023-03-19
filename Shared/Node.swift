@@ -9,10 +9,6 @@ import CloudKit
 import Combine
 import Kingfisher
 
-let EmptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
-let AllNodeGuid = "72137d96-4ef2-11ec-81d3-0242ac130003"
-let StarNodeGuid = "967917a4-4ef2-11ec-81d3-0242ac130003"
-
 final class Node: Identifiable, ObservableObject {
     @Published var unreadCount = 0
     @Published var errorCount = 0
@@ -30,7 +26,7 @@ final class Node: Identifiable, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     convenience init() {
-        self.init(.empty, id: AllNodeGuid, isExpanded: false)
+        self.init(.empty, id: Constants.allNodeGuid, isExpanded: false)
     }
 
     convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {

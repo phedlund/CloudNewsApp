@@ -79,6 +79,6 @@ class Preferences: ObservableObject {
     @UserDefault(SettingKeys.compactView) var compactView = false
     @UserDefault(SettingKeys.keepDuration) var keepDuration = 3
     @UserDefault(SettingKeys.syncInterval) var syncInterval = 900
-    @UserDefault(SettingKeys.selectedNode) var selectedNode = AllNodeGuid
+    @UserDefault(SettingKeys.selectedNode) var selectedNode = Constants.allNodeGuid
     @UserDefault(SettingKeys.selectedFeed) var selectedFeed = 0
 }

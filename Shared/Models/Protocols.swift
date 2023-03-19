@@ -20,11 +20,11 @@ extension NodeType {
 
     static func fromString(typeString: String) -> NodeType {
         switch typeString {
-        case AllNodeGuid:
+        case Constants.allNodeGuid:
             return .all
-        case StarNodeGuid:
+        case Constants.starNodeGuid:
             return .starred
-        case EmptyNodeGuid:
+        case Constants.emptyNodeGuid:
             return .empty
         case _ where typeString.hasPrefix("folder"):
             if let index = typeString.lastIndex(of: "_") {

@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 class FeedModel: ObservableObject {
     @Published var nodes = [Node]()
-    @Published var currentNode = Node(.empty, id: EmptyNodeGuid)
+    @Published var currentNode = Node(.empty, id: Constants.emptyNodeGuid)
     @Published var currentItems = [CDItem]()
     @Published var currentItem: CDItem?
     @Published var currentNodeID: Node.ID? {
@@ -64,8 +64,8 @@ class FeedModel: ObservableObject {
     
     init() {
         isInInit = true
-        allNode = Node(.all, id: AllNodeGuid)
-        starNode = Node(.starred, id: StarNodeGuid)
+        allNode = Node(.all, id: Constants.allNodeGuid)
+        starNode = Node(.starred, id: Constants.starNodeGuid)
         nodes.append(allNode)
         nodes.append(starNode)
 
@@ -126,8 +126,8 @@ class FeedModel: ObservableObject {
                 guard let self else { return }
                 if newValue.previous == 0 {
                     self.update()
-                    self.currentNodeID = AllNodeGuid
-                    self.updateCurrentNode(AllNodeGuid)
+                    self.currentNodeID = Constants.allNodeGuid
+                    self.updateCurrentNode(Constants.allNodeGuid)
                     self.publishItems()
                 } else {
                     self.update()
@@ -176,7 +176,7 @@ class FeedModel: ObservableObject {
     }
 
     private func updateCurrentNode(_ current: String) {
-        currentNode = node(for: current) ?? Node(.empty, id: EmptyNodeGuid)
+        currentNode = node(for: current) ?? Node(.empty, id: Constants.emptyNodeGuid)
     }
 
     func selectPreviousItem() {

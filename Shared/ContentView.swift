@@ -29,7 +29,7 @@ struct ContentView: View {
                 .environmentObject(favIconRepository)
         } detail: {
             ZStack {
-                if model.currentNodeID != EmptyNodeGuid {
+                if model.currentNodeID != Constants.emptyNodeGuid {
                     ItemsListView()
                         .environmentObject(model)
                         .environmentObject(favIconRepository)
@@ -58,7 +58,7 @@ struct ContentView: View {
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } content: {
-            if model.currentNodeID != EmptyNodeGuid {
+            if model.currentNodeID != Constants.emptyNodeGuid {
                 let _ = Self._printChanges()
                 ItemsListView()
                     .environmentObject(model)

@@ -85,6 +85,12 @@ struct CloudNewsApp: App {
         }
         .windowResizability(.contentSize)
 
+        Window(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
+            AcknowledgementsView()
+                .frame(width: 600, height: 600)
+        }
+        .windowResizability(.contentSize)
+
 #endif
     }
 
@@ -203,6 +209,19 @@ struct AppCommands: Commands {
 //            }
 //            .keyboardShortcut("2")
         }
+        CommandGroup(after: .help) {
+            Divider()
+            Link(destination: supportURL) {
+                Label("Contact", systemImage: "mail")
+            }
+            Link(destination: URL(string: Constants.website)!) {
+                Label("Web Site", systemImage: "link")
+            }
+            Divider()
+            Button("Acknowledgements...") {
+                openWindow(id: ModalSheet.acknowledgement.rawValue)
+            }
+        }
     }
 
     private func isCurrentItemDisabled() -> Bool {
@@ -224,6 +243,19 @@ struct AppCommands: Commands {
             return true
         case .feed(id: _):
             return false
+        }
+    }
+
+    var supportURL: URL {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = Constants.email
+        components.queryItems = [URLQueryItem(name: "subject", value: Constants.subject),
+                                 URLQueryItem(name: "body", value: Constants.message)]
+        if let mailURL = components.url {
+            return mailURL
+        } else {
+            return URL(string: "data:null")!
         }
     }
 

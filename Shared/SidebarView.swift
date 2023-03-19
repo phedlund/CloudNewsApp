@@ -15,6 +15,7 @@ enum ModalSheet: String {
     case feedSettings
     case addFeed
     case addFolder
+    case acknowledgement
 }
 
 extension ModalSheet: Identifiable {
@@ -153,7 +154,7 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
-            case .addFeed, .addFolder, .folderRename:
+            case .addFeed, .addFolder, .folderRename, .acknowledgement:
                 EmptyView()
             }
         })

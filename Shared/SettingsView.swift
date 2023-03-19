@@ -27,7 +27,6 @@ enum SettingsSheet {
     case add
     case mail
     case certificate
-    case acknowledgement
 }
 
 extension SettingsSheet: Identifiable {
@@ -72,10 +71,6 @@ struct SettingsView: View {
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
     @State private var isShowingCertificateAlert = false
-
-    private let email = "support@pbh.dev"
-    private let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
-    private let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
     var body: some View {
         Form {
@@ -180,40 +175,26 @@ struct SettingsView: View {
             } header: {
                 Text("Maintenance")
             }
-            Section {
 #if !os(macOS)
+            Section {
                 Button {
                     sendMail()
                 } label: {
                     Label("Contact", systemImage: "mail")
                 }
-#else
-                Link(destination: supportURL) {
-                    Label("Email", systemImage: "mail")
-                }
-#endif
-                Link(destination: URL(string: "https://pbh.dev/cloudnews")!) {
+                Link(destination: URL(string: Constants.website)!) {
                     Label("Web Site", systemImage: "link")
                 }
-#if os(macOS)
-                Button {
-                    currentSettingsSheet = .acknowledgement
-                    settingsSheet = .acknowledgement
-                    isShowingSheet = true
-                } label: {
-                    Text("Acknowledgements...")
-                }
-                .buttonStyle(.plain)
-#else
                 NavigationLink {
                     AcknowledgementsView()
                 } label: {
                     Text("Acknowledgements...")
                 }
-#endif
+
             } header: {
                 Text("Support")
             }
+#endif
         }
         .formStyle(.grouped)
         .navigationTitle("Settings")
@@ -224,11 +205,6 @@ struct SettingsView: View {
                onDismiss: { onDismiss() },
                content: { sheet in
             switch sheet {
-            case .acknowledgement:
-                ScrollView {
-                    AcknowledgementsView()
-                }
-                .frame(width: 600, height: 600)
             case .add:
                 NavigationView {
                     AddView(.feed)
@@ -245,7 +221,9 @@ struct SettingsView: View {
                 }
             case .mail:
 #if !os(macOS)
-                MailComposeView(recipients: [email], subject: subject, message: message) {
+                MailComposeView(recipients: [Constants.email],
+                                subject: Constants.subject,
+                                message: Constants.message) {
                     // Did finish action
                 }
 #else
@@ -337,7 +315,7 @@ struct SettingsView: View {
                     updateFooter()
                 }
             }
-        case .acknowledgement, .add, .mail, .certificate:
+        case .add, .mail, .certificate:
             break
         }
         settingsSheet = nil
@@ -393,29 +371,15 @@ struct SettingsView: View {
         } else {
             var components = URLComponents()
             components.scheme = "mailto"
-            components.path = email
-            components.queryItems = [URLQueryItem(name: "subject", value: subject),
-                                     URLQueryItem(name: "body", value: message)]
+            components.path = Constants.email
+            components.queryItems = [URLQueryItem(name: "subject", value: Constants.subject),
+                                     URLQueryItem(name: "body", value: Constants.message)]
             if let mailURL = components.url {
                 openURL(mailURL)
             }
         }
     }
-#else
-    var supportURL: URL {
-        var components = URLComponents()
-        components.scheme = "mailto"
-        components.path = email
-        components.queryItems = [URLQueryItem(name: "subject", value: subject),
-                                 URLQueryItem(name: "body", value: message)]
-        if let mailURL = components.url {
-            return mailURL
-        } else {
-            return URL(string: "data:null")!
-        }
-    }
 #endif
-
 }
 
 struct SettingsView_Previews: PreviewProvider {
