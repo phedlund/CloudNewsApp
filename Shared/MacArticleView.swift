@@ -19,8 +19,6 @@ struct MacArticleView: View {
     @State private var canGoBack = false
     @State private var canGoForward = false
     @State private var isLoading = false
-    @State private var isShowingPopover = false
-    @State private var isShowingSharePopover = false
 
     var body: some View {
         if let item {
@@ -92,15 +90,6 @@ struct MacArticleView: View {
             Spacer()
             ShareLinkButton(item: item)
                 .disabled(isLoading)
-            Button {
-                isShowingPopover = true
-            } label: {
-                Image(systemName: "textformat.size")
-            }
-            .popover(isPresented: $isShowingPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                ArticleSettingsView(item: item)
-            }
-            .disabled(isLoading)
         }
     }
 

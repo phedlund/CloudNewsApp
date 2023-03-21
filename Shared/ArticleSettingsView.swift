@@ -7,19 +7,6 @@
 
 import SwiftUI
 
-struct ArticleSettingsConstants {
-#if os(macOS)
-    static let minFontSize = 11
-#else
-    static let minFontSize = UIDevice.current.userInterfaceIdiom == .pad ? 11 : 9
-#endif
-    static let maxFontSize = 30
-    static let minLineHeight = 1.2
-    static let maxLineHeight = 2.6
-    static let minMarginWidth = 45 //%
-    static let maxMarginWidth = 95 //%
-}
-
 struct ArticleSettingsView: View {
     private let settings =  Preferences()
     var item: CDItem
@@ -65,7 +52,7 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.fontSize > ArticleSettingsConstants.minFontSize {
+                    if settings.fontSize > Constants.ArticleSettings.minFontSize {
                         settings.fontSize -= 1
                     }
                 } label: {
@@ -75,7 +62,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.fontSize < ArticleSettingsConstants.maxFontSize {
+                    if settings.fontSize < Constants.ArticleSettings.maxFontSize {
                         settings.fontSize += 1
                     }
                 } label: {
@@ -87,7 +74,7 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.lineHeight > ArticleSettingsConstants.minLineHeight {
+                    if settings.lineHeight > Constants.ArticleSettings.minLineHeight {
                         settings.lineHeight -= 0.2
                     }
                 } label: {
@@ -97,7 +84,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.lineHeight < ArticleSettingsConstants.maxLineHeight {
+                    if settings.lineHeight < Constants.ArticleSettings.maxLineHeight {
                         settings.lineHeight += 0.2
                     }
                 } label: {
@@ -109,7 +96,7 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.marginPortrait > ArticleSettingsConstants.minMarginWidth {
+                    if settings.marginPortrait > Constants.ArticleSettings.minMarginWidth {
                         settings.marginPortrait -= 5
                     }
                 } label: {
@@ -119,7 +106,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.marginPortrait < ArticleSettingsConstants.maxMarginWidth {
+                    if settings.marginPortrait < Constants.ArticleSettings.maxMarginWidth {
                         settings.marginPortrait += 5
                     }
                 } label: {

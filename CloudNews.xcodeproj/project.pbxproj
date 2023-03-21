@@ -18,6 +18,7 @@
 		D029FDD3299DC7540099FD95 /* ContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDD2299DC7540099FD95 /* ContainerView.swift */; };
 		D02CFFDF29C4E90300F956CF /* AcknowledgementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */; };
 		D02CFFE329C7C72900F956CF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFE229C7C72900F956CF /* Constants.swift */; };
+		D02CFFE529C7E8A900F956CF /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFE429C7E8A900F956CF /* AppCommands.swift */; };
 		D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02DE6C22754691800533EB0 /* ItemImporter.swift */; };
 		D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F449F265C86BE00A3505B /* CloudNewsApp.swift */; };
 		D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44A0265C86BE00A3505B /* ContentView.swift */; };
@@ -109,6 +110,7 @@
 		D029FDD2299DC7540099FD95 /* ContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerView.swift; sourceTree = "<group>"; };
 		D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcknowledgementsView.swift; sourceTree = "<group>"; };
 		D02CFFE229C7C72900F956CF /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		D02CFFE429C7E8A900F956CF /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
 		D02DE6C22754691800533EB0 /* ItemImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImporter.swift; sourceTree = "<group>"; };
 		D02F449F265C86BE00A3505B /* CloudNewsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudNewsApp.swift; sourceTree = "<group>"; };
 		D02F44A0265C86BE00A3505B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -229,6 +231,7 @@
 				D02F44D3265C89F700A3505B /* NotificationNames.swift */,
 				D02F449F265C86BE00A3505B /* CloudNewsApp.swift */,
 				D0E60F11276E7988009CF78F /* AppDelegate.swift */,
+				D02CFFE429C7E8A900F956CF /* AppCommands.swift */,
 				D02F44A0265C86BE00A3505B /* ContentView.swift */,
 				D0B0B2F5267ED1C600A997DB /* SidebarView.swift */,
 				D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */,
@@ -464,6 +467,7 @@
 				D02F452F265C8CF900A3505B /* CDFeeds+CoreDataProperties.swift in Sources */,
 				D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */,
 				D02F4527265C8CE200A3505B /* CDFeed+CoreDataClass.swift in Sources */,
+				D02CFFE529C7E8A900F956CF /* AppCommands.swift in Sources */,
 				D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */,
 				D02F452D265C8CF400A3505B /* CDFeeds+CoreDataClass.swift in Sources */,
 				D02F4545265C8D2800A3505B /* CDRead+CoreDataClass.swift in Sources */,

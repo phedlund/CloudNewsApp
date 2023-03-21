@@ -72,9 +72,9 @@ class Preferences: ObservableObject {
     @UserDefault(SettingKeys.allowUntrustedCertificate) var allowUntrustedCertificate = false
     @UserDefault(SettingKeys.hideRead) var hideRead = false
     @UserDefault(SettingKeys.sortOldestFirst) var sortOldestFirst = false
-    @UserDefault(SettingKeys.marginPortrait) var marginPortrait = 70
-    @UserDefault(SettingKeys.fontSize) var fontSize = 14
-    @UserDefault(SettingKeys.lineHeight) var lineHeight = 1.4
+    @UserDefault(SettingKeys.marginPortrait) var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+    @UserDefault(SettingKeys.fontSize) var fontSize = Constants.ArticleSettings.defaultFontSize
+    @UserDefault(SettingKeys.lineHeight) var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @UserDefault(SettingKeys.lastModified) var lastModified: Int32 = 0
     @UserDefault(SettingKeys.keepDuration) var keepDuration = 3
     @UserDefault(SettingKeys.selectedNode) var selectedNode = Constants.allNodeGuid
