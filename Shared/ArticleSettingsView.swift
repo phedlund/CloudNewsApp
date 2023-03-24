@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct ArticleSettingsView: View {
-    private let settings =  Preferences()
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
     var item: CDItem
 
     private let buttonHeight = 25.0
@@ -52,8 +55,8 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.fontSize > Constants.ArticleSettings.minFontSize {
-                        settings.fontSize -= 1
+                    if fontSize > Constants.ArticleSettings.minFontSize {
+                        fontSize -= 1
                     }
                 } label: {
                     Image(systemName: "textformat.size.smaller")
@@ -62,8 +65,8 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.fontSize < Constants.ArticleSettings.maxFontSize {
-                        settings.fontSize += 1
+                    if fontSize < Constants.ArticleSettings.maxFontSize {
+                        fontSize += 1
                     }
                 } label: {
                     Image(systemName: "textformat.size.larger")
@@ -74,8 +77,8 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.lineHeight > Constants.ArticleSettings.minLineHeight {
-                        settings.lineHeight -= 0.2
+                    if lineHeight > Constants.ArticleSettings.minLineHeight {
+                        lineHeight -= 0.2
                     }
                 } label: {
                     Image(systemName: "line.3.horizontal")
@@ -84,8 +87,8 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.lineHeight < Constants.ArticleSettings.maxLineHeight {
-                        settings.lineHeight += 0.2
+                    if lineHeight < Constants.ArticleSettings.maxLineHeight {
+                        lineHeight += 0.2
                     }
                 } label: {
                     Image("custom.line.3.horizontal")
@@ -96,8 +99,8 @@ struct ArticleSettingsView: View {
             }
             GridRow {
                 Button {
-                    if settings.marginPortrait > Constants.ArticleSettings.minMarginWidth {
-                        settings.marginPortrait -= 5
+                    if marginPortrait > Constants.ArticleSettings.minMarginWidth {
+                        marginPortrait -= 5
                     }
                 } label: {
                     Image(systemName: "increase.indent")
@@ -106,8 +109,8 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 Button {
-                    if settings.marginPortrait < Constants.ArticleSettings.maxMarginWidth {
-                        settings.marginPortrait += 5
+                    if marginPortrait < Constants.ArticleSettings.maxMarginWidth {
+                        marginPortrait += 5
                     }
                 } label: {
                     Image(systemName: "decrease.indent")
