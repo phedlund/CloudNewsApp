@@ -102,69 +102,76 @@ struct AppCommands: Commands {
             .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
-            Menu("Font Size") {
-                Button("Increase") {
-                    if fontSize < Constants.ArticleSettings.maxFontSize {
-                        fontSize += 1
-                    }
+            Button("Copy Link") {
+                if let urlString = model.currentItem?.url, let url = URL(string: urlString) {
+                    MacClipboard.set(url: url)
                 }
-                .keyboardShortcut("+", modifiers: .command)
-                .disabled(isCurrentItemDisabled())
-                Button("Decrease") {
-                    if fontSize > Constants.ArticleSettings.minFontSize {
-                        fontSize -= 1
-                    }
-                }
-                .keyboardShortcut("-", modifiers: .command)
-                .disabled(isCurrentItemDisabled())
-                Divider()
-                Button("Restore") {
-                    fontSize = Constants.ArticleSettings.defaultFontSize
-                }
-                .keyboardShortcut("0", modifiers: [.command, .control])
-                .disabled(isCurrentItemDisabled())
             }
-            Menu("Line Spacing") {
-                Button("Increase") {
-                    if lineHeight < Constants.ArticleSettings.maxLineHeight {
-                        lineHeight += 0.2
+            .keyboardShortcut("c", modifiers: [.command, .option])
+            .disabled(isCopyCurrentLinkDisabled())
+            Divider()
+            Group { // Needed to get around the SwiftUI sub-view limitation
+                Menu {
+                    Button("Increase") {
+                        if fontSize < Constants.ArticleSettings.maxFontSize {
+                            fontSize += 1
+                        }
                     }
-                }
-                .keyboardShortcut("+", modifiers: [.command, .control])
-                .disabled(isCurrentItemDisabled())
-                Button("Decrease") {
-                    if lineHeight > Constants.ArticleSettings.minLineHeight {
-                        lineHeight -= 0.2
+                    .keyboardShortcut("+", modifiers: .command)
+                    .disabled(isCurrentItemDisabled())
+                    Button("Decrease") {
+                        if fontSize > Constants.ArticleSettings.minFontSize {
+                            fontSize -= 1
+                        }
                     }
+                    .keyboardShortcut("-", modifiers: .command)
+                    .disabled(isCurrentItemDisabled())
+                    Divider()
+                    Button("Restore") {
+                        fontSize = Constants.ArticleSettings.defaultFontSize
+                    }
+                    .keyboardShortcut("0", modifiers: [.command, .control])
+                    .disabled(isCurrentItemDisabled())
+                } label: {
+                    Text("Font Size")
                 }
-                .keyboardShortcut("-", modifiers: [.command, .control])
-                .disabled(isCurrentItemDisabled())
+                Menu {
+                    Button("Increase") {
+                        if lineHeight < Constants.ArticleSettings.maxLineHeight {
+                            lineHeight += 0.2
+                        }
+                    }
+                    .keyboardShortcut("+", modifiers: [.command, .control])
+                    .disabled(isCurrentItemDisabled())
+                    Button("Decrease") {
+                        if lineHeight > Constants.ArticleSettings.minLineHeight {
+                            lineHeight -= 0.2
+                        }
+                    }
+                    .keyboardShortcut("-", modifiers: [.command, .control])
+                    .disabled(isCurrentItemDisabled())
+                } label: {
+                    Text("Line Spacing")
+                }
+                Menu {
+                    Button("Increase") {
+                        if marginPortrait > Constants.ArticleSettings.minMarginWidth {
+                            marginPortrait -= 5
+                        }
+                    }
+                    .keyboardShortcut("+", modifiers: [.command, .option])
+                    .disabled(isCurrentItemDisabled())
+                    Button("Decrease") {
+                        if marginPortrait < Constants.ArticleSettings.maxMarginWidth {
+                            marginPortrait += 5
+                        }
+                    }
+                    .keyboardShortcut("-", modifiers: [.command, .option])
+                    .disabled(isCurrentItemDisabled())
+                } label: {
+                    Text("Margin")
+                }
             }
-            Menu("Margin") {
-                Button("Increase") {
-                    if marginPortrait > Constants.ArticleSettings.minMarginWidth {
-                        marginPortrait -= 5
-                    }
-                }
-                .keyboardShortcut("+", modifiers: [.command, .option])
-                .disabled(isCurrentItemDisabled())
-                Button("Decrease") {
-                    if marginPortrait < Constants.ArticleSettings.maxMarginWidth {
-                        marginPortrait += 5
-                    }
-                }
-                .keyboardShortcut("-", modifiers: [.command, .option])
-                .disabled(isCurrentItemDisabled())
-            }
-
-//            Button("Summary") {
-//                print("Favorite selected")
-//            }
-//            .keyboardShortcut("1")
-//            Button("Web") {
-//                print("Category selected")
-//            }
-//            .keyboardShortcut("2")
         }
         CommandGroup(after: .help) {
             Divider()
@@ -183,6 +190,16 @@ struct AppCommands: Commands {
 
     private func isCurrentItemDisabled() -> Bool {
         return model.currentItemID == nil
+    }
+
+    private func isCopyCurrentLinkDisabled() -> Bool {
+        if model.currentItemID == nil {
+            return true
+        }
+        if let urlString = model.currentItem?.url, let _ = URL(string: urlString) {
+            return false
+        }
+        return true
     }
 
     private func isFolderRenameDisabled() -> Bool {
@@ -217,4 +234,37 @@ struct AppCommands: Commands {
     }
 
 }
+
+public class MacClipboard {
+    public static func set(text: String?) {
+        if let text {
+            let pasteBoard = NSPasteboard.general
+            pasteBoard.clearContents()
+            pasteBoard.setString(text, forType: .string)
+        }
+    }
+
+    public static func set(url: URL?) {
+        guard let url = url else { return }
+        let pasteBoard = NSPasteboard.general
+
+        pasteBoard.clearContents()
+        pasteBoard.setData(url.dataRepresentation, forType: .URL)
+    }
+
+    public static func set(urlContent: URL?) {
+        guard let url = urlContent,
+              let nsImage = NSImage(contentsOf: url)
+        else { return }
+
+        let pasteBoard = NSPasteboard.general
+        pasteBoard.clearContents()
+        pasteBoard.writeObjects([nsImage])
+    }
+
+    public static func clear() {
+        NSPasteboard.general.clearContents()
+    }
+}
+
 #endif
