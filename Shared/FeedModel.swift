@@ -35,17 +35,19 @@ class FeedModel: ObservableObject {
         }
     }
 
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+
     private let allNode: Node
     private let starNode: Node
     private let preferences = Preferences()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
     private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
+    private let fetchRequest = NSFetchRequest<CDItem>(entityName: CDItem.entityName)
 
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
-
-    private let fetchRequest = NSFetchRequest<CDItem>(entityName: CDItem.entityName)
 
     private var folders = [CDFolder]() {
         didSet {
@@ -100,23 +102,6 @@ class FeedModel: ObservableObject {
             .sink { [weak self] newNode in
                 guard let self, !self.isInInit else { return }
                 self.updateCurrentNode(newNode)
-            }
-            .store(in: &cancellables)
-
-        preferences.$hideRead
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self, !self.isInInit else { return }
-                self.publishItems()
-            }
-            .store(in: &cancellables)
-
-        preferences.$sortOldestFirst
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] newValue in
-                guard let self else { return }
-                self.fetchRequest.sortDescriptors = newValue ? [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .forward))] : [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
-                self.publishItems()
             }
             .store(in: &cancellables)
 
@@ -191,6 +176,15 @@ class FeedModel: ObservableObject {
         }
     }
 
+    func updateVisibleItems() {
+        publishItems()
+    }
+
+    func updateItemSorting() {
+        self.fetchRequest.sortDescriptors = sortOldestFirst ? [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .forward))] : [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
+        self.publishItems()
+    }
+
     func delete(_ node: Node) {
         switch node.nodeType {
         case .empty, .all, .starred:
@@ -246,14 +240,14 @@ class FeedModel: ObservableObject {
         print("Setting predicate")
         DispatchQueue.main.async {
             var predicate1 = NSPredicate(value: true)
-            if self.preferences.hideRead {
+            if self.hideRead {
                 predicate1 = NSPredicate(format: "unread == true")
             }
             switch NodeType.fromString(typeString: currentNodeID) {
             case .empty:
                 self.fetchRequest.predicate = NSPredicate(value: false)
             case .all:
-                self.fetchRequest.predicate = NSPredicate(value: true)
+                self.fetchRequest.predicate = predicate1
             case .starred:
                 self.fetchRequest.predicate = NSPredicate(format: "starred == true")
             case .folder(id:  let id):

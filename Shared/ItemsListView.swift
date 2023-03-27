@@ -25,6 +25,8 @@ struct ItemsListView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
     @EnvironmentObject private var model: FeedModel
@@ -105,6 +107,12 @@ struct ItemsListView: View {
                 }
                 .onChange(of: $compactView.wrappedValue) {
                     cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+                }
+                .onChange(of: hideRead) { _ in
+                    model.updateVisibleItems()
+                }
+                .onChange(of: sortOldestFirst) { _ in
+                    model.updateItemSorting()
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
