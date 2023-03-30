@@ -18,7 +18,6 @@ class FeedModel: ObservableObject {
     @Published var currentNodeID: Node.ID? {
         didSet {
             if let currentNodeID {
-                preferences.selectedNode = currentNodeID
                 currentItemID = nil
                 publishItems()
                 updateCurrentNode(currentNodeID)
@@ -35,12 +34,12 @@ class FeedModel: ObservableObject {
         }
     }
 
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = Constants.emptyNodeGuid
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
 
     private let allNode: Node
     private let starNode: Node
-    private let preferences = Preferences()
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
     private let feedPublisher = ItemStorage.shared.feeds.eraseToAnyPublisher()
     private let folderPublisher = ItemStorage.shared.folders.eraseToAnyPublisher()
@@ -97,14 +96,6 @@ class FeedModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        preferences.$selectedNode
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] newNode in
-                guard let self, !self.isInInit else { return }
-                self.updateCurrentNode(newNode)
-            }
-            .store(in: &cancellables)
-
         NewsManager.shared.syncSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
@@ -122,8 +113,8 @@ class FeedModel: ObservableObject {
             .store(in: &cancellables)
 
         update()
-        currentNodeID = preferences.selectedNode
-        updateCurrentNode(preferences.selectedNode)
+        currentNodeID = selectedNode
+        updateCurrentNode(selectedNode)
         fetchRequest.sortDescriptors = [NSSortDescriptor(SortDescriptor(\CDItem.id, order: .reverse))]
         publishItems()
         isInInit = false

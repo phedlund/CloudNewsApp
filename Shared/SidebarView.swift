@@ -44,13 +44,13 @@ struct SidebarView: View {
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
 
-    @Binding var nodeSelection: Node.ID?
+    @Binding var selectedNode: Node.ID
 
     private var syncPublisher = NewsManager.shared.syncSubject
         .receive(on: DispatchQueue.main)
 
-    init(nodeSelection: Binding<Node.ID?>) {
-        self._nodeSelection = nodeSelection
+    init(selectedNode: Binding<Node.ID>) {
+        self._selectedNode = selectedNode
     }
 
     var body: some View {
@@ -76,7 +76,7 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-        List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        List(model.nodes, id: \.id, children: \.children, selection: Binding($selectedNode)) { node in
             NodeView(node: node)
                 .environmentObject(favIconRepository)
                 .tag(node.id)
