@@ -38,6 +38,8 @@ class FeedModel: ObservableObject {
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
 
+    var path = NavigationPath()
+
     private let allNode: Node
     private let starNode: Node
     private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()

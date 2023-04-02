@@ -55,6 +55,9 @@ struct ContentView: View {
         }
         .onChange(of: selectedNode) {
             model.currentNodeID = $0
+            if !model.path.isEmpty {
+                model.path.removeLast()
+            }
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {

@@ -133,6 +133,7 @@ struct ItemsListView: View {
                 }
 #endif
             }
+            .environmentObject(model)
         }
     }
 
