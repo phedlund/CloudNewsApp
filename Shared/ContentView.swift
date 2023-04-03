@@ -17,7 +17,6 @@ struct ContentView: View {
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = Constants.emptyNodeGuid
 
     @State private var isShowingLogin = false
 
@@ -25,7 +24,7 @@ struct ContentView: View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(selectedNode: $selectedNode)
+            SidebarView(nodeSelection: $model.currentNodeID)
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } detail: {
@@ -53,12 +52,9 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: selectedNode) {
-            model.currentNodeID = $0
-        }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            SidebarView(selectedNode: $selectedNode)
+            SidebarView(nodeSelection: $model.currentNodeID)
                 .environmentObject(model)
                 .environmentObject(favIconRepository)
         } content: {
@@ -84,9 +80,6 @@ struct ContentView: View {
             if isNewInstall {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
-        }
-        .onChange(of: selectedNode) {
-            model.currentNodeID = $0
         }
 #endif
     }

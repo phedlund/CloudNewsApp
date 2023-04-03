@@ -27,7 +27,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = Constants.emptyNodeGuid
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
     @EnvironmentObject private var model: FeedModel
     @EnvironmentObject private var favIconRepository: FavIconRepository
