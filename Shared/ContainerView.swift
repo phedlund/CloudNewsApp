@@ -19,8 +19,6 @@ extension ContainerView {
 }
 
 struct ListGroup<Content: View>: ContainerView {
-    @EnvironmentObject private var model: FeedModel
-
     var content: () -> Content
 
     var body: some View {
@@ -28,7 +26,7 @@ struct ListGroup<Content: View>: ContainerView {
 #if os(macOS)
             VStack(content: content)
 #else
-            NavigationStack(path: $model.path, root: content)
+            NavigationStack(root: content)
 #endif
         }
     }
