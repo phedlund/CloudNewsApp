@@ -51,7 +51,7 @@ struct RowContainer<Content: View>: ContainerView {
 }
 
 struct ZStackGroup<Content: View>: View {
-    var item: CDItem
+    var item: Item
     var content: () -> Content
 
     var body: some View {

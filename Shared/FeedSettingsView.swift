@@ -24,7 +24,7 @@ struct FeedSettingsView: View {
     @State private var folderSelection = noFolderName
     @State private var pinned = false
 
-    private var feed: CDFeed?
+    private var feed: Feed?
     private var updateErrorCount = ""
     private var lastUpdateError = ""
     private var url = ""
@@ -33,14 +33,14 @@ struct FeedSettingsView: View {
     private var initialFolderSelection = noFolderName
 
     init(_ selectedFeed: Int) {
-        if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
-           let folders = CDFolder.all() {
+        if let theFeed = Feed.feed(id: Int64(selectedFeed)),
+           let folders = Folder.all() {
             self.feed = theFeed
             var fNames = [noFolderName]
             let names = folders.compactMap( { $0.name } )
             fNames.append(contentsOf: names)
             self._folderNames = State(initialValue: fNames)
-            if let folder = CDFolder.folder(id: theFeed.folderId),
+            if let folder = Folder.folder(id: theFeed.folderId ?? 0),
                let folderName = folder.name {
                 self._folderSelection = State(initialValue: folderName)
                 initialFolderSelection = folderName
@@ -188,14 +188,14 @@ struct FeedSettingsView: View {
     private func onFolderSelection(_ newFolderName: String) {
         if let feed = self.feed {
             Task {
-                var newFolderId: Int32 = 0
-                if let newFolder = CDFolder.folder(name: newFolderName) {
+                var newFolderId: Int64 = 0
+                if let newFolder = Folder.folder(name: newFolderName) {
                     newFolderId = newFolder.id
                 }
                 do {
-                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
-                    feed.folderId = newFolderId
-                    try moc.save()
+//                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
+//                    feed.folderId = newFolderId
+//                    try moc.save()
                 } catch let error as NetworkError {
                     folderSelection = initialFolderSelection
                     footerMessage = error.localizedDescription

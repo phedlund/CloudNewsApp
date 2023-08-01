@@ -10,13 +10,13 @@ import Foundation
 import SwiftUI
 
 struct MarkReadButton: View {
-    @ObservedObject var node: Node
+    @State var node: Node
 
     var body: some View {
         Button {
             Task {
-                let unreadItems = CDItem.unreadItems(nodeType: node.nodeType)
-                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
+//                let unreadItems = Item.unreadItems(nodeType: node.nodeType)
+//                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
             }
         } label: {
             Label {
@@ -31,22 +31,23 @@ struct MarkReadButton: View {
 }
 
 struct ShareLinkButton: View {
-    @ObservedObject var item: CDItem
+    @State var item: Item
     
     var body: some View {
         let subject = item.title ?? "Untitled"
         let message = item.displayBody
-        if let url = item.webViewHelper.url {
-            if url.scheme?.hasPrefix("file") ?? false {
-                if let urlString = item.url, let itemUrl = URL(string: urlString) {
-                    ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-                }
-            } else {
-                ShareLink(item: url, subject: Text(subject), message: Text(message))
-            }
-        } else if !subject.isEmpty {
-            ShareLink(item: subject, subject: Text(subject), message: Text(message))
-        }
+//        if let url = item.webViewHelper.url {
+//            if url.scheme?.hasPrefix("file") ?? false {
+//                if let urlString = item.url, let itemUrl = URL(string: urlString) {
+//                    ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+//                }
+//            } else {
+//                ShareLink(item: url, subject: Text(subject), message: Text(message))
+//            }
+//        } else if !subject.isEmpty {
+//            ShareLink(item: subject, subject: Text(subject), message: Text(message))
+//        }
+        EmptyView()
     }
     
 }

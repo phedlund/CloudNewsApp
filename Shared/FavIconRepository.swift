@@ -7,6 +7,7 @@
 
 import Combine
 import Kingfisher
+import Observation
 
 #if os(macOS)
 import AppKit
@@ -27,42 +28,34 @@ struct FavIcon {
     #endif
 }
 
-@MainActor
-class FavIconRepository: NSObject, ObservableObject {
-    @Published var icons = [String: FavIcon]()
+@Observable
+class FavIconRepository {
+    var icons = [String: FavIcon]()
+
     let defaultIcon = FavIcon(name: "rss", image: SystemImage())
 
     private let validSchemas = ["http", "https", "file"]
     private var cancellables = Set<AnyCancellable>()
 
-    override init() {
-        super.init()
-
-        NewsManager.shared.syncSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                Task {
-                    do {
-                        try await self?.fetch()
-                    } catch { }
-                }
-                self?.update()
-            }
-            .store(in: &cancellables)
+    init() {
         icons["all"] = defaultIcon
         icons["starred"] = FavIcon(name: "star.fill", image: SystemImage())
         update()
     }
 
-    private func update() {
-        if let folders = CDFolder.all() {
+    func update() {
+        Task {
+            do {
+                try await self.fetch()
+            } catch { }
+        if let folders = Folder.all() {
             for folder in folders {
                 Task {
                     self.icons["folder_\(folder.id)"] = FavIcon(name: "folder", image: SystemImage())
                 }
             }
         }
-        if let feeds = CDFeed.all() {
+        if let feeds = Feed.all() {
             for feed in feeds {
                 ImageCache.default.retrieveImage(forKey: "feed_\(feed.id)") { result in
                     switch result {
@@ -75,9 +68,10 @@ class FavIconRepository: NSObject, ObservableObject {
             }
         }
     }
+    }
 
     private func fetch() async throws {
-        if let feeds = CDFeed.all() {
+        if let feeds = Feed.all() {
             for feed in feeds {
                 if let link = feed.faviconLink,
                    let url = URL(string: link),
@@ -109,7 +103,7 @@ class FavIconRepository: NSObject, ObservableObject {
         }
     }
 
-    private func validateImageUrl(from url: URL, feed: CDFeed) async throws {
+    private func validateImageUrl(from url: URL, feed: Feed) async throws {
         let request = URLRequest.init(url: url)
         let (_, response) = try await URLSession.shared.data(for: request)
         if let httpResponse = response as? HTTPURLResponse {

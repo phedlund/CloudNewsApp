@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
-    @ObservedObject var node: Node
+    var node: Node
 
     @ToolbarContentBuilder
     var body: some ToolbarContent {
@@ -19,7 +19,7 @@ struct ItemListToolbarContent: ToolbarContent {
 }
 
 struct ContextMenuContent: View {
-    @ObservedObject var item: CDItem
+    var item: Item
 
     var body: some View {
         Button {
@@ -79,9 +79,10 @@ struct FavIconLabelStyle: LabelStyle {
 }
 
 struct FavIconDateAuthorView: View {
+    @Environment(\.favIconRepository) private var favIconRepository
+
     var title: String
-    var feedId: Int32
-    @EnvironmentObject private var favIconRepository: FavIconRepository
+    var feedId: Int64
 
     var body: some View {
         Label {
@@ -91,7 +92,7 @@ struct FavIconDateAuthorView: View {
                 .lineLimit(1)
         } icon: {
             FavIconView(favIcon: favIconRepository.icons["feed_\(feedId)"] ?? favIconRepository.defaultIcon)
-                .environmentObject(favIconRepository)
+                .environment(favIconRepository)
         }
         .labelStyle(FavIconLabelStyle())
     }

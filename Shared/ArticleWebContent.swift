@@ -34,10 +34,10 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    init(item: CDItem?) {
+    init(item: Item?) {
         isInInit = true
         if let item = item {
-            let feed = CDFeed.feed(id: item.feedId)
+            let feed = Feed.feed(id: item.feedId)
             title = item.displayTitle
             summary = Self.output(item: item)
             baseString = Self.baseString(item: item)
@@ -147,7 +147,7 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    private static func baseString(item: CDItem) -> String {
+    private static func baseString(item: Item) -> String {
         var result = ""
 
         if let urlString = item.url,
@@ -159,7 +159,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-    private static func output(item: CDItem) -> String {
+    private static func output(item: Item) -> String {
         var result = ""
 
         if let html = item.body,
@@ -206,11 +206,11 @@ class ArticleWebContent: ObservableObject {
             """
     }
 
-    private static func itemUrl(item: CDItem) -> String {
+    private static func itemUrl(item: Item) -> String {
         return item.url ?? ""
     }
 
-    private static func itemAuthor(item: CDItem) -> String {
+    private static func itemAuthor(item: Item) -> String {
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {
             author = "By \(itemAuthor)"
@@ -218,7 +218,7 @@ class ArticleWebContent: ObservableObject {
         return author
     }
 
-    private static func dateText(item: CDItem) -> String {
+    private static func dateText(item: Item) -> String {
         let dateNumber = TimeInterval(item.pubDate)
         let date = Date(timeIntervalSince1970: dateNumber)
         let dateFormat = DateFormatter()

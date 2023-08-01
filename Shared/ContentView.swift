@@ -10,29 +10,39 @@ import CoreData
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject private var model: FeedModel
-    @StateObject private var favIconRepository = FavIconRepository()
+    @Environment(\.feedModel) private var model
+    @Environment(\.favIconRepository) private var favIconRepository
     @Environment(\.managedObjectContext) private var moc
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
+    @AppStorage(SettingKeys.selectedNode) private var selectedNodeID: Node.ID?
 
     @State private var isShowingLogin = false
+
+    private var selection: Binding<Node.ID?> {
+        Binding(get: { selectedNodeID }, set: { selectedNodeID = $0 ?? "" })
+    }
+
+//    private var selectedNode: Binding<Node> {
+//        feedModel[selection.wrappedValue]
+//    }
+
 
     var body: some View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: $model.currentNodeID)
-                .environmentObject(model)
-                .environmentObject(favIconRepository)
+            SidebarView(nodeSelection: selection)
+                .environment(model)
+                .environment(favIconRepository)
         } detail: {
             ZStack {
                 if model.currentNodeID != Constants.emptyNodeGuid {
                     ItemsListView()
-                        .environmentObject(model)
-                        .environmentObject(favIconRepository)
+                        .environment(model)
+                        .environment(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: model.currentNode)
                         }

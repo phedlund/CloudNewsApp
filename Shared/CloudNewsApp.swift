@@ -7,10 +7,14 @@
 
 import BackgroundTasks
 import SwiftUI
+import SwiftData
 
 @main
 struct CloudNewsApp: App {
-    @StateObject private var feedModel = FeedModel()
+    let container = NewsData.shared.container!
+
+    @State private var feedModel = FeedModel()
+    @State private var favIconRepository = FavIconRepository()
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
@@ -24,9 +28,10 @@ struct CloudNewsApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, NewsData.shared.container.viewContext)
-                .environmentObject(feedModel)
+                .environment(\.feedModel, feedModel)
+                .environment(\.favIconRepository, favIconRepository)
         }
+        .modelContainer(container)
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)

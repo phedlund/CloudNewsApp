@@ -9,11 +9,11 @@ import SwiftUI
 
 struct ItemRow: View {
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject private var favIconRepository: FavIconRepository
+    @Environment(\.favIconRepository) private var favIconRepository
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
-    @ObservedObject var item: CDItem
-    @ObservedObject var itemImageManager: ItemImageManager
-    
+    @State var item: Item
+    @State var itemImageManager: ItemImageManager
+
     var isHorizontalCompact: Bool
     var isCompact: Bool
     var size: CGSize
@@ -56,7 +56,7 @@ struct ItemRow: View {
                                     }
                                     .frame(maxWidth: .infinity)
                                     FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
-                                        .environmentObject(favIconRepository)
+                                        .environment(favIconRepository)
                                     if isHorizontalCompact {
                                         Spacer()
                                     } else {

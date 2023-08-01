@@ -22,15 +22,14 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.pbh.whiteBackground
 #endif
+    @Environment(\.feedModel) private var feedModel
+    @Environment(\.favIconRepository) private var favIconRepository
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
-
-    @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var favIconRepository: FavIconRepository
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
@@ -46,6 +45,8 @@ struct ItemsListView: View {
     
     var body: some View {
         let _ = Self._printChanges()
+        Text("Under Construction")
+/*
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
@@ -55,8 +56,8 @@ struct ItemsListView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
                 ScrollViewReader { proxy in
-                    List(model.currentItems.indices, id: \.self, selection: $model.currentItemID) { index in
-                        let item = model.currentItems[index]
+                    List(feedModel.currentItems.indices, id: \.self, selection: feedModel.currentItemID) { index in
+                        let item = feedModel.currentItems[index]
                         ZStackGroup(item: item) {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
@@ -92,7 +93,7 @@ struct ItemsListView: View {
                         }
                     }
                 }
-                .newsNavigationDestination(type: CDItem.self, model: model)
+                .newsNavigationDestination(type: Item.self, model: feedModel)
                 .listStyle(.plain)
                 .accentColor(.pbh.darkIcon)
                 .background {
@@ -109,10 +110,10 @@ struct ItemsListView: View {
                     cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
                 }
                 .onChange(of: hideRead) { _ in
-                    model.updateVisibleItems()
+                    feedModel.updateVisibleItems()
                 }
                 .onChange(of: sortOldestFirst) { _ in
-                    model.updateItemSorting()
+                    feedModel.updateItemSorting()
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
@@ -122,7 +123,7 @@ struct ItemsListView: View {
                 .onChange(of: scenePhase) { phase in
                     switch phase {
                     case .active:
-                        model.currentNodeID = selectedNode
+                        feedModel.currentNodeID = selectedNode
                     default:
                         break
                     }
@@ -134,6 +135,7 @@ struct ItemsListView: View {
 #endif
             }
         }
+ */
     }
 
     private func markRead(_ offset: CGFloat) {
@@ -142,7 +144,7 @@ struct ItemsListView: View {
             let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
             print("Number of items \(numberOfItems)")
             if numberOfItems > 0 {
-                let itemsToMarkRead = model.currentItems.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                let itemsToMarkRead = feedModel.currentItems.prefix(through: Int(numberOfItems)).filter( { $0.unread })
                 print("Number of unread items \(itemsToMarkRead.count)")
                 if !itemsToMarkRead.isEmpty {
                     Task(priority: .userInitiated) {
@@ -157,7 +159,7 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
-    let type: CDItem.Type
+    let type: Item.Type
     let model: FeedModel
 
     @ViewBuilder func body(content: Content) -> some View {
@@ -174,7 +176,7 @@ struct NavigationDestinationModifier: ViewModifier {
 }
 
 extension View {
-    func newsNavigationDestination(type: CDItem.Type, model: FeedModel) -> some View {
-        modifier(NavigationDestinationModifier(type: CDItem.self, model: model))
+    func newsNavigationDestination(type: Item.Type, model: FeedModel) -> some View {
+        modifier(NavigationDestinationModifier(type: Item.self, model: model))
     }
 }

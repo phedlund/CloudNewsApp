@@ -19,10 +19,10 @@ class ItemImageManager: NSObject, ObservableObject {
     @Published var image: SystemImage?
 
     private let validSchemas = ["http", "https", "file"]
-    private let item: CDItem
+    private let item: Item
     private let key: String
 
-    init(item: CDItem) {
+    init(item: Item) {
         self.item = item
         key = "item_\(item.id)"
         super.init()
@@ -83,7 +83,7 @@ class ItemImageManager: NSObject, ObservableObject {
         }
     }
 
-    private func stepTwo(_ item: CDItem) async -> URL? {
+    private func stepTwo(_ item: Item) async -> URL? {
         if let urlString = item.url, let url = URL(string: urlString) {
             do {
                 let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))

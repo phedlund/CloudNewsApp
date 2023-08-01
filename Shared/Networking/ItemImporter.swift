@@ -5,7 +5,7 @@
 //  Created by Peter Hedlund on 11/28/21.
 //
 
-import CoreData
+import SwiftData
 import Foundation
 import OSLog
 
@@ -18,15 +18,27 @@ class FolderImporter {
             if let httpResponse = response as? HTTPURLResponse {
                 switch httpResponse.statusCode {
                 case 200:
-                    guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                          let folderDicts = foldersDict["folders"] as? [[String: Any]],
-                          !folderDicts.isEmpty else {
-                        return
+                    do {
+                        let folders = try JSONDecoder().decode([Folder].self, from: data)
+                        if let container = NewsData.shared.container {
+                            for folder in folders {
+                                await container.mainContext.insert(folder)
+                            }
+                            try await container.mainContext.save()
+                            //                        guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                            //                              let folderDicts = foldersDict["folders"] as? [[String: Any]],
+                            //                              !folderDicts.isEmpty else {
+                            //                            return
+                            //                        }
+                            //
+                            //                        logger.debug("Start importing folder data to the store...")
+                            //                        try await importFolders(from: folderDicts)
+                            //                        logger.debug("Finished importing folder data.")
+                        }
+                    } catch {
+                        self.logger.debug("Failed to execute folders insert request.")
+                        throw DatabaseError.foldersFailedImport
                     }
-
-                    logger.debug("Start importing folder data to the store...")
-                    try await importFolders(from: folderDicts)
-                    logger.debug("Finished importing folder data.")
                 default:
                     throw NetworkError.generic(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -40,38 +52,23 @@ class FolderImporter {
 
     private func importFolders(from propertiesList: [[String: Any]]) async throws {
         guard !propertiesList.isEmpty else { return }
-
-        let taskContext = NewsData.shared.newTaskContext()
-        taskContext.name = "importContext"
-        taskContext.transactionAuthor = "importFolders"
-
-        try await taskContext.perform {
-            let batchInsertRequest = self.newBatchInsertRequest(with: propertiesList)
-            if let fetchResult = try? taskContext.execute(batchInsertRequest),
-               let batchInsertResult = fetchResult as? NSBatchInsertResult,
-               let success = batchInsertResult.result as? Bool, success {
-                return
-            }
-            self.logger.debug("Failed to execute batch insert request.")
+        
+        if let container = NewsData.shared.container {
+            do {
+                for f in propertiesList {
+                    let folder = Folder(id: f["id"] as! Int64, opened: false, lastModified: 0, name: (f["name"] as! String) , unreadCount: 0, feeds: [Feed]())
+                    await container.mainContext.insert(folder)
+                }
+//                let success = try container.mainContext.insert(propertiesList, model: Folder.self)
+//                if success {
+                    try await container.mainContext.save()
+//                }
+            } catch {
+                self.logger.debug("Failed to execute folders insert request.")
             throw DatabaseError.foldersFailedImport
         }
-
-        logger.debug("Successfully inserted folder data.")
+            
     }
-
-    private func newBatchInsertRequest(with propertyList: [[String: Any]]) -> NSBatchInsertRequest {
-        var index = 0
-        let total = propertyList.count
-
-        // Provide one dictionary at a time when the closure is called.
-        let batchInsertRequest = NSBatchInsertRequest(entity: CDFolder.entity(), dictionaryHandler: { dict in
-            guard index < total else { return true }
-            let currentFolder = propertyList[index]
-            dict.addEntries(from: currentFolder)
-            index += 1
-            return false
-        })
-        return batchInsertRequest
     }
 
 }
@@ -93,9 +90,9 @@ class FeedImporter {
                         return
                     }
 
-                    logger.debug("Start importing folder data to the store...")
+                    logger.debug("Start importing feed data to the store...")
                     try await importFeeds(from: feedDicts)
-                    logger.debug("Finished importing folder data.")
+                    logger.debug("Finished importing feed data.")
                 default:
                     throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -109,38 +106,19 @@ class FeedImporter {
 
     private func importFeeds(from propertiesList: [[String: Any]]) async throws {
         guard !propertiesList.isEmpty else { return }
-
-        let taskContext = NewsData.shared.newTaskContext()
-        taskContext.name = "importContext"
-        taskContext.transactionAuthor = "importFeeds"
-
-        try await taskContext.perform {
-            let batchInsertRequest = self.newBatchInsertRequest(with: propertiesList)
-            if let fetchResult = try? taskContext.execute(batchInsertRequest),
-               let batchInsertResult = fetchResult as? NSBatchInsertResult,
-               let success = batchInsertResult.result as? Bool, success {
-                return
-            }
-            self.logger.debug("Failed to execute batch insert request.")
-            throw DatabaseError.feedsFailedImport
-        }
-
-        logger.debug("Successfully inserted feed data.")
-    }
-
-    private func newBatchInsertRequest(with propertyList: [[String: Any]]) -> NSBatchInsertRequest {
-        var index = 0
-        let total = propertyList.count
-
-        // Provide one dictionary at a time when the closure is called.
-        let batchInsertRequest = NSBatchInsertRequest(entity: CDFeed.entity(), dictionaryHandler: { dict in
-            guard index < total else { return true }
-            let currentFolder = propertyList[index]
-            dict.addEntries(from: currentFolder)
-            index += 1
-            return false
-        })
-        return batchInsertRequest
+        
+//        if let container = NewsData.shared.container {
+//            do {
+//                let success = try container.mainContext.insert(propertiesList, model: Feed.self)
+//                if success {
+//                    try await container.mainContext.save()
+//            }
+//            } catch {
+//                self.logger.debug("Failed to execute feeds insert request.")
+//            throw DatabaseError.feedsFailedImport
+//        }
+            
+//    }
     }
 
 }
@@ -159,9 +137,9 @@ class ItemImporter {
                           !itemDicts.isEmpty else {
                         return
                     }
-                    logger.debug("Start importing data to the store...")
+                    logger.debug("Start importing item data to the store...")
                     try await importItems(from: itemDicts)
-                    logger.debug("Finished importing data.")
+                    logger.debug("Finished importing item data.")
                 default:
                     throw NetworkError.generic(message: "Error getting items: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -175,45 +153,23 @@ class ItemImporter {
 
     private func importItems(from propertiesList: [[String: Any]]) async throws {
         guard !propertiesList.isEmpty else { return }
-
-        let taskContext = NewsData.shared.newTaskContext()
-        taskContext.name = "importContext"
-        taskContext.transactionAuthor = "importItems"
-
-        try await taskContext.perform {
-            let batchInsertRequest = self.newBatchInsertRequest(with: propertiesList)
-            if let fetchResult = try? taskContext.execute(batchInsertRequest),
-               let batchInsertResult = fetchResult as? NSBatchInsertResult,
-               let success = batchInsertResult.result as? Bool, success {
-                return
-            }
-            self.logger.debug("Failed to execute batch insert request.")
-            throw DatabaseError.itemsFailedImport
-        }
-
-        logger.debug("Successfully inserted item data.")
-    }
-
-    private func newBatchInsertRequest(with propertyList: [[String: Any]]) -> NSBatchInsertRequest {
-        var index = 0
-        let total = propertyList.count
-
-        // Provide one dictionary at a time when the closure is called.
-        let batchInsertRequest = NSBatchInsertRequest(entity: CDItem.entity(), dictionaryHandler: { dict in
-            guard index < total else { return true }
-            let currentItem = propertyList[index]
-            dict.addEntries(from: currentItem)
-
+        
+        if let container = NewsData.shared.container {
+            do {
+                var currentItems = [[String: Any]]()
+                for listItem in propertiesList {
+                    var currentItem = listItem
+//                    currentItem.addEntries(from: listItem)
             var displayTitle = "Untitled"
-            if let title = currentItem["title"] as? String {
+                    if let title = listItem["title"] as? String {
                 displayTitle = plainSummary(raw: title)
             }
-            dict["displayTitle"] = displayTitle
+                    currentItem["displayTitle"] = displayTitle
 
             var summary = ""
-            if let body = currentItem["body"] as? String {
+                    if let body = listItem["body"] as? String {
                 summary = body
-            } else if let mediaDescription = currentItem["mediaDescription"] as? String {
+                    } else if let mediaDescription = listItem["mediaDescription"] as? String {
                 summary = mediaDescription
             }
             if !summary.isEmpty {
@@ -227,11 +183,11 @@ class ItemImporter {
                     }
                 }
             }
-            dict["displayBody"] = plainSummary(raw: summary)
+                    currentItem["displayBody"] = plainSummary(raw: summary)
 
             let clipLength = 50
             var dateLabelText = ""
-            if let pubDate = currentItem["pubDate"] as? Double {
+                    if let pubDate = listItem["pubDate"] as? Double {
                 let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
                 dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
 
@@ -239,7 +195,7 @@ class ItemImporter {
                     dateLabelText.append(" | ")
                 }
             }
-            if let itemAuthor = currentItem["author"] as? String,
+                    if let itemAuthor = listItem["author"] as? String,
                !itemAuthor.isEmpty {
                 if itemAuthor.count > clipLength {
                     dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
@@ -249,10 +205,10 @@ class ItemImporter {
                 }
             }
 
-            if let feedId = currentItem["feedId"] as? Int32,
-               let feed = CDFeed.feed(id: feedId),
+                    if let feedId = listItem["feedId"] as? Int64,
+                       let feed = Feed.feed(id: feedId),
                 let feedTitle = feed.title {
-                if let itemAuthor = currentItem["author"] as? String,
+                        if let itemAuthor = listItem["author"] as? String,
                    !itemAuthor.isEmpty {
                     if feedTitle != itemAuthor {
                         dateLabelText.append(" | \(feedTitle)")
@@ -261,16 +217,24 @@ class ItemImporter {
                     dateLabelText.append(feedTitle)
                 }
             }
-            dict["dateFeedAuthor"] = dateLabelText
-
-            index += 1
-            return false
-        })
-        return batchInsertRequest
+                    currentItem["dateFeedAuthor"] = dateLabelText
+                    currentItems.append(currentItem)
+                }
+//                let success = try container.mainContext.insert(currentItems, model: Item.self)
+//                if success {
+//                    try await container.mainContext.save()
+//                }
+            } catch {
+                self.logger.debug("Failed to execute items insert request.")
+                throw DatabaseError.itemsFailedImport
+            }
+            
+        }
+        
     }
 
 }
-
+/*
 class ItemPruner {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemPruner.self))
 
@@ -308,3 +272,4 @@ class ItemPruner {
         return NSBatchDeleteRequest(objectIDs: [])
     }
 }
+*/

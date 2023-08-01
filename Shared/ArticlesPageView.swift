@@ -5,14 +5,14 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
-import CoreData
+import SwiftData
 import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
     @Environment(\.managedObjectContext) private var moc
-    @ObservedObject private var item: CDItem
-    @State private var selection: NSManagedObjectID
+    @State private var item: Item
+    @State private var selection: PersistentIdentifier
     @State private var isShowingPopover = false
     @State private var canGoBack = false
     @State private var canGoForward = false
@@ -20,11 +20,11 @@ struct ArticlesPageView: View {
     @State private var title = ""
     @State private var webViewHelper = ItemWebViewHelper()
 
-    private let items: [CDItem]
+    private let items: [Item]
 
-    init(item: CDItem, items: [CDItem]) {
-        self.item = item
+    init(item: Item, items: [Item]) {
         self.items = items
+        self._item = State(initialValue: item)
         self._selection = State(initialValue: item.objectID)
     }
 
@@ -41,16 +41,16 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
         .onAppear {
-            markItemRead()
-            if let item = moc.object(with: item.objectID) as? CDItem {
-                webViewHelper = item.webViewHelper
-            }
+//            markItemRead()
+//            if let item = moc.object(with: item.objectID) as? Item {
+//                webViewHelper = item.webViewHelper
+//            }
         }
         .onChange(of: selection) {
             markItemRead()
-            if let item = moc.object(with: $0) as? CDItem {
-                webViewHelper = item.webViewHelper
-            }
+//            if let item = moc.object(with: $0) as? Item {
+//                webViewHelper = item.webViewHelper
+//            }
         }
         .onReceive(webViewHelper.$canGoBack) {
             canGoBack = $0
@@ -100,12 +100,12 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let item = NewsData.shared.container.viewContext.object(with: selection) as? CDItem {
-                ShareLinkButton(item: item)
-                    .disabled(isLoading)
-            } else {
+//            if let item = NewsData.shared.viewContext?.object(with: selection) as? Item {
+//                ShareLinkButton(item: item)
+//                    .disabled(isLoading)
+//            } else {
                 EmptyView()
-            }
+//            }
             Button {
                 isShowingPopover = true
             } label: {
@@ -113,20 +113,20 @@ struct ArticlesPageView: View {
             }
             .disabled(isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let item = moc.object(with: selection) as? CDItem {
-                    ArticleSettingsView(item: item)
-                        .presentationDetents([.height(300.0)])
-                }
+//                if let item = moc.object(with: selection) as? CDItem {
+//                    ArticleSettingsView(item: item)
+//                        .presentationDetents([.height(300.0)])
+//                }
             }
         }
     }
 
     private func markItemRead() {
-        if let item = moc.object(with: selection) as? CDItem, item.unread {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
-            }
-        }
+//        if let item = moc.object(with: selection) as? Item, item.unread {
+//            Task {
+//                // TODO try? await NewsManager.shared.markRead(items: [item], unread: false)
+//            }
+//        }
     }
 
 }

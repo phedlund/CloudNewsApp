@@ -202,7 +202,7 @@ enum Router {
 
         let baseURLString = "\(server)/index.php/apps/news/api/v1-2"
         let url = URL(string: baseURLString)! //FIX
-      
+
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
         urlRequest.httpMethod = method.rawValue
         urlRequest.cachePolicy = .reloadIgnoringLocalCacheData

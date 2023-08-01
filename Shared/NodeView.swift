@@ -9,9 +9,10 @@ import Kingfisher
 import SwiftUI
 
 struct NodeView: View {
-    @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var favIconRepository: FavIconRepository
-    @ObservedObject var node: Node
+    @Environment(\.feedModel) private var feedModel
+    @Environment(\.favIconRepository) private var favIconRepository
+
+    var node: Node
 
     @State private var isShowingConfirmation = false
 
@@ -50,7 +51,7 @@ struct NodeView: View {
         ) {
             Button("Yes", role: .destructive) {
                 withAnimation {
-                    model.delete(node)
+                   // TODO feedModel.delete(node)
                 }
             }
             .keyboardShortcut(.defaultAction)

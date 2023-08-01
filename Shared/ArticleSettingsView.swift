@@ -12,7 +12,7 @@ struct ArticleSettingsView: View {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    var item: CDItem
+    var item: Item
 
     private let buttonHeight = 25.0
     private let buttonWidth = 100.0
@@ -24,7 +24,7 @@ struct ArticleSettingsView: View {
                 let isStarred = item.starred
                 Button {
                     Task {
-                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                        // TODO try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
                     }
                 } label: {
                     Label {
@@ -39,7 +39,7 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                        // TODO try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
                     }
                 } label: {
                     Label {
@@ -125,8 +125,8 @@ struct ArticleSettingsView: View {
     }
 }
 
-struct ArticleSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ArticleSettingsView(item: CDItem())
-    }
-}
+//struct ArticleSettingsView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ArticleSettingsView(item: Item())
+//    }
+//}

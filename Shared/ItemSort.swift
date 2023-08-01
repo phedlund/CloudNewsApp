@@ -10,20 +10,20 @@ import Foundation
 struct ItemSort: Hashable, Identifiable {
     let id: Int
     let name: String
-    let descriptors: [SortDescriptor<CDItem>]
+    let descriptors: [SortDescriptor<Item>]
 
     static let sorts: [ItemSort] = [
         ItemSort(
         id: 0,
         name: "Newest First",
         descriptors: [
-          SortDescriptor(\CDItem.id, order: .reverse),
+          SortDescriptor(\Item.id, order: .reverse),
         ]),
         ItemSort(
         id: 1,
         name: "Oldest First",
         descriptors: [
-            SortDescriptor(\CDItem.id, order: .forward),
+            SortDescriptor(\Item.id, order: .forward),
         ])
     ]
 

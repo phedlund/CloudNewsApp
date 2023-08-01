@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import SwiftData
 
 struct ProductStatus {
     var name: String
@@ -38,7 +39,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
+/*
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {
@@ -109,46 +110,46 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
-    func markRead(items: [CDItem], unread: Bool) async throws {
+*/
+    func markRead(items: [Item], unread: Bool) async throws {
         do {
-            try await ItemReadManager.shared.markRead(items: items, unread: unread)
+//            try await ItemReadManager.shared.markRead(items: items, unread: unread)
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
-    func markStarred(item: CDItem, starred: Bool) async throws {
-        do {
-            try await CDItem.markStarred(itemId: item.id, state: starred)
-            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
-                                                        "guidHash": item.guidHash as Any]]]
-            var router: Router
-            if starred {
-                try await CDStarred.update(items: [item.id])
-                router = Router.itemsStarred(parameters: parameters)
-            } else {
-                try await CDUnstarred.update(items: [item.id])
-                router = Router.itemsUnstarred(parameters: parameters)
-            }
-            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
-                switch httpResponse.statusCode {
-                case 200:
-                    if starred {
-                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
-                    } else {
-                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
-                    }
-                default:
-                    break
-                }
-            }
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
+    func markStarred(item: Item, starred: Bool) async throws {
+//        do {
+//            try await Item.markStarred(itemId: item.id, state: starred)
+//            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
+//                                                        "guidHash": item.guidHash as Any]]]
+//            var router: Router
+//            if starred {
+//                try await CDStarred.update(items: [item.id])
+//                router = Router.itemsStarred(parameters: parameters)
+//            } else {
+//                try await CDUnstarred.update(items: [item.id])
+//                router = Router.itemsUnstarred(parameters: parameters)
+//            }
+//            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+//            if let httpResponse = response as? HTTPURLResponse {
+//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                print(String(data: data, encoding: .utf8) ?? "")
+//                switch httpResponse.statusCode {
+//                case 200:
+//                    if starred {
+//                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
+//                    } else {
+//                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
+//                    }
+//                default:
+//                    break
+//                }
+//            }
+//        } catch(let error) {
+//            throw NetworkError.generic(message: error.localizedDescription)
+//        }
     }
 
     /*
@@ -177,7 +178,7 @@ class NewsManager {
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
             try await ItemImporter().fetchItems(unreadRouter.urlRequest())
             try await ItemImporter().fetchItems(starredRouter.urlRequest())
-            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+//            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
                 NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
             }
@@ -208,14 +209,18 @@ class NewsManager {
         //        CDItem.reset()
         //
         do {
-            let count = try NewsData.shared.container.viewContext.count(for: CDItem.fetchRequest())
-            if count == 0 {
+            if let container = NewsData.shared.container {
+                let context = ModelContext(container)
+                let items = try context.fetch(FetchDescriptor<Item>())
+                if items.count == 0 {
                 try await self.initialSync()
                 return
+            }
             }
         } catch { }
         
         do {
+            /*
             if let localRead = CDRead.all(), !localRead.isEmpty {
                 let readParameters = ["items": localRead]
                 let readRouter = Router.itemsRead(parameters: readParameters)
@@ -278,8 +283,8 @@ class NewsManager {
                     }
                 }
             }
-
-            let newestKnownLastModified = CDItem.lastModified()
+*/
+            let newestKnownLastModified: Int32 = 0 // CDItem.lastModified()
             Preferences().lastModified = newestKnownLastModified
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -287,7 +292,7 @@ class NewsManager {
                                                     "id": 0]
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
-            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+//            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             try await FolderImporter().fetchFolders(Router.folders.urlRequest())
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
             try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
@@ -301,7 +306,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
+/*
     func moveFeed(feed: CDFeed, to folder: Int32) async throws {
         let moveFeedRouter = Router.moveFeed(id: Int(feed.id), folder: Int(folder))
         do {
@@ -323,8 +328,8 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
-    func renameFeed(feed: CDFeed, to name: String) async throws {
+*/
+    func renameFeed(feed: Feed, to name: String) async throws {
         let renameRouter = Router.renameFeed(id: Int(feed.id), newName: name)
         do {
             let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
@@ -347,7 +352,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
+/*
     func deleteFeed(_ id: Int) async throws {
         let deleteRouter = Router.deleteFeed(id: id)
         do {
@@ -419,5 +424,5 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
+*/
 }

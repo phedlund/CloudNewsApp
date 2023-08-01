@@ -17,7 +17,7 @@ class ItemWebViewHelper: ObservableObject {
     @Published public var title = ""
     @Published public var url: URL?
 
-    var item: CDItem?
+    var item: Item?
     var urlRequest: URLRequest?
 
     var webView: WKWebView? {
@@ -31,9 +31,9 @@ class ItemWebViewHelper: ObservableObject {
 
     func markItemRead() {
         if let item {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
-            }
+//            Task {
+//                try? await NewsManager.shared.markRead(items: [item], unread: false)
+//            }
         }
     }
 
@@ -67,7 +67,7 @@ class ItemWebViewHelper: ObservableObject {
             }
             .store(in: &cancellables)
 #endif
-            let feed = CDFeed.feed(id: item.feedId)
+            let feed = Feed.feed(id: item.feedId)
                 if feed?.preferWeb == true,
                    let urlString = item.url,
                    let url = URL(string: urlString) {

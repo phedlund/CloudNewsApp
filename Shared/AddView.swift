@@ -63,7 +63,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFeed(url: input, folderId: folderId)
+                                        // TODO try await NewsManager.shared.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -82,7 +82,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFolder(name: input)
+                                        //  TODO try await NewsManager.shared.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -133,7 +133,7 @@ struct AddView: View {
         .navigationTitle("Add Feed or Folder")
 #endif
         .onAppear {
-            if let folders = CDFolder.all() {
+            if let folders = Folder.all() {
                 var fNames = [noFolderName]
                 let names = folders.compactMap( { $0.name } )
                 fNames.append(contentsOf: names)
@@ -142,7 +142,7 @@ struct AddView: View {
         }
         .onChange(of: folderSelection) { [folderSelection] newFolder in
             if newFolder != folderSelection {
-                if let newFolder = CDFolder.folder(name: newFolder) {
+                if let newFolder = Folder.folder(name: newFolder) {
                     folderId = Int(newFolder.id)
                 }
             }

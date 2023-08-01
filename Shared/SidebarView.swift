@@ -30,8 +30,8 @@ struct SidebarView: View {
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
     @Environment(\.managedObjectContext) private var moc
-    @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var favIconRepository: FavIconRepository
+    @Environment(\.feedModel) private var model
+    @Environment(\.favIconRepository) private var favIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @State private var modalSheet: ModalSheet?
@@ -54,28 +54,30 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        if isShowingError {
-            HStack {
-                Spacer(minLength: 10.0)
-                HStack {
-                    Text(errorMessage)
-                        .colorInvert()
-                    Spacer()
-                    Button {
-                        isShowingError = false
-                    } label: {
-                        Text("Dismiss")
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.all, 10.0)
-                .background(Color.red.opacity(0.95))
-                .cornerRadius(6.0)
-                .transition(.move(edge: .top))
-                Spacer(minLength: 10.0)
-            }
-        }
+//        if isShowingError {
+//            HStack {
+//                Spacer(minLength: 10.0)
+//                HStack {
+//                    Text(errorMessage)
+//                        .colorInvert()
+//                    Spacer()
+//                    Button {
+//                        isShowingError = false
+//                    } label: {
+//                        Text("Dismiss")
+//                    }
+//                    .buttonStyle(.borderedProminent)
+//                }
+//                .frame(maxWidth: .infinity)
+//                .padding(.all, 10.0)
+//                .background(Color.red.opacity(0.95))
+//                .cornerRadius(6.0)
+//                .transition(.move(edge: .top))
+//                Spacer(minLength: 10.0)
+//            }
+//        }
+        Text("Under Construction")
+/*
         List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
             NodeView(node: node)
                 .environmentObject(favIconRepository)
@@ -166,7 +168,7 @@ struct SidebarView: View {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
-                    if let folder = CDFolder.folder(id: id) {
+                    if let folder = Folder.folder(id: id) {
                         if folder.name != alertInput {
                             Task {
                                 do {
@@ -196,6 +198,7 @@ struct SidebarView: View {
         }, message: {
             Text("Rename the folder")
         })
+        */
     }
 
     @ViewBuilder

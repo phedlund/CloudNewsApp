@@ -12,8 +12,8 @@ enum NodeType: Equatable, Hashable {
     case empty
     case all
     case starred
-    case folder(id: Int32)
-    case feed(id: Int32)
+    case folder(id: Int64)
+    case feed(id: Int64)
 }
 
 extension NodeType {
@@ -29,7 +29,7 @@ extension NodeType {
         case _ where typeString.hasPrefix("folder"):
             if let index = typeString.lastIndex(of: "_") {
                 let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
-                let myId = Int32(idString)
+                let myId = Int64(idString)
                 return .folder(id: myId ?? 0)
             } else {
                 return .empty
@@ -37,7 +37,7 @@ extension NodeType {
         case _ where typeString.hasPrefix("feed"):
             if let index = typeString.lastIndex(of: "_") {
                 let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
-                let myId = Int32(idString)
+                let myId = Int64(idString)
                 return .feed(id: myId ?? 0)
             } else {
                 return .empty
