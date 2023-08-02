@@ -123,7 +123,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     func updateBadge(_ badgeValue: Int) {
         print("Badge updated")
         DispatchQueue.main.async {
-            UIApplication.shared.applicationIconBadgeNumber = badgeValue
+            UNUserNotificationCenter.current().setBadgeCount(badgeValue)
         }
     }
 

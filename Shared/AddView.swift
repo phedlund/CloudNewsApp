@@ -140,13 +140,14 @@ struct AddView: View {
                 folderNames = fNames
             }
         }
-        .onChange(of: folderSelection) { [folderSelection] newFolder in
-            if newFolder != folderSelection {
-                if let newFolder = Folder.folder(name: newFolder) {
+        .onChange(of: folderSelection, { oldValue, newValue in
+            if newValue != oldValue {
+                if let newFolder = Folder.folder(name: newValue) {
                     folderId = Int(newFolder.id)
                 }
             }
-        }
+
+        })
     }
 }
 

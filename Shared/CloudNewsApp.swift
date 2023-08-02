@@ -39,7 +39,7 @@ struct CloudNewsApp: App {
             AppCommands(model: feedModel)
         }
 #else
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
                 break

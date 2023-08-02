@@ -129,14 +129,14 @@ struct FeedSettingsView: View {
                     .buttonStyle(XButton())
                 }
             }
-            .onChange(of: folderSelection) { [folderSelection] newFolder in
-                if newFolder != folderSelection {
-                    onFolderSelection(newFolder == noFolderName ? "" : newFolder)
+            .onChange(of: folderSelection) { oldValue, newValue in
+                if newValue != oldValue {
+                    onFolderSelection(newValue == noFolderName ? "" : newValue)
                 }
             }
-            .onChange(of: preferWeb) { newValue in
+            .onChange(of: preferWeb) { _, newValue in
                 if let feed = self.feed {
-                    feed.preferWeb = preferWeb
+                    feed.preferWeb = newValue
                     do {
                         try moc.save()
                     } catch {
