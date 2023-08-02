@@ -63,3 +63,59 @@ final class Item {
         self.url = url
     }
 }
+
+extension Item: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case author = "author"
+        case dateFeedAuthor = "dateFeedAuthor"
+        case body = "body"
+        case displayBody = "displayBody"
+        case enclosureLink = "enclosureLink"
+        case enclosureMime = "enclosureMime"
+        case feedId = "feedId"
+        case fingerprint = "fingerprint"
+        case guid = "guid"
+        case guidHash = "guidHash"
+        case id = "id"
+        case lastModified = "lastModified"
+        case mediaThumbnail = "mediaThumbnail"
+        case mediaDescription = "mediaDescription"
+        case pubDate = "pubDate"
+        case rtl = "rtl"
+        case starred = "starred"
+        case title = "title"
+        case displayTitle = "displayTitle"
+        case unread = "unread"
+        case updatedDate = "updatedDate"
+        case url = "url"
+    }
+
+    convenience init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let author = try values.decodeIfPresent(String.self, forKey: .author)
+        let dateFeedAuthor = try values.decodeIfPresent(String.self, forKey: .dateFeedAuthor) ?? ""
+        let body = try values.decodeIfPresent(String.self, forKey: .body)
+        let displayBody = try values.decodeIfPresent(String.self, forKey: .displayBody) ?? ""
+        let enclosureLink = try values.decodeIfPresent(String.self, forKey: .enclosureLink)
+        let enclosureMime = try values.decodeIfPresent(String.self, forKey: .enclosureMime)
+        let feedId = try values.decode(Int64.self, forKey: .feedId)
+        let fingerprint = try values.decodeIfPresent(String.self, forKey: .fingerprint)
+        let guid = try values.decodeIfPresent(String.self, forKey: .guid)
+        let guidHash = try values.decodeIfPresent(String.self, forKey: .guidHash)
+        let id = try values.decode(Int64.self, forKey: .id)
+        let lastModified = try values.decode(Int64.self, forKey: .lastModified)
+        let mediaThumbnail = try values.decodeIfPresent(String.self, forKey: .mediaThumbnail)
+        let mediaDescription = try values.decodeIfPresent(String.self, forKey: .mediaDescription)
+        let pubDate = try values.decode(Int64.self, forKey: .pubDate)
+        let rtl = try values.decode(Bool.self, forKey: .rtl)
+        let starred = try values.decode(Bool.self, forKey: .starred)
+        let title = try values.decodeIfPresent(String.self, forKey: .title)
+        let displayTitle = try values.decodeIfPresent(String.self, forKey: .displayTitle) ?? ""
+        let unread = try values.decode(Bool.self, forKey: .unread)
+        let updatedDate = try values.decodeIfPresent(Int64.self, forKey: .updatedDate) ?? 0
+        let url = try values.decodeIfPresent(String.self, forKey: .url)
+        self.init(author: author, body: body, contentHash: nil, displayBody: displayBody, displayTitle: displayTitle, dateFeedAuthor: dateFeedAuthor, enclosureLink: enclosureLink, enclosureMime: enclosureMime, feedId: feedId, fingerprint: fingerprint, guid: guid, guidHash: guidHash, id: id, lastModified: lastModified, mediaThumbnail: mediaThumbnail, mediaDescription: mediaDescription, pubDate: pubDate, rtl: rtl, starred: starred, title: title, unread: unread, updatedDate: updatedDate, url: url)
+    }
+
+}

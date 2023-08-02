@@ -168,84 +168,94 @@ class ItemImporter {
 
     private func importItems(from propertiesList: [[String: Any]]) async throws {
         guard !propertiesList.isEmpty else { return }
-        
+
         if let container = NewsData.shared.container {
             do {
                 var currentItems = [[String: Any]]()
                 for listItem in propertiesList {
                     var currentItem = listItem
-//                    currentItem.addEntries(from: listItem)
-            var displayTitle = "Untitled"
+                    //                    currentItem.addEntries(from: listItem)
+                    var displayTitle = "Untitled"
                     if let title = listItem["title"] as? String {
-                displayTitle = plainSummary(raw: title)
-            }
+                        displayTitle = plainSummary(raw: title)
+                    }
                     currentItem["displayTitle"] = displayTitle
 
-            var summary = ""
+                    var summary = ""
                     if let body = listItem["body"] as? String {
-                summary = body
+                        summary = body
                     } else if let mediaDescription = listItem["mediaDescription"] as? String {
-                summary = mediaDescription
-            }
-            if !summary.isEmpty {
-                if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-                    if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-                        if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                           let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                            let sub = summary[start..<end]
-                            summary = summary.replacingOccurrences(of: sub, with: "")
+                        summary = mediaDescription
+                    }
+                    if !summary.isEmpty {
+                        if summary.range(of: "<style>", options: .caseInsensitive) != nil {
+                            if summary.range(of: "</style>", options: .caseInsensitive) != nil {
+                                if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
+                                   let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
+                                    let sub = summary[start..<end]
+                                    summary = summary.replacingOccurrences(of: sub, with: "")
+                                }
+                            }
                         }
                     }
-                }
-            }
                     currentItem["displayBody"] = plainSummary(raw: summary)
 
-            let clipLength = 50
-            var dateLabelText = ""
+                    let clipLength = 50
+                    var dateLabelText = ""
                     if let pubDate = listItem["pubDate"] as? Double {
-                let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
-                dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
+                        let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
+                        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
 
-                if !dateLabelText.isEmpty {
-                    dateLabelText.append(" | ")
-                }
-            }
+                        if !dateLabelText.isEmpty {
+                            dateLabelText.append(" | ")
+                        }
+                    }
                     if let itemAuthor = listItem["author"] as? String,
-               !itemAuthor.isEmpty {
-                if itemAuthor.count > clipLength {
-                    dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
-                    dateLabelText.append(String(0x2026))
-                } else {
-                    dateLabelText.append(itemAuthor)
-                }
-            }
+                       !itemAuthor.isEmpty {
+                        if itemAuthor.count > clipLength {
+                            dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
+                            dateLabelText.append(String(0x2026))
+                        } else {
+                            dateLabelText.append(itemAuthor)
+                        }
+                    }
 
                     if let feedId = listItem["feedId"] as? Int64,
                        let feed = Feed.feed(id: feedId),
-                let feedTitle = feed.title {
+                       let feedTitle = feed.title {
                         if let itemAuthor = listItem["author"] as? String,
-                   !itemAuthor.isEmpty {
-                    if feedTitle != itemAuthor {
-                        dateLabelText.append(" | \(feedTitle)")
+                           !itemAuthor.isEmpty {
+                            if feedTitle != itemAuthor {
+                                dateLabelText.append(" | \(feedTitle)")
+                            }
+                        } else {
+                            dateLabelText.append(feedTitle)
+                        }
                     }
-                } else {
-                    dateLabelText.append(feedTitle)
-                }
-            }
                     currentItem["dateFeedAuthor"] = dateLabelText
                     currentItems.append(currentItem)
                 }
-//                let success = try container.mainContext.insert(currentItems, model: Item.self)
-//                if success {
-//                    try await container.mainContext.save()
-//                }
+                //                let success = try container.mainContext.insert(currentItems, model: Item.self)
+                //                if success {
+                //                    try await container.mainContext.save()
+                //                }
+
+                let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
+                let items = try JSONDecoder().decode([Item].self, from: itemsData)
+                for item in items {
+                    await container.mainContext.insert(item)
+                }
+                try await container.mainContext.save()
+                //                        logger.debug("Start importing folder data to the store...")
+                //                        try await importFolders(from: folderDicts)
+                logger.debug("Finished importing item data.")
             } catch {
                 self.logger.debug("Failed to execute items insert request.")
                 throw DatabaseError.itemsFailedImport
             }
-            
+
         }
-        
+
     }
 
 }
