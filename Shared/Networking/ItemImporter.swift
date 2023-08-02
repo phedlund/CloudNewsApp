@@ -19,21 +19,23 @@ class FolderImporter {
                 switch httpResponse.statusCode {
                 case 200:
                     do {
-                        let folders = try JSONDecoder().decode([Folder].self, from: data)
+                        guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                              let folderDicts = foldersDict["folders"] as? [[String: Any]],
+                              !folderDicts.isEmpty else {
+                            return
+                        }
+                        logger.debug("Start importing folder data to the store...")
+                        let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
+
+                        let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
                         if let container = NewsData.shared.container {
                             for folder in folders {
                                 await container.mainContext.insert(folder)
                             }
                             try await container.mainContext.save()
-                            //                        guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                            //                              let folderDicts = foldersDict["folders"] as? [[String: Any]],
-                            //                              !folderDicts.isEmpty else {
-                            //                            return
-                            //                        }
-                            //
                             //                        logger.debug("Start importing folder data to the store...")
                             //                        try await importFolders(from: folderDicts)
-                            //                        logger.debug("Finished importing folder data.")
+                            logger.debug("Finished importing folder data.")
                         }
                     } catch {
                         self.logger.debug("Failed to execute folders insert request.")
@@ -91,7 +93,20 @@ class FeedImporter {
                     }
 
                     logger.debug("Start importing feed data to the store...")
-                    try await importFeeds(from: feedDicts)
+//                    try await importFeeds(from: feedDicts)
+                    let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
+
+                    let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
+                    if let container = NewsData.shared.container {
+                        for feed in feeds {
+                            await container.mainContext.insert(feed)
+                        }
+                        try await container.mainContext.save()
+                        //                        logger.debug("Start importing folder data to the store...")
+                        //                        try await importFolders(from: folderDicts)
+                        logger.debug("Finished importing folder data.")
+                    }
+
                     logger.debug("Finished importing feed data.")
                 default:
                     throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")

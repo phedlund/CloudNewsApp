@@ -46,6 +46,47 @@ final class Feed {
     }
 }
 
+extension Feed: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case added = "added"
+        case faviconLink = "faviconLink"
+        case folderId = "folderId"
+        case id = "id"
+        case lastUpdateError = "lastUpdateError"
+        case link = "link"
+        case ordering = "ordering"
+        case pinned = "pinned"
+        case title = "title"
+        case unreadCount = "unreadCount"
+        case updateErrorCount = "updateErrorCount"
+        case url = "url"
+    }
+
+    convenience init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let added = try values.decode(Int64.self, forKey: .added)
+        let faviconLink = try values.decodeIfPresent(String.self, forKey: .faviconLink)
+        var folderId: Int64 = 0
+        if let fId = try values.decodeIfPresent(Int64.self, forKey: .folderId) {
+            folderId = fId
+        }
+        let id = try values.decode(Int64.self, forKey: .id)
+        let lastUpdateError = try values.decodeIfPresent(String.self, forKey: .lastUpdateError)
+        let link = try values.decodeIfPresent(String.self, forKey: .link)
+        let ordering = try values.decode(Int64.self, forKey: .ordering)
+        let pinned = try values.decode(Bool.self, forKey: .pinned)
+        let title = try values.decodeIfPresent(String.self, forKey: .title)
+        var unreadCount: Int64 = 0
+        if let uCount = try values.decodeIfPresent(Int64.self, forKey: .unreadCount) {
+            unreadCount = uCount
+        }
+        let updateErrorCount = try values.decode(Int64.self, forKey: .updateErrorCount)
+        let url = try values.decodeIfPresent(String.self, forKey: .url)
+        self.init(added: added, faviconLink: faviconLink, folderId: folderId, id: id, lastUpdateError: lastUpdateError, link: link, ordering: ordering, pinned: pinned, title: title, unreadCount: unreadCount, updateErrorCount: updateErrorCount, url: url, items: [Item]())
+    }
+
+}
+
 extension Feed {
     static func all() -> [Feed]? {
         let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
