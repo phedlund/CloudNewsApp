@@ -378,8 +378,8 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
-    func renameFolder(folder: CDFolder, to name: String) async throws {
+*/
+    func renameFolder(folder: Folder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
         do {
             let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
@@ -404,7 +404,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
+/*
     func deleteFolder(_ id: Int) async throws {
         let deleteRouter = Router.deleteFolder(id: id)
         do {

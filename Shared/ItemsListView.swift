@@ -7,6 +7,7 @@
 
 import Combine
 import Kingfisher
+import SwiftData
 import SwiftUI
 
 struct ItemsListView: View {
@@ -33,10 +34,13 @@ struct ItemsListView: View {
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
+    @Binding var itemSelection: PersistentIdentifier?
+
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init() {
+    init(itemSelection: Binding<PersistentIdentifier?>) {
+        self._itemSelection = itemSelection
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -45,8 +49,6 @@ struct ItemsListView: View {
     
     var body: some View {
         let _ = Self._printChanges()
-        Text("Under Construction")
-/*
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
@@ -56,14 +58,14 @@ struct ItemsListView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
                 ScrollViewReader { proxy in
-                    List(feedModel.currentItems.indices, id: \.self, selection: feedModel.currentItemID) { index in
+                    List(feedModel.currentItems.indices, id: \.self, selection: $itemSelection) { index in
                         let item = feedModel.currentItems[index]
                         ZStackGroup(item: item) {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
                                     .id(index)
                                     .tag(item.objectID)
-                                    .environmentObject(favIconRepository)
+                                    .environment(favIconRepository)
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
 #endif
@@ -86,7 +88,7 @@ struct ItemsListView: View {
                         .listRowSeparator(listRowSeparatorVisibility)
                         .listRowBackground(listRowBackground)
                     }
-                    .onChange(of: $selectedNode.wrappedValue) { [oldValue = selectedNode] newValue in
+                    .onChange(of: $selectedNode.wrappedValue) { oldValue, newValue in
                         if newValue != oldValue {
                             proxy.scrollTo(0, anchor: .top)
                             offsetItemsDetector.send(0.0)
@@ -135,7 +137,6 @@ struct ItemsListView: View {
 #endif
             }
         }
- */
     }
 
     private func markRead(_ offset: CGFloat) {

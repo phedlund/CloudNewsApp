@@ -29,8 +29,7 @@ struct SidebarView: View {
     @State private var timerStart = Date.now
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
-    @Environment(\.managedObjectContext) private var moc
-    @Environment(\.feedModel) private var model
+    @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
@@ -54,40 +53,37 @@ struct SidebarView: View {
     }
 
     var body: some View {
-//        if isShowingError {
-//            HStack {
-//                Spacer(minLength: 10.0)
-//                HStack {
-//                    Text(errorMessage)
-//                        .colorInvert()
-//                    Spacer()
-//                    Button {
-//                        isShowingError = false
-//                    } label: {
-//                        Text("Dismiss")
-//                    }
-//                    .buttonStyle(.borderedProminent)
-//                }
-//                .frame(maxWidth: .infinity)
-//                .padding(.all, 10.0)
-//                .background(Color.red.opacity(0.95))
-//                .cornerRadius(6.0)
-//                .transition(.move(edge: .top))
-//                Spacer(minLength: 10.0)
-//            }
-//        }
-        Text("Under Construction")
-/*
-        List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        if isShowingError {
+            HStack {
+                Spacer(minLength: 10.0)
+                HStack {
+                    Text(errorMessage)
+                        .colorInvert()
+                    Spacer()
+                    Button {
+                        isShowingError = false
+                    } label: {
+                        Text("Dismiss")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.all, 10.0)
+                .background(Color.red.opacity(0.95))
+                .cornerRadius(6.0)
+                .transition(.move(edge: .top))
+                Spacer(minLength: 10.0)
+            }
+        }
+        List(feedModel.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
             NodeView(node: node)
-                .environmentObject(favIconRepository)
                 .tag(node.id)
                 .contextMenu {
                     contextMenu(node: node)
                 }
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
                     Button(role: .destructive) {
-                        model.delete(detail)
+                        feedModel.delete(detail)
                     } label: {
                         Text("Delete \(detail.title)")
                     }
@@ -118,16 +114,16 @@ struct SidebarView: View {
             isSyncing = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
-            confirmationNode = model.currentNode
+            confirmationNode = feedModel.currentNode
             isShowingConfirmation = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
-            confirmationNode = model.currentNode
-            alertInput = model.currentNode.title
+            confirmationNode = feedModel.currentNode
+            alertInput = feedModel.currentNode.title
             isShowingRename = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
-            confirmationNode = model.currentNode
+            confirmationNode = feedModel.currentNode
             isShowingConfirmation = true
         }
 #if os(macOS)
@@ -161,10 +157,10 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
-        .alert(Text(model.currentNode.title), isPresented: $isShowingRename, actions: {
+        .alert(Text(feedModel.currentNode.title), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
-                switch model.currentNode.nodeType {
+                switch feedModel.currentNode.nodeType {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
@@ -174,7 +170,7 @@ struct SidebarView: View {
                                 do {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
-                                    try moc.save()
+                                    // TODO try moc.save()
                                 } catch let error as NetworkError {
                                     errorMessage = error.localizedDescription
                                     isShowingError = true
@@ -198,7 +194,6 @@ struct SidebarView: View {
         }, message: {
             Text("Rename the folder")
         })
-        */
     }
 
     @ViewBuilder
@@ -212,7 +207,7 @@ struct SidebarView: View {
             MarkReadButton(node: node)
             Button {
                 selectedFeed = Int(folderId)
-                alertInput = model.currentNode.title
+                alertInput = feedModel.currentNode.title
                 isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")

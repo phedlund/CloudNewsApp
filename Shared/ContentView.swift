@@ -6,23 +6,49 @@
 //
 
 import Combine
-import CoreData
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.feedModel) private var model
+    @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
-    @Environment(\.managedObjectContext) private var moc
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
     @AppStorage(SettingKeys.selectedNode) private var selectedNodeID: Node.ID?
+    @AppStorage(SettingKeys.selectedItem) private var selectedItem: Data?
+
+    @Query private var folders: [Folder]
+    @Query private var feeds: [Feed]
 
     @State private var isShowingLogin = false
 
     private var selection: Binding<Node.ID?> {
         Binding(get: { selectedNodeID }, set: { selectedNodeID = $0 ?? "" })
+    }
+
+    private var itemSelection: Binding<PersistentIdentifier?> {
+        Binding(get: {
+            if let selectedItem {
+                do {
+                    let decoder = JSONDecoder()
+                    return try decoder.decode(PersistentIdentifier.self, from: selectedItem)
+                } catch {
+                    return nil
+                }
+            } else {
+                return nil
+            }
+        },
+                set: {
+            let encoder = JSONEncoder()
+            do {
+                selectedItem = try encoder.encode($0)
+            } catch {
+                selectedItem = nil
+            }
+        })
     }
 
 //    private var selectedNode: Binding<Node> {
@@ -35,16 +61,16 @@ struct ContentView: View {
 #if os(iOS)
         NavigationSplitView {
             SidebarView(nodeSelection: selection)
-                .environment(model)
+                .environment(feedModel)
                 .environment(favIconRepository)
         } detail: {
             ZStack {
-                if model.currentNodeID != Constants.emptyNodeGuid {
-                    ItemsListView()
-                        .environment(model)
+                if feedModel.currentNodeID != Constants.emptyNodeGuid {
+                    ItemsListView(itemSelection: itemSelection)
+                        .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {
-                            ItemListToolbarContent(node: model.currentNode)
+                            ItemListToolbarContent(node: feedModel.currentNode)
                         }
                 } else {
                     Text("No Feed Selected")
@@ -52,7 +78,7 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle(model.currentNode.title)
+            .navigationTitle(feedModel.currentNode.title)
             .onAppear {
                 isShowingLogin = isNewInstall
             }
@@ -61,6 +87,14 @@ struct ContentView: View {
                     SettingsView()
                 }
             }
+        }
+        .onChange(of: folders, initial: true) { oldValue, newValue in
+            print("Folders changed")
+            feedModel.folders = newValue
+        }
+        .onChange(of: feeds, initial: true) { oldValue, newValue in
+            feedModel.feeds = newValue
+            favIconRepository.update()
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {

@@ -172,8 +172,8 @@ class FeedModel {
         self.publishItems()
     }
 
-//    func delete(_ node: Node) {
-//        switch node.nodeType {
+    func delete(_ node: Node) {
+//        TODO switch node.nodeType {
 //        case .empty, .all, .starred:
 //            break
 //        case .folder(let id):
@@ -208,7 +208,7 @@ class FeedModel {
 //                }
 //            }
 //        }
-//    }
+    }
 
     private func node(for id: Node.ID) -> Node? {
         if let node = nodes.first(where: { $0.id == id} ) {
