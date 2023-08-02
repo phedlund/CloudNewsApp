@@ -34,8 +34,8 @@ struct ShareLinkButton: View {
     @State var item: Item
     
     var body: some View {
-        let subject = item.title ?? "Untitled"
-        let message = item.displayBody
+//        TODO let subject = item.title ?? "Untitled"
+//        let message = item.displayBody
 //        if let url = item.webViewHelper.url {
 //            if url.scheme?.hasPrefix("file") ?? false {
 //                if let urlString = item.url, let itemUrl = URL(string: urlString) {

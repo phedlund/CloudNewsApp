@@ -39,7 +39,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-/*
+
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {
@@ -49,20 +49,21 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    if let feeds: Feeds = try getType(from: data),
-                       let feedArray = feeds.feeds,
-                       let newFeed = feedArray.first {
-                        let newFeedId = newFeed.id
-                        try await CDFeed.add(feeds: feedArray, using: NewsData.shared.container.viewContext)
-                        try NewsData.shared.container.viewContext.save()
-                        let parameters: ParameterDict = ["batchSize": 200,
-                                                         "offset": 0,
-                                                         "type": 0,
-                                                         "id": newFeedId,
-                                                         "getRead": NSNumber(value: true)]
-                        let router = Router.items(parameters: parameters)
-                        try await ItemImporter().fetchItems(router.urlRequest())
-                    }
+                    break
+//                    TODO if let feeds: Feeds = try getType(from: data),
+//                       let feedArray = feeds.feeds,
+//                       let newFeed = feedArray.first {
+//                        let newFeedId = newFeed.id
+//                        try await CDFeed.add(feeds: feedArray, using: NewsData.shared.container.viewContext)
+//                        try NewsData.shared.container.viewContext.save()
+//                        let parameters: ParameterDict = ["batchSize": 200,
+//                                                         "offset": 0,
+//                                                         "type": 0,
+//                                                         "id": newFeedId,
+//                                                         "getRead": NSNumber(value: true)]
+//                        let router = Router.items(parameters: parameters)
+//                        try await ItemImporter().fetchItems(router.urlRequest())
+//                    }
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -79,7 +80,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-    
+
     func addFolder(name: String) async throws {
         let router = Router.addFolder(name: name)
         do {
@@ -89,11 +90,12 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    if let folders: Folders = try getType(from: data),
-                        let folderArray = folders.folders {
-                        try await CDFolder.add(folders: folderArray, using: NewsData.shared.container.viewContext)
-                        try NewsData.shared.container.viewContext.save()
-                    }
+                    break
+//                    TODO if let folders: Folders = try getType(from: data),
+//                        let folderArray = folders.folders {
+//                        try await CDFolder.add(folders: folderArray, using: NewsData.shared.container.viewContext)
+//                        try NewsData.shared.container.viewContext.save()
+//                    }
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -110,7 +112,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-*/
+
     func markRead(items: [Item], unread: Bool) async throws {
         do {
 //            try await ItemReadManager.shared.markRead(items: items, unread: unread)
@@ -120,7 +122,7 @@ class NewsManager {
     }
 
     func markStarred(item: Item, starred: Bool) async throws {
-//        do {
+//        TODO do {
 //            try await Item.markStarred(itemId: item.id, state: starred)
 //            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
 //                                                        "guidHash": item.guidHash as Any]]]
@@ -306,8 +308,8 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-/*
-    func moveFeed(feed: CDFeed, to folder: Int32) async throws {
+
+    func moveFeed(feed: Feed, to folder: Int64) async throws {
         let moveFeedRouter = Router.moveFeed(id: Int(feed.id), folder: Int(folder))
         do {
             let (_, moveResponse) = try await session.data(for: moveFeedRouter.urlRequest(), delegate: nil)
@@ -328,7 +330,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-*/
+
     func renameFeed(feed: Feed, to name: String) async throws {
         let renameRouter = Router.renameFeed(id: Int(feed.id), newName: name)
         do {

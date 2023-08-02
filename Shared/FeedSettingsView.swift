@@ -193,9 +193,9 @@ struct FeedSettingsView: View {
                     newFolderId = newFolder.id
                 }
                 do {
-//                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
-//                    feed.folderId = newFolderId
-//                    try moc.save()
+                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
+                    feed.folderId = newFolderId
+//                  TODO  try moc.save()
                 } catch let error as NetworkError {
                     folderSelection = initialFolderSelection
                     footerMessage = error.localizedDescription

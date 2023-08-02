@@ -63,7 +63,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        // TODO try await NewsManager.shared.addFeed(url: input, folderId: folderId)
+                                        try await NewsManager.shared.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -82,7 +82,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        //  TODO try await NewsManager.shared.addFolder(name: input)
+                                        try await NewsManager.shared.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
