@@ -32,6 +32,8 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
+    @Query private var items: [Item]
+
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
     @Binding var itemSelection: PersistentIdentifier?
@@ -39,8 +41,32 @@ struct ItemsListView: View {
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init(itemSelection: Binding<PersistentIdentifier?>) {
+    init(nodeSelection: Node.ID, itemSelection: Binding<PersistentIdentifier?>) {
         self._itemSelection = itemSelection
+        var predicate = #Predicate<Item>{ _ in return false }
+        switch NodeType.fromString(typeString: nodeSelection) {
+        case .empty:
+            predicate = #Predicate<Item>{ _ in
+                return false
+            }
+        case .all:
+            predicate = #Predicate<Item>{ _ in
+                return true
+            }
+        case .starred:
+            predicate = #Predicate<Item>{ $0.starred == true }
+        case .folder(id:  let id):
+            if let feedIds = Feed.idsInFolder(folder: id) {
+                predicate = #Predicate<Item>{
+                    return feedIds.contains($0.feedId)
+                }
+            }
+        case .feed(id: let id):
+            predicate = #Predicate<Item>{
+                return $0.feedId == id
+            }
+        }
+        _items = Query(filter: predicate)
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -58,8 +84,8 @@ struct ItemsListView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
                 ScrollViewReader { proxy in
-                    List(feedModel.currentItems.indices, id: \.self, selection: $itemSelection) { index in
-                        let item = feedModel.currentItems[index]
+                    let indexedQuery = items.enumerated().map({ $0 })
+                    List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
                         ZStackGroup(item: item) {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
@@ -69,7 +95,6 @@ struct ItemsListView: View {
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
 #endif
-
                                     .contextMenu {
                                         ContextMenuContent(item: item)
                                     }
@@ -108,13 +133,13 @@ struct ItemsListView: View {
 #endif
                     cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
                 }
-                .onChange(of: $compactView.wrappedValue) {
-                    cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
+                .onChange(of: $compactView.wrappedValue) { _, newValue in
+                    cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                 }
-                .onChange(of: hideRead) { _ in
+                .onChange(of: hideRead) { _, _ in
                     feedModel.updateVisibleItems()
                 }
-                .onChange(of: sortOldestFirst) { _ in
+                .onChange(of: sortOldestFirst) { _, _ in
                     feedModel.updateItemSorting()
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
@@ -122,8 +147,8 @@ struct ItemsListView: View {
                         await markRead(newOffset)
                     }
                 }
-                .onChange(of: scenePhase) { phase in
-                    switch phase {
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    switch newPhase {
                     case .active:
                         feedModel.currentNodeID = selectedNode
                     default:
@@ -131,8 +156,8 @@ struct ItemsListView: View {
                     }
                 }
 #if !os(macOS)
-                .onChange(of: horizontalSizeClass) {
-                    isHorizontalCompact = $0 == .compact
+                .onChange(of: horizontalSizeClass) { _, newValue in
+                    isHorizontalCompact = newValue == .compact
                 }
 #endif
             }
@@ -145,7 +170,7 @@ struct ItemsListView: View {
             let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
             print("Number of items \(numberOfItems)")
             if numberOfItems > 0 {
-                let itemsToMarkRead = feedModel.currentItems.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
                 print("Number of unread items \(itemsToMarkRead.count)")
                 if !itemsToMarkRead.isEmpty {
                     Task(priority: .userInitiated) {

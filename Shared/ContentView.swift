@@ -65,8 +65,8 @@ struct ContentView: View {
                 .environment(favIconRepository)
         } detail: {
             ZStack {
-                if feedModel.currentNodeID != Constants.emptyNodeGuid {
-                    ItemsListView(itemSelection: itemSelection)
+                if selection.wrappedValue != Constants.emptyNodeGuid {
+                    ItemsListView(nodeSelection: selection.wrappedValue ?? Constants.emptyNodeGuid, itemSelection: itemSelection)
                         .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {
