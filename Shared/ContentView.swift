@@ -16,57 +16,26 @@ struct ContentView: View {
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
-    @AppStorage(SettingKeys.selectedNode) private var selectedNodeID: Node.ID?
-    @AppStorage(SettingKeys.selectedItem) private var selectedItem: Data?
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
 
     @Query private var folders: [Folder]
     @Query private var feeds: [Feed]
 
     @State private var isShowingLogin = false
-
-    private var selection: Binding<Node.ID?> {
-        Binding(get: { selectedNodeID }, set: { selectedNodeID = $0 ?? "" })
-    }
-
-    private var itemSelection: Binding<PersistentIdentifier?> {
-        Binding(get: {
-            if let selectedItem {
-                do {
-                    let decoder = JSONDecoder()
-                    return try decoder.decode(PersistentIdentifier.self, from: selectedItem)
-                } catch {
-                    return nil
-                }
-            } else {
-                return nil
-            }
-        },
-                set: {
-            let encoder = JSONEncoder()
-            do {
-                selectedItem = try encoder.encode($0)
-            } catch {
-                selectedItem = nil
-            }
-        })
-    }
-
-//    private var selectedNode: Binding<Node> {
-//        feedModel[selection.wrappedValue]
-//    }
-
+    @State private var selectedNodeID: Node.ID?
+    @State private var selectedItem: String?
 
     var body: some View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: selection)
+            SidebarView(nodeSelection: $selectedNodeID)
                 .environment(feedModel)
                 .environment(favIconRepository)
         } detail: {
             ZStack {
-                if selection.wrappedValue != Constants.emptyNodeGuid {
-                    ItemsListView(nodeSelection: selection.wrappedValue ?? Constants.emptyNodeGuid, itemSelection: itemSelection)
+                if selectedNodeID != Constants.emptyNodeGuid {
+                    ItemsListView(nodeSelection: selectedNodeID, itemSelection: $selectedItem)
                         .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {
@@ -95,6 +64,12 @@ struct ContentView: View {
         .onChange(of: feeds, initial: true) { oldValue, newValue in
             feedModel.feeds = newValue
             favIconRepository.update()
+        }
+        .onChange(of: selectedNodeID, initial: false) { _, newValue in
+            selectedNode = newValue
+        }
+        .task {
+            selectedNodeID = selectedNode
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {

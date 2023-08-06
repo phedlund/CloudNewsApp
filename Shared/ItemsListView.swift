@@ -30,21 +30,22 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
 
     @Query private var items: [Item]
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
-    @Binding var itemSelection: PersistentIdentifier?
+    var nodeSelection: Node.ID?
+    @Binding var itemSelection: String?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init(nodeSelection: Node.ID, itemSelection: Binding<PersistentIdentifier?>) {
+    init(nodeSelection: Node.ID?, itemSelection: Binding<String?>) {
+        self.nodeSelection = nodeSelection
         self._itemSelection = itemSelection
         var predicate = #Predicate<Item>{ _ in return false }
-        switch NodeType.fromString(typeString: nodeSelection) {
+        switch NodeType.fromString(typeString: nodeSelection ?? Constants.emptyNodeGuid) {
         case .empty:
             predicate = #Predicate<Item>{ _ in
                 return false
@@ -85,7 +86,7 @@ struct ItemsListView: View {
             ListGroup {
                 ScrollViewReader { proxy in
                     let indexedQuery = items.enumerated().map({ $0 })
-                    List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
+                    List(indexedQuery, id: \.element.id, selection: Binding($itemSelection)) { index, item in
                         ZStackGroup(item: item) {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
@@ -113,12 +114,12 @@ struct ItemsListView: View {
                         .listRowSeparator(listRowSeparatorVisibility)
                         .listRowBackground(listRowBackground)
                     }
-                    .onChange(of: $selectedNode.wrappedValue) { oldValue, newValue in
-                        if newValue != oldValue {
-                            proxy.scrollTo(0, anchor: .top)
-                            offsetItemsDetector.send(0.0)
-                        }
-                    }
+//                    .onChange(of: $nodeSelection.wrappedValue) { oldValue, newValue in
+//                        if newValue != oldValue {
+//                            proxy.scrollTo(0, anchor: .top)
+//                            offsetItemsDetector.send(0.0)
+//                        }
+//                    }
                 }
                 .newsNavigationDestination(type: Item.self, model: feedModel)
                 .listStyle(.plain)
@@ -150,7 +151,7 @@ struct ItemsListView: View {
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     switch newPhase {
                     case .active:
-                        feedModel.currentNodeID = selectedNode
+                        feedModel.currentNodeID = nodeSelection
                     default:
                         break
                     }

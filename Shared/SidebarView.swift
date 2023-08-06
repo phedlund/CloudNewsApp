@@ -31,8 +31,9 @@ struct SidebarView: View {
 #endif
     @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
-    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
+
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
+
     @State private var modalSheet: ModalSheet?
     @State private var isSyncing = false
     @State private var isShowingConfirmation = false
@@ -45,12 +46,9 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: Node.ID?
 
-    private var syncPublisher = NewsManager.shared.syncSubject
-        .receive(on: DispatchQueue.main)
-
-    init(nodeSelection: Binding<Node.ID?>) {
-        self._nodeSelection = nodeSelection
-    }
+//    private var syncPublisher = NewsManager.shared.syncSubject
+//        .receive(on: DispatchQueue.main)
+//
 
     var body: some View {
         if isShowingError {
@@ -110,9 +108,9 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar(content: sidebarToolBarContent)
-        .onReceive(syncPublisher) { _ in
-            isSyncing = false
-        }
+//        .onReceive(syncPublisher) { _ in
+//            isSyncing = false
+//        }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
             confirmationNode = feedModel.currentNode
             isShowingConfirmation = true
@@ -147,7 +145,8 @@ struct SidebarView: View {
                 }
             case .feedSettings:
                 NavigationView {
-                    FeedSettingsView(selectedFeed)
+                    EmptyView()
+//                    FeedSettingsView(selectedFeed)
                 }
             case .login:
                 NavigationView {
@@ -206,7 +205,7 @@ struct SidebarView: View {
         case .folder(let folderId):
             MarkReadButton(node: node)
             Button {
-                selectedFeed = Int(folderId)
+//                selectedFeed = Int(folderId)
                 alertInput = feedModel.currentNode.title
                 isShowingRename = true
             } label: {
@@ -224,7 +223,7 @@ struct SidebarView: View {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
-                selectedFeed = Int(feedId)
+//                selectedFeed = Int(feedId)
                 modalSheet = .feedSettings
 #endif
             } label: {
