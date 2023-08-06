@@ -21,11 +21,11 @@ enum FetchError: Error {
 
 struct FavIcon {
     var name = ""
-    #if os(macOS)
+#if os(macOS)
     var image: NSImage
-    #else
+#else
     var image: UIImage
-    #endif
+#endif
 }
 
 @Observable
@@ -49,21 +49,21 @@ class FavIconRepository {
             do {
                 try await self.fetch()
             } catch { }
-        if let feeds = Feed.all() {
-            for feed in feeds {
-                ImageCache.default.retrieveImage(forKey: "feed_\(feed.id)") { result in
-                    switch result {
-                    case .success(let value):
-                        self.icons["feed_\(feed.id)"] = FavIcon(image: value.image ??  self.defaultIcon.image)
-                    case .failure( _):
-                        self.icons["feed_\(feed.id)"] = self.defaultIcon
+            if let feeds = Feed.all() {
+                for feed in feeds {
+                    ImageCache.default.retrieveImage(forKey: "feed_\(feed.id)") { result in
+                        switch result {
+                        case .success(let value):
+                            self.icons["feed_\(feed.id)"] = FavIcon(image: value.image ??  self.defaultIcon.image)
+                        case .failure( _):
+                            self.icons["feed_\(feed.id)"] = self.defaultIcon
+                        }
                     }
                 }
             }
         }
     }
-    }
-
+    
     private func fetch() async throws {
         if let feeds = Feed.all() {
             for feed in feeds {
