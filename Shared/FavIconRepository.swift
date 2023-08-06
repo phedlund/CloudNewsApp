@@ -40,6 +40,7 @@ class FavIconRepository {
     init() {
         icons["all"] = defaultIcon
         icons["starred"] = FavIcon(name: "star.fill", image: SystemImage())
+        icons["folder"] = FavIcon(name: "folder", image: SystemImage())
         update()
     }
 
@@ -48,13 +49,6 @@ class FavIconRepository {
             do {
                 try await self.fetch()
             } catch { }
-        if let folders = Folder.all() {
-            for folder in folders {
-                Task {
-                    self.icons["folder_\(folder.id)"] = FavIcon(name: "folder", image: SystemImage())
-                }
-            }
-        }
         if let feeds = Feed.all() {
             for feed in feeds {
                 ImageCache.default.retrieveImage(forKey: "feed_\(feed.id)") { result in

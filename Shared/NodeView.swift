@@ -36,8 +36,8 @@ struct NodeView: View {
                     FavIconView(favIcon: favIconRepository.icons["all"] ?? favIconRepository.defaultIcon)
                 case .starred:
                     FavIconView(favIcon: favIconRepository.icons["starred"] ?? favIconRepository.defaultIcon)
-                case .folder(let id):
-                    FavIconView(favIcon: favIconRepository.icons["folder_\(id)"] ?? favIconRepository.defaultIcon)
+                case .folder( _):
+                    FavIconView(favIcon: favIconRepository.icons["folder"] ?? favIconRepository.defaultIcon)
                 case .feed(let id):
                     FavIconView(favIcon: favIconRepository.icons["feed_\(id)"] ?? favIconRepository.defaultIcon)
                 }
