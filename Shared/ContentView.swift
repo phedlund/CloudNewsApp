@@ -42,9 +42,9 @@ struct ContentView: View {
                             ItemListToolbarContent(node: feedModel.currentNode)
                         }
                 } else {
-                    Text("No Feed Selected")
-                        .font(.largeTitle).fontWeight(.light)
-                        .foregroundColor(.secondary)
+                    ContentUnavailableView("No Feed Selected",
+                                           image: "rss",
+                                           description: Text("Select a feed from the list to display its articles"))
                 }
             }
             .navigationTitle(feedModel.currentNode.title)
