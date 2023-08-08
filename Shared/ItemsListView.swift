@@ -114,12 +114,12 @@ struct ItemsListView: View {
                         .listRowSeparator(listRowSeparatorVisibility)
                         .listRowBackground(listRowBackground)
                     }
-//                    .onChange(of: $nodeSelection.wrappedValue) { oldValue, newValue in
-//                        if newValue != oldValue {
-//                            proxy.scrollTo(0, anchor: .top)
-//                            offsetItemsDetector.send(0.0)
-//                        }
-//                    }
+                    .onChange(of: selectedNode) { oldValue, newValue in
+                        if newValue != oldValue {
+                            proxy.scrollTo(0, anchor: .top)
+                            offsetItemsDetector.send(0.0)
+                        }
+                    }
                 }
                 .newsNavigationDestination(type: Item.self, model: feedModel)
                 .listStyle(.plain)
