@@ -40,7 +40,7 @@ struct FeedSettingsView: View {
             let names = folders.compactMap( { $0.name } )
             fNames.append(contentsOf: names)
             self._folderNames = State(initialValue: fNames)
-            if let folder = Folder.folder(id: theFeed.folderId ?? 0),
+            if let folder = Folder.folder(id: theFeed.folderId),
                let folderName = folder.name {
                 self._folderSelection = State(initialValue: folderName)
                 initialFolderSelection = folderName
