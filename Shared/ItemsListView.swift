@@ -30,6 +30,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
 
     @Query private var items: [Item]
 
@@ -91,7 +92,7 @@ struct ItemsListView: View {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
                                     .id(index)
-                                    .tag(item.objectID)
+                                    .tag(item.persistentModelID)
                                     .environment(favIconRepository)
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
@@ -121,7 +122,7 @@ struct ItemsListView: View {
                         }
                     }
                 }
-                .newsNavigationDestination(type: Item.self, model: feedModel)
+                .newsNavigationDestination(type: Item.self, items: items)
                 .listStyle(.plain)
                 .accentColor(.pbh.darkIcon)
                 .background {
@@ -186,14 +187,16 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
+    @Environment(\.feedModel) private var feedModel
     let type: Item.Type
-    let model: FeedModel
+    let items: [Item]
 
     @ViewBuilder func body(content: Content) -> some View {
 #if os(iOS)
         content
             .navigationDestination(for: type) { item in
-                ArticlesPageView(item: item, items: model.currentItems)
+                ArticlesPageView(item: item, items: items)
+                    .environment(feedModel)
             }
 
 #else
@@ -203,7 +206,7 @@ struct NavigationDestinationModifier: ViewModifier {
 }
 
 extension View {
-    func newsNavigationDestination(type: Item.Type, model: FeedModel) -> some View {
-        modifier(NavigationDestinationModifier(type: Item.self, model: model))
+    func newsNavigationDestination(type: Item.Type, items: [Item]) -> some View {
+        modifier(NavigationDestinationModifier(type: Item.self, items: items))
     }
 }

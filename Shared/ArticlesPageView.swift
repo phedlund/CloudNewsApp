@@ -10,7 +10,8 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
-    @Environment(\.managedObjectContext) private var moc
+    @Environment(\.feedModel) private var feedModel
+
     @State private var item: Item
     @State private var selection: PersistentIdentifier
     @State private var isShowingPopover = false
@@ -18,21 +19,23 @@ struct ArticlesPageView: View {
     @State private var canGoForward = false
     @State private var isLoading = false
     @State private var title = ""
-    @State private var webViewHelper = ItemWebViewHelper()
+    @State private var webViewHelper: ItemWebViewHelper
 
     private let items: [Item]
 
     init(item: Item, items: [Item]) {
         self.items = items
         self._item = State(initialValue: item)
-        self._selection = State(initialValue: item.objectID)
+        self._selection = State(initialValue: item.persistentModelID)
+        self._webViewHelper = State(initialValue: ItemWebViewHelper())
     }
 
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(items, id: \.objectID) { item in
+            ForEach(items, id: \.persistentModelID) { item in
                 ArticleView(item: item)
-                    .tag(item.objectID)
+                    .id(item.persistentModelID)
+                    .environment(feedModel)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -41,29 +44,25 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
         .onAppear {
-//            markItemRead()
-//            if let item = moc.object(with: item.objectID) as? Item {
-//                webViewHelper = item.webViewHelper
-//            }
-        }
-        .onChange(of: selection) {
             markItemRead()
-//            if let item = moc.object(with: $0) as? Item {
-//                webViewHelper = item.webViewHelper
-//            }
+            webViewHelper = feedModel.currentWebViewHelper
         }
-        .onReceive(webViewHelper.$canGoBack) {
-            canGoBack = $0
+        .onChange(of: selection) { _, newValue in
+            markItemRead()
+            webViewHelper = feedModel.currentWebViewHelper
         }
-        .onReceive(webViewHelper.$canGoForward) {
-            canGoForward = $0
+        .onChange(of: webViewHelper.canGoBack) { _, newValue in
+            canGoBack = newValue
         }
-        .onReceive(webViewHelper.$isLoading) {
-            isLoading = $0
+        .onChange(of: webViewHelper.canGoForward) { _, newValue in
+            canGoForward = newValue
         }
-        .onReceive(webViewHelper.$title) {
-            if $0 != title {
-                title = $0
+        .onChange(of: webViewHelper.isLoading) { _, newValue in
+            isLoading = newValue
+        }
+        .onChange(of: webViewHelper.title) { _, newValue in
+            if newValue != title {
+                title = newValue
             }
         }
         .toolbar(content: pageViewToolBarContent)
@@ -100,7 +99,7 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-//            if let item = NewsData.shared.viewContext?.object(with: selection) as? Item {
+//            if let item = NewsData.shared.container?.mainContext.object(with: item.objectID) as? Item {
 //                ShareLinkButton(item: item)
 //                    .disabled(isLoading)
 //            } else {

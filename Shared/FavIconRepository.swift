@@ -41,13 +41,14 @@ class FavIconRepository {
         icons["all"] = defaultIcon
         icons["starred"] = FavIcon(name: "star.fill", image: SystemImage())
         icons["folder"] = FavIcon(name: "folder", image: SystemImage())
-        update()
+//        update()
     }
 
     func update() {
         Task {
             do {
                 try await self.fetch()
+                print("Done fetching icons")
             } catch { }
             if let feeds = Feed.all() {
                 for feed in feeds {
@@ -60,6 +61,7 @@ class FavIconRepository {
                         }
                     }
                 }
+                print("Done loading icons")
             }
         }
     }

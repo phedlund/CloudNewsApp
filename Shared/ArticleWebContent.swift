@@ -7,11 +7,14 @@
 //
 
 import Combine
+import Observation
 import SwiftSoup
 import SwiftUI
 
-class ArticleWebContent: ObservableObject {
-    @Published public var url: URL?
+@Observable
+class ArticleWebContent {
+    var url: URL?
+
     private let author: String
     private let title: String
     private let feedTitle: String
@@ -140,7 +143,7 @@ class ArticleWebContent: ObservableObject {
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
                 url = saveUrl
-                objectWillChange.send()
+//                objectWillChange.send()
             }
         } catch(let error) {
             print(error.localizedDescription)
@@ -242,6 +245,14 @@ class ArticleWebContent: ObservableObject {
             }
         """
     }
+
+}
+
+extension ArticleWebContent: Equatable {
+    static func == (lhs: ArticleWebContent, rhs: ArticleWebContent) -> Bool {
+        return lhs.url != nil && rhs.url != nil && lhs.url == rhs.url
+    }
+    
 
 }
 

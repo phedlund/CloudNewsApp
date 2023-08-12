@@ -18,6 +18,7 @@ class FeedModel {
     var currentItem: Item? = nil
     var currentNodeID: Node.ID? = nil
     var currentItemID: PersistentIdentifier? = nil
+    var currentWebViewHelper = ItemWebViewHelper()
 
 //    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 //    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
@@ -152,14 +153,14 @@ class FeedModel {
     }
 
     func selectPreviousItem() {
-        if let currentIndex = currentItems.first(where: { $0.objectID == currentItemID }) {
-            currentItemID = currentItems.element(before: currentIndex)?.objectID
+        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
+            currentItemID = currentItems.element(before: currentIndex)?.persistentModelID
         }
     }
 
     func selectNextItem() {
-        if let currentIndex = currentItems.first(where: { $0.objectID == currentItemID }) {
-            currentItemID = currentItems.element(after: currentIndex)?.objectID
+        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
+            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
         }
     }
 

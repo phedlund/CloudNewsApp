@@ -12,27 +12,27 @@ import SwiftData
 final class Feed {
     var added: Int64
     var faviconLink: String?
-    var folderId: Int64? = 0
+    var folderId: Int64
     @Attribute(.unique) var id: Int64
-    var lastModified: Int64 = Int64(Date().timeIntervalSince1970)
+    var lastModified: Int64
     var lastUpdateError: String?
     var link: String?
     var ordering: Int64
     var pinned: Bool
-    var preferWeb: Bool = false
+    var preferWeb: Bool
     var title: String?
     var unreadCount: Int64
     var updateErrorCount: Int64
     var url: String?
-    var useReader: Bool = false
+    var useReader: Bool
 
-    @Relationship(.cascade)
-    var items: [Item] = [Item]()
+    @Relationship
+    var items: [Item]
 
-    init(added: Int64, faviconLink: String? = nil, folderId: Int64? = nil, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
+    init(added: Int64, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
-        self.folderId = folderId
+        self.folderId = folderId ?? 0
         self.id = id
         self.lastUpdateError = lastUpdateError
         self.link = link
@@ -42,6 +42,10 @@ final class Feed {
         self.unreadCount = unreadCount
         self.updateErrorCount = updateErrorCount
         self.url = url
+
+        self.preferWeb = false
+        self.useReader = false
+        self.lastModified = Int64(Date().timeIntervalSince1970)
         self.items = items
     }
 }

@@ -58,7 +58,7 @@ class FolderImporter {
         if let container = NewsData.shared.container {
             do {
                 for f in propertiesList {
-                    let folder = Folder(id: f["id"] as! Int64, opened: false, lastModified: 0, name: (f["name"] as! String) , unreadCount: 0, feeds: [Feed]())
+                    let folder = Folder(id: f["id"] as! Int64, opened: false, lastModified: 0, name: (f["name"] as! String), feeds: [Feed]())
                     await container.mainContext.insert(folder)
                 }
 //                let success = try container.mainContext.insert(propertiesList, model: Folder.self)

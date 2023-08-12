@@ -7,37 +7,36 @@
 
 import Combine
 import Foundation
+import Observation
 import WebKit
 
-class ItemWebViewHelper: ObservableObject {
+@Observable
+class ItemWebViewHelper {
 
-    @Published public var canGoBack = false
-    @Published public var canGoForward = false
-    @Published public var isLoading = false
-    @Published public var title = ""
-    @Published public var url: URL?
+    var canGoBack = false
+    var canGoForward = false
+    var isLoading = false
+    var title = ""
+    var url: URL?
 
-    var item: Item?
     var urlRequest: URLRequest?
 
-    var webView: WKWebView? {
-        didSet {
-            setupObservations()
-        }
-    }
+    var webView: WKWebView?
 
-    private var content: ArticleWebContent?
+    var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
+
+    var item: Item?
 
     func markItemRead() {
         if let item {
-//            Task {
-//                try? await NewsManager.shared.markRead(items: [item], unread: false)
-//            }
+            Task {
+                try? await NewsManager.shared.markRead(items: [item], unread: false)
+            }
         }
     }
 
-    private func setupObservations() {
+    func setupObservations() {
         if let webView, let item {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
                 self?.canGoBack = newValue
@@ -74,13 +73,6 @@ class ItemWebViewHelper: ObservableObject {
                     urlRequest = URLRequest(url: url)
                 } else {
                     content = ArticleWebContent(item: item)
-                    content?.$url.sink { [weak self] newURL in
-                        guard let self, let newURL else { return }
-                        self.webView?.reload()
-                        self.urlRequest = URLRequest(url: newURL)
-                        print("Created request for \(newURL.absoluteString)")
-                    }
-                    .store(in: &cancellables)
                 }
 
         }

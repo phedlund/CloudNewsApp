@@ -12,19 +12,19 @@ import SwiftData
 final class Folder {
     @Attribute(.unique) var id: Int64
     var opened: Bool
-    var lastModified: Int64 = 0
+    var lastModified: Int64
     var name: String?
-    @Attribute(.transient) var unreadCount: Int64 = 0
+    @Attribute(.transient) var unreadCount: Int64
 
-    @Relationship(.cascade)
-    var feeds: [Feed] = [Feed]()
+    @Relationship
+    var feeds: [Feed]
 
-    init(id: Int64, opened: Bool, lastModified: Int64, name: String? = nil, unreadCount: Int64, feeds: [Feed]) {
+    init(id: Int64, opened: Bool, lastModified: Int64, name: String? = nil, feeds: [Feed]) {
         self.id = id
         self.opened = opened
         self.lastModified = lastModified
         self.name = name
-        self.unreadCount = unreadCount
+        self.unreadCount = 0
         self.feeds = feeds
     }
 }
@@ -39,7 +39,7 @@ extension Folder: Decodable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         let inId = try values.decode(Int64.self, forKey: .id)
         let inName = try values.decodeIfPresent(String.self, forKey: .name)
-        self.init(id: inId, opened: false, lastModified: 0, name: inName, unreadCount: 0, feeds: [Feed]())
+        self.init(id: inId, opened: false, lastModified: 0, name: inName, feeds: [Feed]())
     }
 
 }
