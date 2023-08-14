@@ -18,7 +18,6 @@ class FeedModel {
     var currentItem: Item? = nil
     var currentNodeID: Node.ID? = nil
     var currentItemID: PersistentIdentifier? = nil
-    var currentWebViewHelper = ItemWebViewHelper()
 
 //    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 //    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false

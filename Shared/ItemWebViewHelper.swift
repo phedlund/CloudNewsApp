@@ -23,7 +23,7 @@ class ItemWebViewHelper {
 
     var webView: WKWebView?
 
-    var content: ArticleWebContent?
+    private var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
 
     var item: Item?
@@ -37,7 +37,7 @@ class ItemWebViewHelper {
     }
 
     func setupObservations() {
-        if let webView, let item {
+        if let webView {
             webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
                 self?.canGoBack = newValue
             }
@@ -66,16 +66,26 @@ class ItemWebViewHelper {
             }
             .store(in: &cancellables)
 #endif
-            let feed = Feed.feed(id: item.feedId)
+            let feed = Feed.feed(id: item?.feedId ?? 0)
                 if feed?.preferWeb == true,
-                   let urlString = item.url,
+                   let urlString = item?.url,
                    let url = URL(string: urlString) {
                     urlRequest = URLRequest(url: url)
                 } else {
                     content = ArticleWebContent(item: item)
+                    if let url = content?.url {
+                        urlRequest = URLRequest(url: url)
+                    }
                 }
-
         }
-
     }
+
+}
+
+extension ItemWebViewHelper: Equatable {
+
+    static func == (lhs: ItemWebViewHelper, rhs: ItemWebViewHelper) -> Bool {
+        lhs.urlRequest == rhs.urlRequest
+    }
+
 }

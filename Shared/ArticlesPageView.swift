@@ -19,7 +19,7 @@ struct ArticlesPageView: View {
     @State private var canGoForward = false
     @State private var isLoading = false
     @State private var title = ""
-    @State private var webViewHelper: ItemWebViewHelper
+    @State private var webViewHelper = ItemWebViewHelper()
 
     private let items: [Item]
 
@@ -27,15 +27,12 @@ struct ArticlesPageView: View {
         self.items = items
         self._item = State(initialValue: item)
         self._selection = State(initialValue: item.persistentModelID)
-        self._webViewHelper = State(initialValue: ItemWebViewHelper())
     }
 
     var body: some View {
         TabView(selection: $selection) {
             ForEach(items, id: \.persistentModelID) { item in
-                ArticleView(item: item)
-                    .id(item.persistentModelID)
-                    .environment(feedModel)
+                ArticleView(item: item, webViewHelper: $webViewHelper)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -45,11 +42,9 @@ struct ArticlesPageView: View {
         }
         .onAppear {
             markItemRead()
-            webViewHelper = feedModel.currentWebViewHelper
         }
         .onChange(of: selection) { _, newValue in
             markItemRead()
-            webViewHelper = feedModel.currentWebViewHelper
         }
         .onChange(of: webViewHelper.canGoBack) { _, newValue in
             canGoBack = newValue
@@ -99,12 +94,12 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-//            if let item = NewsData.shared.container?.mainContext.object(with: item.objectID) as? Item {
-//                ShareLinkButton(item: item)
-//                    .disabled(isLoading)
-//            } else {
+            if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
+                ShareLinkButton(item: currentItem)
+                    .disabled(isLoading)
+            } else {
                 EmptyView()
-//            }
+            }
             Button {
                 isShowingPopover = true
             } label: {
@@ -112,20 +107,20 @@ struct ArticlesPageView: View {
             }
             .disabled(isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-//                if let item = moc.object(with: selection) as? CDItem {
-//                    ArticleSettingsView(item: item)
-//                        .presentationDetents([.height(300.0)])
-//                }
+                if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
+                    ArticleSettingsView(item: currentItem)
+                        .presentationDetents([.height(300.0)])
+                }
             }
         }
     }
 
     private func markItemRead() {
-//        if let item = moc.object(with: selection) as? Item, item.unread {
-//            Task {
-//                // TODO try? await NewsManager.shared.markRead(items: [item], unread: false)
-//            }
-//        }
+        if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
+            Task {
+                try? await NewsManager.shared.markRead(items: [currentItem], unread: false)
+            }
+        }
     }
 
 }

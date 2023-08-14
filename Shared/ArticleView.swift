@@ -9,11 +9,9 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @Environment(\.feedModel) private var feedModel
-
     var item: Item
 
-    let webViewHelper = ItemWebViewHelper()
+    @Binding var webViewHelper: ItemWebViewHelper
 
     var body: some View {
         GeometryReader { geometry in
@@ -26,35 +24,19 @@ struct ArticleView: View {
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-//            .id(item.objectID) //forces the web view to be recreated to get a unique WKWebView for each article
+            .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
             .background {
                 Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
             }
-            .onAppear {
-                feedModel.currentWebViewHelper = webViewHelper
-            }
-            .onChange(of: webViewHelper.content) { oldValue, newValue in
-                if let url = newValue?.url {
-//                    webViewHelper.webView?.reload()
-                    webViewHelper.urlRequest = URLRequest(url: url)
-                    if let urlRequest = webViewHelper.urlRequest {
-                        webViewHelper.webView?.load(urlRequest)
-                    }
-
+            .onChange(of: webViewHelper.urlRequest) { oldValue, newValue in
+                if newValue != oldValue, let urlRequest = webViewHelper.urlRequest {
+                    webViewHelper.webView?.load(urlRequest)
                 }
             }
         }
     }
 
-//    func tracker() {
-//        withObservationTracking({
-//            webViewHelper.content
-//        }, onChange: {
-//            print("Content Changed")
-//        })
-//
-//    }
 }
