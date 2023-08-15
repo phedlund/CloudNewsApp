@@ -169,7 +169,7 @@ struct SidebarView: View {
                                 do {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
-                                    // TODO try moc.save()
+                                    try await NewsData.shared.container?.mainContext.save()
                                 } catch let error as NetworkError {
                                     errorMessage = error.localizedDescription
                                     isShowingError = true

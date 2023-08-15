@@ -404,7 +404,7 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-/*
+
     func deleteFolder(_ id: Int) async throws {
         let deleteRouter = Router.deleteFolder(id: id)
         do {
@@ -426,5 +426,5 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-*/
+
 }

@@ -51,7 +51,7 @@ struct NodeView: View {
         ) {
             Button("Yes", role: .destructive) {
                 withAnimation {
-                   // TODO feedModel.delete(node)
+                   feedModel.delete(node)
                 }
             }
             .keyboardShortcut(.defaultAction)

@@ -24,7 +24,7 @@ struct ArticleSettingsView: View {
                 let isStarred = item.starred
                 Button {
                     Task {
-                        // TODO try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
                     }
                 } label: {
                     Label {
@@ -39,7 +39,7 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        // TODO try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
                     }
                 } label: {
                     Label {
