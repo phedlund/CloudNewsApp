@@ -116,4 +116,35 @@ extension Item: Decodable {
         self.init(author: author, body: body, contentHash: nil, displayBody: displayBody, displayTitle: displayTitle, dateFeedAuthor: dateFeedAuthor, enclosureLink: enclosureLink, enclosureMime: enclosureMime, feedId: feedId, fingerprint: fingerprint, guid: guid, guidHash: guidHash, id: id, lastModified: lastModified, mediaThumbnail: mediaThumbnail, mediaDescription: mediaDescription, pubDate: pubDate, rtl: rtl, starred: starred, title: title, unread: unread, updatedDate: updatedDate, url: url)
     }
 
+    static func deleteItems(with feedId: Int64) async throws -> Bool? {
+        var result: Bool?
+//        TODO try await NewsData.shared.container.viewContext.perform {
+//            let predicate = NSPredicate(format: "feedId == %d", feedId)
+//            let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: Self.self))
+//            request.predicate = predicate
+//            let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
+//            do {
+//                result = try NewsData.shared.container.viewContext.execute(batchDeleteRequest)
+//                NewsData.shared.container.viewContext.reset()
+//            } catch let error as NSError {
+//                print("Could not perform deletion \(error), \(error.userInfo)")
+//                throw DatabaseError.itemErrorDeleting
+//            }
+//        }
+        return result
+    }
+
+    static func reset() {
+//        TODO NewsData.shared.container.viewContext.performAndWait {
+//            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+//            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
+//            do {
+//                try NewsData.shared.container.viewContext.executeAndMergeChanges(using: deleteRequest)
+//            } catch {
+//                let updateError = error as NSError
+//                print("\(updateError), \(updateError.userInfo)")
+//            }
+//        }
+    }
+
 }

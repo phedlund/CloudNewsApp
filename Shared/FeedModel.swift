@@ -173,41 +173,41 @@ class FeedModel {
     }
 
     func delete(_ node: Node) {
-//        TODO switch node.nodeType {
-//        case .empty, .all, .starred:
-//            break
-//        case .folder(let id):
-//            if let index = nodes.firstIndex(of: node) {
-//                nodes.remove(at: index)
-//            }
-//            Task {
-//                do {
-//                    try await NewsManager.shared.deleteFolder(Int(id))
-//                    if let feedIds = CDFeed.idsInFolder(folder: id) {
-//                        for feedId in feedIds {
-//                            try await CDItem.deleteItems(with: feedId)
-//                            try await CDFeed.delete(id: feedId)
-//                        }
-//                    }
-//                    try await CDFolder.delete(id: id)
-//                } catch {
-//                    //
-//                }
-//            }
-//        case .feed(let id):
-//            if let index = nodes.firstIndex(of: node) {
-//                nodes.remove(at: index)
-//            }
-//            Task {
-//                do {
-//                    try await NewsManager.shared.deleteFeed(Int(id))
-//                    try await CDItem.deleteItems(with: id)
-//                    try await CDFeed.delete(id: id)
-//                } catch {
-//                    //
-//                }
-//            }
-//        }
+        switch node.nodeType {
+        case .empty, .all, .starred:
+            break
+        case .folder(let id):
+            if let index = nodes.firstIndex(of: node) {
+                nodes.remove(at: index)
+            }
+            Task {
+                do {
+                    try await NewsManager.shared.deleteFolder(Int(id))
+                    if let feedIds = Feed.idsInFolder(folder: id) {
+                        for feedId in feedIds {
+                            try await Item.deleteItems(with: feedId)
+                            try await Feed.delete(id: feedId)
+                        }
+                    }
+                    try await Folder.delete(id: id)
+                } catch {
+                    //
+                }
+            }
+        case .feed(let id):
+            if let index = nodes.firstIndex(of: node) {
+                nodes.remove(at: index)
+            }
+            Task {
+                do {
+                    try await NewsManager.shared.deleteFeed(Int(id))
+                    try await Item.deleteItems(with: id)
+                    try await Feed.delete(id: id)
+                } catch {
+                    //
+                }
+            }
+        }
     }
 
     private func node(for id: Node.ID) -> Node? {

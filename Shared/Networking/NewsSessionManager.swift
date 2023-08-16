@@ -354,31 +354,31 @@ class NewsManager {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-/*
+
     func deleteFeed(_ id: Int) async throws {
-        let deleteRouter = Router.deleteFeed(id: id)
-        do {
-            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-            if let httpResponse = deleteResponse as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                switch httpResponse.statusCode {
-                case 200:
-                    break
-                case 404:
-                    try await CDItem.deleteItems(with: Int32(id))
-                    try await CDFeed.delete(id: Int32(id))
-                    throw NetworkError.feedDoesNotExist
-                default:
-                    throw NetworkError.feedErrorDeleting
-                }
-            }
-        } catch let error as NetworkError {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
+//            TODO let deleteRouter = Router.deleteFeed(id: id)
+//            do {
+//                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+//                if let httpResponse = deleteResponse as? HTTPURLResponse {
+//                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                    switch httpResponse.statusCode {
+//                    case 200:
+//                        break
+//                    case 404:
+//                        try await CDItem.deleteItems(with: Int32(id))
+//                        try await CDFeed.delete(id: Int32(id))
+//                        throw NetworkError.feedDoesNotExist
+//                    default:
+//                        throw NetworkError.feedErrorDeleting
+//                    }
+//                }
+//            } catch let error as NetworkError {
+//                throw error
+//            } catch(let error) {
+//                throw NetworkError.generic(message: error.localizedDescription)
+//            }
     }
-*/
+
     func renameFolder(folder: Folder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
         do {
