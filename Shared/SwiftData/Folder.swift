@@ -14,7 +14,7 @@ final class Folder {
     var opened: Bool
     var lastModified: Int64
     var name: String?
-    @Attribute(.transient) var unreadCount: Int64
+    @Attribute(.ephemeral) var unreadCount: Int64
 
     @Relationship
     var feeds: [Feed]

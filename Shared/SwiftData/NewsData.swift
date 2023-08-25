@@ -11,27 +11,19 @@ class NewsData {
 
     static let shared = NewsData()
 
-    let fullSchema = Schema([
+    let newsSchema = Schema([
             Feeds.self,
             Feed.self,
             Folder.self,
             Item.self
         ])
 
-    let news = ModelConfiguration(
-            schema: Schema([
-                Feeds.self,
-                Feed.self,
-                Folder.self,
-                Item.self
-            ])
-        )
-
     var container: ModelContainer?
 
     init() {
+        let config = ModelConfiguration()
         do {
-            container = try ModelContainer(for: fullSchema, news)
+            container = try ModelContainer(for: newsSchema, configurations: ModelConfiguration())
         } catch {
             print(error.localizedDescription)
         }
