@@ -15,10 +15,6 @@ struct ArticlesPageView: View {
     @State private var item: Item
     @State private var selection: PersistentIdentifier
     @State private var isShowingPopover = false
-    @State private var canGoBack = false
-    @State private var canGoForward = false
-    @State private var isLoading = false
-    @State private var title = ""
     @State private var webViewHelper = ItemWebViewHelper()
 
     private let items: [Item]
@@ -36,7 +32,7 @@ struct ArticlesPageView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .navigationTitle(title)
+        .navigationTitle(webViewHelper.title)
         .background {
             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
         }
@@ -45,20 +41,6 @@ struct ArticlesPageView: View {
         }
         .onChange(of: selection) { _, newValue in
             markItemRead()
-        }
-        .onChange(of: webViewHelper.canGoBack) { _, newValue in
-            canGoBack = newValue
-        }
-        .onChange(of: webViewHelper.canGoForward) { _, newValue in
-            canGoForward = newValue
-        }
-        .onChange(of: webViewHelper.isLoading) { _, newValue in
-            isLoading = newValue
-        }
-        .onChange(of: webViewHelper.title) { _, newValue in
-            if newValue != title {
-                title = newValue
-            }
         }
         .toolbar(content: pageViewToolBarContent)
         .toolbarRole(.editor)
@@ -72,21 +54,21 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!canGoBack)
+            .disabled(!webViewHelper.canGoBack)
             Button {
                 webViewHelper.webView?.goForward()
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!canGoForward)
+            .disabled(!webViewHelper.canGoForward)
             Button {
-                if isLoading {
+                if webViewHelper.isLoading {
                     webViewHelper.webView?.stopLoading()
                 } else {
                     webViewHelper.webView?.reload()
                 }
             } label: {
-                if isLoading {
+                if webViewHelper.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -96,7 +78,7 @@ struct ArticlesPageView: View {
         ToolbarItemGroup(placement: .primaryAction) {
             if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
                 ShareLinkButton(item: currentItem)
-                    .disabled(isLoading)
+                    .disabled(webViewHelper.isLoading)
             } else {
                 EmptyView()
             }
@@ -105,7 +87,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(isLoading)
+            .disabled(webViewHelper.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
                     ArticleSettingsView(item: currentItem)
