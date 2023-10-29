@@ -17,16 +17,18 @@ class ItemWebViewHelper {
     var canGoForward = false
     var isLoading = false
     var title = ""
-    var url: URL?
 
     var urlRequest: URLRequest?
 
-    var webView: WKWebView?
+    var webView: WKWebView? {
+        didSet {
+            setupObservations()
+        }
+    }
 
+    private var item: Item?
     private var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
-
-    var item: Item?
 
     func markItemRead() {
         if let item {
@@ -34,6 +36,10 @@ class ItemWebViewHelper {
                 try? await NewsManager.shared.markRead(items: [item], unread: false)
             }
         }
+    }
+
+    func updateItem(item: Item) {
+        self.item = item
     }
 
     func setupObservations() {
@@ -54,10 +60,6 @@ class ItemWebViewHelper {
                 if let newTitle = newValue, !newTitle.isEmpty {
                     self?.title = newTitle
                 }
-            }
-            .store(in: &cancellables)
-            webView.publisher(for: \.url).sink { [weak self] newValue in
-                self?.url = newValue
             }
             .store(in: &cancellables)
 #if os(iOS)
