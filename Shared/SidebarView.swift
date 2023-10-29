@@ -43,6 +43,7 @@ struct SidebarView: View {
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
+    @State private var selectedFeed: Int64 = 0
 
     @Binding var nodeSelection: Node.ID?
 
@@ -145,8 +146,7 @@ struct SidebarView: View {
                 }
             case .feedSettings:
                 NavigationView {
-                    EmptyView()
-//                    FeedSettingsView(selectedFeed)
+                    FeedSettingsView(selectedFeed)
                 }
             case .login:
                 NavigationView {
@@ -169,7 +169,7 @@ struct SidebarView: View {
                                 do {
                                     try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
                                     folder.name = alertInput
-                                    try await NewsData.shared.container?.mainContext.save()
+                                    try NewsData.shared.container?.mainContext.save()
                                 } catch let error as NetworkError {
                                     errorMessage = error.localizedDescription
                                     isShowingError = true
@@ -205,7 +205,7 @@ struct SidebarView: View {
         case .folder(let folderId):
             MarkReadButton(node: node)
             Button {
-//                selectedFeed = Int(folderId)
+                selectedFeed = folderId
                 alertInput = feedModel.currentNode.title
                 isShowingRename = true
             } label: {
@@ -223,7 +223,7 @@ struct SidebarView: View {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
-//                selectedFeed = Int(feedId)
+                selectedFeed = feedId
                 modalSheet = .feedSettings
 #endif
             } label: {

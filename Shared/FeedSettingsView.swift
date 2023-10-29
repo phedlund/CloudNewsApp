@@ -11,7 +11,6 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.managedObjectContext) private var moc
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
@@ -32,8 +31,8 @@ struct FeedSettingsView: View {
     private var initialTitle = ""
     private var initialFolderSelection = noFolderName
 
-    init(_ selectedFeed: Int) {
-        if let theFeed = Feed.feed(id: Int64(selectedFeed)),
+    init(_ selectedFeed: Int64) {
+        if let theFeed = Feed.feed(id: selectedFeed),
            let folders = Folder.all() {
             self.feed = theFeed
             var fNames = [noFolderName]
@@ -138,7 +137,9 @@ struct FeedSettingsView: View {
                 if let feed = self.feed {
                     feed.preferWeb = newValue
                     do {
-                        try moc.save()
+                        Task {
+                            try NewsData.shared.container?.mainContext.save()
+                        }
                     } catch {
                         //
                     }
@@ -166,7 +167,7 @@ struct FeedSettingsView: View {
                     do {
                         try await NewsManager.shared.renameFeed(feed: feed, to: title)
                         feed.title = title
-                        try moc.save()
+                        try await NewsData.shared.container?.mainContext.save()
                     } catch let error as NetworkError {
                         title = initialTitle
                         footerMessage = error.localizedDescription
