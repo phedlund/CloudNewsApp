@@ -20,6 +20,7 @@ struct SyncTimes {
     let current: TimeInterval
 }
 
+@MainActor
 class NewsManager {
 
     static let shared = NewsManager()
@@ -114,11 +115,63 @@ class NewsManager {
     }
 
     func markRead(items: [Item], unread: Bool) async throws {
+        guard !items.isEmpty else {
+            return
+        }
         do {
-//            try await ItemReadManager.shared.markRead(items: items, unread: unread)
+            let itemIds = items.map( { $0.id } )
+            for item in items {
+                item.unread = unread
+            }
+            try NewsData.shared.container?.mainContext.save()
+
+            let parameters: ParameterDict = ["items": itemIds]
+            var router: Router
+            if unread {
+                router = Router.itemsUnread(parameters: parameters)
+            } else {
+                router = Router.itemsRead(parameters: parameters)
+            }
+            let (_, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                switch httpResponse.statusCode {
+                case 200:
+                    if unread {
+//                        try await readContext.perform {
+//                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDUnread.entity())
+//                            if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
+//                                print(result)
+//                            }
+//                        }
+                    } else {
+//                        try await readContext.perform {
+//                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDRead.entity())
+//                            if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
+//                                print(result)
+//                            }
+//                        }
+                    }
+                default:
+                    if unread {
+//                        try await readContext.perform {
+//                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDRead.entity())
+//                            if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
+//                                print(result)
+//                            }
+//                        }
+                    } else {
+//                        try await readContext.perform {
+//                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDUnread.entity())
+//                            if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
+//                                print(result)
+//                            }
+//                        }
+                    }
+                }
+            }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
-        }
+        }        
     }
 
     func markStarred(item: Item, starred: Bool) async throws {

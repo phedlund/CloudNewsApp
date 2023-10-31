@@ -33,6 +33,11 @@ struct ArticleView: View {
                     item.webViewHelper.webView?.load(urlRequest)
                 }
             }
+            .onAppear {
+                if let request = item.webViewHelper.urlRequest {
+                    item.webViewHelper.webView?.load(request)
+                }
+            }
         }
     }
 
