@@ -175,36 +175,39 @@ class NewsManager {
     }
 
     func markStarred(item: Item, starred: Bool) async throws {
-//        TODO do {
-//            try await Item.markStarred(itemId: item.id, state: starred)
-//            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
-//                                                        "guidHash": item.guidHash as Any]]]
-//            var router: Router
-//            if starred {
+        do {
+            item.starred = starred
+            try NewsData.shared.container?.mainContext.save()
+
+            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
+                                                        "guidHash": item.guidHash as Any]]]
+            var router: Router
+            if starred {
 //                try await CDStarred.update(items: [item.id])
-//                router = Router.itemsStarred(parameters: parameters)
-//            } else {
+                router = Router.itemsStarred(parameters: parameters)
+            } else {
 //                try await CDUnstarred.update(items: [item.id])
-//                router = Router.itemsUnstarred(parameters: parameters)
-//            }
-//            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-//            if let httpResponse = response as? HTTPURLResponse {
-//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//                print(String(data: data, encoding: .utf8) ?? "")
-//                switch httpResponse.statusCode {
-//                case 200:
+                router = Router.itemsUnstarred(parameters: parameters)
+            }
+            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                print(String(data: data, encoding: .utf8) ?? "")
+                switch httpResponse.statusCode {
+                case 200:
+                    break
 //                    if starred {
 //                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
 //                    } else {
 //                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
 //                    }
-//                default:
-//                    break
-//                }
-//            }
-//        } catch(let error) {
-//            throw NetworkError.generic(message: error.localizedDescription)
-//        }
+                default:
+                    break
+                }
+            }
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
     }
 
     /*
