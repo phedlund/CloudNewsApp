@@ -9,6 +9,7 @@ import SwiftData
 import Foundation
 import OSLog
 
+@MainActor
 class FolderImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
 
@@ -30,9 +31,9 @@ class FolderImporter {
                         let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
                         if let container = NewsData.shared.container {
                             for folder in folders {
-                                await container.mainContext.insert(folder)
+                                container.mainContext.insert(folder)
                             }
-                            try await container.mainContext.save()
+                            try container.mainContext.save()
                             //                        logger.debug("Start importing folder data to the store...")
                             //                        try await importFolders(from: folderDicts)
                             logger.debug("Finished importing folder data.")
@@ -59,11 +60,11 @@ class FolderImporter {
             do {
                 for f in propertiesList {
                     let folder = Folder(id: f["id"] as! Int64, opened: false, lastModified: 0, name: (f["name"] as! String), feeds: [Feed]())
-                    await container.mainContext.insert(folder)
+                    container.mainContext.insert(folder)
                 }
 //                let success = try container.mainContext.insert(propertiesList, model: Folder.self)
 //                if success {
-                    try await container.mainContext.save()
+                    try container.mainContext.save()
 //                }
             } catch {
                 self.logger.debug("Failed to execute folders insert request.")
@@ -75,6 +76,7 @@ class FolderImporter {
 
 }
 
+@MainActor
 class FeedImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FeedImporter.self))
 
@@ -99,9 +101,9 @@ class FeedImporter {
                     let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
                     if let container = NewsData.shared.container {
                         for feed in feeds {
-                            await container.mainContext.insert(feed)
+                            container.mainContext.insert(feed)
                         }
-                        try await container.mainContext.save()
+                        try container.mainContext.save()
                         //                        logger.debug("Start importing folder data to the store...")
                         //                        try await importFolders(from: folderDicts)
                         logger.debug("Finished importing folder data.")
@@ -138,6 +140,7 @@ class FeedImporter {
 
 }
 
+@MainActor
 class ItemImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemImporter.self))
 
@@ -243,9 +246,9 @@ class ItemImporter {
                 let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
                 let items = try JSONDecoder().decode([Item].self, from: itemsData)
                 for item in items {
-                    await container.mainContext.insert(item)
+                    container.mainContext.insert(item)
                 }
-                try await container.mainContext.save()
+                try container.mainContext.save()
                 //                        logger.debug("Start importing folder data to the store...")
                 //                        try await importFolders(from: folderDicts)
                 logger.debug("Finished importing item data.")
@@ -253,48 +256,27 @@ class ItemImporter {
                 self.logger.debug("Failed to execute items insert request.")
                 throw DatabaseError.itemsFailedImport
             }
-
         }
 
     }
 
 }
-/*
+
+@MainActor
 class ItemPruner {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemPruner.self))
 
     func pruneItems(daysOld: Int) async throws {
-        let taskContext = NewsData.shared.newTaskContext()
-        taskContext.name = "deleteContext"
-        taskContext.transactionAuthor = "pruneItems"
-
-        try await taskContext.perform {
-            let batchDeleteRequest = self.newBatchDeleteRequest(daysOld: daysOld)
-            if let fetchResult = try? taskContext.execute(batchDeleteRequest),
-               let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
-               let success = batchDeleteResult.result as? Bool, success {
-                return
+        if let container = NewsData.shared.container {
+            do {
+                let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date())
+                let limitDateEpoch: Int64  = Int64(limitDate?.timeIntervalSince1970 ?? 1)
+                try container.mainContext.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDateEpoch } )
+            } catch {
+                self.logger.debug("Failed to execute items insert request.")
+                throw DatabaseError.itemsFailedImport
             }
-            self.logger.debug("Failed to execute batch delete request.")
-            throw DatabaseError.failedDeletion
         }
-
-        logger.debug("Successfully deleted item data.")
-    }
-
-    private func newBatchDeleteRequest(daysOld: Int) -> NSBatchDeleteRequest {
-        if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date())?.timeIntervalSince1970 {
-            let predicate1 = NSPredicate(format: "unread == false")
-            let predicate2 = NSPredicate(format: "starred == false")
-            let predicate3 = NSPredicate(format:"lastModified < %d", Int32(limitDate))
-            let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate1, predicate2, predicate3])
-
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CDItem.self))
-            request.predicate = predicate
-            let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
-            return batchDeleteRequest
-        }
-        return NSBatchDeleteRequest(objectIDs: [])
     }
 }
-*/
+

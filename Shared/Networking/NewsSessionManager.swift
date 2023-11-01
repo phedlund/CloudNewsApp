@@ -236,7 +236,7 @@ class NewsManager {
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
             try await ItemImporter().fetchItems(unreadRouter.urlRequest())
             try await ItemImporter().fetchItems(starredRouter.urlRequest())
-//            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
                 NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
             }
@@ -350,7 +350,7 @@ class NewsManager {
                                                     "id": 0]
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
-//            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             try await FolderImporter().fetchFolders(Router.folders.urlRequest())
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
             try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
@@ -412,27 +412,27 @@ class NewsManager {
     }
 
     func deleteFeed(_ id: Int) async throws {
-//            TODO let deleteRouter = Router.deleteFeed(id: id)
-//            do {
-//                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-//                if let httpResponse = deleteResponse as? HTTPURLResponse {
-//                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//                    switch httpResponse.statusCode {
-//                    case 200:
-//                        break
-//                    case 404:
-//                        try await CDItem.deleteItems(with: Int32(id))
+            let deleteRouter = Router.deleteFeed(id: id)
+            do {
+                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+                if let httpResponse = deleteResponse as? HTTPURLResponse {
+                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    switch httpResponse.statusCode {
+                    case 200:
+                        break
+                    case 404:
+//                       TODO try await CDItem.deleteItems(with: Int32(id))
 //                        try await CDFeed.delete(id: Int32(id))
-//                        throw NetworkError.feedDoesNotExist
-//                    default:
-//                        throw NetworkError.feedErrorDeleting
-//                    }
-//                }
-//            } catch let error as NetworkError {
-//                throw error
-//            } catch(let error) {
-//                throw NetworkError.generic(message: error.localizedDescription)
-//            }
+                        throw NetworkError.feedDoesNotExist
+                    default:
+                        throw NetworkError.feedErrorDeleting
+                    }
+                }
+            } catch let error as NetworkError {
+                throw error
+            } catch(let error) {
+                throw NetworkError.generic(message: error.localizedDescription)
+            }
     }
 
     func renameFolder(folder: Folder, to name: String) async throws {
