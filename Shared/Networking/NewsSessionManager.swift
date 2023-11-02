@@ -137,35 +137,23 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-//                        try await readContext.perform {
-//                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDUnread.entity())
-//                            if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
-//                                print(result)
-//                            }
-//                        }
+                        try NewsData.shared.container?.mainContext.delete(model: Unread.self)
+                        try NewsData.shared.container?.mainContext.save()
                     } else {
-//                        try await readContext.perform {
-//                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDRead.entity())
-//                            if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
-//                                print(result)
-//                            }
-//                        }
+                        try NewsData.shared.container?.mainContext.delete(model: Read.self)
+                        try NewsData.shared.container?.mainContext.save()
                     }
                 default:
                     if unread {
-//                        try await readContext.perform {
-//                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDRead.entity())
-//                            if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
-//                                print(result)
-//                            }
-//                        }
+                        for itemId in itemIds {
+                            NewsData.shared.container?.mainContext.insert(Read(itemId: itemId))
+                        }
+                        try NewsData.shared.container?.mainContext.save()
                     } else {
-//                        try await readContext.perform {
-//                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDUnread.entity())
-//                            if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
-//                                print(result)
-//                            }
-//                        }
+                        for itemId in itemIds {
+                            NewsData.shared.container?.mainContext.insert(Unread(itemId: itemId))
+                        }
+                        try NewsData.shared.container?.mainContext.save()
                     }
                 }
             }

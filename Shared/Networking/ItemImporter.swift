@@ -272,6 +272,7 @@ class ItemPruner {
                 let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date())
                 let limitDateEpoch: Int64  = Int64(limitDate?.timeIntervalSince1970 ?? 1)
                 try container.mainContext.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDateEpoch } )
+                try container.mainContext.save()
             } catch {
                 self.logger.debug("Failed to execute items insert request.")
                 throw DatabaseError.itemsFailedImport
