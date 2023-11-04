@@ -14,7 +14,7 @@ final class Folder {
     var opened: Bool
     var lastModified: Int64
     var name: String?
-    @Attribute(.ephemeral) var unreadCount: Int64
+    @Attribute(.ephemeral) var unreadCount: Int64 = 0
 
     @Relationship
     var feeds: [Feed]

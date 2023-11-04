@@ -171,10 +171,8 @@ class NewsManager {
                                                         "guidHash": item.guidHash as Any]]]
             var router: Router
             if starred {
-//                try await CDStarred.update(items: [item.id])
                 router = Router.itemsStarred(parameters: parameters)
             } else {
-//                try await CDUnstarred.update(items: [item.id])
                 router = Router.itemsUnstarred(parameters: parameters)
             }
             let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
@@ -183,15 +181,19 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    break
-//                    if starred {
-//                        CDStarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
-//                    } else {
-//                        CDUnstarred.deleteItemIds(itemIds: [item.id], in: NewsData.shared.container.viewContext)
-//                    }
+                    if starred {
+                        try NewsData.shared.container?.mainContext.delete(model: Unstarred.self)
+                    } else {
+                        try NewsData.shared.container?.mainContext.delete(model: Starred.self)
+                    }
                 default:
-                    break
+                    if starred {
+                        NewsData.shared.container?.mainContext.insert(Starred(itemId: item.id))
+                    } else {
+                        NewsData.shared.container?.mainContext.insert(Unstarred(itemId: item.id))
+                    }
                 }
+                try NewsData.shared.container?.mainContext.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)

@@ -47,9 +47,13 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: Node.ID?
 
-//    private var syncPublisher = NewsManager.shared.syncSubject
-//        .receive(on: DispatchQueue.main)
-//
+    private var syncPublisher = NewsManager.shared.syncSubject
+        .receive(on: DispatchQueue.main)
+
+    init(nodeSelection: Binding<Node.ID?>) {
+        self._nodeSelection = nodeSelection
+    }
+
 
     var body: some View {
         if isShowingError {
@@ -109,9 +113,9 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar(content: sidebarToolBarContent)
-//        .onReceive(syncPublisher) { _ in
-//            isSyncing = false
-//        }
+        .onReceive(syncPublisher) { _ in
+            isSyncing = false
+        }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
             confirmationNode = feedModel.currentNode
             isShowingConfirmation = true
