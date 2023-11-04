@@ -19,11 +19,6 @@ class FeedModel {
     var currentNodeID: Node.ID? = nil
     var currentItemID: PersistentIdentifier? = nil
 
-//    @AppStorage(SettingKeys.hideRead) private var hideRead = false
-//    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    private var hideRead = false
-    private var sortOldestFirst = false
-
     private let allNode: Node
     private let starNode: Node
     private let preferences = Preferences()
@@ -167,11 +162,6 @@ class FeedModel {
         publishItems()
     }
 
-    func updateItemSorting() {
-        sortOrder = sortOldestFirst ? .forward : .reverse
-        self.publishItems()
-    }
-
     func delete(_ node: Node) {
         switch node.nodeType {
         case .empty, .all, .starred:
@@ -252,7 +242,7 @@ class FeedModel {
                 do {
                     if let container = NewsData.shared.container {
                         let context = ModelContext(container)
-                        self.currentItems = try context.fetch(self.fetchDescriptor).filter( { self.hideRead ? $0.unread == true : true } )
+//                        self.currentItems = try context.fetch(self.fetchDescriptor).filter( { self.hideRead ? $0.unread == true : true } )
                     }
                 } catch let error {
                     print(error.localizedDescription)

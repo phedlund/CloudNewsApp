@@ -29,7 +29,6 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
 
     @Query private var items: [Item]
@@ -42,33 +41,10 @@ struct ItemsListView: View {
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init(nodeSelection: Node.ID?, itemSelection: Binding<String?>) {
+    init(nodeSelection: Node.ID?, itemSelection: Binding<String?>, predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
         self.nodeSelection = nodeSelection
         self._itemSelection = itemSelection
-        var predicate = #Predicate<Item>{ _ in return false }
-        switch NodeType.fromString(typeString: nodeSelection ?? Constants.emptyNodeGuid) {
-        case .empty:
-            predicate = #Predicate<Item>{ _ in
-                return false
-            }
-        case .all:
-            predicate = #Predicate<Item>{ _ in
-                return true
-            }
-        case .starred:
-            predicate = #Predicate<Item>{ $0.starred == true }
-        case .folder(id:  let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
-                predicate = #Predicate<Item>{
-                    return feedIds.contains($0.feedId)
-                }
-            }
-        case .feed(id: let id):
-            predicate = #Predicate<Item>{
-                return $0.feedId == id
-            }
-        }
-        _items = Query(filter: predicate)
+        _items = Query(filter: predicate, sort: [sort])
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -140,9 +116,6 @@ struct ItemsListView: View {
                 }
                 .onChange(of: hideRead) { _, _ in
                     feedModel.updateVisibleItems()
-                }
-                .onChange(of: sortOldestFirst) { _, _ in
-                    feedModel.updateItemSorting()
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {

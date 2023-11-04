@@ -17,6 +17,8 @@ struct ContentView: View {
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
     @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
     @Query private var folders: [Folder]
     @Query private var feeds: [Feed]
@@ -24,6 +26,8 @@ struct ContentView: View {
     @State private var isShowingLogin = false
     @State private var selectedNodeID: Node.ID?
     @State private var selectedItem: String?
+    @State private var sortOrder = SortDescriptor(\Item.id)
+    @State private var predicate = #Predicate<Item>{ _ in return false }
 
     var body: some View {
         let _ = Self._printChanges()
@@ -35,7 +39,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNodeID != Constants.emptyNodeGuid {
-                    ItemsListView(nodeSelection: selectedNodeID, itemSelection: $selectedItem)
+                    ItemsListView(nodeSelection: selectedNodeID, itemSelection: $selectedItem, predicate: predicate, sort: sortOrder)
                         .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {
@@ -67,6 +71,13 @@ struct ContentView: View {
         }
         .onChange(of: selectedNodeID, initial: false) { _, newValue in
             selectedNode = newValue
+            updatePredicate()
+        }
+        .onChange(of: hideRead, initial: true) { _, _ in
+            updatePredicate()
+        }
+        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
+            sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
         }
         .task {
             selectedNodeID = selectedNode
@@ -101,6 +112,43 @@ struct ContentView: View {
             }
         }
 #endif
+    }
+
+    private func updatePredicate() {
+        switch NodeType.fromString(typeString: selectedNodeID ?? Constants.emptyNodeGuid) {
+        case .empty:
+            predicate = #Predicate<Item>{ _ in
+                return false
+            }
+        case .all:
+            predicate = #Predicate<Item>{
+                if hideRead {
+                    return $0.unread
+                } else {
+                    return true
+                }
+            }
+        case .starred:
+            predicate = #Predicate<Item>{ $0.starred == true }
+        case .folder(id:  let id):
+            if let feedIds = Feed.idsInFolder(folder: id) {
+                predicate = #Predicate<Item>{
+                    if hideRead {
+                        return feedIds.contains($0.feedId) && $0.unread
+                    } else {
+                        return feedIds.contains($0.feedId)
+                    }
+                }
+            }
+        case .feed(id: let id):
+            predicate = #Predicate<Item>{
+                if hideRead {
+                    return $0.feedId == id && $0.unread
+                } else {
+                    return $0.feedId == id
+                }
+            }
+        }
     }
 
 }
