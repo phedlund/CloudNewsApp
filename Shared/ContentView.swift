@@ -39,7 +39,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNodeID != Constants.emptyNodeGuid {
-                    ItemsListView(nodeSelection: selectedNodeID, itemSelection: $selectedItem, predicate: predicate, sort: sortOrder)
+                    ItemsListView(itemSelection: $selectedItem, predicate: predicate, sort: sortOrder)
                         .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {

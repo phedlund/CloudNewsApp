@@ -35,14 +35,12 @@ struct ItemsListView: View {
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
-    var nodeSelection: Node.ID?
     @Binding var itemSelection: String?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init(nodeSelection: Node.ID?, itemSelection: Binding<String?>, predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
-        self.nodeSelection = nodeSelection
+    init(itemSelection: Binding<String?>, predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
         self._itemSelection = itemSelection
         _items = Query(filter: predicate, sort: [sort])
         self.offsetItemsPublisher = offsetItemsDetector
@@ -120,14 +118,6 @@ struct ItemsListView: View {
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
                         await markRead(newOffset)
-                    }
-                }
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    switch newPhase {
-                    case .active:
-                        feedModel.currentNodeID = nodeSelection
-                    default:
-                        break
                     }
                 }
 #if !os(macOS)
