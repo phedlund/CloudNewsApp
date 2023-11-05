@@ -259,34 +259,38 @@ class NewsManager {
         do {
             if let container = NewsData.shared.container {
                 let context = ModelContext(container)
-                let items = try context.fetch(FetchDescriptor<Item>())
-                if items.count == 0 {
-                try await self.initialSync()
-                return
-            }
+                let itemCount = try context.fetchCount(FetchDescriptor<Item>())
+                if itemCount == 0 {
+                    try await self.initialSync()
+                    return
+                }
             }
         } catch { }
         
         do {
-            /*
-            if let localRead = CDRead.all(), !localRead.isEmpty {
-                let readParameters = ["items": localRead]
+            if let localRead = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Read>()), !localRead.isEmpty {
+                let localReadIds = localRead.map( { $0.itemId } )
+                let readParameters = ["items": localReadIds]
                 let readRouter = Router.itemsRead(parameters: readParameters)
                 async let (_, readResponse) = session.data(for: readRouter.urlRequest(), delegate: nil)
                 let readItemsResponse = try await readResponse
                 if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
                     switch httpReadResponse.statusCode {
                     case 200:
-                        CDRead.clear()
+                        try NewsData.shared.container?.mainContext.delete(model: Read.self)
                     default:
                         break
                     }
                 }
             }
-            
-            if let localStarred = CDStarred.all(), !localStarred.isEmpty {
-                if let starredItems = CDItem.items(itemIds: localStarred) {
-                    var params: [Any] = []
+
+            if let localStarred = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Starred>()), !localStarred.isEmpty {
+                let localStarredIds = localStarred.map( { $0.itemId } )
+                let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
+                    localStarredIds.contains($0.id)
+                })
+                if let starredItems = try NewsData.shared.container?.mainContext.fetch(starredItemsFetchDescriptor), !starredItems.isEmpty {
+                    var params = [Any]()
                     for starredItem in starredItems {
                         var param: [String: Any] = [:]
                         param["feedId"] = starredItem.feedId
@@ -300,16 +304,20 @@ class NewsManager {
                     if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
                         switch httpStarredResponse.statusCode {
                         case 200:
-                            CDStarred.clear()
+                            try NewsData.shared.container?.mainContext.delete(model: Starred.self)
                         default:
                             break
                         }
                     }
                 }
             }
-            
-            if let localUnstarred = CDUnstarred.all(), !localUnstarred.isEmpty {
-                if let unstarredItems = CDItem.items(itemIds: localUnstarred) {
+
+            if let localUnstarred = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Unstarred>()), !localUnstarred.isEmpty {
+                let localUnstarredIds = localUnstarred.map( { $0.itemId } )
+                let unstarredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
+                    localUnstarredIds.contains($0.id)
+                })
+                if let unstarredItems = try NewsData.shared.container?.mainContext.fetch(unstarredItemsFetchDescriptor), !unstarredItems.isEmpty {
                     var params: [Any] = []
                     for unstarredItem in unstarredItems {
                         var param: [String: Any] = [:]
@@ -324,16 +332,16 @@ class NewsManager {
                     if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
                         switch httpUnStarredResponse.statusCode {
                         case 200:
-                            CDUnstarred.clear()
+                            try NewsData.shared.container?.mainContext.delete(model: Unstarred.self)
                         default:
                             break
                         }
                     }
                 }
             }
-*/
-            let newestKnownLastModified: Int32 = 0 // CDItem.lastModified()
-            Preferences().lastModified = newestKnownLastModified
+
+            let newestKnownLastModified = maxLastModified()
+            Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
                                                     "lastModified": newestKnownLastModified,
@@ -353,6 +361,16 @@ class NewsManager {
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
+    }
+
+    private func maxLastModified() -> Int64 {
+        var result: Int64 = 0
+        do {
+            if let item = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Item>()).max(by: { a, b in a.lastModified < b.lastModified }) {
+                result = item.lastModified
+            }
+        } catch { }
+        return result
     }
 
     func moveFeed(feed: Feed, to folder: Int64) async throws {

@@ -15,13 +15,16 @@ class NewsData {
             Feeds.self,
             Feed.self,
             Folder.self,
-            Item.self
+            Item.self,
+            Read.self,
+            Unread.self,
+            Starred.self,
+            Unstarred.self
         ])
 
     var container: ModelContainer?
 
     init() {
-        let config = ModelConfiguration()
         do {
             container = try ModelContainer(for: newsSchema, configurations: ModelConfiguration())
         } catch {
