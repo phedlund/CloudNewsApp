@@ -117,13 +117,13 @@ class FeedModel {
 
         if let folders = Folder.all() {
             for folder in folders {
-                folderNodes.append(folderNode(folder: folder))
+                folderNodes.append(Node(folder: folder))
             }
         }
 
         if let feeds = Feed.inFolder(folder: 0) {
             for feed in feeds {
-                feedNodes.append(feedNode(feed: feed))
+                feedNodes.append(Node(feed: feed))
             }
         }
 
@@ -249,25 +249,6 @@ class FeedModel {
                 }
             }
         }
-    }
-
-    private func folderNode(folder: Folder) -> Node {
-        if let feeds = Feed.inFolder(folder: folder.id) {
-            var children = [Node]()
-            for feed in feeds {
-                children.append(feedNode(feed: feed))
-            }
-            let node = Node(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.opened)
-            return node
-        }
-        let node = Node(.folder(id: folder.id), id: "folder_\(folder.id)", isExpanded: folder.opened)
-        return node
-    }
-
-    private func feedNode(feed: Feed) -> Node {
-        let node = Node(.feed(id: feed.id), id: "feed_\(feed.id)")
-        node.errorCount = Int(feed.updateErrorCount)
-        return node
     }
 
 }

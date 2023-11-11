@@ -15,7 +15,7 @@ final class Node: Identifiable {
     var errorCount = 0
     var title = ""
 
-    let id: String
+    var id: String
 
 //    private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
 //    private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
@@ -32,6 +32,27 @@ final class Node: Identifiable {
 
     convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {
         self.init(nodeType, children: nil, id: id, isExpanded: isExpanded)
+    }
+
+    init(folder: Folder) {
+        self.nodeType = .folder(id: folder.id)
+        self.id = "folder_\(folder.id)"
+        self.isExpanded = folder.opened
+        self.title = folder.name ?? "Untitled Folder"
+        if let feeds = Feed.inFolder(folder: folder.id) {
+            var children = [Node]()
+            for feed in feeds {
+                children.append(Node(feed: feed))
+            }
+            self.children = children
+        }
+    }
+
+    init(feed: Feed) {
+        self.nodeType = .feed(id: feed.id)
+        self.id = "feed_\(feed.id)"
+        self.isExpanded = false
+        self.title = feed.title ?? "Untitled Feed"
     }
 
     init(_ nodeType: NodeType, children: [Node]? = nil, id: String, isExpanded: Bool) {

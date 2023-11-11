@@ -167,23 +167,23 @@ struct SidebarView: View {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
-                    if let folder = Folder.folder(id: id) {
-                        if folder.name != alertInput {
-                            Task {
-                                do {
-                                    try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
-                                    folder.name = alertInput
-                                    try NewsData.shared.container?.mainContext.save()
-                                } catch let error as NetworkError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error as DatabaseError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                }
+                    if let folder = Folder.folder(id: id), feedModel.currentNode.title != alertInput {
+                        Task {
+                            do {
+                                try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
+                                @Bindable var node = feedModel.currentNode
+                                node.title = alertInput
+                                folder.name = node.title
+                                try NewsData.shared.container?.mainContext.save()
+                            } catch let error as NetworkError {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
+                            } catch let error as DatabaseError {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
+                            } catch let error {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
                             }
                         }
                     }
@@ -192,6 +192,7 @@ struct SidebarView: View {
             }
             .keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {
+//                node.title = alertInput
                 isShowingRename = false
             }
         }, message: {
@@ -209,8 +210,9 @@ struct SidebarView: View {
         case .folder(let folderId):
             MarkReadButton(node: node)
             Button {
-                selectedFeed = folderId
-                alertInput = feedModel.currentNode.title
+                //selectedFeed = folderId
+                feedModel.currentNode = node
+                alertInput = node.title
                 isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
