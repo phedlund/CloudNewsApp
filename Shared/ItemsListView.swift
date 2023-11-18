@@ -117,7 +117,7 @@ struct ItemsListView: View {
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
-                        await markRead(newOffset)
+                        markRead(newOffset)
                     }
                 }
 #if !os(macOS)

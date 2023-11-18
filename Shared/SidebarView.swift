@@ -150,7 +150,7 @@ struct SidebarView: View {
                 }
             case .feedSettings:
                 NavigationView {
-                    FeedSettingsView(selectedFeed)
+                    FeedSettingsView(node: feedModel.currentNode)
                 }
             case .login:
                 NavigationView {
@@ -207,10 +207,10 @@ struct SidebarView: View {
             EmptyView()
         case .all:
             MarkReadButton(node: node)
-        case .folder(let folderId):
+        case .folder( _):
             MarkReadButton(node: node)
             Button {
-                //selectedFeed = folderId
+                nodeSelection = node.id
                 feedModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
@@ -229,7 +229,8 @@ struct SidebarView: View {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
-                selectedFeed = feedId
+                nodeSelection = node.id
+                feedModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {
