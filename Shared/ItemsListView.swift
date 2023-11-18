@@ -112,9 +112,6 @@ struct ItemsListView: View {
                 .onChange(of: $compactView.wrappedValue) { _, newValue in
                     cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                 }
-                .onChange(of: hideRead) { _, _ in
-                    feedModel.updateVisibleItems()
-                }
                 .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
                         markRead(newOffset)
