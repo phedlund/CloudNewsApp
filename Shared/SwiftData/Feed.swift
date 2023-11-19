@@ -148,20 +148,18 @@ extension Feed {
         return nil
     }
 
+    
+    @MainActor
     static func delete(id: Int64) async throws {
-//        TODO let request: NSFetchRequest<CDFeed> = self.fetchRequest()
-//        let predicate = NSPredicate(format: "id == %d", id)
-//        request.predicate = predicate
-//        request.fetchLimit = 1
-//        do {
-//            let results  = try NewsData.shared.container.viewContext.fetch(request)
-//            if let feed = results.first {
-//                NewsData.shared.container.viewContext.delete(feed)
-//            }
-//            try NewsData.shared.container.viewContext.save()
-//        } catch {
-//            throw DatabaseError.feedErrorDeleting
-//        }
+        if let container = NewsData.shared.container {
+            do {
+                try container.mainContext.delete(model: Feed.self, where: #Predicate { $0.id == id } )
+                try container.mainContext.save()
+            } catch {
+//                self.logger.debug("Failed to execute items insert request.")
+                throw DatabaseError.feedErrorDeleting
+            }
+        }
     }
 
     static func reset() {

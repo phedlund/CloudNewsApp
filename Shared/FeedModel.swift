@@ -91,9 +91,6 @@ class FeedModel {
         case .empty, .all, .starred:
             break
         case .folder(let id):
-            if let index = nodes.firstIndex(of: node) {
-                nodes.remove(at: index)
-            }
             Task {
                 do {
                     try await NewsManager.shared.deleteFolder(Int(id))
@@ -109,9 +106,6 @@ class FeedModel {
                 }
             }
         case .feed(let id):
-            if let index = nodes.firstIndex(of: node) {
-                nodes.remove(at: index)
-            }
             Task {
                 do {
                     try await NewsManager.shared.deleteFeed(Int(id))

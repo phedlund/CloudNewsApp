@@ -50,21 +50,17 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    break
-//                    TODO if let feeds: Feeds = try getType(from: data),
-//                       let feedArray = feeds.feeds,
-//                       let newFeed = feedArray.first {
-//                        let newFeedId = newFeed.id
-//                        try await CDFeed.add(feeds: feedArray, using: NewsData.shared.container.viewContext)
-//                        try NewsData.shared.container.viewContext.save()
-//                        let parameters: ParameterDict = ["batchSize": 200,
-//                                                         "offset": 0,
-//                                                         "type": 0,
-//                                                         "id": newFeedId,
-//                                                         "getRead": NSNumber(value: true)]
-//                        let router = Router.items(parameters: parameters)
-//                        try await ItemImporter().fetchItems(router.urlRequest())
-//                    }
+                    try await FeedImporter().importFeeds(from: data)
+                    if let newFeed = NewsData.shared.container?.mainContext.insertedModelsArray.first as? Feed {
+                        let parameters: ParameterDict = ["batchSize": 200,
+                                                         "offset": 0,
+                                                         "type": 0,
+                                                         "id": newFeed.id,
+                                                         "getRead": NSNumber(value: true)]
+                        let router = Router.items(parameters: parameters)
+                        try await ItemImporter().fetchItems(router.urlRequest())
+                    }
+                    try NewsData.shared.container?.mainContext.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -91,12 +87,7 @@ class NewsManager {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    break
-//                    TODO if let folders: Folders = try getType(from: data),
-//                        let folderArray = folders.folders {
-//                        try await CDFolder.add(folders: folderArray, using: NewsData.shared.container.viewContext)
-//                        try NewsData.shared.container.viewContext.save()
-//                    }
+                    try await FolderImporter().importFolders(from: data)
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -429,8 +420,8 @@ class NewsManager {
                     case 200:
                         break
                     case 404:
-//                       TODO try await CDItem.deleteItems(with: Int32(id))
-//                        try await CDFeed.delete(id: Int32(id))
+                        try await Item.deleteItems(with: Int64(id))
+                        try await Feed.delete(id: Int64(id))
                         throw NetworkError.feedDoesNotExist
                     default:
                         throw NetworkError.feedErrorDeleting

@@ -19,29 +19,30 @@ class FolderImporter {
             if let httpResponse = response as? HTTPURLResponse {
                 switch httpResponse.statusCode {
                 case 200:
-                    do {
-                        guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                              let folderDicts = foldersDict["folders"] as? [[String: Any]],
-                              !folderDicts.isEmpty else {
-                            return
-                        }
-                        logger.debug("Start importing folder data to the store...")
-                        let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
-
-                        let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
-                        if let container = NewsData.shared.container {
-                            for folder in folders {
-                                container.mainContext.insert(folder)
-                            }
-                            try container.mainContext.save()
-                            //                        logger.debug("Start importing folder data to the store...")
-                            //                        try await importFolders(from: folderDicts)
-                            logger.debug("Finished importing folder data.")
-                        }
-                    } catch {
-                        self.logger.debug("Failed to execute folders insert request.")
-                        throw DatabaseError.foldersFailedImport
-                    }
+                    try await importFolders(from: data)
+//                    do {
+//                        guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+//                              let folderDicts = foldersDict["folders"] as? [[String: Any]],
+//                              !folderDicts.isEmpty else {
+//                            return
+//                        }
+//                        logger.debug("Start importing folder data to the store...")
+//                        let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
+//
+//                        let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
+//                        if let container = NewsData.shared.container {
+//                            for folder in folders {
+//                                container.mainContext.insert(folder)
+//                            }
+//                            try container.mainContext.save()
+//                            //                        logger.debug("Start importing folder data to the store...")
+//                            //                        try await importFolders(from: folderDicts)
+//                            logger.debug("Finished importing folder data.")
+//                        }
+//                    } catch {
+//                        self.logger.debug("Failed to execute folders insert request.")
+//                        throw DatabaseError.foldersFailedImport
+//                    }
                 default:
                     throw NetworkError.generic(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -53,25 +54,28 @@ class FolderImporter {
         }
     }
 
-    private func importFolders(from propertiesList: [[String: Any]]) async throws {
-        guard !propertiesList.isEmpty else { return }
-        
-        if let container = NewsData.shared.container {
-            do {
-                for f in propertiesList {
-                    let folder = Folder(id: f["id"] as! Int64, opened: false, lastModified: 0, name: (f["name"] as! String), feeds: [Feed]())
+    func importFolders(from data: Data) async throws {
+        do {
+            guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let folderDicts = foldersDict["folders"] as? [[String: Any]],
+                  !folderDicts.isEmpty else {
+                return
+            }
+            logger.debug("Start importing folder data to the store...")
+            let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
+
+            let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
+            if let container = NewsData.shared.container {
+                for folder in folders {
                     container.mainContext.insert(folder)
                 }
-//                let success = try container.mainContext.insert(propertiesList, model: Folder.self)
-//                if success {
-                    try container.mainContext.save()
-//                }
-            } catch {
-                self.logger.debug("Failed to execute folders insert request.")
+                try container.mainContext.save()
+                logger.debug("Finished importing folder data.")
+            }
+        } catch {
+            self.logger.debug("Failed to execute folders insert request.")
             throw DatabaseError.foldersFailedImport
         }
-            
-    }
     }
 
 }
@@ -88,28 +92,29 @@ class FeedImporter {
 //                print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    guard let feedsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                          let feedDicts = feedsDict["feeds"] as? [[String: Any]],
-                          !feedDicts.isEmpty else {
-                        return
-                    }
-
-                    logger.debug("Start importing feed data to the store...")
-//                    try await importFeeds(from: feedDicts)
-                    let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
-
-                    let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
-                    if let container = NewsData.shared.container {
-                        for feed in feeds {
-                            container.mainContext.insert(feed)
-                        }
-                        try container.mainContext.save()
-                        //                        logger.debug("Start importing folder data to the store...")
-                        //                        try await importFolders(from: folderDicts)
-                        logger.debug("Finished importing folder data.")
-                    }
-
-                    logger.debug("Finished importing feed data.")
+                    try await importFeeds(from: data)
+//                    guard let feedsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+//                          let feedDicts = feedsDict["feeds"] as? [[String: Any]],
+//                          !feedDicts.isEmpty else {
+//                        return
+//                    }
+//
+//                    logger.debug("Start importing feed data to the store...")
+////                    try await importFeeds(from: feedDicts)
+//                    let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
+//
+//                    let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
+//                    if let container = NewsData.shared.container {
+//                        for feed in feeds {
+//                            container.mainContext.insert(feed)
+//                        }
+//                        try container.mainContext.save()
+//                        //                        logger.debug("Start importing folder data to the store...")
+//                        //                        try await importFolders(from: folderDicts)
+//                        logger.debug("Finished importing folder data.")
+//                    }
+//
+//                    logger.debug("Finished importing feed data.")
                 default:
                     throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -119,6 +124,28 @@ class FeedImporter {
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
+    }
+
+    func importFeeds(from data: Data) async throws {
+        guard let feedsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let feedDicts = feedsDict["feeds"] as? [[String: Any]],
+              !feedDicts.isEmpty else {
+            return
+        }
+
+        logger.debug("Start importing feed data to the store...")
+        let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
+
+        let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
+        if let container = NewsData.shared.container {
+            for feed in feeds {
+                container.mainContext.insert(feed)
+            }
+            logger.debug("Finished importing folder data.")
+        }
+
+        logger.debug("Finished importing feed data.")
+
     }
 
     private func importFeeds(from propertiesList: [[String: Any]]) async throws {

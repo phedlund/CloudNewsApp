@@ -118,22 +118,17 @@ extension Item: Decodable {
         self.init(author: author, body: body, contentHash: nil, displayBody: displayBody, displayTitle: displayTitle, dateFeedAuthor: dateFeedAuthor, enclosureLink: enclosureLink, enclosureMime: enclosureMime, feedId: feedId, fingerprint: fingerprint, guid: guid, guidHash: guidHash, id: id, lastModified: lastModified, mediaThumbnail: mediaThumbnail, mediaDescription: mediaDescription, pubDate: pubDate, rtl: rtl, starred: starred, title: title, unread: unread, updatedDate: updatedDate, url: url)
     }
 
-    static func deleteItems(with feedId: Int64) async throws -> Bool? {
-        var result: Bool?
-//        TODO try await NewsData.shared.container.viewContext.perform {
-//            let predicate = NSPredicate(format: "feedId == %d", feedId)
-//            let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: Self.self))
-//            request.predicate = predicate
-//            let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: request)
-//            do {
-//                result = try NewsData.shared.container.viewContext.execute(batchDeleteRequest)
-//                NewsData.shared.container.viewContext.reset()
-//            } catch let error as NSError {
-//                print("Could not perform deletion \(error), \(error.userInfo)")
-//                throw DatabaseError.itemErrorDeleting
-//            }
-//        }
-        return result
+    @MainActor
+    static func deleteItems(with feedId: Int64) async throws {
+        if let container = NewsData.shared.container {
+            do {
+                try container.mainContext.delete(model: Item.self, where: #Predicate { $0.feedId == feedId } )
+                try container.mainContext.save()
+            } catch {
+//                self.logger.debug("Failed to execute items insert request.")
+                throw DatabaseError.itemErrorDeleting
+            }
+        }
     }
 
     static func reset() {
