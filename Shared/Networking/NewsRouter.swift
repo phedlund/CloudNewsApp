@@ -268,8 +268,6 @@ enum Router {
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
 
-//            urlRequest = try JSONEncoding.default.encode(urlRequest, with: parameters)
-
         case .version:
             break
             

@@ -17,14 +17,9 @@ final class Node: Identifiable {
 
     var id: String
 
-//    private let changePublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
-//    private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
-
     private(set) var isExpanded = false
     private(set) var nodeType = NodeType.empty
     private(set) var children: [Node]? = nil
-
-//    private var cancellables = Set<AnyCancellable>()
 
     convenience init() {
         self.init(.empty, id: Constants.allNodeGuid, isExpanded: false)
@@ -61,41 +56,6 @@ final class Node: Identifiable {
         self.isExpanded = isExpanded
         self.title = nodeTitle()
         self.children = children
-
-//        changePublisher
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] changes in
-//                guard let self else { return }
-//                self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
-//                for change in changes {
-//                    if change.nodeType == self.nodeType {
-//                        switch change.nodeType {
-//                        case .empty, .all, .starred:
-//                            break
-//                        case .folder(let id):
-//                            if let folder = CDFolder.folder(id: id) {
-//                                self.title = folder.name ?? "Untitled"
-//                                self.isExpanded = folder.opened
-//                            }
-//                        case .feed(let id):
-//                            if let feed = CDFeed.feed(id: id) {
-//                                self.title = feed.title ?? "Untitled"
-//                                self.errorCount = Int(feed.updateErrorCount)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            .store(in: &cancellables)
-//
-//        didChangePublisher
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] _ in
-//                guard let self else { return }
-//                self.unreadCount = CDItem.unreadCount(nodeType: self.nodeType)
-//            }
-//            .store(in: &cancellables)
-
     }
 
     private func nodeTitle() -> String {

@@ -203,10 +203,6 @@ class ItemImporter {
                     currentItem["dateFeedAuthor"] = dateLabelText
                     currentItems.append(currentItem)
                 }
-                //                let success = try container.mainContext.insert(currentItems, model: Item.self)
-                //                if success {
-                //                    try await container.mainContext.save()
-                //                }
 
                 let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
                 let items = try JSONDecoder().decode([Item].self, from: itemsData)
@@ -214,8 +210,6 @@ class ItemImporter {
                     container.mainContext.insert(item)
                 }
                 try container.mainContext.save()
-                //                        logger.debug("Start importing folder data to the store...")
-                //                        try await importFolders(from: folderDicts)
                 logger.debug("Finished importing item data.")
             } catch {
                 self.logger.debug("Failed to execute items insert request.")
