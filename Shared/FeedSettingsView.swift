@@ -144,12 +144,12 @@ struct FeedSettingsView: View {
             .onChange(of: preferWeb) { _, newValue in
                 if let feed = self.feed {
                     feed.preferWeb = newValue
-                    do {
-                        Task {
+                    Task {
+                        do {
                             try NewsData.shared.container?.mainContext.save()
+                        } catch {
+                            //
                         }
-                    } catch {
-                        //
                     }
                 }
             }
