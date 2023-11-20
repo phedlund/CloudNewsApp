@@ -27,7 +27,7 @@ struct ContentView: View {
     @State private var selectedNodeID: Node.ID?
     @State private var selectedItem: String?
     @State private var sortOrder = SortDescriptor(\Item.id)
-    @State private var predicate = #Predicate<Item>{ _ in return false }
+    @State private var predicate = #Predicate<Item>{ _ in false }
 
     var body: some View {
         let _ = Self._printChanges()
@@ -117,9 +117,7 @@ struct ContentView: View {
     private func updatePredicate() {
         switch NodeType.fromString(typeString: selectedNodeID ?? Constants.emptyNodeGuid) {
         case .empty:
-            predicate = #Predicate<Item>{ _ in
-                return false
-            }
+            predicate = #Predicate<Item>{ _ in false }
         case .all:
             predicate = #Predicate<Item>{
                 if hideRead {
@@ -129,7 +127,7 @@ struct ContentView: View {
                 }
             }
         case .starred:
-            predicate = #Predicate<Item>{ $0.starred == true }
+            predicate = #Predicate<Item>{ $0.starred }
         case .folder(id:  let id):
             if let feedIds = Feed.idsInFolder(folder: id) {
                 predicate = #Predicate<Item>{

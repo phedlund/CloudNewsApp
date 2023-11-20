@@ -13,7 +13,7 @@ struct ItemListToolbarContent: ToolbarContent {
     @ToolbarContentBuilder
     var body: some ToolbarContent {
         ToolbarItem(placement: .automatic) {
-            MarkReadButton(node: node)
+            MarkReadButton()
         }
     }
 }

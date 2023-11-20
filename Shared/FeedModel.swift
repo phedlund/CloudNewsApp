@@ -118,4 +118,11 @@ class FeedModel {
         }
     }
 
+    func node(id: Node.ID) -> Node {
+        if let node = nodes.first(where: { $0.id == id } ) {
+            return node
+        } else {
+            return Node()
+        }
+    }
 }

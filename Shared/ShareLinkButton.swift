@@ -1,34 +1,11 @@
 //
-//  HelperViews.swift
+//  ShareLinkButton.swift
 //  CloudNews
 //
 //  Created by Peter Hedlund on 7/9/22.
 //
 
-import Combine
-import Foundation
 import SwiftUI
-
-struct MarkReadButton: View {
-    @State var node: Node
-
-    var body: some View {
-        Button {
-            Task {
-//                let unreadItems = Item.unreadItems(nodeType: node.nodeType)
-//                try? await NewsManager.shared.markRead(items: unreadItems, unread: false)
-            }
-        } label: {
-            Label {
-                Text("Mark Read")
-            } icon: {
-                Image(systemName: "checkmark")
-            }
-        }
-        .keyboardShortcut("a", modifiers: [.control])
-        .disabled(node.unreadCount == 0)
-    }
-}
 
 struct ShareLinkButton: View {
     @State var item: Item
