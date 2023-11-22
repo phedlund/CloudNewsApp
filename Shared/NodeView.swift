@@ -85,6 +85,13 @@ struct NodeView: View {
                 Text("All articles in \"\(node.title)\" will also be deleted")
             }
         }
+        .onChange(of: items.count, initial: true) { oldValue, newValue in
+            if node.nodeType == .all {
+                DispatchQueue.main.async {
+                    UNUserNotificationCenter.current().setBadgeCount(newValue)
+                }
+            }
+        }
     }
 
 }

@@ -72,41 +72,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
 #else
 
+import SwiftData
 import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-//    private let didBecomActivePublisher = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification, object: nil).eraseToAnyPublisher()
-//    private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
-//    private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
 
     private var cancellables = Set<AnyCancellable>()
 
     override init() {
         super.init()
         
-//        NewsManager.shared.syncSubject
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] _ in
-//                let unreadCount = CDItem.unreadCount(nodeType: .all)
-//                self?.updateBadge(unreadCount)
-//            }
-//            .store(in: &cancellables)
-//
-//        changesPublisher
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] _ in
-//                let unreadCount = CDItem.unreadCount(nodeType: .all)
-//                self?.updateBadge(unreadCount)
-//            }
-//            .store(in: &cancellables)
-//
-//        didChangePublisher
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] _ in
-//                let unreadCount = CDItem.unreadCount(nodeType: .all)
-//                self?.updateBadge(unreadCount)
-//            }
-//            .store(in: &cancellables)
+        NewsManager.shared.syncSubject
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                do {
+                    if let container = NewsData.shared.container {
+                        let context = ModelContext(container)
+                        let itemCount = try context.fetchCount(FetchDescriptor<Item>(predicate: #Predicate { $0.unread == true } ))
+                        DispatchQueue.main.async {
+                            UNUserNotificationCenter.current().setBadgeCount(itemCount)
+                        }
+                    }
+                } catch { }
+            }
+            .store(in: &cancellables)
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -118,13 +107,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         }
 
         return true
-    }
-
-    func updateBadge(_ badgeValue: Int) {
-        print("Badge updated")
-        DispatchQueue.main.async {
-            UNUserNotificationCenter.current().setBadgeCount(badgeValue)
-        }
     }
 
 }
