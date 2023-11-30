@@ -610,7 +610,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1776;
+				CURRENT_PROJECT_VERSION = 1778;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -622,7 +622,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 4.0.1;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -643,7 +643,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1776;
+				CURRENT_PROJECT_VERSION = 1778;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -655,7 +655,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 4.0.1;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";

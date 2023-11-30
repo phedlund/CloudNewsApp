@@ -111,11 +111,6 @@ class NewsManager {
         }
         do {
             let itemIds = items.map( { $0.id } )
-            for item in items {
-                item.unread = unread
-            }
-            try NewsData.shared.container?.mainContext.save()
-
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
             if unread {

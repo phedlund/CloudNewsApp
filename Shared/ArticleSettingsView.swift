@@ -53,6 +53,7 @@ struct ArticleSettingsView: View {
                     .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if fontSize > Constants.ArticleSettings.minFontSize {
@@ -75,6 +76,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if lineHeight > Constants.ArticleSettings.minLineHeight {
@@ -97,6 +99,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if marginPortrait > Constants.ArticleSettings.minMarginWidth {
