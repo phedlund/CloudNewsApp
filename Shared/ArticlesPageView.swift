@@ -24,7 +24,7 @@ struct ArticlesPageView: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack {
+            LazyHStack(spacing: 0) {
                 ForEach(items, id: \.persistentModelID) { item in
                     ArticleView(item: item)
                         .containerRelativeFrame([.horizontal, .vertical])
@@ -36,6 +36,7 @@ struct ArticlesPageView: View {
         .scrollPosition(id: $selection, anchor: .center)
         .scrollTargetBehavior(.paging)
         .navigationTitle(item.webViewHelper.title)
+        .scrollContentBackground(.hidden)
         .background {
             Color.pbh.whiteBackground
                 .ignoresSafeArea(edges: .vertical)
