@@ -24,6 +24,8 @@ struct ArticleSettingsView: View {
                 let isStarred = item.starred
                 Button {
                     Task {
+                        item.unread.toggle()
+                        try NewsData.shared.container?.mainContext.save()
                         try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
                     }
                 } label: {

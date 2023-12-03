@@ -24,6 +24,8 @@ struct ContextMenuContent: View {
     var body: some View {
         Button {
             Task {
+                item.unread.toggle()
+                try NewsData.shared.container?.mainContext.save()
                 try? await NewsManager.shared.markRead(items: [item], unread: !item.unread)
             }
         } label: {
