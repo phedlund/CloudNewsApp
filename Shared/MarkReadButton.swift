@@ -11,8 +11,6 @@ import SwiftUI
 struct MarkReadButton: View {
     @Environment(\.feedModel) private var feedModel
 
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
-
     @State private var unreadItems = [Item]()
 
     var body: some View {
@@ -26,8 +24,7 @@ struct MarkReadButton: View {
                             }
                             try container.mainContext.save()
                             try await NewsManager.shared.markRead(items: unreadItems, unread: false)
-                            let node = feedModel.node(id: selectedNode ?? Constants.emptyNodeGuid)
-                            updateUnreadItems(node: node)
+                            updateUnreadItems(node: feedModel.currentNode)
                         }
                     } catch {
                         //
@@ -42,9 +39,8 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .onChange(of: selectedNode, initial: true, { oldValue, newValue in
-            let node = feedModel.node(id: selectedNode ?? Constants.emptyNodeGuid)
-            updateUnreadItems(node: node)
+        .onChange(of: feedModel.currentNode, initial: true, { oldValue, newValue in
+            updateUnreadItems(node: newValue)
         })
         .disabled(unreadItems.isEmpty)
     }

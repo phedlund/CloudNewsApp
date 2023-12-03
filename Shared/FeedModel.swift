@@ -122,6 +122,12 @@ class FeedModel {
         if let node = nodes.first(where: { $0.id == id } ) {
             return node
         } else {
+            let folderNodes = nodes.filter( { !($0.children?.isEmpty ?? false) })
+            for folderNode in folderNodes {
+                if let node = folderNode.children?.first(where: { $0.id == id } ) {
+                    return node
+                }
+            }
             return Node()
         }
     }

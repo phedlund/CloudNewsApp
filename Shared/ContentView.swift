@@ -71,6 +71,7 @@ struct ContentView: View {
         }
         .onChange(of: selectedNodeID, initial: false) { _, newValue in
             selectedNode = newValue
+            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
             updatePredicate()
         }
         .onChange(of: hideRead, initial: true) { _, _ in
