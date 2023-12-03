@@ -84,6 +84,7 @@ struct ItemsListView: View {
                                 offsetItemsDetector.send(offset)
                             }
                         }
+                        .id(index)
                         .listRowSeparator(listRowSeparatorVisibility)
                         .listRowBackground(listRowBackground)
                     }
