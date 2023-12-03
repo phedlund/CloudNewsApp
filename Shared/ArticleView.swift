@@ -9,18 +9,12 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
-    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
-    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     var item: Item
-
-    @State private var webView = WKWebView()
 
     var body: some View {
         GeometryReader { geometry in
             WebView { webView in
-                self.webView = webView
                 item.webViewHelper.updateItem(item: item)
                 item.webViewHelper.webView = webView
             }
@@ -41,9 +35,6 @@ struct ArticleView: View {
                 if let request = item.webViewHelper.urlRequest {
                     item.webViewHelper.webView?.load(request)
                 }
-            }
-            .onChange(of: fontSize, initial: false) { _, _ in
-                webView.reload()
             }
         }
     }

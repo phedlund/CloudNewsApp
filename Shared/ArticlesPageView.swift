@@ -10,6 +10,10 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
     @State private var item: Item
     @State private var selection: PersistentIdentifier?
     @State private var isShowingPopover = false
@@ -28,6 +32,15 @@ struct ArticlesPageView: View {
                 ForEach(items, id: \.persistentModelID) { item in
                     ArticleView(item: item)
                         .containerRelativeFrame([.horizontal, .vertical])
+                        .onChange(of: fontSize) {
+                            item.webViewHelper.webView?.reload()
+                        }
+                        .onChange(of: lineHeight) {
+                            item.webViewHelper.webView?.reload()
+                        }
+                        .onChange(of: marginPortrait) {
+                            item.webViewHelper.webView?.reload()
+                        }
                 }
             }
             .scrollTargetLayout()
