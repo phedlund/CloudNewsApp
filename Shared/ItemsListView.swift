@@ -23,7 +23,6 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.pbh.whiteBackground
 #endif
-    @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -35,13 +34,12 @@ struct ItemsListView: View {
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
-    @Binding var itemSelection: String?
+    @State private var itemSelection: PersistentIdentifier?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
-    init(itemSelection: Binding<String?>, predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
-        self._itemSelection = itemSelection
+    init(predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
         _items = Query(filter: predicate, sort: [sort])
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
@@ -61,7 +59,7 @@ struct ItemsListView: View {
             ListGroup {
                 ScrollViewReader { proxy in
                     let indexedQuery = items.enumerated().map({ $0 })
-                    List(indexedQuery, id: \.element.id, selection: Binding($itemSelection)) { index, item in
+                    List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
                         ZStackGroup(item: item) {
                             RowContainer {
                                 ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
@@ -149,7 +147,6 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
-    @Environment(\.feedModel) private var feedModel
     let type: Item.Type
     let items: [Item]
 
@@ -158,7 +155,6 @@ struct NavigationDestinationModifier: ViewModifier {
         content
             .navigationDestination(for: type) { item in
                 ArticlesPageView(item: item, items: items)
-                    .environment(feedModel)
             }
 
 #else

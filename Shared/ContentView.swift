@@ -25,7 +25,6 @@ struct ContentView: View {
 
     @State private var isShowingLogin = false
     @State private var selectedNodeID: Node.ID?
-    @State private var selectedItem: String?
     @State private var sortOrder = SortDescriptor(\Item.id)
     @State private var predicate = #Predicate<Item>{ _ in false }
 
@@ -39,8 +38,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNodeID != Constants.emptyNodeGuid {
-                    ItemsListView(itemSelection: $selectedItem, predicate: predicate, sort: sortOrder)
-                        .environment(feedModel)
+                    ItemsListView(predicate: predicate, sort: sortOrder)
                         .environment(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: feedModel.currentNode)

@@ -10,10 +10,8 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
-    @Environment(\.feedModel) private var feedModel
-
     @State private var item: Item
-    @State private var selection: PersistentIdentifier
+    @State private var selection: PersistentIdentifier?
     @State private var isShowingPopover = false
 
     private let items: [Item]
@@ -25,15 +23,22 @@ struct ArticlesPageView: View {
     }
 
     var body: some View {
-        TabView(selection: $selection) {
-            ForEach(items, id: \.persistentModelID) { item in
-                ArticleView(item: item)
+        ScrollView(.horizontal) {
+            LazyHStack {
+                ForEach(items, id: \.persistentModelID) { item in
+                    ArticleView(item: item)
+                        .containerRelativeFrame([.horizontal, .vertical])
+                }
             }
+            .scrollTargetLayout()
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
+        .scrollIndicators(.never)
+        .scrollPosition(id: $selection, anchor: .center)
+        .scrollTargetBehavior(.paging)
         .navigationTitle(item.webViewHelper.title)
         .background {
-            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            Color.pbh.whiteBackground
+                .ignoresSafeArea(edges: .vertical)
         }
         .onAppear {
             markItemRead()
