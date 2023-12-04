@@ -13,7 +13,6 @@ typealias WebViewRepresentable = NSViewRepresentable
 #endif
 
 #if os(iOS) || os(macOS)
-import Combine
 import SwiftUI
 import WebKit
 
