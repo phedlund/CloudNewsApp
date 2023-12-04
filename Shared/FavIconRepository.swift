@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 8/30/22.
 //
 
-import Combine
 import Kingfisher
 import Observation
 
@@ -35,7 +34,6 @@ class FavIconRepository {
     let defaultIcon = FavIcon(name: "rss", image: SystemImage())
 
     private let validSchemas = ["http", "https", "file"]
-    private var cancellables = Set<AnyCancellable>()
 
     init() {
         icons["all"] = defaultIcon
