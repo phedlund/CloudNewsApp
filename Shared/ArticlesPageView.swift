@@ -115,9 +115,16 @@ struct ArticlesPageView: View {
         }
     }
 
+    @MainActor 
     private func markItemRead() {
         if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
             item = currentItem
+            currentItem.unread = false
+            do {
+                try NewsData.shared.container?.mainContext.save()
+            } catch {
+                //
+            }
             Task {
                 try? await NewsManager.shared.markRead(items: [currentItem], unread: false)
             }

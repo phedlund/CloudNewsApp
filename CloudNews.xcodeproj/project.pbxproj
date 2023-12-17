@@ -59,6 +59,7 @@
 		D0C8680028BC4514006DAFF6 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0C867FF28BC4514006DAFF6 /* Kingfisher */; };
 		D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5ED2713C43800BB9062 /* ItemViews.swift */; };
 		D0D0BBCF2B1D4DEB006E81D2 /* ItemsOffsetDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D0BBCE2B1D4DEB006E81D2 /* ItemsOffsetDetector.swift */; };
+		D0D0BBD12B1D6A2A006E81D2 /* ThumbnailImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D0BBD02B1D6A2A006E81D2 /* ThumbnailImageView.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
@@ -139,6 +140,7 @@
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		D0CAF5ED2713C43800BB9062 /* ItemViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		D0D0BBCE2B1D4DEB006E81D2 /* ItemsOffsetDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsOffsetDetector.swift; sourceTree = "<group>"; };
+		D0D0BBD02B1D6A2A006E81D2 /* ThumbnailImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailImageView.swift; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				D035E343287A5C1D00E1FE5E /* ShareLinkButton.swift */,
 				D07EFCD22B0B011300032103 /* MarkReadButton.swift */,
 				D0CAF5ED2713C43800BB9062 /* ItemViews.swift */,
+				D0D0BBD02B1D6A2A006E81D2 /* ThumbnailImageView.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemRow.swift */,
 				D029FDD2299DC7540099FD95 /* ContainerView.swift */,
 				D055434F28BEE4EF0023F655 /* FavIconRepository.swift */,
@@ -429,6 +432,7 @@
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,
 				D0F41D732A78185300EEAC78 /* Starred.swift in Sources */,
+				D0D0BBD12B1D6A2A006E81D2 /* ThumbnailImageView.swift in Sources */,
 				D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */,
 				D06D072D274F01D100325770 /* Node.swift in Sources */,
 				D0EBDB5E269D29D10066A2AD /* WebViewManager.swift in Sources */,
@@ -710,7 +714,7 @@
 			repositoryURL = "https://github.com/scinfu/SwiftSoup";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.3.2;
+				minimumVersion = 2.6.1;
 			};
 		};
 		D0C867FE28BC4514006DAFF6 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
@@ -725,7 +729,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
 			requirement = {
-				kind = upToNextMajorVersion;
+				kind = versionRange;
+				maximumVersion = 4.0.0;
 				minimumVersion = 1.1.1700;
 			};
 		};

@@ -115,32 +115,6 @@ struct BodyView: View {
     }
 }
 
-struct ItemImageView: View {
-    var image: SystemImage?
-    var size: CGSize
-
-    init(image: SystemImage?, size: CGSize) {
-        self.image = image
-        self.size = size
-    }
-
-    var body: some View {
-        VStack {
-            if let image {
-#if os(macOS)
-                Image(nsImage: image)
-                    .imageStyle(size: size)
-#else
-                Image(uiImage: image)
-                    .imageStyle(size: size)
-#endif
-            } else {
-                EmptyView()
-            }
-        }
-    }
-}
-
 extension Image {
 
     func imageStyle(size: CGSize) -> some View {

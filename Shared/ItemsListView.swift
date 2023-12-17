@@ -56,12 +56,12 @@ struct ItemsListView: View {
                     List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
                         ZStackGroup(item: item) {
                             RowContainer {
-                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
+                                ItemRow(item: item, size: cellSize)
                                     .id(index)
                                     .tag(item.persistentModelID)
                                     .environment(favIconRepository)
 #if os(macOS)
-                                    .frame(height: cellHeight, alignment: .center)
+                                        .frame(height: cellHeight, alignment: .center)
 #endif
                                     .contextMenu {
                                         ContextMenuContent(item: item)

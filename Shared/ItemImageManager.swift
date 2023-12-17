@@ -5,8 +5,9 @@
 //  Created by Peter Hedlund on 1/18/23.
 //
 
-import Combine
+//import Combine
 import Kingfisher
+import Observation
 import SwiftSoup
 
 #if os(macOS)
@@ -15,26 +16,28 @@ import AppKit
 import UIKit
 #endif
 
-class ItemImageManager: NSObject, ObservableObject {
-    @Published var image: SystemImage?
-
+@Observable
+class ItemImageManager {
     private let validSchemas = ["http", "https", "file"]
-    private let item: Item
     private let key: String
+
+    let item: Item
 
     init(item: Item) {
         self.item = item
         key = "item_\(item.id)"
-        super.init()
         load()
     }
 
     private func load() {
         if ImageCache.default.isCached(forKey: key) {
-            ImageCache.default.retrieveImage(forKey: key) { result in
+            ImageCache.default.retrieveImage(forKey: key) { [weak self] result in
+                guard let self else { 
+                    return
+                }
                 switch result {
                 case .success(let value):
-                    self.image = value.image ?? SystemImage()
+                    item.thumbNailImage = value.image ?? SystemImage()
                 case .failure( _):
                     break
                 }
@@ -71,11 +74,14 @@ class ItemImageManager: NSObject, ObservableObject {
         }
 
         if let itemImageUrl {
-            ImageDownloader.default.downloadImage(with: itemImageUrl, options: []) { result in
+            ImageDownloader.default.downloadImage(with: itemImageUrl, options: []) { [weak self] result in
+                guard let self else {
+                    return
+                }
                 switch result {
                 case .success(let value):
                     ImageCache.default.store(value.image, forKey: self.key)
-                    self.image = value.image
+                    item.thumbNailImage = value.image
                 case .failure(let error):
                     print(error)
                 }

@@ -36,6 +36,7 @@ final class Item {
     var url: String?
 
     @Transient var webViewHelper = ItemWebViewHelper()
+    @Transient var thumbNailImage = SystemImage()
 
     init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Int64, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Int64, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Int64? = nil, url: String? = nil) {
         self.author = author

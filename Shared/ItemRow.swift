@@ -10,115 +10,122 @@ import SwiftUI
 struct ItemRow: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.favIconRepository) private var favIconRepository
-    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
-    @State var item: Item
-    @State var itemImageManager: ItemImageManager
+    #if os(macOS)
+    @State private var isHorizontalCompact = false
+    #else
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var isHorizontalCompact = false
+    #endif
 
-    var isHorizontalCompact: Bool
-    var isCompact: Bool
-    var size: CGSize
+    @AppStorage(SettingKeys.compactView) private var compactView = false
+
+    var item: Item
+    @State private var isShowingThumbnail = true
+    @State private var thumbnailSize = CGSize.zero
+    @State private var thumbnailOffset = CGFloat.zero
+
+    var cellSize: CGSize
+
+    private var cellWidth = CGFloat.infinity
+
+    init(item: Item, size: CGSize) {
+        self.item = item
+        self.cellSize = size
+    }
 
     var body: some View {
-        let isShowingThumbnail = (showThumbnails && itemImageManager.image != nil)
-        let cellHeight = isCompact ? CGFloat.compactCellHeight : CGFloat.defaultCellHeight
-#if os(macOS)
-        let thumbnailWidth = isCompact ? CGFloat.compactThumbnailWidth : .defaultThumbnailWidth
-        let thumbnailHeight = isCompact ? cellHeight : .defaultCellHeight
-#else
-        let thumbnailWidth = isCompact ? CGFloat.compactThumbnailWidth : isHorizontalCompact ? .compactThumbnailWidth : .defaultThumbnailWidth
-        let thumbnailHeight = isCompact ? cellHeight : isHorizontalCompact ? .compactCellHeight : .defaultCellHeight
-#endif
-        let thumbnailSize = CGSize(width: thumbnailWidth, height: thumbnailHeight)
-        let thumbnailOffset = isShowingThumbnail ? thumbnailSize.width + .paddingSix : .zero
-        VStack(alignment: .leading, spacing: .zero) {
-            HStack(alignment: .top, spacing: .zero) {
-                ZStack(alignment: .topLeading) {
-                    if isShowingThumbnail {
-                        ItemImageView(image: itemImageManager.image,
-                                      size: thumbnailSize)
-                        .padding(.top, isCompact ? 1 : .zero)
-                        .onAppear {
-                            withAnimation(.easeInOut(duration: 0.3)) { }
+            VStack(alignment: .leading, spacing: .zero) {
+                HStack(alignment: .top, spacing: .zero) {
+                    ZStack(alignment: .topLeading) {
+                        if isShowingThumbnail {
+                            ThumbnailImageView(itemImageManager: ItemImageManager(item: item), thumbnailOffset: $thumbnailOffset)
+                                .padding(.top, compactView ? 1 : .zero)
+                                .onAppear {
+                                    withAnimation(.easeInOut(duration: 0.3)) { }
+                                }
+                        } else {
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(width: 1, height: thumbnailSize.height)
                         }
-                    } else {
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(width: 1, height: thumbnailSize.height)
-                    }
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: .paddingSix) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: .paddingSix) {
-                                    HStack {
-                                        TitleView(title: item.title ?? "Untitled")
-                                            .padding(.top, 4)
-                                        Spacer()
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: .paddingSix) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: .paddingSix) {
+                                        HStack {
+                                            TitleView(title: item.title ?? "Untitled")
+                                                .padding(.top, 4)
+                                            Spacer()
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
+                                            .environment(favIconRepository)
+                                        if isHorizontalCompact {
+                                            Spacer()
+                                        } else {
+                                            EmptyView()
+                                        }
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
-                                        .environment(favIconRepository)
-                                    if isHorizontalCompact {
-                                        Spacer()
-                                    } else {
+                                }
+                                .padding(.leading, thumbnailOffset)
+                                .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
+                                VStack(alignment: .leading) {
+                                    if compactView {
                                         EmptyView()
+                                    } else {
+                                        HStack(alignment: .top) {
+                                            BodyView(displayBody: item.displayBody)
+                                            Spacer()
+                                        }
+                                        .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
                                     }
                                 }
                             }
-                            .padding(.leading, thumbnailOffset)
-                            .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
-                            VStack(alignment: .leading) {
-                                if isCompact {
-                                    EmptyView()
-                                } else {
-                                    HStack(alignment: .top) {
-                                        BodyView(displayBody: item.displayBody)
-                                        Spacer()
-                                    }
-                                    .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
-                                }
-                            }
+                            .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
+                            .padding(.leading, .paddingEight)
                         }
-                        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-                        .padding(.leading, .paddingEight)
+                        .padding(.trailing, 16)
                     }
-                    .padding(.trailing, 16)
+                }
+                Spacer()
+            }
+            .listRowInsets(.none)
+            .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
+            .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
+#if os(iOS)
+            .frame(width: cellSize.width, height: cellSize.height)
+            .padding([.trailing], .paddingSix)
+            .background(in: RoundedRectangle(cornerRadius: 1.0))
+            .backgroundStyle(
+                Color.pbh.whiteCellBackground
+                    .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
+            )
+            .overlay(alignment: .topTrailing) {
+                if item.starred {
+                    Image(systemName: "star.fill")
+                        .padding([.top, .trailing],  .paddingSix)
                 }
             }
-            Spacer()
-        }
-        .listRowInsets(.none)
-        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-        .padding(.top, isHorizontalCompact && isCompact ? .paddingEight : .zero)
-
-#if os(iOS)
-        .frame(width: size.width, height: size.height)
-        .padding([.trailing], .paddingSix)
-        .background(in: RoundedRectangle(cornerRadius: 1.0))
-        .backgroundStyle(
-            Color.pbh.whiteCellBackground
-                .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
-        )
-        .overlay(alignment: .topTrailing) {
-            if item.starred {
-                Image(systemName: "star.fill")
-                    .padding([.top, .trailing],  .paddingSix)
+            .overlay {
+                if !item.unread, !item.starred {
+                    Color.primary
+                        .colorInvert()
+                        .opacity(0.6)
+                }
             }
-        }
-        .overlay {
-            if !item.unread, !item.starred {
-                Color.primary
-                    .colorInvert()
-                    .opacity(0.6)
-            }
-        }
 #else
-        .overlay(alignment: .topTrailing) {
-            if item.starred {
-                Image(systemName: "star.fill")
-                    .padding([.top, .trailing],  .paddingSix)
+            .overlay(alignment: .topTrailing) {
+                if item.starred {
+                    Image(systemName: "star.fill")
+                        .padding([.top, .trailing],  .paddingSix)
+                }
             }
-        }
-        .opacity(item.unread ? 1.0 : 0.4 )
+            .opacity(item.unread ? 1.0 : 0.4 )
+#endif
+#if !os(macOS)
+            .onChange(of: horizontalSizeClass) { _, newValue in
+                isHorizontalCompact = newValue == .compact
+            }
 #endif
     }
 }
