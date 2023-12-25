@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 12/3/22.
 //
 
+import Combine
 import Kingfisher
 import SwiftData
 import SwiftUI
@@ -35,10 +36,15 @@ struct ItemsListView: View {
 
     @State private var itemSelection: PersistentIdentifier?
 
-    private let offsetDetector = ItemsOffsetDetector()
+    private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
+    private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
     init(predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
         _items = Query(filter: predicate, sort: [sort])
+        self.offsetItemsPublisher = offsetItemsDetector
+            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
+            .dropFirst()
+            .eraseToAnyPublisher()
     }
     
     var body: some View {
@@ -61,7 +67,7 @@ struct ItemsListView: View {
                                     .tag(item.persistentModelID)
                                     .environment(favIconRepository)
 #if os(macOS)
-                                        .frame(height: cellHeight, alignment: .center)
+                                    .frame(height: cellHeight, alignment: .center)
 #endif
                                     .contextMenu {
                                         ContextMenuContent(item: item)
@@ -75,7 +81,7 @@ struct ItemsListView: View {
                             }
                             .onPreferenceChange(ViewOffsetKey.self) {
                                 let offset = ($0 * (cellHeight + cellSpacing)) - geometry.size.height
-                                offsetDetector.offset = offset
+                                offsetItemsDetector.send(offset)
                             }
                         }
                         .id(index)
@@ -85,7 +91,7 @@ struct ItemsListView: View {
                     .onChange(of: selectedNode) { oldValue, newValue in
                         if newValue != oldValue {
                             proxy.scrollTo(0, anchor: .top)
-                            offsetDetector.offset = 0.0
+                            offsetItemsDetector.send(0.0)
                         }
                     }
                 }
@@ -105,9 +111,9 @@ struct ItemsListView: View {
                 .onChange(of: $compactView.wrappedValue) { _, newValue in
                     cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                 }
-                .onChange(of: offsetDetector.offset) { _, newValue in
+                .onReceive(offsetItemsPublisher) { newOffset in
                     Task.detached {
-                        await markRead(newValue)
+                        await markRead(newOffset)
                     }
                 }
 #if !os(macOS)
