@@ -23,8 +23,8 @@ struct ThumbnailImageView: View {
 
     private let itemImageManager: ItemImageManager
 
-    init(itemImageManager: ItemImageManager, thumbnailOffset: Binding<CGFloat>) {
-        self.itemImageManager = itemImageManager
+    init(item: Item, thumbnailOffset: Binding<CGFloat>) {
+        self.itemImageManager = ItemImageManager(item: item)
         self._thumbnailOffset = thumbnailOffset
     }
 

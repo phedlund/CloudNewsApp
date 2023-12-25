@@ -38,7 +38,7 @@ struct ItemRow: View {
                 HStack(alignment: .top, spacing: .zero) {
                     ZStack(alignment: .topLeading) {
                         if isShowingThumbnail {
-                            ThumbnailImageView(itemImageManager: ItemImageManager(item: item), thumbnailOffset: $thumbnailOffset)
+                            ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
                                 .padding(.top, compactView ? 1 : .zero)
                                 .onAppear {
                                     withAnimation(.easeInOut(duration: 0.3)) { }
