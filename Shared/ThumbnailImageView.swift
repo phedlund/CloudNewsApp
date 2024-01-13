@@ -16,26 +16,25 @@ struct ThumbnailImageView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var isHorizontalCompact = false
 #endif
-    @State private var image: SystemImage?
+    private var item: Item
+    @State private var image = SystemImage()
     @State private var imageSize = CGSize.zero
 
     @Binding var thumbnailOffset: CGFloat
 
-    private let itemImageManager: ItemImageManager
-
     init(item: Item, thumbnailOffset: Binding<CGFloat>) {
-        self.itemImageManager = ItemImageManager(item: item)
+        self.item = item
         self._thumbnailOffset = thumbnailOffset
     }
 
     var body: some View {
         VStack {
-            if itemImageManager.item.thumbNailImage != SystemImage() {
+            if image != SystemImage() {
 #if os(macOS)
-                Image(nsImage: itemImageManager.item.thumbNailImage)
+                Image(nsImage: image)
                     .imageStyle(size: imageSize)
 #else
-                Image(uiImage: itemImageManager.item.thumbNailImage)
+                Image(uiImage: image)
                     .imageStyle(size: imageSize)
 #endif
             } else {
@@ -48,6 +47,12 @@ struct ThumbnailImageView: View {
         .onChange(of: showThumbnails, initial: true) { _, newValue in
             updateSizeAndOffset()
         }
+        .task {
+            do {
+                updateSizeAndOffset()
+                image = try await item.itemImage
+            } catch { }
+        }
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
             isHorizontalCompact = newValue == .compact
@@ -56,16 +61,21 @@ struct ThumbnailImageView: View {
     }
 
     private func updateSizeAndOffset() {
-        if !showThumbnails || itemImageManager.item.thumbNailImage == SystemImage() {
-            thumbnailOffset = .zero
-            imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
-        } else {
-            if compactView {
-                thumbnailOffset = .compactThumbnailWidth + .paddingSix
-                imageSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
-            } else {
-                thumbnailOffset = .defaultThumbnailWidth + .paddingSix
-                imageSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+        Task {
+            do {
+                let myImage = try await item.itemImage
+                if !showThumbnails || myImage == SystemImage() {
+                    thumbnailOffset = .zero
+                    imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+                } else {
+                    if compactView {
+                        thumbnailOffset = .compactThumbnailWidth + .paddingSix
+                        imageSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
+                    } else {
+                        thumbnailOffset = .defaultThumbnailWidth + .paddingSix
+                        imageSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                    }
+                }
             }
         }
     }

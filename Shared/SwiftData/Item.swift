@@ -6,7 +6,9 @@
 //
 
 import Foundation
+import Nuke
 import SwiftData
+import SwiftSoup
 
 @Model
 final class Item {
@@ -36,7 +38,17 @@ final class Item {
     var url: String?
 
     @Transient var webViewHelper = ItemWebViewHelper()
-    @Transient var thumbNailImage = SystemImage()
+
+    private let validSchemas = ["http", "https", "file"]
+
+    var itemImage: SystemImage {
+        get async throws {
+            guard let url = try await imageUrl() else {
+                return SystemImage()
+            }
+            return try await ImagePipeline.shared.image(for: url)
+        }
+    }
 
     init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Int64, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Int64, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Int64? = nil, url: String? = nil) {
         self.author = author
@@ -63,6 +75,58 @@ final class Item {
         self.updatedDate = updatedDate
         self.url = url
     }
+
+    private func imageUrl() async throws -> URL? {
+        var itemImageUrl: URL?
+        if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
+            itemImageUrl = imgUrl
+        } else if let summary = body {
+            do {
+                let doc: Document = try SwiftSoup.parse(summary)
+                let srcs: Elements = try doc.select("img[src]")
+                let images = try srcs.array().map({ try $0.attr("src") })
+                let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                    itemImageUrl = imgUrl
+                } else if let stepTwoUrl = await stepTwo() {
+                    itemImageUrl = stepTwoUrl
+                }
+            } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                print(message)
+            } catch(let error) {
+                print(error.localizedDescription)
+            }
+        } else {
+            itemImageUrl = await stepTwo()
+        }
+        return itemImageUrl
+    }
+
+    private func stepTwo() async -> URL? {
+        if let urlString = url, let url = URL(string: urlString) {
+            do {
+                let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                if let html = String(data: data, encoding: .utf8) {
+                    let doc: Document = try SwiftSoup.parse(html)
+                    if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                        let ogImage = try meta.attr("content")
+                        let ogUrl = URL(string: ogImage)
+                        return ogUrl
+                    } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                        let twImage = try meta.attr("content")
+                        let twUrl = URL(string: twImage)
+                        return twUrl
+                    } else {
+                        return nil
+                    }
+                }
+            } catch(let error) {
+                print(error.localizedDescription)
+            }
+        }
+        return nil
+    }
+
 }
 
 extension Item: Decodable {
