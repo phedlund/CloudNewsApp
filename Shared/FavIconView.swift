@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 1/17/23.
 //
 
-import Kingfisher
 import SwiftUI
 
 struct FavIconView: View {
