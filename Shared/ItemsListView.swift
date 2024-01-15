@@ -94,6 +94,11 @@ struct ItemsListView: View {
                             offsetItemsDetector.send(0.0)
                         }
                     }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if newPhase == .active {
+                            proxy.scrollTo(0, anchor: .top)
+                        }
+                    }
                 }
                 .newsNavigationDestination(type: Item.self, items: items)
                 .listStyle(.plain)
