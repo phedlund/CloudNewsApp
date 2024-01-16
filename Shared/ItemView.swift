@@ -19,13 +19,12 @@ struct ItemView: View {
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
 
-    var item: Item
     @State private var isShowingThumbnail = true
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
 
-    var cellSize: CGSize
-
+    private var item: Item
+    private var cellSize: CGSize
     private var cellWidth = CGFloat.infinity
 
     init(item: Item, size: CGSize) {
