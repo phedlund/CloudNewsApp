@@ -116,8 +116,8 @@ struct ItemsListView: View {
                     cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                 }
                 .onReceive(offsetItemsPublisher) { newOffset in
-                    Task.detached {
-                        await markRead(newOffset)
+                    Task.detached(priority: .background) {
+                        try await markRead(newOffset)
                     }
                 }
 #if !os(macOS)
@@ -130,20 +130,16 @@ struct ItemsListView: View {
     }
 
     @MainActor
-    private func markRead(_ offset: CGFloat) {
+    private func markRead(_ offset: CGFloat) async throws {
         if markReadWhileScrolling {
-            Task(priority: .userInitiated) {
-                let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
-                if numberOfItems > 0, let container = NewsData.shared.container {
-                    let context = ModelContext(container)
-                    let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
-                    for item in itemsToMarkRead {
-                        item.unread = false
-                    }
-                    try context.save()
-                    if !itemsToMarkRead.isEmpty {
-                        try? await NewsManager.shared.markRead(items: itemsToMarkRead, unread: false)
-                    }
+            let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
+            if numberOfItems > 0 {
+                let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                for item in itemsToMarkRead {
+                    item.unread = false
+                }
+                if !itemsToMarkRead.isEmpty {
+                    try? await NewsManager.shared.markRead(items: itemsToMarkRead, unread: false)
                 }
             }
         }

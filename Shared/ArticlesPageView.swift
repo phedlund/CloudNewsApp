@@ -54,12 +54,6 @@ struct ArticlesPageView: View {
             Color.pbh.whiteBackground
                 .ignoresSafeArea(edges: .vertical)
         }
-        .onAppear {
-            markItemRead()
-        }
-        .onChange(of: selection) { _, newValue in
-            markItemRead()
-        }
         .toolbar(content: pageViewToolBarContent)
         .toolbarRole(.editor)
     }
@@ -115,8 +109,8 @@ struct ArticlesPageView: View {
         }
     }
 
-    @MainActor 
-    private func markItemRead() {
+    @MainActor
+    private func markRead() async throws {
         if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
             item = currentItem
             currentItem.unread = false

@@ -31,9 +31,18 @@ struct ArticleView: View {
                     item.webViewHelper.webView?.load(urlRequest)
                 }
             }
-            .onAppear {
+            .task {
                 if let request = item.webViewHelper.urlRequest {
                     item.webViewHelper.webView?.load(request)
+                }
+                item.unread = false
+                do {
+                    try NewsData.shared.container?.mainContext.save()
+                } catch {
+                    //
+                }
+                Task {
+                    try? await NewsManager.shared.markRead(items: [item], unread: false)
                 }
             }
         }
