@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ItemRow: View {
+struct ItemView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.favIconRepository) private var favIconRepository
     #if os(macOS)

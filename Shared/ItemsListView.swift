@@ -61,7 +61,7 @@ struct ItemsListView: View {
                     List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
                         ZStackGroup(item: item) {
                             RowContainer {
-                                ItemRow(item: item, size: cellSize)
+                                ItemView(item: item, size: cellSize)
                                     .id(index)
                                     .tag(item.persistentModelID)
                                     .environment(favIconRepository)
