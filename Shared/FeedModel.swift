@@ -7,7 +7,6 @@
 
 import Observation
 import SwiftData
-import SwiftUI
 
 @Observable
 class FeedModel {
