@@ -58,6 +58,7 @@ struct ContentView: View {
                 }
             }
         }
+        .navigationSplitViewStyle(.automatic)
         .onChange(of: folders, initial: true) { oldValue, newValue in
             print("Folders changed")
             feedModel.folders = newValue
