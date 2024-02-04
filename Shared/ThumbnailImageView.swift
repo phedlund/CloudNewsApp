@@ -48,10 +48,7 @@ struct ThumbnailImageView: View {
             updateSizeAndOffset()
         }
         .task {
-            do {
-                updateSizeAndOffset()
-                image = try await item.itemImage
-            } catch { }
+            updateSizeAndOffset()
         }
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
@@ -63,17 +60,22 @@ struct ThumbnailImageView: View {
     private func updateSizeAndOffset() {
         Task {
             do {
-                let myImage = try await item.itemImage
-                if !showThumbnails || myImage == SystemImage() {
+                if !showThumbnails {
                     thumbnailOffset = .zero
                     imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
                 } else {
-                    if compactView {
-                        thumbnailOffset = .compactThumbnailWidth + .paddingSix
-                        imageSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
+                    image = try await item.itemImage
+                    if image == SystemImage() {
+                        thumbnailOffset = .zero
+                        imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
                     } else {
-                        thumbnailOffset = .defaultThumbnailWidth + .paddingSix
-                        imageSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                        if compactView {
+                            thumbnailOffset = .compactThumbnailWidth + .paddingSix
+                            imageSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
+                        } else {
+                            thumbnailOffset = .defaultThumbnailWidth + .paddingSix
+                            imageSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                        }
                     }
                 }
             }
