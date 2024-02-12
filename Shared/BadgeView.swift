@@ -14,6 +14,7 @@ struct BadgeView: View {
     @Query private var items: [Item]
 
     private let errorCount = 0
+    private var feed: Feed?
 
     init(node: Node) {
         self.node = node
@@ -28,6 +29,7 @@ struct BadgeView: View {
 
         case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+            feed = Feed.feed(id: id)
         case .folder(let id):
             if let feedIds = Feed.idsInFolder(folder: id) {
                 predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
@@ -39,7 +41,7 @@ struct BadgeView: View {
     @ViewBuilder
     var body: some View {
         HStack {
-            if errorCount > 20 {
+            if feed?.updateErrorCount ?? 0 > 20 {
                 Image(systemName: "exclamationmark.triangle")
                     .foregroundStyle(.black, .red)
             } else {
