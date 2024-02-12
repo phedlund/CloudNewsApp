@@ -10,6 +10,7 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
+    @Environment(\.feedModel) private var feedModel
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
@@ -31,6 +32,7 @@ struct ArticlesPageView: View {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.persistentModelID) { item in
                     ArticleView(item: item)
+                        .environment(feedModel)
                         .containerRelativeFrame([.horizontal, .vertical])
                         .onChange(of: fontSize) {
                             item.webViewHelper.webView?.reload()
@@ -105,22 +107,6 @@ struct ArticlesPageView: View {
                     ArticleSettingsView(item: currentItem)
                         .presentationDetents([.height(300.0)])
                 }
-            }
-        }
-    }
-
-    @MainActor
-    private func markRead() async throws {
-        if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
-            item = currentItem
-            currentItem.unread = false
-            do {
-                try NewsData.shared.container?.mainContext.save()
-            } catch {
-                //
-            }
-            Task {
-                try? await NewsManager.shared.markRead(items: [currentItem], unread: false)
             }
         }
     }

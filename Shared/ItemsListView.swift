@@ -22,6 +22,7 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.pbh.whiteBackground
 #endif
+    @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -70,6 +71,7 @@ struct ItemsListView: View {
 #endif
                                     .contextMenu {
                                         ContextMenuContent(item: item)
+                                            .environment(feedModel)
                                     }
                                     .alignmentGuide(.listRowSeparatorLeading) { _ in
                                         return 0
@@ -100,6 +102,7 @@ struct ItemsListView: View {
                     }
                 }
                 .newsNavigationDestination(type: Item.self, items: items)
+                .environment(feedModel)
                 .listStyle(.plain)
                 .accentColor(.pbh.darkIcon)
                 .background {
@@ -135,12 +138,7 @@ struct ItemsListView: View {
             let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
             if numberOfItems > 0 {
                 let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
-                for item in itemsToMarkRead {
-                    item.unread = false
-                }
-                if !itemsToMarkRead.isEmpty {
-                    try? await NewsManager.shared.markRead(items: itemsToMarkRead, unread: false)
-                }
+                feedModel.markItemsRead(items: itemsToMarkRead)
             }
         }
     }
@@ -148,6 +146,7 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
+    @Environment(\.feedModel) private var feedModel
     let type: Item.Type
     let items: [Item]
 
@@ -156,6 +155,7 @@ struct NavigationDestinationModifier: ViewModifier {
         content
             .navigationDestination(for: type) { item in
                 ArticlesPageView(item: item, items: items)
+                    .environment(feedModel)
             }
 
 #else

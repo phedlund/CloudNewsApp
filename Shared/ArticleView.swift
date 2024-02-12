@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-
+    @Environment(\.feedModel) private var feedModel
     var item: Item
 
     var body: some View {
@@ -35,15 +35,7 @@ struct ArticleView: View {
                 if let request = item.webViewHelper.urlRequest {
                     item.webViewHelper.webView?.load(request)
                 }
-                item.unread = false
-                do {
-                    try NewsData.shared.container?.mainContext.save()
-                } catch {
-                    //
-                }
-                Task {
-                    try? await NewsManager.shared.markRead(items: [item], unread: false)
-                }
+                feedModel.markItemsRead(items: [item])
             }
         }
     }

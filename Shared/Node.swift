@@ -7,10 +7,10 @@
 
 import Foundation
 import Observation
+import SwiftData
 
 @Observable
 final class Node: Identifiable {
-    var unreadCount = 0
     var errorCount = 0
     var title = ""
 
@@ -20,6 +20,8 @@ final class Node: Identifiable {
     private(set) var nodeType = NodeType.empty
     private(set) var children: [Node]? = nil
 
+    private var context: ModelContext?
+
     convenience init() {
         self.init(.empty, id: Constants.allNodeGuid, isExpanded: false)
     }
@@ -28,25 +30,18 @@ final class Node: Identifiable {
         self.init(nodeType, children: nil, id: id, isExpanded: isExpanded)
     }
 
-    init(folder: Folder) {
-        self.nodeType = .folder(id: folder.id)
-        self.id = "folder_\(folder.id)"
-        self.isExpanded = folder.opened
-        self.title = folder.name ?? "Untitled Folder"
+    convenience init(folder: Folder) {
+        var children = [Node]()
         if let feeds = Feed.inFolder(folder: folder.id) {
-            var children = [Node]()
             for feed in feeds {
                 children.append(Node(feed: feed))
             }
-            self.children = children
         }
+        self.init(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.opened)
     }
 
-    init(feed: Feed) {
-        self.nodeType = .feed(id: feed.id)
-        self.id = "feed_\(feed.id)"
-        self.isExpanded = false
-        self.title = feed.title ?? "Untitled Feed"
+    convenience init(feed: Feed) {
+        self.init(.feed(id: feed.id), children: nil, id: "feed_\(feed.id)", isExpanded: false)
     }
 
     init(_ nodeType: NodeType, children: [Node]? = nil, id: String, isExpanded: Bool) {
@@ -55,7 +50,45 @@ final class Node: Identifiable {
         self.isExpanded = isExpanded
         self.title = nodeTitle()
         self.children = children
+        if let container = NewsData.shared.container {
+            context = ModelContext(container)
+            context?.autosaveEnabled = false
+        }
     }
+
+    func markRead() {
+        var descriptor = FetchDescriptor<Item>()
+        switch nodeType {
+        case .empty:
+            break
+        case .all:
+            descriptor.predicate = #Predicate<Item> { $0.unread == true }
+        case .starred:
+            descriptor.predicate = #Predicate<Item> { $0.starred == true }
+        case .folder(let id):
+            if let feedIds = Feed.idsInFolder(folder: id) {
+                descriptor.predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+            }
+        case .feed(let id):
+            descriptor.predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+        }
+        do {
+            if let unreadItems = try context?.fetch(descriptor) {
+                if !unreadItems.isEmpty {
+                    for item in unreadItems {
+                        item.unread = false
+                    }
+                    try context?.save()
+                    Task {
+                        try await NewsManager.shared.markRead(items: unreadItems, unread: false)
+                    }
+                }
+            }
+        } catch {
+            //
+        }
+    }
+
 
     private func nodeTitle() -> String {
         switch nodeType {

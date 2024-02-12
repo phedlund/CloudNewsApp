@@ -13,21 +13,19 @@ struct ItemListToolbarContent: ToolbarContent {
     @ToolbarContentBuilder
     var body: some ToolbarContent {
         ToolbarItem(placement: .automatic) {
-            MarkReadButton()
+            MarkReadButton(node: node)
         }
     }
 }
 
 struct ContextMenuContent: View {
+    @Environment(\.feedModel) private var feedModel
+
     var item: Item
 
     var body: some View {
         Button {
-            Task {
-                item.unread.toggle()
-                try NewsData.shared.container?.mainContext.save()
-                try? await NewsManager.shared.markRead(items: [item], unread: !item.unread)
-            }
+            feedModel.toggleItemRead(item: item)
         } label: {
             Label {
                 Text(item.unread ? "Read" : "Unread")

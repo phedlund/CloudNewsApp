@@ -67,7 +67,7 @@ struct ItemView: View {
                                     }
                                 }
                                 .padding(.leading, thumbnailOffset)
-                                .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
+//                                .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
                                 VStack(alignment: .leading) {
                                     if compactView {
                                         EmptyView()

@@ -11,6 +11,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
+    @Environment(\.scenePhase) private var scenePhase
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
@@ -38,6 +39,7 @@ struct ContentView: View {
             ZStack {
                 if selectedNodeID != Constants.emptyNodeGuid {
                     ItemsListView(predicate: predicate, sort: sortOrder)
+                        .environment(feedModel)
                         .environment(favIconRepository)
                         .toolbar {
                             ItemListToolbarContent(node: feedModel.currentNode)
@@ -65,7 +67,6 @@ struct ContentView: View {
         }
         .onChange(of: feeds, initial: true) { oldValue, newValue in
             feedModel.feeds = newValue
-            favIconRepository.update()
         }
         .onChange(of: selectedNodeID, initial: false) { _, newValue in
             selectedNode = newValue
@@ -80,6 +81,11 @@ struct ContentView: View {
         }
         .task {
             selectedNodeID = selectedNode
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                favIconRepository.update()
+            }
         }
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {

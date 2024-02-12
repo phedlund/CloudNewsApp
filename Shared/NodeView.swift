@@ -11,7 +11,6 @@ import SwiftUI
 struct NodeView: View {
     @Environment(\.feedModel) private var feedModel
     @Environment(\.favIconRepository) private var favIconRepository
-    @Query private var items: [Item]
     @State private var isShowingConfirmation = false
 
     var node: Node
@@ -22,27 +21,9 @@ struct NodeView: View {
     let noChildrenPadding = 0.0
 #endif
 
-    init(node: Node) {
-        self.node = node
-        switch node.nodeType {
-        case .empty:
-            self._items = Query(filter: #Predicate<Item> { $0.unread == true } )
-        case .all:
-            self._items = Query(filter: #Predicate<Item> { $0.unread == true } )
-        case .starred:
-            self._items = Query(filter: #Predicate<Item> { $0.starred == true } )
-        case .folder(id: let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
-                self._items = Query(filter:#Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true } )
-            }
-        case .feed(id: let id):
-            self._items = Query(filter:#Predicate<Item> { $0.feedId == id && $0.unread == true } )
-        }
-    }
-
     var body: some View {
         LabeledContent {
-            BadgeView(unreadCount: items.count, errorCount: node.errorCount)
+            BadgeView(node: node)
                 .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         } label: {
             Label {
@@ -82,13 +63,6 @@ struct NodeView: View {
                 Text("All feeds and articles in \"\(node.title)\" will also be deleted")
             case .feed(_):
                 Text("All articles in \"\(node.title)\" will also be deleted")
-            }
-        }
-        .onChange(of: items.count, initial: true) { oldValue, newValue in
-            if node.nodeType == .all {
-                DispatchQueue.main.async {
-                    UNUserNotificationCenter.current().setBadgeCount(newValue)
-                }
             }
         }
     }

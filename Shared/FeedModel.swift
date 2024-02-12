@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/20/21.
 //
 
+import Foundation
 import Observation
 import SwiftData
 
@@ -18,6 +19,7 @@ class FeedModel {
     var currentItemID: PersistentIdentifier? = nil
 
     private var isInInit = true
+    private var context: ModelContext?
 
     var folders = [Folder]() {
         didSet {
@@ -37,6 +39,10 @@ class FeedModel {
     init() {
         nodes.append(Node(.all, id: Constants.allNodeGuid))
         nodes.append(Node(.starred, id: Constants.starNodeGuid))
+        if let container = NewsData.shared.container {
+            context = ModelContext(container)
+            context?.autosaveEnabled = false
+        }
         update()
         isInInit = false
     }
@@ -129,4 +135,28 @@ class FeedModel {
             return Node()
         }
     }
+
+    func markItemsRead(items: [Item]) {
+        for item in items {
+            item.unread = false
+        }
+        if !items.isEmpty {
+            Task {
+                try await NewsManager.shared.markRead(items: items, unread: false)
+            }
+        }
+    }
+
+    func toggleItemRead(item: Item) {
+        do {
+            item.unread.toggle()
+            try context?.save()
+            Task {
+                try await NewsManager.shared.markRead(items: [item], unread: !item.unread)
+            }
+        } catch {
+            //
+        }
+    }
+
 }

@@ -205,11 +205,9 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton()
-                .environment(feedModel)
+            MarkReadButton(node: node)
         case .folder( _):
-            MarkReadButton()
-                .environment(feedModel)
+            MarkReadButton(node: node)
             Button {
                 nodeSelection = node.id
                 feedModel.currentNode = node
@@ -225,8 +223,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
-            MarkReadButton()
-                .environment(feedModel)
+            MarkReadButton(node: node)
             Button {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
