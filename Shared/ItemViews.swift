@@ -79,10 +79,10 @@ struct FavIconLabelStyle: LabelStyle {
 }
 
 struct FavIconDateAuthorView: View {
-    @Environment(\.favIconRepository) private var favIconRepository
-
     var title: String
     var feedId: Int64
+
+    @State private var favIcon = SystemImage()
 
     var body: some View {
         Label {
@@ -91,11 +91,20 @@ struct FavIconDateAuthorView: View {
                 .italic()
                 .lineLimit(1)
         } icon: {
-            FavIconView(favIcon: favIconRepository.icons["feed_\(feedId)"] ?? favIconRepository.defaultIcon)
-                .environment(favIconRepository)
+            FavIconView(favIcon: favIcon)
         }
         .labelStyle(FavIconLabelStyle())
+        .task {
+            updateFavIcon()
+        }
     }
+
+    private func updateFavIcon() {
+        Task {
+            favIcon = try await Feed.feed(id: feedId)?.favIcon ?? SystemImage()
+        }
+    }
+
 }
 
 struct BodyView: View {

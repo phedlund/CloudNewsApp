@@ -14,17 +14,8 @@ extension EnvironmentValues {
         set { self[FeedModelKey.self] = newValue }
     }
 
-    var favIconRepository: FavIconRepository {
-        get { self[FavIconRepositoryKey.self] }
-        set { self[FavIconRepositoryKey.self] = newValue }
-    }
-
 }
 
 private struct FeedModelKey: EnvironmentKey {
     static var defaultValue: FeedModel = FeedModel()
-}
-
-private struct FavIconRepositoryKey: EnvironmentKey {
-    static var defaultValue: FavIconRepository = FavIconRepository()
 }

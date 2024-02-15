@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Nuke
 import SwiftData
 
 @Model
@@ -29,6 +30,17 @@ final class Feed {
     @Relationship
     var items: [Item]
 
+    var favIcon: SystemImage {
+        get async throws {
+            guard let url = try await favIconUrl() else {
+                return SystemImage(named: "rss") ?? SystemImage()
+            }
+            return try await ImagePipeline.shared.image(for: url)
+        }
+    }
+
+    private let validSchemas = ["http", "https", "file"]
+
     init(added: Int64, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
@@ -48,6 +60,24 @@ final class Feed {
         self.lastModified = Int64(Date().timeIntervalSince1970)
         self.items = items
     }
+
+    private func favIconUrl() async throws -> URL? {
+        var itemImageUrl: URL?
+        if let link = faviconLink,
+           let url = URL(string: link),
+           let scheme = url.scheme,
+           validSchemas.contains(scheme) {
+                itemImageUrl = url
+        } else {
+            if let feedUrl = URL(string: link ?? "data:null"),
+               let host = feedUrl.host,
+               let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
+                itemImageUrl = url
+            }
+        }        
+        return itemImageUrl
+    }
+
 }
 
 extension Feed: Decodable {

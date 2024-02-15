@@ -334,7 +334,7 @@ struct SettingsView: View {
                 settingsSheet = .login
                 isShowingSheet = true
 #else
-                openWindow(id: "login")
+                openWindow(scrollId: "login")
 #endif
             } catch (let error as NSError) {
                 print(error.localizedDescription)

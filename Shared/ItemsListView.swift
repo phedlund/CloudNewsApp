@@ -23,24 +23,29 @@ struct ItemsListView: View {
     let listRowBackground = Color.pbh.whiteBackground
 #endif
     @Environment(\.feedModel) private var feedModel
-    @Environment(\.favIconRepository) private var favIconRepository
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
 
+    @Namespace private var topId
+
     @Query private var items: [Item]
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
 
     @State private var itemSelection: PersistentIdentifier?
+    @State private var scrollId: Int64?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
 
     init(predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
-        _items = Query(filter: predicate, sort: [sort])
+        var fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
+//        fetchDescriptor.fetchLimit = 20
+
+        _items = Query(fetchDescriptor)
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
@@ -57,6 +62,54 @@ struct ItemsListView: View {
 #endif
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
+                ScrollView(.vertical) {
+                    ScrollViewReader { proxy in
+                        Group { }
+                            .id(topId)
+                        LazyVStack(alignment: .center, spacing: 16.0) {
+                            ForEach(items, id: \.id) { item in
+                                ItemView(item: item, size: cellSize)
+                                //                                    .id(item.persistent)
+//                                                                    .id(item.persistentModelID)
+#if os(macOS)
+                                    .frame(height: cellHeight, alignment: .center)
+#endif
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
+                                            .environment(feedModel)
+                                    }
+                            }
+                        }
+                        .scrollTargetLayout()
+                        .onChange(of: scrollId) { oldValue, newValue in
+                            print("Scroll ID \(newValue ?? 0)")
+                        }
+                        .onChange(of: selectedNode) { oldValue, newValue in
+                            scrollId = items.first?.id
+//                            if newValue != oldValue {
+//                                proxy.scrollTo(topId, anchor: .top)
+//                            }
+                        }
+                        .onChange(of: scenePhase) { _, newPhase in
+                            if newPhase == .active {
+                                scrollId = items.first?.id
+//                                proxy.scrollTo(topId, anchor: .top)
+                            }
+                        }
+                    }
+                    //                    .defaultScrollAnchor(.top)
+                    .newsNavigationDestination(type: Item.self, items: items)
+                }
+                .scrollPosition(id: $scrollId)
+                .environment(feedModel)
+                .accentColor(.pbh.darkIcon)
+                .background {
+                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                }
+                .scrollContentBackground(.hidden)
+            }
+
+/*
                 ScrollViewReader { proxy in
                     let indexedQuery = items.enumerated().map({ $0 })
                     List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
@@ -128,7 +181,7 @@ struct ItemsListView: View {
                     isHorizontalCompact = newValue == .compact
                 }
 #endif
-            }
+ */
         }
     }
 

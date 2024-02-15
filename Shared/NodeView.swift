@@ -10,8 +10,8 @@ import SwiftUI
 
 struct NodeView: View {
     @Environment(\.feedModel) private var feedModel
-    @Environment(\.favIconRepository) private var favIconRepository
     @State private var isShowingConfirmation = false
+    @State private var favIcon = SystemImage()
 
     var node: Node
 
@@ -30,16 +30,7 @@ struct NodeView: View {
                 Text(node.title)
                     .lineLimit(1)
             } icon: {
-                switch node.nodeType {
-                case .all, .empty:
-                    FavIconView(favIcon: favIconRepository.icons["all"] ?? favIconRepository.defaultIcon)
-                case .starred:
-                    FavIconView(favIcon: favIconRepository.icons["starred"] ?? favIconRepository.defaultIcon)
-                case .folder( _):
-                    FavIconView(favIcon: favIconRepository.icons["folder"] ?? favIconRepository.defaultIcon)
-                case .feed(let id):
-                    FavIconView(favIcon: favIconRepository.icons["feed_\(id)"] ?? favIconRepository.defaultIcon)
-                }
+                FavIconView(favIcon: favIcon)
             }
             .labelStyle(.titleAndIcon)
         }
@@ -63,6 +54,25 @@ struct NodeView: View {
                 Text("All feeds and articles in \"\(node.title)\" will also be deleted")
             case .feed(_):
                 Text("All articles in \"\(node.title)\" will also be deleted")
+            }
+        }
+        .task {
+            updateFavIcon()
+        }
+
+    }
+
+    private func updateFavIcon() {
+        switch node.nodeType {
+        case .all, .empty:
+            favIcon = SystemImage(named: "rss") ?? SystemImage()
+        case .starred:
+            favIcon = SystemImage(symbolName: "star.fill") ?? SystemImage()
+        case .folder( _):
+            favIcon = SystemImage(symbolName: "folder") ?? SystemImage()
+        case .feed(let id):
+            Task {
+                favIcon = try await Feed.feed(id: id)?.favIcon ?? SystemImage()
             }
         }
     }

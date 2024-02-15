@@ -36,7 +36,7 @@ struct AppCommands: Commands {
         }
         CommandMenu("Folder") {
             Button("New Folder...") {
-                openWindow(id: ModalSheet.addFolder.rawValue)
+                openWindow(scrollId: ModalSheet.addFolder.rawValue)
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
             Divider()
@@ -53,16 +53,16 @@ struct AppCommands: Commands {
         }
         CommandMenu("Feed") {
             Button("New Feed...") {
-                openWindow(id: ModalSheet.addFeed.rawValue)
+                openWindow(scrollId: ModalSheet.addFeed.rawValue)
             }
             .keyboardShortcut("n")
             Divider()
             Button("Settings...") {
                 switch model.currentNode.nodeType {
-                case .empty, .all, .starred, .folder(id: _):
+                case .empty, .all, .starred, .folder(scrollId: _):
                     break
-                case .feed(id: let id):
-                    openWindow(id: ModalSheet.feedSettings.rawValue, value: id)
+                case .feed(scrollId: let scrollId):
+                    openWindow(scrollId: ModalSheet.feedSettings.rawValue, value: scrollId)
                 }
             }
             .disabled(isFeedSettingsDisabled())
@@ -183,7 +183,7 @@ struct AppCommands: Commands {
             }
             Divider()
             Button("Acknowledgements...") {
-                openWindow(id: ModalSheet.acknowledgement.rawValue)
+                openWindow(scrollId: ModalSheet.acknowledgement.rawValue)
             }
         }
     }
@@ -204,18 +204,18 @@ struct AppCommands: Commands {
 
     private func isFolderRenameDisabled() -> Bool {
         switch model.currentNode.nodeType {
-        case .empty, .all, .starred, .feed(id: _):
+        case .empty, .all, .starred, .feed(scrollId: _):
             return true
-        case .folder(id: _):
+        case .folder(scrollId: _):
             return false
         }
     }
 
     private func isFeedSettingsDisabled() -> Bool {
         switch model.currentNode.nodeType {
-        case .empty, .all, .starred, .folder(id: _):
+        case .empty, .all, .starred, .folder(scrollId: _):
             return true
-        case .feed(id: _):
+        case .feed(scrollId: _):
             return false
         }
     }

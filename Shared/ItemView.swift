@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ItemView: View {
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.favIconRepository) private var favIconRepository
     #if os(macOS)
     @State private var isHorizontalCompact = false
     #else
@@ -58,7 +57,6 @@ struct ItemView: View {
                                         }
                                         .frame(maxWidth: .infinity)
                                         FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
-                                            .environment(favIconRepository)
                                         if isHorizontalCompact {
                                             Spacer()
                                         } else {

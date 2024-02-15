@@ -29,7 +29,6 @@ struct SidebarView: View {
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
     @Environment(\.feedModel) private var feedModel
-    @Environment(\.favIconRepository) private var favIconRepository
 
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
 
