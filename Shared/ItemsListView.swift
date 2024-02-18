@@ -49,7 +49,7 @@ struct ItemsListView: View {
     }
 
     var body: some View {
-        let _ = Self._printChanges()
+        //        let _ = Self._printChanges()
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
@@ -61,11 +61,7 @@ struct ItemsListView: View {
                 ScrollView(.vertical) {
                     LazyVStack(alignment: .center, spacing: 16.0) {
                         ForEach(items, id: \.id) { item in
-                            NavigationLink {
-                                ArticlesPageView(item: item, items: items)
-                                    .environment(feedModel)
-                                
-                            } label: {
+                            NavigationLink(value: item) {
                                 ItemView(item: item, size: cellSize)
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
@@ -76,6 +72,10 @@ struct ItemsListView: View {
                                     }
                             }
                         }
+                    }
+                    .navigationDestination(for: Item.self) {
+                        ArticlesPageView(item: $0, items: items)
+                            .environment(feedModel)
                     }
                     .onScrollEnded(in: .named(coordinateSpaceName), onScrollEnded: updateScrollPosition(_:))
                     .scrollTargetLayout()
@@ -180,8 +180,7 @@ struct ItemsListView: View {
     }
 
     private func updateScrollPosition(_ position: CGFloat) {
-        print("scrolling ended @: \(position)")
-        Task {
+        Task.detached {
             try await markRead(position)
         }
     }
@@ -191,24 +190,13 @@ struct ItemsListView: View {
         if markReadWhileScrolling {
             let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
             if numberOfItems > 0 {
-                let itemsToMarkRead = items.prefix(through: Int(numberOfItems)).filter( { $0.unread })
+                let itemsToMarkRead = items
+                    .prefix(through: Int(numberOfItems))
+                    .filter( { $0.unread })
                 feedModel.markItemsRead(items: itemsToMarkRead)
             }
         }
     }
-
-    @MainActor
-    private func markRead(_ itemId: Int64) async throws {
-        if markReadWhileScrolling {
-            if let itemIndex = items.firstIndex(where: { $0.id == itemId }) {
-                let markItems = items.prefix(itemIndex).filter( { $0.unread } )
-                if !markItems.isEmpty {
-                    feedModel.markItemsRead(items: Array(markItems))
-                }
-            }
-        }
-    }
-
 
 }
 

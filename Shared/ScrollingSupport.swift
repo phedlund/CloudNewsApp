@@ -42,6 +42,8 @@ struct OnVerticalScrollEnded: ViewModifier {
                 })
             )
             .onPreferenceChange(ViewOffsetKey.self, perform: offsetTracker.updateOffset(_:))
-            .onReceive(offsetTracker.scrollViewVerticalOffset.debounce(for: 0.1, scheduler: DispatchQueue.main).dropFirst(), perform: scrollPostionUpdate)
+            .onReceive(offsetTracker.scrollViewVerticalOffset
+                .debounce(for: 0.2, scheduler: DispatchQueue.main)
+                .dropFirst(), perform: scrollPostionUpdate)
     }
 }

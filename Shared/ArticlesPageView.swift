@@ -16,7 +16,7 @@ struct ArticlesPageView: View {
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     @State private var item: Item
-    @State private var selection: PersistentIdentifier?
+    @State private var scrollId: Int64?
     @State private var isShowingPopover = false
 
     private let items: [Item]
@@ -24,15 +24,13 @@ struct ArticlesPageView: View {
     init(item: Item, items: [Item]) {
         self.items = items
         self._item = State(initialValue: item)
-        self._selection = State(initialValue: item.persistentModelID)
     }
 
     var body: some View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
-                ForEach(items, id: \.persistentModelID) { item in
+                ForEach(items, id: \.id) { item in
                     ArticleView(item: item)
-                        .environment(feedModel)
                         .containerRelativeFrame([.horizontal, .vertical])
                         .onChange(of: fontSize) {
                             item.webViewHelper.webView?.reload()
@@ -48,7 +46,7 @@ struct ArticlesPageView: View {
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
-        .scrollPosition(id: $selection, anchor: .center)
+        .scrollPosition(id: $scrollId, anchor: .center)
         .scrollTargetBehavior(.paging)
         .navigationTitle(item.webViewHelper.title)
         .scrollContentBackground(.hidden)
@@ -58,6 +56,14 @@ struct ArticlesPageView: View {
         }
         .toolbar(content: pageViewToolBarContent)
         .toolbarRole(.editor)
+        .onAppear {
+            scrollId = item.id
+        }
+        .onChange(of: scrollId, initial: true) { _, newValue in
+            if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
+                feedModel.markItemsRead(items: [newItem])
+            }
+        }
     }
 
     @ToolbarContentBuilder
@@ -90,7 +96,7 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
+            if let currentItem = items.first(where: { $0.id == scrollId }) {
                 ShareLinkButton(item: currentItem)
                     .disabled(item.webViewHelper.isLoading)
             } else {
@@ -103,7 +109,7 @@ struct ArticlesPageView: View {
             }
             .disabled(item.webViewHelper.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let currentItem = items.first(where: { $0.persistentModelID == selection }) {
+                if let currentItem = items.first(where: { $0.id == scrollId }) {
                     ArticleSettingsView(item: currentItem)
                         .presentationDetents([.height(300.0)])
                 }

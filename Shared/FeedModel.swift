@@ -143,7 +143,7 @@ class FeedModel {
         for item in items {
             item.unread = false
         }
-        Task {
+        Task.detached {
             try await NewsManager.shared.markRead(items: items, unread: false)
         }
     }

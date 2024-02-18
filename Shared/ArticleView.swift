@@ -9,33 +9,28 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    @Environment(\.feedModel) private var feedModel
     var item: Item
 
     var body: some View {
-        GeometryReader { geometry in
-            WebView { webView in
-                item.webViewHelper.updateItem(item: item)
-                item.webViewHelper.webView = webView
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-            .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
+        WebView { webView in
+            item.webViewHelper.updateItem(item: item)
+            item.webViewHelper.webView = webView
+        }
+        .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
 #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline)
 #endif
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        .background {
+            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        }
+        .onChange(of: item.webViewHelper.urlRequest) { oldValue, newValue in
+            if newValue != oldValue, let urlRequest = item.webViewHelper.urlRequest {
+                item.webViewHelper.webView?.load(urlRequest)
             }
-            .onChange(of: item.webViewHelper.urlRequest) { oldValue, newValue in
-                if newValue != oldValue, let urlRequest = item.webViewHelper.urlRequest {
-                    item.webViewHelper.webView?.load(urlRequest)
-                }
-            }
-            .task {
-                if let request = item.webViewHelper.urlRequest {
-                    item.webViewHelper.webView?.load(request)
-                }
-                feedModel.markItemsRead(items: [item])
+        }
+        .task {
+            if let request = item.webViewHelper.urlRequest {
+                item.webViewHelper.webView?.load(request)
             }
         }
     }
