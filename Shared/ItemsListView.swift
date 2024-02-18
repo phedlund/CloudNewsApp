@@ -91,6 +91,9 @@ struct ItemsListView: View {
                             }
                         }
                     }
+                    .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
+                        cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                    }
                 }
                 .coordinateSpace(name: coordinateSpaceName)
                 .defaultScrollAnchor(.top)
