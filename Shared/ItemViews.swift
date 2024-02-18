@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 10/10/21.
 //
 
+import SwiftData
 import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
@@ -80,9 +81,17 @@ struct FavIconLabelStyle: LabelStyle {
 
 struct FavIconDateAuthorView: View {
     var title: String
-    var feedId: Int64
 
     @State private var favIcon = SystemImage()
+    @Query private var feeds: [Feed]
+
+    init(title: String, feedId: Int64) {
+        self.title = title
+        let predicate = #Predicate<Feed>{ $0.id == feedId }
+        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
+        descriptor.fetchLimit = 1
+        _feeds = Query(descriptor)
+    }
 
     var body: some View {
         Label {
@@ -104,7 +113,7 @@ struct FavIconDateAuthorView: View {
 
     private func updateFavIcon() {
         Task {
-            favIcon = try await Feed.feed(id: feedId)?.favIcon ?? SystemImage()
+            favIcon = try await feeds.first?.favIcon ?? SystemImage()
         }
     }
 
