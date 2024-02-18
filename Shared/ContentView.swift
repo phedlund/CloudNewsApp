@@ -58,11 +58,11 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: folders, initial: true) { oldValue, newValue in
+        .onChange(of: folders, initial: true) { _, newValue in
             print("Folders changed")
             feedModel.folders = newValue
         }
-        .onChange(of: feeds, initial: true) { oldValue, newValue in
+        .onChange(of: feeds, initial: true) { _, newValue in
             feedModel.feeds = newValue
         }
         .onChange(of: selectedNodeID, initial: false) { _, newValue in
