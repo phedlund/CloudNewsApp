@@ -29,29 +29,25 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
 
-    @Namespace private var topId
-
     @Query private var items: [Item]
 
     @State private var cellHeight: CGFloat = .defaultCellHeight
-
     @State private var itemSelection: PersistentIdentifier?
     @State private var scrollId: Int64?
 
     private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
     private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
+    private let coordinateSpaceName = "scrollingEnded"
 
     init(predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
-        var fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
-//        fetchDescriptor.fetchLimit = 20
-
+        let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
         _items = Query(fetchDescriptor)
         self.offsetItemsPublisher = offsetItemsDetector
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .dropFirst()
             .eraseToAnyPublisher()
     }
-    
+
     var body: some View {
         let _ = Self._printChanges()
         GeometryReader { geometry in
@@ -63,14 +59,14 @@ struct ItemsListView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
                 ScrollView(.vertical) {
-                    ScrollViewReader { proxy in
-                        Group { }
-                            .id(topId)
-                        LazyVStack(alignment: .center, spacing: 16.0) {
-                            ForEach(items, id: \.id) { item in
+                    LazyVStack(alignment: .center, spacing: 16.0) {
+                        ForEach(items, id: \.id) { item in
+                            NavigationLink {
+                                ArticlesPageView(item: item, items: items)
+                                    .environment(feedModel)
+                                
+                            } label: {
                                 ItemView(item: item, size: cellSize)
-                                //                                    .id(item.persistent)
-//                                                                    .id(item.persistentModelID)
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
 #endif
@@ -80,26 +76,24 @@ struct ItemsListView: View {
                                     }
                             }
                         }
-                        .scrollTargetLayout()
-                        .onChange(of: scrollId) { oldValue, newValue in
-                            print("Scroll ID \(newValue ?? 0)")
-                        }
-                        .onChange(of: selectedNode) { oldValue, newValue in
+                    }
+                    .onScrollEnded(in: .named(coordinateSpaceName), onScrollEnded: updateScrollPosition(_:))
+                    .scrollTargetLayout()
+                    .onChange(of: selectedNode) { _, _ in
+                        DispatchQueue.main.async {
                             scrollId = items.first?.id
-//                            if newValue != oldValue {
-//                                proxy.scrollTo(topId, anchor: .top)
-//                            }
                         }
-                        .onChange(of: scenePhase) { _, newPhase in
-                            if newPhase == .active {
+                    }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if newPhase == .active {
+                            DispatchQueue.main.async {
                                 scrollId = items.first?.id
-//                                proxy.scrollTo(topId, anchor: .top)
                             }
                         }
                     }
-                    //                    .defaultScrollAnchor(.top)
-                    .newsNavigationDestination(type: Item.self, items: items)
                 }
+                .coordinateSpace(name: coordinateSpaceName)
+                .defaultScrollAnchor(.top)
                 .scrollPosition(id: $scrollId)
                 .environment(feedModel)
                 .accentColor(.pbh.darkIcon)
@@ -109,79 +103,86 @@ struct ItemsListView: View {
                 .scrollContentBackground(.hidden)
             }
 
-/*
-                ScrollViewReader { proxy in
-                    let indexedQuery = items.enumerated().map({ $0 })
-                    List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
-                        ZStackGroup(item: item) {
-                            RowContainer {
-                                ItemView(item: item, size: cellSize)
-                                    .id(index)
-                                    .tag(item.persistentModelID)
-                                    .environment(favIconRepository)
-#if os(macOS)
-                                    .frame(height: cellHeight, alignment: .center)
-#endif
-                                    .contextMenu {
-                                        ContextMenuContent(item: item)
-                                            .environment(feedModel)
-                                    }
-                                    .alignmentGuide(.listRowSeparatorLeading) { _ in
-                                        return 0
-                                    }
-                            }
-                            .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                                prefKey = CGFloat(index)
-                            }
-                            .onPreferenceChange(ViewOffsetKey.self) {
-                                let offset = ($0 * (cellHeight + cellSpacing)) - geometry.size.height
-                                offsetItemsDetector.send(offset)
-                            }
-                        }
-                        .id(index)
-                        .listRowSeparator(listRowSeparatorVisibility)
-                        .listRowBackground(listRowBackground)
-                    }
-                    .onChange(of: selectedNode) { oldValue, newValue in
-                        if newValue != oldValue {
-                            proxy.scrollTo(0, anchor: .top)
-                            offsetItemsDetector.send(0.0)
-                        }
-                    }
-                    .onChange(of: scenePhase) { _, newPhase in
-                        if newPhase == .active {
-                            proxy.scrollTo(0, anchor: .top)
-                        }
-                    }
-                }
-                .newsNavigationDestination(type: Item.self, items: items)
-                .environment(feedModel)
-                .listStyle(.plain)
-                .accentColor(.pbh.darkIcon)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-                .scrollContentBackground(.hidden)
-                .onAppear {
-#if !os(macOS)
-                    isHorizontalCompact = horizontalSizeClass == .compact
-#endif
-                    cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
-                }
-                .onChange(of: $compactView.wrappedValue) { _, newValue in
-                    cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
-                }
-                .onReceive(offsetItemsPublisher) { newOffset in
-                    Task.detached(priority: .background) {
-                        try await markRead(newOffset)
-                    }
-                }
-#if !os(macOS)
-                .onChange(of: horizontalSizeClass) { _, newValue in
-                    isHorizontalCompact = newValue == .compact
-                }
-#endif
- */
+            /*
+             ScrollViewReader { proxy in
+             let indexedQuery = items.enumerated().map({ $0 })
+             List(indexedQuery, id: \.element.id, selection: $itemSelection) { index, item in
+             ZStackGroup(item: item) {
+             RowContainer {
+             ItemView(item: item, size: cellSize)
+             .id(index)
+             .tag(item.persistentModelID)
+             .environment(favIconRepository)
+             #if os(macOS)
+             .frame(height: cellHeight, alignment: .center)
+             #endif
+             .contextMenu {
+             ContextMenuContent(item: item)
+             .environment(feedModel)
+             }
+             .alignmentGuide(.listRowSeparatorLeading) { _ in
+             return 0
+             }
+             }
+             .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
+             prefKey = CGFloat(index)
+             }
+             .onPreferenceChange(ViewOffsetKey.self) {
+             let offset = ($0 * (cellHeight + cellSpacing)) - geometry.size.height
+             offsetItemsDetector.send(offset)
+             }
+             }
+             .id(index)
+             .listRowSeparator(listRowSeparatorVisibility)
+             .listRowBackground(listRowBackground)
+             }
+             .onChange(of: selectedNode) { oldValue, newValue in
+             if newValue != oldValue {
+             proxy.scrollTo(0, anchor: .top)
+             offsetItemsDetector.send(0.0)
+             }
+             }
+             .onChange(of: scenePhase) { _, newPhase in
+             if newPhase == .active {
+             proxy.scrollTo(0, anchor: .top)
+             }
+             }
+             }
+             .newsNavigationDestination(type: Item.self, items: items)
+             .environment(feedModel)
+             .listStyle(.plain)
+             .accentColor(.pbh.darkIcon)
+             .background {
+             Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+             }
+             .scrollContentBackground(.hidden)
+             .onAppear {
+             #if !os(macOS)
+             isHorizontalCompact = horizontalSizeClass == .compact
+             #endif
+             cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
+             }
+             .onChange(of: $compactView.wrappedValue) { _, newValue in
+             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+             }
+             .onReceive(offsetItemsPublisher) { newOffset in
+             Task.detached(priority: .background) {
+             try await markRead(newOffset)
+             }
+             }
+             #if !os(macOS)
+             .onChange(of: horizontalSizeClass) { _, newValue in
+             isHorizontalCompact = newValue == .compact
+             }
+             #endif
+             */
+        }
+    }
+
+    private func updateScrollPosition(_ position: CGFloat) {
+        print("scrolling ended @: \(position)")
+        Task {
+            try await markRead(position)
         }
     }
 
@@ -195,6 +196,19 @@ struct ItemsListView: View {
             }
         }
     }
+
+    @MainActor
+    private func markRead(_ itemId: Int64) async throws {
+        if markReadWhileScrolling {
+            if let itemIndex = items.firstIndex(where: { $0.id == itemId }) {
+                let markItems = items.prefix(itemIndex).filter( { $0.unread } )
+                if !markItems.isEmpty {
+                    feedModel.markItemsRead(items: Array(markItems))
+                }
+            }
+        }
+    }
+
 
 }
 

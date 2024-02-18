@@ -89,6 +89,9 @@ struct FavIconDateAuthorView: View {
             Text(title)
                 .font(.subheadline)
                 .italic()
+#if os(iOS)
+                .foregroundColor(.pbh.whiteText)
+#endif
                 .lineLimit(1)
         } icon: {
             FavIconView(favIcon: favIcon)

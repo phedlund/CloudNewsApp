@@ -137,13 +137,14 @@ class FeedModel {
     }
 
     func markItemsRead(items: [Item]) {
+        guard !items.isEmpty else {
+            return
+        }
         for item in items {
             item.unread = false
         }
-        if !items.isEmpty {
-            Task {
-                try await NewsManager.shared.markRead(items: items, unread: false)
-            }
+        Task {
+            try await NewsManager.shared.markRead(items: items, unread: false)
         }
     }
 
