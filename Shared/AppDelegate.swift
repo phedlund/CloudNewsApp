@@ -14,37 +14,11 @@ import UserNotifications
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-    private let changesPublisher = ItemStorage.shared.changes.eraseToAnyPublisher()
-    private let didChangePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
 
     private var cancellables = Set<AnyCancellable>()
 
     override init() {
         super.init()
-
-        NewsManager.shared.syncSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                let unreadCount = CDItem.unreadCount(nodeType: .all)
-                self?.updateBadge(unreadCount)
-            }
-            .store(in: &cancellables)
-
-        changesPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                let unreadCount = CDItem.unreadCount(nodeType: .all)
-                self?.updateBadge(unreadCount)
-            }
-            .store(in: &cancellables)
-
-        didChangePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                let unreadCount = CDItem.unreadCount(nodeType: .all)
-                self?.updateBadge(unreadCount)
-            }
-            .store(in: &cancellables)
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -60,12 +34,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
-    }
-
-    func updateBadge(_ badgeValue: Int) {
-        DispatchQueue.main.async {
-            NSApp.dockTile.badgeLabel = badgeValue > 0 ? "\(badgeValue)" : ""
-        }
     }
 
 }

@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var selectedNodeID: Node.ID?
     @State private var sortOrder = SortDescriptor(\Item.id)
     @State private var predicate = #Predicate<Item>{ _ in false }
+    @State private var selectedItem: Item? = nil
 
     var body: some View {
         let _ = Self._printChanges()
@@ -36,7 +37,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNodeID != Constants.emptyNodeGuid {
-                    ItemsListView(predicate: predicate, sort: sortOrder)
+                    ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
                         .environment(feedModel)
                         .toolbar {
                             ItemListToolbarContent(node: feedModel.currentNode)
@@ -79,34 +80,58 @@ struct ContentView: View {
         .task {
             selectedNodeID = selectedNode
         }
-#elseif os(macOS)
+#else
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            SidebarView(nodeSelection: $model.currentNodeID)
-                .environmentObject(model)
-                .environmentObject(favIconRepository)
+            SidebarView(nodeSelection: $selectedNodeID)
+                .environment(feedModel)
         } content: {
-            if model.currentNodeID != Constants.emptyNodeGuid {
+            if selectedNodeID != Constants.emptyNodeGuid {
                 let _ = Self._printChanges()
-                ItemsListView()
-                    .environmentObject(model)
-                    .environmentObject(favIconRepository)
+                ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
+                    .environment(feedModel)
                     .toolbar {
-                        ItemListToolbarContent(node: model.currentNode)
+                        ItemListToolbarContent(node: feedModel.currentNode)
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .navigationTitle(model.currentNode.title)
+                    .navigationTitle(feedModel.currentNode.title)
             } else {
-                Text("No Feed Selected")
-                    .font(.largeTitle).fontWeight(.light)
-                    .foregroundColor(.secondary)
+                ContentUnavailableView("No Feed Selected",
+                                       image: "rss",
+                                       description: Text("Select a feed from the list to display its articles"))
             }
         } detail: {
-            MacArticleView(item: model.currentItem)
+            if let selectedItem {
+                MacArticleView(item: selectedItem)
+            } else {
+                ContentUnavailableView("No Article Selected",
+                                       systemImage: "doc.richtext",
+                                       description: Text("Select an article from the list to display it"))
+            }
         }
         .onAppear {
             if isNewInstall {
                 NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
+        }
+        .onChange(of: folders, initial: true) { _, newValue in
+            feedModel.folders = newValue
+        }
+        .onChange(of: feeds, initial: true) { _, newValue in
+            feedModel.feeds = newValue
+        }
+        .onChange(of: selectedNodeID, initial: false) { _, newValue in
+            selectedNode = newValue
+            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
+            updatePredicate()
+        }
+        .onChange(of: hideRead, initial: true) { _, _ in
+            updatePredicate()
+        }
+        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
+            sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
+        }
+        .task {
+            selectedNodeID = selectedNode
         }
 #endif
     }

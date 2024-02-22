@@ -9,6 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct MarkReadButton: View {
+    @Environment(\.modelContext) private var context
     private var node: Node
 
     @State private var isDisabled = true

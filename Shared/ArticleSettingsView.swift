@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ArticleSettingsView: View {
+    @Environment(\.modelContext) private var context
+
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
@@ -25,7 +27,7 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         item.unread.toggle()
-                        try NewsData.shared.container?.mainContext.save()
+                        try context.save()
                         try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
                     }
                 } label: {

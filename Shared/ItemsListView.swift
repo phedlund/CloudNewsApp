@@ -11,7 +11,6 @@ import SwiftUI
 
 struct ItemsListView: View {
 #if os(macOS)
-    @State private var isHorizontalCompact = false
     let cellSpacing: CGFloat = 15.0
     let listRowSeparatorVisibility: Visibility = .visible
     let listRowBackground = EmptyView()
@@ -35,17 +34,14 @@ struct ItemsListView: View {
     @State private var itemSelection: PersistentIdentifier?
     @State private var scrollId: Int64?
 
-    private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
-    private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
     private let coordinateSpaceName = "scrollingEnded"
 
-    init(predicate: Predicate<Item>, sort: SortDescriptor<Item>) {
+    @Binding var selectedItem: Item?
+
+    init(predicate: Predicate<Item>, sort: SortDescriptor<Item>, selectedItem: Binding<Item?>) {
         let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
         _items = Query(fetchDescriptor)
-        self.offsetItemsPublisher = offsetItemsDetector
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
-            .dropFirst()
-            .eraseToAnyPublisher()
+        self._selectedItem = selectedItem
     }
 
     var body: some View {
@@ -65,17 +61,23 @@ struct ItemsListView: View {
                                 ItemView(item: item, size: cellSize)
 #if os(macOS)
                                     .frame(height: cellHeight, alignment: .center)
+                                    .onTapGesture {
+                                        selectedItem = item
+                                    }
 #endif
                                     .contextMenu {
                                         ContextMenuContent(item: item)
                                             .environment(feedModel)
                                     }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                     .navigationDestination(for: Item.self) {
+#if !os(macOS)
                         ArticlesPageView(item: $0, items: items)
                             .environment(feedModel)
+#endif
                     }
                     .onScrollEnded(in: .named(coordinateSpaceName), onScrollEnded: updateScrollPosition(_:))
                     .scrollTargetLayout()

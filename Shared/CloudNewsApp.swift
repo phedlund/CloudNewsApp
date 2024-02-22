@@ -6,8 +6,8 @@
 //
 
 import BackgroundTasks
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct CloudNewsApp: App {
@@ -62,33 +62,33 @@ struct CloudNewsApp: App {
             SettingsView()
         }
 
-        WindowGroup(Text("Log In"), scrollId: "login") {
+        WindowGroup(Text("Log In"), id: "login") {
             LoginWebViewView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(Text("Feed Settings"), scrollId: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
+        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
             if let value = feedId.wrappedValue {
-                FeedSettingsView(Int(value))
-                    .frame(width: 600, height: 500)
+//                FeedSettingsView(Int(value))
+//                    .frame(width: 600, height: 500)
             }
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(Text("Add Feed"), scrollId: ModalSheet.addFeed.rawValue) {
+        WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(.feed)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(Text("Add Folder"), scrollId: ModalSheet.addFolder.rawValue) {
+        WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
             AddView(.folder)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(Text("Acknowledgement"), scrollId: ModalSheet.acknowledgement.rawValue) {
+        WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }

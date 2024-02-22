@@ -12,8 +12,7 @@ import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
-    @Environment(\.managedObjectContext) private var moc
-    var item: CDItem?
+    var item: Item
 
     @State private var title = ""
     @State private var canGoBack = false
@@ -21,59 +20,45 @@ struct MacArticleView: View {
     @State private var isLoading = false
 
     var body: some View {
-        if let item {
-            WebView { webView in
-                item.webViewHelper.item = item
-                item.webViewHelper.webView = webView
-                if let urlRequest = item.webViewHelper.urlRequest {
-                    webView.load(urlRequest)
-                    item.webViewHelper.markItemRead()
-                }
+        WebView { webView in
+            item.webViewHelper.updateItem(item: item)
+            item.webViewHelper.webView = webView
+        }
+        .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
+        .navigationTitle(title)
+        .background {
+            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        }
+        .onChange(of: item.webViewHelper.urlRequest) { _, newValue in
+             if let newValue {
+                item.webViewHelper.webView?.load(newValue)
             }
-            .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
-            .navigationTitle(title)
-            .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+        }
+        .task {
+            if let request = item.webViewHelper.urlRequest {
+                item.webViewHelper.webView?.load(request)
             }
-            .onReceive(item.webViewHelper.$canGoBack) {
-                canGoBack = $0
-            }
-            .onReceive(item.webViewHelper.$canGoForward) {
-                canGoForward = $0
-            }
-            .onReceive(item.webViewHelper.$isLoading) {
-                isLoading = $0
-            }
-            .onReceive(item.webViewHelper.$title) {
-                if $0 != title {
-                    title = $0
-                }
-            }
-            .toolbar {
-                articleToolBarContent(item: item)
-            }
-        } else {
-            Text("No Article Selected")
-                .font(.largeTitle).fontWeight(.light)
-                .foregroundColor(.secondary)
+        }
+        .toolbar {
+            articleToolBarContent(item: item)
         }
     }
 
     @ToolbarContentBuilder
-    func articleToolBarContent(item: CDItem) -> some ToolbarContent {
+    func articleToolBarContent(item: Item) -> some ToolbarContent {
         ToolbarItemGroup {
             Button {
                 item.webViewHelper.webView?.goBack()
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!canGoBack)
+            .disabled(!item.webViewHelper.canGoBack)
             Button {
                 item.webViewHelper.webView?.goForward()
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!canGoForward)
+            .disabled(!item.webViewHelper.canGoForward)
             Button {
                 if isLoading {
                     item.webViewHelper.webView?.stopLoading()
@@ -89,7 +74,7 @@ struct MacArticleView: View {
             }
             Spacer()
             ShareLinkButton(item: item)
-                .disabled(isLoading)
+                .disabled(item.webViewHelper.isLoading)
         }
     }
 

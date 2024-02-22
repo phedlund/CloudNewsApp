@@ -10,7 +10,7 @@ import SwiftUI
 #if os(macOS)
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
-    @ObservedObject var model: FeedModel
+    var model: FeedModel
 
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
@@ -36,7 +36,7 @@ struct AppCommands: Commands {
         }
         CommandMenu("Folder") {
             Button("New Folder...") {
-                openWindow(scrollId: ModalSheet.addFolder.rawValue)
+                openWindow(id: ModalSheet.addFolder.rawValue)
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
             Divider()
@@ -53,16 +53,16 @@ struct AppCommands: Commands {
         }
         CommandMenu("Feed") {
             Button("New Feed...") {
-                openWindow(scrollId: ModalSheet.addFeed.rawValue)
+                openWindow(id: ModalSheet.addFeed.rawValue)
             }
             .keyboardShortcut("n")
             Divider()
             Button("Settings...") {
                 switch model.currentNode.nodeType {
-                case .empty, .all, .starred, .folder(scrollId: _):
+                case .empty, .all, .starred, .folder(id: _):
                     break
-                case .feed(scrollId: let scrollId):
-                    openWindow(scrollId: ModalSheet.feedSettings.rawValue, value: scrollId)
+                case .feed(id: let scrollId):
+                    openWindow(id: ModalSheet.feedSettings.rawValue, value: scrollId)
                 }
             }
             .disabled(isFeedSettingsDisabled())
@@ -183,7 +183,7 @@ struct AppCommands: Commands {
             }
             Divider()
             Button("Acknowledgements...") {
-                openWindow(scrollId: ModalSheet.acknowledgement.rawValue)
+                openWindow(id: ModalSheet.acknowledgement.rawValue)
             }
         }
     }
@@ -204,18 +204,18 @@ struct AppCommands: Commands {
 
     private func isFolderRenameDisabled() -> Bool {
         switch model.currentNode.nodeType {
-        case .empty, .all, .starred, .feed(scrollId: _):
+        case .empty, .all, .starred, .feed(id: _):
             return true
-        case .folder(scrollId: _):
+        case .folder(id: _):
             return false
         }
     }
 
     private func isFeedSettingsDisabled() -> Bool {
         switch model.currentNode.nodeType {
-        case .empty, .all, .starred, .folder(scrollId: _):
+        case .empty, .all, .starred, .folder(id: _):
             return true
-        case .feed(scrollId: _):
+        case .feed(id: _):
             return false
         }
     }

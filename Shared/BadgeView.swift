@@ -59,7 +59,11 @@ struct BadgeView: View {
         .onChange(of: items.count, initial: true) { _, newValue in
             if node.nodeType == .all {
                 DispatchQueue.main.async {
+#if os(macOS)
+                    NSApp.dockTile.badgeLabel = newValue > 0 ? "\(newValue)" : ""
+#else
                     UNUserNotificationCenter.current().setBadgeCount(newValue)
+#endif
                 }
             }
         }

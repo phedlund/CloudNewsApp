@@ -10,6 +10,7 @@
 		D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1426937C9700BAED44 /* SettingsView.swift */; };
 		D00AFA1B269383CB00BAED44 /* OCS.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCS.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
+		D0110DB32B86E3E900CFD0E5 /* NewsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6C2A76CA4C00EEAC78 /* NewsData.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D029FDC0297797D40099FD95 /* FavIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDBF297797D40099FD95 /* FavIconView.swift */; };
 		D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
@@ -70,7 +71,6 @@
 		D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F35C0527249B2F004BFC27 /* MailComposeView.swift */; };
 		D0F41D722A78183E00EEAC78 /* FeedModelEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AD1A9A2A76BC620037068B /* FeedModelEnvironment.swift */; };
 		D0F41D732A78185300EEAC78 /* Starred.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6B2A76CA4C00EEAC78 /* Starred.swift */; };
-		D0F41D742A78185600EEAC78 /* NewsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6C2A76CA4C00EEAC78 /* NewsData.swift */; };
 		D0F41D752A78185900EEAC78 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6D2A76CA4C00EEAC78 /* Item.swift */; };
 		D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6E2A76CA4C00EEAC78 /* Folder.swift */; };
 		D0F41D772A78185F00EEAC78 /* Feeds.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6F2A76CA4C00EEAC78 /* Feeds.swift */; };
@@ -313,13 +313,13 @@
 		D0F41D6A2A76CA4C00EEAC78 /* SwiftData */ = {
 			isa = PBXGroup;
 			children = (
-				D0F41D6B2A76CA4C00EEAC78 /* Starred.swift */,
 				D0F41D6C2A76CA4C00EEAC78 /* NewsData.swift */,
-				D0F41D6D2A76CA4C00EEAC78 /* Item.swift */,
 				D0F41D6E2A76CA4C00EEAC78 /* Folder.swift */,
 				D0F41D6F2A76CA4C00EEAC78 /* Feeds.swift */,
-				D0F41D702A76CA4C00EEAC78 /* Read.swift */,
 				D0F41D712A76CA4C00EEAC78 /* Feed.swift */,
+				D0F41D6D2A76CA4C00EEAC78 /* Item.swift */,
+				D0F41D702A76CA4C00EEAC78 /* Read.swift */,
+				D0F41D6B2A76CA4C00EEAC78 /* Starred.swift */,
 			);
 			path = SwiftData;
 			sourceTree = "<group>";
@@ -428,7 +428,6 @@
 				D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */,
 				D0367B942A8C5E1D0099D34D /* Version.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
-				D0F41D742A78185600EEAC78 /* NewsData.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,
 				D0F41D732A78185300EEAC78 /* Starred.swift in Sources */,
@@ -461,6 +460,7 @@
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
 				D0FA56CD2B8052F3005DCEE2 /* ScrollingSupport.swift in Sources */,
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,
+				D0110DB32B86E3E900CFD0E5 /* NewsData.swift in Sources */,
 				D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,

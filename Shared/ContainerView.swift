@@ -24,7 +24,7 @@ struct ListGroup<Content: View>: ContainerView {
     var body: some View {
         Group {
 #if os(macOS)
-            VStack(content: content)
+            Group(content: content)
 #else
             NavigationStack(root: content)
 #endif
