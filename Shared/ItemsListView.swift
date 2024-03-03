@@ -33,6 +33,7 @@ struct ItemsListView: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var itemSelection: PersistentIdentifier?
     @State private var scrollId: Int64?
+    @State private var lastOffset: CGFloat = 0.0
 
     private let coordinateSpaceName = "scrollingEnded"
 
@@ -84,12 +85,14 @@ struct ItemsListView: View {
                     .onChange(of: selectedNode) { _, _ in
                         DispatchQueue.main.async {
                             scrollId = items.first?.id
+                            lastOffset = 0.0
                         }
                     }
                     .onChange(of: scenePhase) { _, newPhase in
                         if newPhase == .active {
                             DispatchQueue.main.async {
                                 scrollId = items.first?.id
+                                lastOffset = 0.0
                             }
                         }
                     }
@@ -192,6 +195,9 @@ struct ItemsListView: View {
 
     @MainActor
     private func markRead(_ offset: CGFloat) async throws {
+        guard offset > lastOffset else {
+            return
+        }
         if markReadWhileScrolling {
             let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
             if numberOfItems > 0 {
@@ -201,6 +207,7 @@ struct ItemsListView: View {
                 feedModel.markItemsRead(items: itemsToMarkRead)
             }
         }
+        lastOffset = offset
     }
 
 }
