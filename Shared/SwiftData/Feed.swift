@@ -30,12 +30,9 @@ final class Feed {
     @Relationship
     var items: [Item]
 
-    var favIcon: SystemImage {
+    var favIconUrl: URL? {
         get async throws {
-            guard let url = try await favIconUrl() else {
-                return SystemImage(named: "rss") ?? SystemImage()
-            }
-            return try await ImagePipeline.shared.image(for: url)
+            return try await favIconUrl()
         }
     }
 
@@ -67,14 +64,14 @@ final class Feed {
            let url = URL(string: link),
            let scheme = url.scheme,
            validSchemas.contains(scheme) {
-                itemImageUrl = url
+            itemImageUrl = url
         } else {
             if let feedUrl = URL(string: link ?? "data:null"),
                let host = feedUrl.host,
                let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                 itemImageUrl = url
             }
-        }        
+        }
         return itemImageUrl
     }
 

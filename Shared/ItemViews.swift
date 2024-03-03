@@ -82,7 +82,7 @@ struct FavIconLabelStyle: LabelStyle {
 struct FavIconDateAuthorView: View {
     var title: String
 
-    @State private var favIcon = SystemImage()
+    @State private var nodeType = NodeType.empty
     @Query private var feeds: [Feed]
 
     init(title: String, feedId: Int64) {
@@ -103,18 +103,9 @@ struct FavIconDateAuthorView: View {
 #endif
                 .lineLimit(1)
         } icon: {
-            FavIconView(favIcon: favIcon)
+            FavIconView(nodeType: NodeType.feed(id: feeds.first?.id ?? 0))
         }
         .labelStyle(FavIconLabelStyle())
-        .task {
-            updateFavIcon()
-        }
-    }
-
-    private func updateFavIcon() {
-        Task {
-            favIcon = try await feeds.first?.favIcon ?? SystemImage()
-        }
     }
 
 }

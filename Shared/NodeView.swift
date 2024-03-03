@@ -11,7 +11,7 @@ import SwiftUI
 struct NodeView: View {
     @Environment(\.feedModel) private var feedModel
     @State private var isShowingConfirmation = false
-    @State private var favIcon = SystemImage()
+    @State private var favIcon = (SystemImage(named: "rss") ?? SystemImage())
 
     var node: Node
 
@@ -30,7 +30,7 @@ struct NodeView: View {
                 Text(node.title)
                     .lineLimit(1)
             } icon: {
-                FavIconView(favIcon: favIcon)
+                FavIconView(nodeType: node.nodeType)
             }
             .labelStyle(.titleAndIcon)
         }
@@ -56,25 +56,7 @@ struct NodeView: View {
                 Text("All articles in \"\(node.title)\" will also be deleted")
             }
         }
-        .task {
-            updateFavIcon()
-        }
 
-    }
-
-    private func updateFavIcon() {
-        switch node.nodeType {
-        case .all, .empty:
-            favIcon = SystemImage(named: "rss") ?? SystemImage()
-        case .starred:
-            favIcon = SystemImage(symbolName: "star.fill") ?? SystemImage()
-        case .folder( _):
-            favIcon = SystemImage(symbolName: "folder") ?? SystemImage()
-        case .feed(let id):
-            Task {
-                favIcon = try await Feed.feed(id: id)?.favIcon ?? SystemImage()
-            }
-        }
     }
 
 }

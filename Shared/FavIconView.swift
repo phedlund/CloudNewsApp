@@ -8,20 +8,47 @@
 import SwiftUI
 
 struct FavIconView: View {
-    var favIcon: SystemImage
+    var nodeType: NodeType
+    
+    @State private var url: URL?
 
     @ViewBuilder
     var body: some View {
-#if os(macOS)
-        Image(nsImage: favIcon)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 22, height: 22)
-#else
-        Image(uiImage: favIcon)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 22, height: 22)
-#endif
+        Group {
+            switch nodeType {
+            case .all, .empty:
+                Image("rss")
+                    .font(.system(size: 18, weight: .light))
+            case .starred:
+                Image(systemName: "star.fill")
+            case .folder( _):
+                Image(systemName: "folder")
+            case .feed( _):
+                AsyncImage(url: url)  { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else if phase.error != nil {
+                        Image("rss")
+                            .font(.system(size: 18, weight: .light))
+                    } else {
+                        ProgressView()
+                    }
+                }
+                .frame(width: 22, height: 22)
+            }
+        }
+        .task {
+            Task {
+                switch nodeType {
+                case .feed(let id):
+                    url = try await Feed.feed(id: id)?.favIconUrl
+                default:
+                    url = nil
+                }
+            }
+        }
     }
+
 }
