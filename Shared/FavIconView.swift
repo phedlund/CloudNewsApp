@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 1/17/23.
 //
 
+import NukeUI
 import SwiftUI
 
 struct FavIconView: View {
@@ -24,7 +25,7 @@ struct FavIconView: View {
             case .folder( _):
                 Image(systemName: "folder")
             case .feed( _):
-                AsyncImage(url: url)  { phase in
+                LazyImage(url: url)  { phase in
                     if let image = phase.image {
                         image
                             .resizable()

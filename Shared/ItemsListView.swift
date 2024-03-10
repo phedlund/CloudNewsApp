@@ -195,7 +195,7 @@ struct ItemsListView: View {
 
     @MainActor
     private func markRead(_ offset: CGFloat) async throws {
-        guard offset > lastOffset else {
+        guard scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {

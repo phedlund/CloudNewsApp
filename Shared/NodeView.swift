@@ -11,7 +11,6 @@ import SwiftUI
 struct NodeView: View {
     @Environment(\.feedModel) private var feedModel
     @State private var isShowingConfirmation = false
-    @State private var favIcon = (SystemImage(named: "rss") ?? SystemImage())
 
     var node: Node
 
