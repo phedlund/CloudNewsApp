@@ -17,6 +17,7 @@ struct ItemView: View {
     @State private var isShowingThumbnail = true
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
+    @State private var feedNodeType = NodeType.empty
 
     private var item: Item
     private var cellSize: CGSize
@@ -46,13 +47,21 @@ struct ItemView: View {
                         VStack(alignment: .leading, spacing: .paddingSix) {
                             HStack {
                                 VStack(alignment: .leading, spacing: .paddingSix) {
-                                    HStack {
-                                        TitleView(title: item.title ?? "Untitled")
-                                            .padding(.top, 4)
-                                        Spacer()
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
+//                                    HStack {
+//                                        Text(item.title ?? "Untitled")
+//                                            .multilineTextAlignment(.leading)
+//                                            .font(Font.headline.weight(.semibold))
+//                            #if os(iOS)
+//                                            .foregroundColor(.pbh.whiteText)
+//                            #endif
+//                                            .lineLimit(2)
+//                                            .fixedSize(horizontal: false, vertical: true) //force wrapping
+//                                            .padding(.top, 4)
+//                                        Spacer()
+//                                    }
+                                    titleView
+                                    favIconDateAuthorView
+//                                    FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
                                     if isHorizontalCompact {
                                         Spacer()
                                     } else {
@@ -62,17 +71,24 @@ struct ItemView: View {
                             }
                             .padding(.leading, thumbnailOffset)
 //                                                            .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
-                            VStack(alignment: .leading) {
-                                if compactView {
-                                    EmptyView()
-                                } else {
-                                    HStack(alignment: .top) {
-                                        BodyView(displayBody: item.displayBody)
-                                        Spacer()
-                                    }
-                                    .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
-                                }
-                            }
+//                            VStack(alignment: .leading) {
+//                                if compactView {
+//                                    EmptyView()
+//                                } else {
+//                                    HStack(alignment: .top) {
+//                                        Text(item.displayBody)
+//                                            .multilineTextAlignment(.leading)
+//                                            .lineLimit(4)
+//                                            .font(.body)
+//                    #if os(iOS)
+//                                            .foregroundColor(.pbh.whiteText)
+//                    #endif
+//                                        Spacer()
+//                                    }
+//                                    .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
+//                                }
+//                            }
+                            bodyView
                         }
                         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
                         .padding(.leading, .paddingEight)
@@ -114,6 +130,11 @@ struct ItemView: View {
             }
         }
         .opacity(item.unread ? 1.0 : 0.4 )
+        .task {
+            if let feed = Feed.feed(id: item.feedId) {
+                feedNodeType =  NodeType.feed(id: feed.id)
+            }
+        }
 #endif
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
@@ -121,6 +142,61 @@ struct ItemView: View {
         }
 #endif
     }
+}
+
+private extension ItemView {
+
+    var titleView: some View {
+        HStack {
+            Text(item.title ?? "Untitled")
+                .multilineTextAlignment(.leading)
+                .font(Font.headline.weight(.semibold))
+#if os(iOS)
+                .foregroundColor(.pbh.whiteText)
+#endif
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true) //force wrapping
+                .padding(.top, 4)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    var favIconDateAuthorView: some View {
+        Label {
+            Text(item.dateFeedAuthor)
+                .font(.subheadline)
+                .italic()
+#if os(iOS)
+                .foregroundColor(.pbh.whiteText)
+#endif
+                .lineLimit(1)
+        } icon: {
+            FavIconView(nodeType: feedNodeType)
+        }
+        .labelStyle(FavIconLabelStyle())
+    }
+
+    var bodyView: some View {
+        VStack(alignment: .leading) {
+            if compactView {
+                EmptyView()
+            } else {
+                HStack(alignment: .top) {
+                    Text(item.displayBody)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(4)
+                        .font(.body)
+#if os(iOS)
+                        .foregroundColor(.pbh.whiteText)
+#endif
+                    Spacer()
+                }
+                .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
+            }
+        }
+    }
+
 }
 
 //struct ItemRow_Previews: PreviewProvider {
