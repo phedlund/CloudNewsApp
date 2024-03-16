@@ -26,7 +26,6 @@ struct BadgeView: View {
             predicate = #Predicate<Item> { $0.unread == true }
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
-
         case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
             feed = Feed.feed(id: id)

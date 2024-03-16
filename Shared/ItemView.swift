@@ -5,6 +5,8 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
+import NukeUI
+import SwiftData
 import SwiftUI
 
 struct ItemView: View {
@@ -13,11 +15,13 @@ struct ItemView: View {
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
 
+    @Query private var feeds: [Feed]
+
     @State private var isHorizontalCompact = false
     @State private var isShowingThumbnail = true
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
-    @State private var feedNodeType = NodeType.empty
+    @State private var favIconUrl: URL?
 
     private var item: Item
     private var cellSize: CGSize
@@ -26,6 +30,11 @@ struct ItemView: View {
     init(item: Item, size: CGSize) {
         self.item = item
         self.cellSize = size
+        let itemFeedId = item.feedId
+        let predicate = #Predicate<Feed>{ $0.id == itemFeedId }
+        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
+        descriptor.fetchLimit = 1
+        self._feeds = Query(descriptor)
     }
 
     var body: some View {
@@ -35,9 +44,9 @@ struct ItemView: View {
                     if isShowingThumbnail {
                         ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
                             .padding(.top, compactView ? 1 : .zero)
-                            .onAppear {
-                                withAnimation(.easeInOut(duration: 0.3)) { }
-                            }
+//                            .onAppear {
+//                                withAnimation(.easeInOut(duration: 0.3)) { }
+//                            }
                     } else {
                         Rectangle()
                             .foregroundColor(.clear)
@@ -122,6 +131,11 @@ struct ItemView: View {
                     .opacity(0.6)
             }
         }
+        .task {
+            Task.detached {
+                favIconUrl = try await feeds.first?.favIconUrl
+            }
+        }
 #else
         .overlay(alignment: .topTrailing) {
             if item.starred {
@@ -130,11 +144,6 @@ struct ItemView: View {
             }
         }
         .opacity(item.unread ? 1.0 : 0.4 )
-        .task {
-            if let feed = Feed.feed(id: item.feedId) {
-                feedNodeType =  NodeType.feed(id: feed.id)
-            }
-        }
 #endif
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
@@ -162,6 +171,7 @@ private extension ItemView {
         .frame(maxWidth: .infinity)
     }
 
+    @MainActor
     var favIconDateAuthorView: some View {
         Label {
             Text(item.dateFeedAuthor)
@@ -172,7 +182,21 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            FavIconView(nodeType: feedNodeType)
+            LazyImage(url: favIconUrl)  { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else if phase.error != nil {
+                    Image("rss")
+                        .font(.system(size: 18, weight: .light))
+                } else {
+                    ProgressView()
+                }
+            }
+            .frame(width: 22, height: 22)
+
+//            FavIconView(nodeType: feedNodeType)
         }
         .labelStyle(FavIconLabelStyle())
     }
