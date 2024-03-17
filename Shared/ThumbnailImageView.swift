@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 12/3/23.
 //
 
+import NukeUI
 import SwiftUI
 
 struct ThumbnailImageView: View {
@@ -17,8 +18,8 @@ struct ThumbnailImageView: View {
     @State private var isHorizontalCompact = false
 #endif
     private var item: Item
-    @State private var image = SystemImage()
     @State private var imageSize = CGSize.zero
+    @State private var url: URL?
 
     @Binding var thumbnailOffset: CGFloat
 
@@ -29,17 +30,20 @@ struct ThumbnailImageView: View {
 
     var body: some View {
         VStack {
-            if image != SystemImage() {
-#if os(macOS)
-                Image(nsImage: image)
-                    .imageStyle(size: imageSize)
-#else
-                Image(uiImage: image)
-                    .imageStyle(size: imageSize)
-#endif
-            } else {
-                EmptyView()
+            LazyImage(url: url)  { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else if phase.error != nil {
+                    Image("rss")
+                        .font(.system(size: 18, weight: .light))
+                } else {
+                    ProgressView()
+                }
             }
+            .frame(width: imageSize.width, height: imageSize.height)
+            .clipped()
         }
         .onChange(of: compactView, initial: true) { _, newValue in
             updateSizeAndOffset()
@@ -64,11 +68,8 @@ struct ThumbnailImageView: View {
                     thumbnailOffset = .zero
                     imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
                 } else {
-                    image = try await item.itemImage
-                    if image == SystemImage() {
-                        thumbnailOffset = .zero
-                        imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
-                    } else {
+                    url = try await item.imageUrl
+                    if url != nil {
                         if compactView {
                             thumbnailOffset = .compactThumbnailWidth + .paddingSix
                             imageSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
@@ -76,9 +77,13 @@ struct ThumbnailImageView: View {
                             thumbnailOffset = .defaultThumbnailWidth + .paddingSix
                             imageSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
                         }
+                    } else {
+                        thumbnailOffset = .zero
+                        imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
                     }
                 }
             }
         }
     }
+
 }

@@ -41,12 +41,31 @@ final class Item {
 
     private let validSchemas = ["http", "https", "file"]
 
-    var itemImage: SystemImage {
+    var imageUrl: URL? {
         get async throws {
-            guard let url = try await imageUrl() else {
-                return SystemImage()
+            var itemImageUrl: URL?
+            if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
+                itemImageUrl = imgUrl
+            } else if let summary = body {
+                do {
+                    let doc: Document = try SwiftSoup.parse(summary)
+                    let srcs: Elements = try doc.select("img[src]")
+                    let images = try srcs.array().map({ try $0.attr("src") })
+                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                        itemImageUrl = imgUrl
+                    } else if let stepTwoUrl = await stepTwo() {
+                        itemImageUrl = stepTwoUrl
+                    }
+                } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                    print(message)
+                } catch(let error) {
+                    print(error.localizedDescription)
+                }
+            } else {
+                itemImageUrl = await stepTwo()
             }
-            return try await ImagePipeline.shared.image(for: url)
+            return itemImageUrl
         }
     }
 
@@ -74,32 +93,6 @@ final class Item {
         self.unread = unread
         self.updatedDate = updatedDate
         self.url = url
-    }
-
-    private func imageUrl() async throws -> URL? {
-        var itemImageUrl: URL?
-        if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
-            itemImageUrl = imgUrl
-        } else if let summary = body {
-            do {
-                let doc: Document = try SwiftSoup.parse(summary)
-                let srcs: Elements = try doc.select("img[src]")
-                let images = try srcs.array().map({ try $0.attr("src") })
-                let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                    itemImageUrl = imgUrl
-                } else if let stepTwoUrl = await stepTwo() {
-                    itemImageUrl = stepTwoUrl
-                }
-            } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                print(message)
-            } catch(let error) {
-                print(error.localizedDescription)
-            }
-        } else {
-            itemImageUrl = await stepTwo()
-        }
-        return itemImageUrl
     }
 
     private func stepTwo() async -> URL? {
