@@ -34,6 +34,7 @@ struct ItemsListView: View {
     @State private var itemSelection: PersistentIdentifier?
     @State private var scrollId: Int64?
     @State private var lastOffset: CGFloat = 0.0
+    @State private var isScrollingToTop = false
 
     private let coordinateSpaceName = "scrollingEnded"
 
@@ -84,15 +85,19 @@ struct ItemsListView: View {
                     .scrollTargetLayout()
                     .onChange(of: selectedNode) { _, _ in
                         DispatchQueue.main.async {
+                            isScrollingToTop = true
                             scrollId = items.first?.id
                             lastOffset = 0.0
+                            isScrollingToTop = false
                         }
                     }
                     .onChange(of: scenePhase) { _, newPhase in
                         if newPhase == .active {
                             DispatchQueue.main.async {
+                                isScrollingToTop = true
                                 scrollId = items.first?.id
                                 lastOffset = 0.0
+                                isScrollingToTop = false
                             }
                         }
                     }
@@ -195,7 +200,7 @@ struct ItemsListView: View {
 
     @MainActor
     private func markRead(_ offset: CGFloat) async throws {
-        guard scenePhase == .active, offset > lastOffset else {
+        guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {
