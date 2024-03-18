@@ -41,7 +41,7 @@ final class Item {
 
     private let validSchemas = ["http", "https", "file"]
 
-    var imageUrl: URL? {
+    nonisolated var imageUrl: URL? {
         get async throws {
             var itemImageUrl: URL?
             if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {

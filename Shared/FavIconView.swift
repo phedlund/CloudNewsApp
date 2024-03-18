@@ -41,7 +41,7 @@ struct FavIconView: View {
             }
         }
         .task {
-            Task {
+            Task.detached {
                 switch nodeType {
                 case .feed(let id):
                     url = try await Feed.feed(id: id)?.favIconUrl
