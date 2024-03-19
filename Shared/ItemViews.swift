@@ -64,50 +64,15 @@ struct TitleView: View {
     }
 }
 
-struct FavIconLabelStyle: LabelStyle {
-    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
-
-    func makeBody(configuration: Configuration) -> some View {
-        if showFavIcons ?? true {
-            HStack {
-                configuration.icon
-                configuration.title
-            }
+extension View {
+    @ViewBuilder
+    func labelStyle(includeFavIcon: Bool) -> some View {
+        if includeFavIcon {
+            self.labelStyle(.titleAndIcon)
         } else {
-            configuration.title
+            self.labelStyle(.titleOnly)
         }
     }
-}
-
-struct FavIconDateAuthorView: View {
-    var title: String
-
-    @State private var nodeType = NodeType.empty
-    @Query private var feeds: [Feed]
-
-    init(title: String, feedId: Int64) {
-        self.title = title
-        let predicate = #Predicate<Feed>{ $0.id == feedId }
-        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        _feeds = Query(descriptor)
-    }
-
-    var body: some View {
-        Label {
-            Text(title)
-                .font(.subheadline)
-                .italic()
-#if os(iOS)
-                .foregroundColor(.pbh.whiteText)
-#endif
-                .lineLimit(1)
-        } icon: {
-            FavIconView(nodeType: NodeType.feed(id: feeds.first?.id ?? 0))
-        }
-        .labelStyle(FavIconLabelStyle())
-    }
-
 }
 
 struct BodyView: View {

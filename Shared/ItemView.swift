@@ -14,6 +14,7 @@ struct ItemView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
+    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
 
     @Query private var feeds: [Feed]
 
@@ -187,6 +188,7 @@ private extension ItemView {
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
+                        .frame(width: 22, height: 22)
                 } else if phase.error != nil {
                     Image("rss")
                         .font(.system(size: 18, weight: .light))
@@ -194,11 +196,8 @@ private extension ItemView {
                     ProgressView()
                 }
             }
-            .frame(width: 22, height: 22)
-
-//            FavIconView(nodeType: feedNodeType)
         }
-        .labelStyle(FavIconLabelStyle())
+        .labelStyle(includeFavIcon: showFavIcons ?? true)
     }
 
     var bodyView: some View {
