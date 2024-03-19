@@ -45,9 +45,6 @@ struct ItemView: View {
                     if isShowingThumbnail {
                         ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
                             .padding(.top, compactView ? 1 : .zero)
-//                            .onAppear {
-//                                withAnimation(.easeInOut(duration: 0.3)) { }
-//                            }
                     } else {
                         Rectangle()
                             .foregroundColor(.clear)
@@ -57,21 +54,8 @@ struct ItemView: View {
                         VStack(alignment: .leading, spacing: .paddingSix) {
                             HStack {
                                 VStack(alignment: .leading, spacing: .paddingSix) {
-//                                    HStack {
-//                                        Text(item.title ?? "Untitled")
-//                                            .multilineTextAlignment(.leading)
-//                                            .font(Font.headline.weight(.semibold))
-//                            #if os(iOS)
-//                                            .foregroundColor(.pbh.whiteText)
-//                            #endif
-//                                            .lineLimit(2)
-//                                            .fixedSize(horizontal: false, vertical: true) //force wrapping
-//                                            .padding(.top, 4)
-//                                        Spacer()
-//                                    }
                                     titleView
                                     favIconDateAuthorView
-//                                    FavIconDateAuthorView(title: item.dateFeedAuthor, feedId: item.feedId)
                                     if isHorizontalCompact {
                                         Spacer()
                                     } else {
@@ -81,23 +65,6 @@ struct ItemView: View {
                             }
                             .padding(.leading, thumbnailOffset)
 //                                                            .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
-//                            VStack(alignment: .leading) {
-//                                if compactView {
-//                                    EmptyView()
-//                                } else {
-//                                    HStack(alignment: .top) {
-//                                        Text(item.displayBody)
-//                                            .multilineTextAlignment(.leading)
-//                                            .lineLimit(4)
-//                                            .font(.body)
-//                    #if os(iOS)
-//                                            .foregroundColor(.pbh.whiteText)
-//                    #endif
-//                                        Spacer()
-//                                    }
-//                                    .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
-//                                }
-//                            }
                             bodyView
                         }
                         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
