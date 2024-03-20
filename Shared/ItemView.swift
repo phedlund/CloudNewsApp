@@ -64,7 +64,6 @@ struct ItemView: View {
                                 }
                             }
                             .padding(.leading, thumbnailOffset)
-//                                                            .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
                             bodyView
                         }
                         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
@@ -185,6 +184,7 @@ private extension ItemView {
                 .padding(.leading, isHorizontalCompact ? .zero : thumbnailOffset)
             }
         }
+        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
 }
@@ -195,21 +195,13 @@ private extension ItemView {
 //    }
 //}
 
-struct BodyFrameModifier: ViewModifier {
-    let active: Bool
-    let height: CGFloat
-
-    @ViewBuilder func body(content: Content) -> some View {
-        if active {
-            content.frame(height: height)
-        } else {
-            content
-        }
-    }
-}
-
 extension View {
+    @ViewBuilder
     func bodyFrame(active: Bool, height: CGFloat) -> some View {
-        modifier(BodyFrameModifier(active: active, height: height))
+        if active {
+            self.frame(height: height)
+        } else {
+            self
+        }
     }
 }
