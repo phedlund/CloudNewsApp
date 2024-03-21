@@ -62,7 +62,7 @@ struct ThumbnailImageView: View {
     }
 
     private func updateSizeAndOffset() {
-        Task.detached {
+        Task.detached(priority: .background) {
             do {
                 if !showThumbnails {
                     thumbnailOffset = .zero

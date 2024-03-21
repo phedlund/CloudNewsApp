@@ -54,8 +54,8 @@ final class Item {
                     let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
                     if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
                         itemImageUrl = imgUrl
-                    } else if let stepTwoUrl = await stepTwo() {
-                        itemImageUrl = stepTwoUrl
+                    } else {
+                        itemImageUrl = try await internalUrl
                     }
                 } catch Exception.Error(_, let message) { // An exception from SwiftSoup
                     print(message)
@@ -63,7 +63,7 @@ final class Item {
                     print(error.localizedDescription)
                 }
             } else {
-                itemImageUrl = await stepTwo()
+                itemImageUrl = try await internalUrl
             }
             return itemImageUrl
         }
@@ -95,29 +95,31 @@ final class Item {
         self.url = url
     }
 
-    private func stepTwo() async -> URL? {
-        if let urlString = url, let url = URL(string: urlString) {
-            do {
-                let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-                if let html = String(data: data, encoding: .utf8) {
-                    let doc: Document = try SwiftSoup.parse(html)
-                    if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                        let ogImage = try meta.attr("content")
-                        let ogUrl = URL(string: ogImage)
-                        return ogUrl
-                    } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                        let twImage = try meta.attr("content")
-                        let twUrl = URL(string: twImage)
-                        return twUrl
-                    } else {
-                        return nil
+    nonisolated private var internalUrl: URL? {
+        get async throws {
+            if let urlString = url, let url = URL(string: urlString) {
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                    if let html = String(data: data, encoding: .utf8) {
+                        let doc: Document = try SwiftSoup.parse(html)
+                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                            let ogImage = try meta.attr("content")
+                            let ogUrl = URL(string: ogImage)
+                            return ogUrl
+                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                            let twImage = try meta.attr("content")
+                            let twUrl = URL(string: twImage)
+                            return twUrl
+                        } else {
+                            return nil
+                        }
                     }
+                } catch(let error) {
+                    print(error.localizedDescription)
                 }
-            } catch(let error) {
-                print(error.localizedDescription)
             }
+            return nil
         }
-        return nil
     }
 
 }

@@ -5,12 +5,16 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
+import NukeUI
 import SwiftData
 import SwiftUI
 
 struct NodeView: View {
     @Environment(\.feedModel) private var feedModel
+    @Query private var feeds: [Feed]
+
     @State private var isShowingConfirmation = false
+    @State private var favIconUrl: URL?
 
     var node: Node
 
@@ -19,6 +23,19 @@ struct NodeView: View {
 #else
     let noChildrenPadding = 0.0
 #endif
+
+    init(node: Node) {
+        self.node = node
+        switch node.nodeType {
+        case .feed(let id):
+            let predicate = #Predicate<Feed>{ $0.id == id }
+            var descriptor = FetchDescriptor<Feed>(predicate: predicate)
+            descriptor.fetchLimit = 1
+            self._feeds = Query(descriptor)
+        default:
+            break
+        }
+    }
 
     var body: some View {
         LabeledContent {
@@ -29,7 +46,7 @@ struct NodeView: View {
                 Text(node.title)
                     .lineLimit(1)
             } icon: {
-                FavIconView(nodeType: node.nodeType)
+                favIconView
             }
             .labelStyle(.titleAndIcon)
         }
@@ -55,11 +72,47 @@ struct NodeView: View {
                 Text("All articles in \"\(node.title)\" will also be deleted")
             }
         }
-
     }
 
 }
 
+private extension NodeView {
+
+    @MainActor
+    var favIconView: some View {
+        Group {
+            switch node.nodeType {
+            case .all, .empty:
+                Image("rss")
+                    .font(.system(size: 18, weight: .light))
+            case .starred:
+                Image(systemName: "star.fill")
+            case .folder( _):
+                Image(systemName: "folder")
+            case .feed( _):
+                LazyImage(url: favIconUrl)  { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else if phase.error != nil {
+                        Image("rss")
+                            .font(.system(size: 18, weight: .light))
+                    } else {
+                        ProgressView()
+                    }
+                }
+                .frame(width: 22, height: 22)
+            }
+        }
+        .task {
+            Task.detached {
+                favIconUrl = try await feeds.first?.favIconUrl
+            }
+        }
+    }
+
+}
 //struct NodeView_Previews: PreviewProvider {
 //    static var previews: some View {
 //        NodeView()
