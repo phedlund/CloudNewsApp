@@ -1,5 +1,5 @@
 //
-//  NewsSessionManager.swift
+//  NewsManager.swift
 //  CloudNews
 //
 //  Created by Peter Hedlund on 10/20/18.
