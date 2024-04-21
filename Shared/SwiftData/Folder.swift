@@ -45,65 +45,6 @@ extension Folder: Decodable {
 }
 
 extension Folder {
-    static func all() -> [Folder]? {
-        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
-        let descriptor = FetchDescriptor<Folder>(sortBy: [sortDescriptor])
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                return try context.fetch(descriptor)
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    static func folder(id: Int64) -> Folder? {
-        let predicate = #Predicate<Folder>{ $0.id == id }
-
-        var descriptor = FetchDescriptor<Folder>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                let results  = try context.fetch(descriptor)
-                return results.first
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    static func folder(name: String) -> Folder? {
-        let predicate = #Predicate<Folder>{ $0.name == name }
-        var descriptor = FetchDescriptor<Folder>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                let results  = try context.fetch(descriptor)
-                return results.first
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    @MainActor
-    static func delete(id: Int64) async throws {
-        if let container = NewsData.shared.container {
-            do {
-                try container.mainContext.delete(model: Folder.self, where: #Predicate { $0.id == id } )
-                try container.mainContext.save()
-            } catch {
-//                self.logger.debug("Failed to execute items insert request.")
-                throw DatabaseError.folderErrorDeleting
-            }
-        }
-    }
 
     static func reset() {
 //        TODO NewsData.shared.container.viewContext.performAndWait {

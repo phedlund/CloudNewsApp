@@ -36,6 +36,11 @@ final class Feed {
         }
     }
 
+    nonisolated var folder: Folder? {
+        let context = self.modelContext
+        return context?.folder(id: folderId)
+    }
+
     private let validSchemas = ["http", "https", "file"]
 
     init(added: Int64, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
@@ -119,75 +124,6 @@ extension Feed: Decodable {
 }
 
 extension Feed {
-    static func all() -> [Feed]? {
-        let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
-//        let pinnedSortDescriptor = SortDescriptor<Feed>(\.pinned)
-        let descriptor = FetchDescriptor<Feed>(sortBy: [idSortDescriptor])
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                return try context.fetch(descriptor)
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    static func feed(id: Int64) -> Feed? {
-        let predicate = #Predicate<Feed>{ $0.id == id }
-
-        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                let results  = try context.fetch(descriptor)
-                return results.first
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    static func inFolder(folder: Int64) -> [Feed]? {
-        let predicate = #Predicate<Feed>{ $0.folderId == folder }
-
-        let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
-        //let pinnedSortDescriptor = SortDescriptor<Feed>(\.pinned, order: .forward)
-        let descriptor = FetchDescriptor<Feed>(predicate: predicate, sortBy: [idSortDescriptor])
-        if let container = NewsData.shared.container {
-            let context = ModelContext(container)
-            do {
-                return try context.fetch(descriptor)
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
-            }
-        }
-        return nil
-    }
-
-    static func idsInFolder(folder: Int64) -> [Int64]? {
-        if let feeds = Feed.inFolder(folder: folder) {
-            return feeds.map { $0.id }
-        }
-        return nil
-    }
-
-    
-    @MainActor
-    static func delete(id: Int64) async throws {
-        if let container = NewsData.shared.container {
-            do {
-                try container.mainContext.delete(model: Feed.self, where: #Predicate { $0.id == id } )
-                try container.mainContext.save()
-            } catch {
-//                self.logger.debug("Failed to execute items insert request.")
-                throw DatabaseError.feedErrorDeleting
-            }
-        }
-    }
 
     static func reset() {
 //        TODO NewsData.shared.container.viewContext.performAndWait {

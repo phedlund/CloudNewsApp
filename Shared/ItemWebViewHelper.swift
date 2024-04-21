@@ -30,14 +30,6 @@ class ItemWebViewHelper {
     private var content: ArticleWebContent?
     private var cancellables = Set<AnyCancellable>()
 
-    func markItemRead() {
-        if let item {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
-            }
-        }
-    }
-
     func updateItem(item: Item) {
         self.item = item
     }
@@ -68,8 +60,8 @@ class ItemWebViewHelper {
             }
             .store(in: &cancellables)
 #endif
-            let feed = Feed.feed(id: item?.feedId ?? 0)
-                if feed?.preferWeb == true,
+            if let feed = item?.feed {
+                if feed.preferWeb == true,
                    let urlString = item?.url,
                    let url = URL(string: urlString) {
                     urlRequest = URLRequest(url: url)
@@ -79,6 +71,7 @@ class ItemWebViewHelper {
                         urlRequest = URLRequest(url: url)
                     }
                 }
+            }
         }
     }
 

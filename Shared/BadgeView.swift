@@ -16,7 +16,7 @@ struct BadgeView: View {
     private let errorCount = 0
     private var feed: Feed?
 
-    init(node: Node) {
+    init(node: Node, modelContext: ModelContext) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
         switch node.nodeType {
@@ -28,9 +28,9 @@ struct BadgeView: View {
             predicate = #Predicate<Item> { $0.starred == true }
         case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            feed = Feed.feed(id: id)
+            feed = modelContext.feed(id: id)
         case .folder(let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
+            if let feedIds = modelContext.feedIdsInFolder(folder: id) {
                 predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
             }
         }

@@ -11,9 +11,9 @@ import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-    let container = NewsData.shared.container!
+    private let container: ModelContainer
 
-    @State private var feedModel = FeedModel()
+    let feedModel: FeedModel
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
@@ -24,10 +24,15 @@ struct CloudNewsApp: App {
 
     private let appRefreshTaskId = "dev.pbh.cloudnews.sync"
 
+    init() {
+        container = NewsData.shared.container!
+        self.feedModel = FeedModel(modelContext: container.mainContext)
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.feedModel, feedModel)
+                .environment(feedModel)
         }
         .modelContainer(container)
 #if os(macOS)
@@ -51,7 +56,7 @@ struct CloudNewsApp: App {
         }
         .backgroundTask(.appRefresh(appRefreshTaskId)) {
             do {
-                try await NewsManager().sync()
+                try await feedModel.sync()
                 await scheduleAppRefresh()
             } catch { }
         }

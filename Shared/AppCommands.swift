@@ -25,6 +25,7 @@ struct AppCommands: Commands {
         CommandGroup(after: .sidebar) {
             Divider()
             MarkReadButton(node: model.currentNode)
+                .environment(feedModel)
             Divider()
             Button("Refresh") {
                 Task {

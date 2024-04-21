@@ -16,6 +16,7 @@ enum AddType: Int, Identifiable {
 
 struct AddView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(FeedModel.self) private var feedModel
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
     @State private var isAdding = false
@@ -63,7 +64,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFeed(url: input, folderId: folderId)
+                                        try await feedModel.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -82,7 +83,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFolder(name: input)
+                                        try await feedModel.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -133,7 +134,7 @@ struct AddView: View {
         .navigationTitle("Add Feed or Folder")
 #endif
         .onAppear {
-            if let folders = Folder.all() {
+            if let folders = feedModel.modelContext.allFolders() {
                 var fNames = [noFolderName]
                 let names = folders.compactMap( { $0.name } )
                 fNames.append(contentsOf: names)
@@ -142,7 +143,7 @@ struct AddView: View {
         }
         .onChange(of: folderSelection, { oldValue, newValue in
             if newValue != oldValue {
-                if let newFolder = Folder.folder(name: newValue) {
+                if let newFolder = feedModel.modelContext.folder(name: newValue) {
                     folderId = Int(newFolder.id)
                 }
             }

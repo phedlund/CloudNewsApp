@@ -6,7 +6,6 @@
 //  Copyright © 2018-2022 Peter Hedlund. All rights reserved.
 //
 
-import Combine
 import Foundation
 import SwiftData
 
@@ -20,15 +19,8 @@ struct SyncTimes {
     let current: TimeInterval
 }
 
-@MainActor
-class NewsManager {
+extension FeedModel {
 
-    static let shared = NewsManager()
-    private let session = ServerStatus.shared.session
-    let syncSubject = PassthroughSubject<SyncTimes, Never>()
-
-    init() { }
-    
     func version() async throws -> String {
         let router = Router.version
         do {
@@ -51,16 +43,16 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     try await FeedImporter().importFeeds(from: data)
-                    if let newFeed = NewsData.shared.container?.mainContext.insertedModelsArray.first as? Feed {
+                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
                         let parameters: ParameterDict = ["batchSize": 200,
                                                          "offset": 0,
                                                          "type": 0,
                                                          "id": newFeed.id,
                                                          "getRead": NSNumber(value: true)]
                         let router = Router.items(parameters: parameters)
-                        try await ItemImporter().fetchItems(router.urlRequest())
+                        try await itemImporter.fetchItems(router.urlRequest())
                     }
-                    try NewsData.shared.container?.mainContext.save()
+                    try modelContext.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -123,35 +115,35 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-                        try NewsData.shared.container?.mainContext.delete(model: Unread.self)
-                        try NewsData.shared.container?.mainContext.save()
+                        try modelContext.delete(model: Unread.self)
+                        try modelContext.save()
                     } else {
-                        try NewsData.shared.container?.mainContext.delete(model: Read.self)
-                        try NewsData.shared.container?.mainContext.save()
+                        try modelContext.delete(model: Read.self)
+                        try modelContext.save()
                     }
                 default:
                     if unread {
                         for itemId in itemIds {
-                            NewsData.shared.container?.mainContext.insert(Read(itemId: itemId))
+                            modelContext.insert(Read(itemId: itemId))
                         }
-                        try NewsData.shared.container?.mainContext.save()
+                        try modelContext.save()
                     } else {
                         for itemId in itemIds {
-                            NewsData.shared.container?.mainContext.insert(Unread(itemId: itemId))
+                            modelContext.insert(Unread(itemId: itemId))
                         }
-                        try NewsData.shared.container?.mainContext.save()
+                        try modelContext.save()
                     }
                 }
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
-        }        
+        }
     }
 
     func markStarred(item: Item, starred: Bool) async throws {
         do {
             item.starred = starred
-            try NewsData.shared.container?.mainContext.save()
+            try modelContext.save()
 
             let parameters: ParameterDict = ["items": [["feedId": item.feedId,
                                                         "guidHash": item.guidHash as Any]]]
@@ -168,18 +160,18 @@ class NewsManager {
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-                        try NewsData.shared.container?.mainContext.delete(model: Unstarred.self)
+                        try modelContext.delete(model: Unstarred.self)
                     } else {
-                        try NewsData.shared.container?.mainContext.delete(model: Starred.self)
+                        try modelContext.delete(model: Starred.self)
                     }
                 default:
                     if starred {
-                        NewsData.shared.container?.mainContext.insert(Starred(itemId: item.id))
+                        modelContext.insert(Starred(itemId: item.id))
                     } else {
-                        NewsData.shared.container?.mainContext.insert(Unstarred(itemId: item.id))
+                        modelContext.insert(Unstarred(itemId: item.id))
                     }
                 }
-                try NewsData.shared.container?.mainContext.save()
+                try modelContext.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
@@ -188,14 +180,15 @@ class NewsManager {
 
     /*
      Initial sync
-     
+
      1. unread articles: GET /items?type=3&getRead=false&batchSize=-1
      2. starred articles: GET /items?type=2&getRead=true&batchSize=-1
      3. folders: GET /folders
      4. feeds: GET /feeds
      */
-    
+
     func initialSync() async throws {
+        isSyncing = true
         let unreadParameters: ParameterDict = ["type": 3,
                                                "getRead": false,
                                                "batchSize": -1]
@@ -210,23 +203,24 @@ class NewsManager {
 
             try await FolderImporter().fetchFolders(Router.folders.urlRequest())
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
-            try await ItemImporter().fetchItems(unreadRouter.urlRequest())
-            try await ItemImporter().fetchItems(starredRouter.urlRequest())
+            try await itemImporter.fetchItems(unreadRouter.urlRequest())
+            try await itemImporter.fetchItems(starredRouter.urlRequest())
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
-                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
+                self.isSyncing = false
+                //                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-    
-    
+
+
     /*
      Syncing
-     
+
      When syncing, you want to push read/unread and starred/unstarred items to the server and receive new and updated items, feeds and folders. To do that, call the following routes:
-     
+
      1. Notify the News app of unread articles: PUT /items/unread/multiple {"items": [1, 3, 5] }
      2. Notify the News app of read articles: PUT /items/read/multiple {"items": [1, 3, 5]}
      3. Notify the News app of starred articles: PUT /items/starred/multiple {"items": [{"feedId": 3, "guidHash": "adadafasdasd1231"}, ...]}
@@ -242,6 +236,7 @@ class NewsManager {
         //        CDFolder.reset()
         //        CDItem.reset()
         //
+        isSyncing = true
         do {
             if let container = NewsData.shared.container {
                 let context = ModelContext(container)
@@ -252,9 +247,10 @@ class NewsManager {
                 }
             }
         } catch { }
-        
+
         do {
-            if let localRead = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Read>()), !localRead.isEmpty {
+            let localRead = try modelContext.fetch(FetchDescriptor<Read>())
+            if !localRead.isEmpty {
                 let localReadIds = localRead.map( { $0.itemId } )
                 let readParameters = ["items": localReadIds]
                 let readRouter = Router.itemsRead(parameters: readParameters)
@@ -263,70 +259,75 @@ class NewsManager {
                 if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
                     switch httpReadResponse.statusCode {
                     case 200:
-                        try NewsData.shared.container?.mainContext.delete(model: Read.self)
+                        try modelContext.delete(model: Read.self)
                     default:
                         break
                     }
                 }
-            }
 
-            if let localStarred = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Starred>()), !localStarred.isEmpty {
-                let localStarredIds = localStarred.map( { $0.itemId } )
-                let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
-                    localStarredIds.contains($0.id)
-                })
-                if let starredItems = try NewsData.shared.container?.mainContext.fetch(starredItemsFetchDescriptor), !starredItems.isEmpty {
-                    var params = [Any]()
-                    for starredItem in starredItems {
-                        var param: [String: Any] = [:]
-                        param["feedId"] = starredItem.feedId
-                        param["guidHash"] = starredItem.guidHash
-                        params.append(param)
+
+                let localStarred = try modelContext.fetch(FetchDescriptor<Starred>())
+                if !localStarred.isEmpty {
+                    let localStarredIds = localStarred.map( { $0.itemId } )
+                    let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
+                        localStarredIds.contains($0.id)
+                    })
+                    let starredItems = try modelContext.fetch(starredItemsFetchDescriptor)
+                    if !starredItems.isEmpty {
+                        var params = [Any]()
+                        for starredItem in starredItems {
+                            var param: [String: Any] = [:]
+                            param["feedId"] = starredItem.feedId
+                            param["guidHash"] = starredItem.guidHash
+                            params.append(param)
+                        }
+                        let starredParameters = ["items": params]
+                        let starredRouter = Router.itemsStarred(parameters: starredParameters)
+                        async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
+                        let starredItemsResponse = try await starredResponse
+                        if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
+                            switch httpStarredResponse.statusCode {
+                            case 200:
+                                try modelContext.delete(model: Starred.self)
+                            default:
+                                break
+                            }
+                        }
                     }
-                    let starredParameters = ["items": params]
-                    let starredRouter = Router.itemsStarred(parameters: starredParameters)
-                    async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
-                    let starredItemsResponse = try await starredResponse
-                    if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
-                        switch httpStarredResponse.statusCode {
-                        case 200:
-                            try NewsData.shared.container?.mainContext.delete(model: Starred.self)
-                        default:
-                            break
+                }
+
+                let localUnstarred = try modelContext.fetch(FetchDescriptor<Unstarred>())
+                if !localUnstarred.isEmpty {
+                    let localUnstarredIds = localUnstarred.map( { $0.itemId } )
+                    let unstarredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
+                        localUnstarredIds.contains($0.id)
+                    })
+                    let unstarredItems = try modelContext.fetch(unstarredItemsFetchDescriptor)
+                    if !unstarredItems.isEmpty {
+                        var params: [Any] = []
+                        for unstarredItem in unstarredItems {
+                            var param: [String: Any] = [:]
+                            param["feedId"] = unstarredItem.feedId
+                            param["guidHash"] = unstarredItem.guidHash
+                            params.append(param)
+                        }
+                        let unStarredParameters = ["items": params]
+                        let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
+                        async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
+                        let unStarredItemsResponse = try await unStarredResponse
+                        if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
+                            switch httpUnStarredResponse.statusCode {
+                            case 200:
+                                try modelContext.delete(model: Unstarred.self)
+                            default:
+                                break
+                            }
                         }
                     }
                 }
             }
 
-            if let localUnstarred = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Unstarred>()), !localUnstarred.isEmpty {
-                let localUnstarredIds = localUnstarred.map( { $0.itemId } )
-                let unstarredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
-                    localUnstarredIds.contains($0.id)
-                })
-                if let unstarredItems = try NewsData.shared.container?.mainContext.fetch(unstarredItemsFetchDescriptor), !unstarredItems.isEmpty {
-                    var params: [Any] = []
-                    for unstarredItem in unstarredItems {
-                        var param: [String: Any] = [:]
-                        param["feedId"] = unstarredItem.feedId
-                        param["guidHash"] = unstarredItem.guidHash
-                        params.append(param)
-                    }
-                    let unStarredParameters = ["items": params]
-                    let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
-                    async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
-                    let unStarredItemsResponse = try await unStarredResponse
-                    if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
-                        switch httpUnStarredResponse.statusCode {
-                        case 200:
-                            try NewsData.shared.container?.mainContext.delete(model: Unstarred.self)
-                        default:
-                            break
-                        }
-                    }
-                }
-            }
-
-            let newestKnownLastModified = maxLastModified()
+            let newestKnownLastModified = await maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -337,10 +338,10 @@ class NewsManager {
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
             try await FolderImporter().fetchFolders(Router.folders.urlRequest())
             try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
-            try await ItemImporter().fetchItems(updatedItemRouter.urlRequest())
+            try await itemImporter.fetchItems(updatedItemRouter.urlRequest())
 
             DispatchQueue.main.async {
-                NewsManager.shared.syncSubject.send(SyncTimes(previous: Double(newestKnownLastModified), current: Date().timeIntervalSinceReferenceDate))
+                self.isSyncing = false
             }
         } catch let error as NetworkError {
             throw error
@@ -349,7 +350,7 @@ class NewsManager {
         }
     }
 
-    private func maxLastModified() -> Int64 {
+    @MainActor private func maxLastModified() -> Int64 {
         var result: Int64 = 0
         do {
             if let item = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Item>()).max(by: { a, b in a.lastModified < b.lastModified }) {
@@ -406,27 +407,27 @@ class NewsManager {
     }
 
     func deleteFeed(_ id: Int) async throws {
-            let deleteRouter = Router.deleteFeed(id: id)
-            do {
-                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-                if let httpResponse = deleteResponse as? HTTPURLResponse {
-                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                    switch httpResponse.statusCode {
-                    case 200:
-                        break
-                    case 404:
-                        try await Item.deleteItems(with: Int64(id))
-                        try await Feed.delete(id: Int64(id))
-                        throw NetworkError.feedDoesNotExist
-                    default:
-                        throw NetworkError.feedErrorDeleting
-                    }
+        let deleteRouter = Router.deleteFeed(id: id)
+        do {
+            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+            if let httpResponse = deleteResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 200:
+                    break
+                case 404:
+                    try await modelContext.deleteItems(with: Int64(id))
+                    try await modelContext.deleteFeed(id: Int64(id))
+                    throw NetworkError.feedDoesNotExist
+                default:
+                    throw NetworkError.feedErrorDeleting
                 }
-            } catch let error as NetworkError {
-                throw error
-            } catch(let error) {
-                throw NetworkError.generic(message: error.localizedDescription)
             }
+        } catch let error as NetworkError {
+            throw error
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
     }
 
     func renameFolder(folder: Folder, to name: String) async throws {

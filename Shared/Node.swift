@@ -11,6 +11,8 @@ import SwiftData
 
 @Observable
 final class Node: Identifiable {
+    private let feedModel: FeedModel
+
     var errorCount = 0
     var title = ""
 
@@ -20,40 +22,35 @@ final class Node: Identifiable {
     private(set) var nodeType = NodeType.empty
     private(set) var children: [Node]? = nil
 
-    private var context: ModelContext?
-
-    convenience init() {
-        self.init(.empty, id: Constants.allNodeGuid, isExpanded: false)
+    convenience init(feedModel: FeedModel) {
+        self.init(.empty, id: Constants.allNodeGuid, isExpanded: false, feedModel: feedModel)
     }
 
-    convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false) {
-        self.init(nodeType, children: nil, id: id, isExpanded: isExpanded)
+    convenience init(_ nodeType: NodeType, id: String, isExpanded: Bool = false, feedModel: FeedModel) {
+        self.init(nodeType, children: nil, id: id, isExpanded: isExpanded, feedModel: feedModel)
     }
 
-    convenience init(folder: Folder) {
+    convenience init(folder: Folder, feedModel: FeedModel) {
         var children = [Node]()
-        if let feeds = Feed.inFolder(folder: folder.id) {
+        if let feeds = feedModel.modelContext.feedsInFolder(folder: folder.id) {
             for feed in feeds {
-                children.append(Node(feed: feed))
+                children.append(Node(feed: feed, feedModel: feedModel))
             }
         }
-        self.init(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.opened)
+        self.init(.folder(id: folder.id), children: children, id: "folder_\(folder.id)", isExpanded: folder.opened, feedModel: feedModel)
     }
 
-    convenience init(feed: Feed) {
-        self.init(.feed(id: feed.id), children: nil, id: "feed_\(feed.id)", isExpanded: false)
+    convenience init(feed: Feed, feedModel: FeedModel) {
+        self.init(.feed(id: feed.id), children: nil, id: "feed_\(feed.id)", isExpanded: false, feedModel: feedModel)
     }
 
-    init(_ nodeType: NodeType, children: [Node]? = nil, id: String, isExpanded: Bool) {
+    init(_ nodeType: NodeType, children: [Node]? = nil, id: String, isExpanded: Bool, feedModel: FeedModel) {
+        self.feedModel = feedModel
         self.nodeType = nodeType
         self.id = id
         self.isExpanded = isExpanded
         self.title = nodeTitle()
         self.children = children
-        if let container = NewsData.shared.container {
-            context = ModelContext(container)
-            context?.autosaveEnabled = false
-        }
     }
 
     func markRead() {
@@ -66,29 +63,27 @@ final class Node: Identifiable {
         case .starred:
             descriptor.predicate = #Predicate<Item> { $0.starred == true }
         case .folder(let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
+            if let feedIds = self.feedModel.modelContext.feedIdsInFolder(folder: id) {
                 descriptor.predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
             }
         case .feed(let id):
             descriptor.predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
         }
         do {
-            if let unreadItems = try context?.fetch(descriptor) {
-                if !unreadItems.isEmpty {
-                    for item in unreadItems {
-                        item.unread = false
-                    }
-                    try context?.save()
-                    Task {
-                        try await NewsManager.shared.markRead(items: unreadItems, unread: false)
-                    }
+            let unreadItems = try feedModel.modelContext.fetch(descriptor)
+            if !unreadItems.isEmpty {
+                for item in unreadItems {
+                    item.unread = false
+                }
+                try feedModel.modelContext.save()
+                Task {
+                    // TODO                       try await NewsManager.shared.markRead(items: unreadItems, unread: false)
                 }
             }
         } catch {
             //
         }
     }
-
 
     private func nodeTitle() -> String {
         switch nodeType {
@@ -99,9 +94,9 @@ final class Node: Identifiable {
         case .starred:
             return "Starred Articles"
         case .folder(let id):
-            return Folder.folder(id: id)?.name ?? "Untitled Folder"
+            return feedModel.modelContext.folder(id: id)?.name ?? "Untitled Folder"
         case .feed(let id):
-            return Feed.feed(id: id)?.title ?? "Untitled Feed"
+            return feedModel.modelContext.feed(id: id)?.title ?? "Untitled Feed"
         }
     }
 

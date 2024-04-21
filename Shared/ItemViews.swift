@@ -9,18 +9,20 @@ import SwiftData
 import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
+    @Environment(FeedModel.self) private var feedModel
     var node: Node
 
     @ToolbarContentBuilder
     var body: some ToolbarContent {
         ToolbarItem(placement: .automatic) {
             MarkReadButton(node: node)
+                .environment(feedModel)
         }
     }
 }
 
 struct ContextMenuContent: View {
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
 
     var item: Item
 
@@ -36,7 +38,7 @@ struct ContextMenuContent: View {
         }
         Button {
             Task {
-                try? await NewsManager.shared.markStarred(item: item, starred: !item.starred)
+                try? await feedModel.markStarred(item: item, starred: !item.starred)
             }
         } label: {
             Label {

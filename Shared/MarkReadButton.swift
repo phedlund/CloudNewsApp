@@ -9,8 +9,8 @@ import SwiftData
 import SwiftUI
 
 struct MarkReadButton: View {
-    @Environment(\.modelContext) private var context
-    private var node: Node
+    @Environment(FeedModel.self) private var feedModel
+    private let node: Node
 
     @State private var isDisabled = true
 
@@ -30,7 +30,7 @@ struct MarkReadButton: View {
         case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
         case .folder(let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
+            if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
                 predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
             }
         }

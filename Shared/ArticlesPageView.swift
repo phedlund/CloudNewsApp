@@ -10,7 +10,7 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth

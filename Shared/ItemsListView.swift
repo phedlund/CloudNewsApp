@@ -21,7 +21,7 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.pbh.whiteBackground
 #endif
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
@@ -218,7 +218,7 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
     let type: Item.Type
     let items: [Item]
 

@@ -40,6 +40,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(FeedModel.self) private var feedModel
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
 #else
@@ -265,7 +266,7 @@ struct SettingsView: View {
         .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
             Button("Reset Data", role: .destructive) {
                 NewsData.shared.resetDatabase()
-                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: 0))
+// TODO                newsManager.syncSubject.send(SyncTimes(previous: 0, current: 0))
                 server = ""
                 productName = ""
                 productVersion = ""
@@ -306,7 +307,7 @@ struct SettingsView: View {
                     let status = try await ServerStatus.shared.check()
                     productName = status?.name ?? ""
                     productVersion = status?.version ?? ""
-                    newsVersion = try await NewsManager.shared.version()
+                    newsVersion = try await feedModel.version()
                     updateFooter()
                     isNewInstall = false
                 } catch {

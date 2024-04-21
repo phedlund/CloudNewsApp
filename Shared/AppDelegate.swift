@@ -45,27 +45,6 @@ import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
 
-    private var cancellables = Set<AnyCancellable>()
-
-    override init() {
-        super.init()
-        
-        NewsManager.shared.syncSubject
-            .receive(on: DispatchQueue.main)
-            .sink { _ in
-                do {
-                    if let container = NewsData.shared.container {
-                        let context = ModelContext(container)
-                        let itemCount = try context.fetchCount(FetchDescriptor<Item>(predicate: #Predicate { $0.unread == true } ))
-                        DispatchQueue.main.async {
-                            UNUserNotificationCenter.current().setBadgeCount(itemCount)
-                        }
-                    }
-                } catch { }
-            }
-            .store(in: &cancellables)
-    }
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
 
         UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in

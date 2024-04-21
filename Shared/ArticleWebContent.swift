@@ -22,7 +22,8 @@ class ArticleWebContent {
     private let baseString: String
     private let urlString: String
     private let summary: String
-    let fileName: String
+    private let fileName: String
+
     private var preferences = Preferences()
     private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
@@ -40,14 +41,13 @@ class ArticleWebContent {
     init(item: Item?) {
         isInInit = true
         if let item = item {
-            let feed = Feed.feed(id: item.feedId)
             title = item.displayTitle
             summary = Self.output(item: item)
             baseString = Self.baseString(item: item)
             urlString = Self.itemUrl(item: item)
             dateText = Self.dateText(item: item)
             author = Self.itemAuthor(item: item)
-            feedTitle = feed?.title ?? "Untitled"
+            feedTitle = "Untitled"
             fileName = "summary_\(item.id)"
         } else {
             title = "Untitled"
@@ -143,7 +143,6 @@ class ArticleWebContent {
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
                 url = saveUrl
-//                objectWillChange.send()
             }
         } catch(let error) {
             print(error.localizedDescription)

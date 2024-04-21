@@ -198,7 +198,7 @@ private extension ItemView {
 extension View {
     @ViewBuilder
     func bodyFrame(active: Bool, height: CGFloat) -> some View {
-        if active {
+        if active, height >= 0 {
             self.frame(height: height)
         } else {
             self

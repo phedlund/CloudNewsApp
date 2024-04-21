@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
     @Environment(\.scenePhase) private var scenePhase
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
@@ -39,22 +39,23 @@ struct ContentView: View {
                 if selectedNodeID != Constants.emptyNodeGuid {
                     ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
                         .environment(feedModel)
-                        .toolbar {
-                            ItemListToolbarContent(node: feedModel.currentNode)
-                        }
+//                        .toolbar {
+//                            ItemListToolbarContent(node: feedModel.currentNode)
+//                        }
                 } else {
                     ContentUnavailableView("No Feed Selected",
                                            image: "rss",
                                            description: Text("Select a feed from the list to display its articles"))
                 }
             }
-            .navigationTitle(feedModel.currentNode.title)
+            .navigationTitle(feedModel.currentNode?.title ?? "Untitled")
             .onAppear {
                 isShowingLogin = isNewInstall
             }
             .sheet(isPresented: $isShowingLogin) {
                 NavigationView {
                     SettingsView()
+                        .environment(feedModel)
                 }
             }
         }
@@ -151,7 +152,7 @@ struct ContentView: View {
         case .starred:
             predicate = #Predicate<Item>{ $0.starred }
         case .folder(id:  let id):
-            if let feedIds = Feed.idsInFolder(folder: id) {
+            if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
                 predicate = #Predicate<Item>{
                     if hideRead {
                         return feedIds.contains($0.feedId) && $0.unread

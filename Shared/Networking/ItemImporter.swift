@@ -105,10 +105,15 @@ class FeedImporter {
 
 }
 
-@MainActor
 class ItemImporter {
+    private let modelContext: ModelContext
+
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemImporter.self))
 
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+    
     func fetchItems(_ urlRequest: URLRequest) async throws {
         do {
             let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
@@ -137,86 +142,83 @@ class ItemImporter {
     private func importItems(from propertiesList: [[String: Any]]) async throws {
         guard !propertiesList.isEmpty else { return }
 
-        if let container = NewsData.shared.container {
-            do {
-                var currentItems = [[String: Any]]()
-                for listItem in propertiesList {
-                    var currentItem = listItem
-                    //                    currentItem.addEntries(from: listItem)
-                    var displayTitle = "Untitled"
-                    if let title = listItem["title"] as? String {
-                        displayTitle = plainSummary(raw: title)
-                    }
-                    currentItem["displayTitle"] = displayTitle
+        do {
+            var currentItems = [[String: Any]]()
+            for listItem in propertiesList {
+                var currentItem = listItem
+                //                    currentItem.addEntries(from: listItem)
+                var displayTitle = "Untitled"
+                if let title = listItem["title"] as? String {
+                    displayTitle = plainSummary(raw: title)
+                }
+                currentItem["displayTitle"] = displayTitle
 
-                    var summary = ""
-                    if let body = listItem["body"] as? String {
-                        summary = body
-                    } else if let mediaDescription = listItem["mediaDescription"] as? String {
-                        summary = mediaDescription
-                    }
-                    if !summary.isEmpty {
-                        if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-                            if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-                                if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                                   let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                                    let sub = summary[start..<end]
-                                    summary = summary.replacingOccurrences(of: sub, with: "")
-                                }
+                var summary = ""
+                if let body = listItem["body"] as? String {
+                    summary = body
+                } else if let mediaDescription = listItem["mediaDescription"] as? String {
+                    summary = mediaDescription
+                }
+                if !summary.isEmpty {
+                    if summary.range(of: "<style>", options: .caseInsensitive) != nil {
+                        if summary.range(of: "</style>", options: .caseInsensitive) != nil {
+                            if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
+                               let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
+                                let sub = summary[start..<end]
+                                summary = summary.replacingOccurrences(of: sub, with: "")
                             }
                         }
                     }
-                    currentItem["displayBody"] = plainSummary(raw: summary)
+                }
+                currentItem["displayBody"] = plainSummary(raw: summary)
 
-                    let clipLength = 50
-                    var dateLabelText = ""
-                    if let pubDate = listItem["pubDate"] as? Double {
-                        let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
-                        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
+                let clipLength = 50
+                var dateLabelText = ""
+                if let pubDate = listItem["pubDate"] as? Double {
+                    let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
+                    dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: date))
 
-                        if !dateLabelText.isEmpty {
-                            dateLabelText.append(" | ")
-                        }
+                    if !dateLabelText.isEmpty {
+                        dateLabelText.append(" | ")
                     }
+                }
+                if let itemAuthor = listItem["author"] as? String,
+                   !itemAuthor.isEmpty {
+                    if itemAuthor.count > clipLength {
+                        dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
+                        dateLabelText.append(String(0x2026))
+                    } else {
+                        dateLabelText.append(itemAuthor)
+                    }
+                }
+
+                if let feedId = listItem["feedId"] as? Int64,
+                   let feed = modelContext.feed(id: feedId),
+                   let feedTitle = feed.title {
                     if let itemAuthor = listItem["author"] as? String,
                        !itemAuthor.isEmpty {
-                        if itemAuthor.count > clipLength {
-                            dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
-                            dateLabelText.append(String(0x2026))
-                        } else {
-                            dateLabelText.append(itemAuthor)
+                        if feedTitle != itemAuthor {
+                            dateLabelText.append(" | \(feedTitle)")
                         }
+                    } else {
+                        dateLabelText.append(feedTitle)
                     }
-
-                    if let feedId = listItem["feedId"] as? Int64,
-                       let feed = Feed.feed(id: feedId),
-                       let feedTitle = feed.title {
-                        if let itemAuthor = listItem["author"] as? String,
-                           !itemAuthor.isEmpty {
-                            if feedTitle != itemAuthor {
-                                dateLabelText.append(" | \(feedTitle)")
-                            }
-                        } else {
-                            dateLabelText.append(feedTitle)
-                        }
-                    }
-                    currentItem["dateFeedAuthor"] = dateLabelText
-                    currentItems.append(currentItem)
                 }
-
-                let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
-                let items = try JSONDecoder().decode([Item].self, from: itemsData)
-                for item in items {
-                    container.mainContext.insert(item)
-                }
-                try container.mainContext.save()
-                logger.debug("Finished importing item data.")
-            } catch {
-                self.logger.debug("Failed to execute items insert request.")
-                throw DatabaseError.itemsFailedImport
+                currentItem["dateFeedAuthor"] = dateLabelText
+                currentItems.append(currentItem)
             }
-        }
 
+            let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
+            let items = try JSONDecoder().decode([Item].self, from: itemsData)
+            for item in items {
+                modelContext.insert(item)
+            }
+            try modelContext.save()
+            logger.debug("Finished importing item data.")
+        } catch {
+            self.logger.debug("Failed to execute items insert request.")
+            throw DatabaseError.itemsFailedImport
+        }
     }
 
 }

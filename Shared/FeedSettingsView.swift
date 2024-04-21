@@ -11,60 +11,24 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(FeedModel.self) private var feedModel
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
-
-    @Bindable var node: Node
 
     @State private var title = ""
     @State private var folderName: String?
     @State private var preferWeb = false
     @State private var footerMessage = ""
     @State private var footerSuccess = true
-
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
     @State private var pinned = false
-
-    private var feed: Feed?
-    private var updateErrorCount = ""
-    private var lastUpdateError = ""
-    private var url = ""
-    private var added = ""
-    private var initialTitle = ""
-    private var initialFolderSelection = noFolderName
-
-    init(node: Node) {
-        self.node = node
-        switch node.nodeType {
-        case .feed(id: let id):
-            if let feed = Feed.feed(id: id),
-               let folders = Folder.all() {
-                self.feed = feed
-                var fNames = [noFolderName]
-                let names = folders.compactMap( { $0.name } )
-                fNames.append(contentsOf: names)
-                self._folderNames = State(initialValue: fNames)
-                if let folder = Folder.folder(id: feed.folderId),
-                   let folderName = folder.name {
-                    self._folderSelection = State(initialValue: folderName)
-                    initialFolderSelection = folderName
-                }
-                initialTitle = feed.title ?? "Untitled"
-                self._title = State(initialValue: initialTitle)
-                self._preferWeb = State(initialValue: feed.preferWeb)
-                self._pinned = State(initialValue: feed.pinned)
-                updateErrorCount = "\(feed.updateErrorCount)"
-                lastUpdateError = feed.lastUpdateError ?? "No error"
-                url = feed.url ?? ""
-                let dateAdded = Date(timeIntervalSince1970: TimeInterval(feed.added))
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .long
-                added = dateFormatter.string(from: dateAdded)
-            }
-        default:
-            break
-        }
-    }
+    @State private var feed: Feed?
+    @State private var updateErrorCount = ""
+    @State private var lastUpdateError = ""
+    @State private var url = ""
+    @State private var added = ""
+    @State private var initialTitle = ""
+    @State private var initialFolderSelection = noFolderName
 
     var body: some View {
         VStack {
@@ -136,6 +100,37 @@ struct FeedSettingsView: View {
                     .buttonStyle(XButton())
                 }
             }
+            .task {
+                switch feedModel.currentNode?.nodeType {
+                case .feed(id: let id):
+                    if let feed = feedModel.modelContext.feed(id: id),
+                       let folders = feedModel.modelContext.allFolders() {
+                        self.feed = feed
+                        var fNames = [noFolderName]
+                        let names = folders.compactMap( { $0.name } )
+                        fNames.append(contentsOf: names)
+                        folderNames = fNames
+                        if let folder = feed.folder,
+                           let folderName = folder.name {
+                            folderSelection = folderName
+                            initialFolderSelection = folderName
+                        }
+                        initialTitle = feed.title ?? "Untitled"
+                        title = initialTitle
+                        preferWeb = feed.preferWeb
+                        pinned = feed.pinned
+                        updateErrorCount = "\(feed.updateErrorCount)"
+                        lastUpdateError = feed.lastUpdateError ?? "No error"
+                        url = feed.url ?? ""
+                        let dateAdded = Date(timeIntervalSince1970: TimeInterval(feed.added))
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateStyle = .long
+                        added = dateFormatter.string(from: dateAdded)
+                    }
+                default:
+                    break
+                }
+            }
             .onChange(of: folderSelection) { oldValue, newValue in
                 if newValue != oldValue {
                     onFolderSelection(newValue == noFolderName ? "" : newValue)
@@ -146,7 +141,7 @@ struct FeedSettingsView: View {
                     feed.preferWeb = newValue
                     Task {
                         do {
-                            try NewsData.shared.container?.mainContext.save()
+                            try self.feedModel.modelContext.save()
                         } catch {
                             //
                         }
@@ -174,10 +169,10 @@ struct FeedSettingsView: View {
             if !title.isEmpty, title != feed.title {
                 Task {
                     do {
-                        try await NewsManager.shared.renameFeed(feed: feed, to: title)
-                        node.title = title
+                        try await feedModel.renameFeed(feed: feed, to: title)
+                        feedModel.currentNode?.title = title
                         feed.title = title
-                        try NewsData.shared.container?.mainContext.save()
+                        try self.feedModel.modelContext.save()
                     } catch let error as NetworkError {
                         title = initialTitle
                         footerMessage = error.localizedDescription
@@ -201,13 +196,13 @@ struct FeedSettingsView: View {
         if let feed = self.feed {
             Task {
                 var newFolderId: Int64 = 0
-                if let newFolder = Folder.folder(name: newFolderName) {
+                if let newFolder = feedModel.modelContext.folder(name: newFolderName) {
                     newFolderId = newFolder.id
                 }
                 do {
-                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
+                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
                     feed.folderId = newFolderId
-                    try NewsData.shared.container?.mainContext.save()
+                    try self.feedModel.modelContext.save()
                 } catch let error as NetworkError {
                     folderSelection = initialFolderSelection
                     footerMessage = error.localizedDescription
@@ -229,6 +224,6 @@ struct FeedSettingsView: View {
 
 struct FeedSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        FeedSettingsView(node: Node())
+        FeedSettingsView()
     }
 }

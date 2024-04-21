@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI
 
 struct NodeView: View {
-    @Environment(\.feedModel) private var feedModel
+    @Environment(FeedModel.self) private var feedModel
     @Query private var feeds: [Feed]
 
     @State private var isShowingConfirmation = false
@@ -39,7 +39,7 @@ struct NodeView: View {
 
     var body: some View {
         LabeledContent {
-            BadgeView(node: node)
+            BadgeView(node: node, modelContext: feedModel.modelContext)
                 .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         } label: {
             Label {

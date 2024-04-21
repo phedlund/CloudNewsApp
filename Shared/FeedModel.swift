@@ -1,5 +1,5 @@
 //
-//  FeedTreeModel.swift
+//  FeedModel.swift
 //  CloudNews
 //
 //  Created by Peter Hedlund on 6/20/21.
@@ -11,15 +11,19 @@ import SwiftData
 
 @Observable
 class FeedModel {
+    let modelContext: ModelContext
+    let itemImporter: ItemImporter
+    let session = ServerStatus.shared.session
+
     var nodes = [Node]()
-    var currentNode = Node()
+    var currentNode: Node?
     var currentItems = [Item]()
     var currentItem: Item? = nil
     var currentNodeID: Node.ID? = nil
     var currentItemID: PersistentIdentifier? = nil
+    var isSyncing = false
 
     private var isInInit = true
-    private var context: ModelContext?
 
     var folders = [Folder]() {
         didSet {
@@ -28,6 +32,7 @@ class FeedModel {
             }
         }
     }
+
     var feeds = [Feed]()  {
         didSet {
             if !isInInit {
@@ -36,13 +41,12 @@ class FeedModel {
         }
     }
     
-    init() {
-        nodes.append(Node(.all, id: Constants.allNodeGuid))
-        nodes.append(Node(.starred, id: Constants.starNodeGuid))
-        if let container = NewsData.shared.container {
-            context = ModelContext(container)
-            context?.autosaveEnabled = false
-        }
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        self.modelContext.autosaveEnabled = false
+        self.itemImporter = ItemImporter(modelContext: modelContext)
+        nodes.append(Node(.all, id: Constants.allNodeGuid, feedModel: self))
+        nodes.append(Node(.starred, id: Constants.starNodeGuid, feedModel: self))
         update()
         isInInit = false
     }
@@ -51,15 +55,15 @@ class FeedModel {
         var folderNodes = [Node]()
         var feedNodes = [Node]()
 
-        if let folders = Folder.all() {
+        if let folders = modelContext.allFolders() {
             for folder in folders {
-                folderNodes.append(Node(folder: folder))
+                folderNodes.append(Node(folder: folder, feedModel: self))
             }
         }
 
-        if let feeds = Feed.inFolder(folder: 0) {
+        if let feeds = modelContext.feedsInFolder(folder: 0) {
             for feed in feeds {
-                feedNodes.append(Node(feed: feed))
+                feedNodes.append(Node(feed: feed, feedModel: self))
             }
         }
 
@@ -97,14 +101,14 @@ class FeedModel {
         case .folder(let id):
             Task {
                 do {
-                    try await NewsManager.shared.deleteFolder(Int(id))
-                    if let feedIds = Feed.idsInFolder(folder: id) {
+                  try await deleteFolder(Int(id))
+                    if let feedIds = modelContext.feedIdsInFolder(folder: id) {
                         for feedId in feedIds {
-                            try await Item.deleteItems(with: feedId)
-                            try await Feed.delete(id: feedId)
+                            try await modelContext.deleteItems(with: feedId)
+                            try await modelContext.deleteFolder(id: feedId)
                         }
                     }
-                    try await Folder.delete(id: id)
+                    try await modelContext.deleteFolder(id: id)
                 } catch {
                     //
                 }
@@ -112,9 +116,9 @@ class FeedModel {
         case .feed(let id):
             Task {
                 do {
-                    try await NewsManager.shared.deleteFeed(Int(id))
-                    try await Item.deleteItems(with: id)
-                    try await Feed.delete(id: id)
+                    try await deleteFeed(Int(id))
+                    try await modelContext.deleteItems(with: id)
+                    try await modelContext.deleteFeed(id: id)
                 } catch {
                     //
                 }
@@ -132,7 +136,7 @@ class FeedModel {
                     return node
                 }
             }
-            return Node()
+            return Node(feedModel: self)
         }
     }
 
@@ -144,16 +148,16 @@ class FeedModel {
             item.unread = false
         }
         Task.detached {
-            try await NewsManager.shared.markRead(items: items, unread: false)
+            try await self.markRead(items: items, unread: false)
         }
     }
 
     func toggleItemRead(item: Item) {
         do {
             item.unread.toggle()
-            try context?.save()
+            try modelContext.save()
             Task {
-                try await NewsManager.shared.markRead(items: [item], unread: !item.unread)
+                try await self.markRead(items: [item], unread: !item.unread)
             }
         } catch {
             //

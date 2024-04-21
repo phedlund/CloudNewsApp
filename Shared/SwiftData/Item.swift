@@ -41,6 +41,11 @@ final class Item {
 
     private let validSchemas = ["http", "https", "file"]
 
+    nonisolated var feed: Feed? {
+        let context = self.modelContext
+        return context?.feed(id: feedId)
+    }
+
     nonisolated var imageUrl: URL? {
         get async throws {
             var itemImageUrl: URL?
@@ -176,19 +181,6 @@ extension Item: Decodable {
         let updatedDate = try values.decodeIfPresent(Int64.self, forKey: .updatedDate) ?? 0
         let url = try values.decodeIfPresent(String.self, forKey: .url)
         self.init(author: author, body: body, contentHash: nil, displayBody: displayBody, displayTitle: displayTitle, dateFeedAuthor: dateFeedAuthor, enclosureLink: enclosureLink, enclosureMime: enclosureMime, feedId: feedId, fingerprint: fingerprint, guid: guid, guidHash: guidHash, id: id, lastModified: lastModified, mediaThumbnail: mediaThumbnail, mediaDescription: mediaDescription, pubDate: pubDate, rtl: rtl, starred: starred, title: title, unread: unread, updatedDate: updatedDate, url: url)
-    }
-
-    @MainActor
-    static func deleteItems(with feedId: Int64) async throws {
-        if let container = NewsData.shared.container {
-            do {
-                try container.mainContext.delete(model: Item.self, where: #Predicate { $0.feedId == feedId } )
-                try container.mainContext.save()
-            } catch {
-//                self.logger.debug("Failed to execute items insert request.")
-                throw DatabaseError.itemErrorDeleting
-            }
-        }
     }
 
     static func reset() {
