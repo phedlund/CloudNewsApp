@@ -9,14 +9,14 @@ import SwiftData
 import SwiftUI
 
 struct BadgeView: View {
-    var node: Node
+    var node: NodeModel
 
     @Query private var items: [Item]
 
     private let errorCount = 0
     private var feed: Feed?
 
-    init(node: Node, modelContext: ModelContext) {
+    init(node: NodeModel, modelContext: ModelContext) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
         switch node.nodeType {

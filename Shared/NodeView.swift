@@ -16,7 +16,7 @@ struct NodeView: View {
     @State private var isShowingConfirmation = false
     @State private var favIconUrl: URL?
 
-    var node: Node
+    var node: NodeModel
 
 #if os(iOS)
     let noChildrenPadding = 18.0
@@ -24,7 +24,7 @@ struct NodeView: View {
     let noChildrenPadding = 0.0
 #endif
 
-    init(node: Node) {
+    init(node: NodeModel) {
         self.node = node
         switch node.nodeType {
         case .feed(let id):
@@ -56,9 +56,9 @@ struct NodeView: View {
             titleVisibility: .visible
         ) {
             Button("Yes", role: .destructive) {
-                withAnimation {
-                   feedModel.delete(node)
-                }
+// TODO               withAnimation {
+//                   feedModel.delete(node)
+//                }
             }
             .keyboardShortcut(.defaultAction)
             Button("No", role: .cancel) { }

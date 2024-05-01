@@ -9,9 +9,13 @@ import SwiftData
 import Foundation
 import OSLog
 
-@MainActor
 class FolderImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
 
     func fetchFolders(_ urlRequest: URLRequest) async throws {
         do {
@@ -42,13 +46,11 @@ class FolderImporter {
             let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
 
             let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
-            if let container = NewsData.shared.container {
-                for folder in folders {
-                    container.mainContext.insert(folder)
-                }
-                try container.mainContext.save()
-                logger.debug("Finished importing folder data.")
+            for folder in folders {
+                modelContext.insert(folder)
             }
+            try modelContext.save()
+            logger.debug("Finished importing folder data.")
         } catch {
             self.logger.debug("Failed to execute folders insert request.")
             throw DatabaseError.foldersFailedImport
@@ -57,9 +59,13 @@ class FolderImporter {
 
 }
 
-@MainActor
 class FeedImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FeedImporter.self))
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
 
     func fetchFeeds(_ urlRequest: URLRequest) async throws {
         do {
@@ -92,23 +98,18 @@ class FeedImporter {
         let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
 
         let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
-        if let container = NewsData.shared.container {
-            for feed in feeds {
-                container.mainContext.insert(feed)
-            }
-            logger.debug("Finished importing folder data.")
+        for feed in feeds {
+            modelContext.insert(feed)
         }
-
+        try modelContext.save()
         logger.debug("Finished importing feed data.")
-
     }
 
 }
 
 class ItemImporter {
-    private let modelContext: ModelContext
-
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemImporter.self))
+    private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

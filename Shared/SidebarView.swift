@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+import SwiftData
 import SwiftUI
 
 enum ModalSheet: String {
@@ -44,6 +45,8 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: Node.ID?
 
+    @Query(filter: #Predicate<NodeModel>{ $0.parentItem == nil }, sort: \NodeModel.id, order: .forward) private var nodes: [NodeModel]
+
     init(nodeSelection: Binding<Node.ID?>) {
         self._nodeSelection = nodeSelection
     }
@@ -72,7 +75,7 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-        List(feedModel.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        List(nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
             NodeView(node: node)
                 .environment(feedModel)
                 .tag(node.id)

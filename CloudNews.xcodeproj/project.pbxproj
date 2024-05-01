@@ -61,6 +61,7 @@
 		D0CAF5EE2713C43800BB9062 /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CAF5ED2713C43800BB9062 /* ItemViews.swift */; };
 		D0D0BBD12B1D6A2A006E81D2 /* ThumbnailImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D0BBD02B1D6A2A006E81D2 /* ThumbnailImageView.swift */; };
 		D0D5F28A2BC4D791007354B3 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5F2892BC4D791007354B3 /* ModelContextExtension.swift */; };
+		D0D5F28C2BDC8B2C007354B3 /* NodeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5F28B2BDC8B2C007354B3 /* NodeModel.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
@@ -136,6 +137,7 @@
 		D0CAF5ED2713C43800BB9062 /* ItemViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		D0D0BBD02B1D6A2A006E81D2 /* ThumbnailImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailImageView.swift; sourceTree = "<group>"; };
 		D0D5F2892BC4D791007354B3 /* ModelContextExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContextExtension.swift; sourceTree = "<group>"; };
+		D0D5F28B2BDC8B2C007354B3 /* NodeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeModel.swift; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				D02CFFE229C7C72900F956CF /* Constants.swift */,
 				D0B0B2FE267FF86300A997DB /* FeedModel.swift */,
 				D06D072C274F01D000325770 /* Node.swift */,
+				D0D5F28B2BDC8B2C007354B3 /* NodeModel.swift */,
 				D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */,
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
 				D07A043626E2F61F00178EEE /* UserDefault.swift */,
@@ -425,6 +428,7 @@
 				D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */,
 				D0367B942A8C5E1D0099D34D /* Version.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
+				D0D5F28C2BDC8B2C007354B3 /* NodeModel.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,
 				D0F41D732A78185300EEAC78 /* Starred.swift in Sources */,

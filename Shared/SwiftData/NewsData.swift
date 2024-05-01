@@ -19,7 +19,8 @@ class NewsData {
             Read.self,
             Unread.self,
             Starred.self,
-            Unstarred.self
+            Unstarred.self,
+            NodeModel.self
         ])
 
     var container: ModelContainer?

@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum NodeType: Equatable, Hashable {
+enum NodeType: Equatable, Hashable, Codable {
     case empty
     case all
     case starred
@@ -26,7 +26,7 @@ extension NodeType {
             return .starred
         case Constants.emptyNodeGuid:
             return .empty
-        case _ where typeString.hasPrefix("folder"):
+        case _ where typeString.hasPrefix("cccc"):
             if let index = typeString.lastIndex(of: "_") {
                 let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
                 let myId = Int64(idString)
@@ -34,7 +34,7 @@ extension NodeType {
             } else {
                 return .empty
             }
-        case _ where typeString.hasPrefix("feed"):
+        case _ where typeString.hasPrefix("dddd"):
             if let index = typeString.lastIndex(of: "_") {
                 let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
                 let myId = Int64(idString)

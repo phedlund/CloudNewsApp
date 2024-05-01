@@ -12,8 +12,8 @@ import UIKit
 
 struct Constants {
     static let emptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
-    static let allNodeGuid = "72137d96-4ef2-11ec-81d3-0242ac130003"
-    static let starNodeGuid = "967917a4-4ef2-11ec-81d3-0242ac130003"
+    static let allNodeGuid = "aaaa"
+    static let starNodeGuid = "bbbb"
 
     static let email = "support@pbh.dev"
     static let website = "https://pbh.dev/cloudnews"

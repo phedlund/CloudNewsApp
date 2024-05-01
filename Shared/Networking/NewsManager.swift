@@ -42,7 +42,7 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    try await FeedImporter().importFeeds(from: data)
+                    try await feedImporter.importFeeds(from: data)
                     if let newFeed = modelContext.insertedModelsArray.first as? Feed {
                         let parameters: ParameterDict = ["batchSize": 200,
                                                          "offset": 0,
@@ -79,7 +79,7 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    try await FolderImporter().importFolders(from: data)
+                    try await folderImporter.importFolders(from: data)
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -201,8 +201,8 @@ extension FeedModel {
 
         do {
 
-            try await FolderImporter().fetchFolders(Router.folders.urlRequest())
-            try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
+            try await folderImporter.fetchFolders(Router.folders.urlRequest())
+            try await feedImporter.fetchFeeds(Router.feeds.urlRequest())
             try await itemImporter.fetchItems(unreadRouter.urlRequest())
             try await itemImporter.fetchItems(starredRouter.urlRequest())
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
@@ -336,8 +336,8 @@ extension FeedModel {
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
             try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
-            try await FolderImporter().fetchFolders(Router.folders.urlRequest())
-            try await FeedImporter().fetchFeeds(Router.feeds.urlRequest())
+            try await folderImporter.fetchFolders(Router.folders.urlRequest())
+            try await feedImporter.fetchFeeds(Router.feeds.urlRequest())
             try await itemImporter.fetchItems(updatedItemRouter.urlRequest())
 
             DispatchQueue.main.async {
