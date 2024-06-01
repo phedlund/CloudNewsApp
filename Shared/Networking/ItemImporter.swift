@@ -106,9 +106,8 @@ class ItemPruner {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date()) {
                 try modelContext.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDate } )
             }
-            //                try container.mainContext.save()
         } catch {
-            self.logger.debug("Failed to execute items insert request.")
+            self.logger.debug("Failed to execute item pruning.")
             throw DatabaseError.itemsFailedImport
         }
     }
