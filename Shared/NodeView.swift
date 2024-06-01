@@ -11,10 +11,11 @@ import SwiftUI
 
 struct NodeView: View {
     @Environment(FeedModel.self) private var feedModel
-    @Query private var feeds: [Feed]
+//    @Query private var feeds: [Feed]
 
     @State private var isShowingConfirmation = false
     @State private var favIconUrl: URL?
+    @State private var title = "Untitled"
 
     var node: NodeModel
 
@@ -26,15 +27,15 @@ struct NodeView: View {
 
     init(node: NodeModel) {
         self.node = node
-        switch node.nodeType {
-        case .feed(let id):
-            let predicate = #Predicate<Feed>{ $0.id == id }
-            var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-            descriptor.fetchLimit = 1
-            self._feeds = Query(descriptor)
-        default:
-            break
-        }
+//        switch node.nodeType {
+//        case .feed(let id):
+//            let predicate = #Predicate<Feed>{ $0.id == id }
+//            var descriptor = FetchDescriptor<Feed>(predicate: predicate)
+//            descriptor.fetchLimit = 1
+////            self._feeds = Query(descriptor)
+//        default:
+//            break
+//        }
     }
 
     var body: some View {
@@ -107,7 +108,7 @@ private extension NodeView {
         }
         .task {
             Task.detached {
-                favIconUrl = try await feeds.first?.favIconUrl
+                favIconUrl = try await node.feed?.favIconUrl
             }
         }
     }

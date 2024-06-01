@@ -25,16 +25,16 @@ final class Item {
     var guid: String?
     var guidHash: String?
     @Attribute(.unique) var id: Int64
-    var lastModified: Int64
+    var lastModified: Date
     var mediaThumbnail: String?
     var mediaDescription: String?
-    var pubDate: Int64
+    var pubDate: Date
     var rtl: Bool
     //    var readable: String?
     var starred: Bool
     var title: String?
     var unread: Bool
-    var updatedDate: Int64?
+    var updatedDate: Date?
     var url: String?
 
     @Transient var webViewHelper = ItemWebViewHelper()
@@ -74,7 +74,7 @@ final class Item {
         }
     }
 
-    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Int64, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Int64, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Int64? = nil, url: String? = nil) {
+    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil) {
         self.author = author
         self.body = body
         self.contentHash = contentHash
@@ -98,6 +98,32 @@ final class Item {
         self.unread = unread
         self.updatedDate = updatedDate
         self.url = url
+    }
+
+    convenience init(item: ItemDTO) {
+        self.init(author: item.author,
+                  body: item.body,
+                  contentHash: item.contentHash,
+                  displayBody: item.body ?? "",
+                  displayTitle: item.title,
+                  dateFeedAuthor: item.author ?? "",
+                  enclosureLink: item.enclosureLink,
+                  enclosureMime: item.enclosureMime,
+                  feedId: item.feedId,
+                  fingerprint: item.fingerprint,
+                  guid: item.guid,
+                  guidHash: item.guidHash,
+                  id: item.id,
+                  lastModified: item.lastModified,
+                  mediaThumbnail: item.mediaThumbnail,
+                  mediaDescription: item.mediaDescription,
+                  pubDate: item.pubDate,
+                  rtl: item.rtl,
+                  starred: item.starred,
+                  title: item.title,
+                  unread: item.unread,
+                  updatedDate: item.updatedDate,
+                  url: item.url)
     }
 
     nonisolated private var internalUrl: URL? {
@@ -128,7 +154,7 @@ final class Item {
     }
 
 }
-
+/*
 extension Item: Decodable {
 
     enum CodingKeys: String, CodingKey {
@@ -197,3 +223,4 @@ extension Item: Decodable {
     }
 
 }
+*/

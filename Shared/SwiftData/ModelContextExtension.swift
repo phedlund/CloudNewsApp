@@ -58,6 +58,19 @@ extension ModelContext {
         }
     }
 
+    func folderNodeModel(nodeName: String) -> NodeModel? {
+        let predicate = #Predicate<NodeModel>{ $0.nodeName == nodeName }
+        var descriptor = FetchDescriptor<NodeModel>(predicate: predicate)
+        descriptor.fetchLimit = 1
+        do {
+            let results  = try fetch(descriptor)
+            return results.first
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+
     func allFeeds() -> [Feed]? {
         let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
         //        let pinnedSortDescriptor = SortDescriptor<Feed>(\.pinned)

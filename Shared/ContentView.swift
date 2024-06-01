@@ -15,7 +15,7 @@ struct ContentView: View {
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: NodeModel.ID?
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
@@ -23,7 +23,7 @@ struct ContentView: View {
     @Query private var feeds: [Feed]
 
     @State private var isShowingLogin = false
-    @State private var selectedNodeID: Node.ID?
+    @State private var navigationTitle: String?
     @State private var sortOrder = SortDescriptor(\Item.id)
     @State private var predicate = #Predicate<Item>{ _ in false }
     @State private var selectedItem: Item? = nil
@@ -32,11 +32,11 @@ struct ContentView: View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: $selectedNodeID)
+            SidebarView(nodeSelection: $selectedNode)
                 .environment(feedModel)
         } detail: {
             ZStack {
-                if selectedNodeID != Constants.emptyNodeGuid {
+                if selectedNode != nil {
                     ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
                         .environment(feedModel)
 //                        .toolbar {
@@ -48,7 +48,7 @@ struct ContentView: View {
                                            description: Text("Select a feed from the list to display its articles"))
                 }
             }
-            .navigationTitle(feedModel.currentNode?.title ?? "Untitled")
+            .navigationTitle(navigationTitle ?? "Untitled")
             .onAppear {
                 isShowingLogin = isNewInstall
             }
@@ -60,16 +60,19 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: folders, initial: true) { _, newValue in
-            print("Folders changed")
-            feedModel.folders = newValue
-        }
-        .onChange(of: feeds, initial: true) { _, newValue in
-            feedModel.feeds = newValue
-        }
-        .onChange(of: selectedNodeID, initial: false) { _, newValue in
-            selectedNode = newValue
-            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
+//        .onChange(of: folders, initial: true) { _, newValue in
+//            print("Folders changed")
+//            feedModel.folders = newValue
+//        }
+//        .onChange(of: feeds, initial: true) { _, newValue in
+//            feedModel.feeds = newValue
+//        }
+        .onChange(of: selectedNode, initial: true) { _, newValue in
+            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
+                navigationTitle = model.title
+            }
+//            selectedNode = newValue
+//            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
             updatePredicate()
         }
         .onChange(of: hideRead, initial: true) { _, _ in
@@ -78,9 +81,9 @@ struct ContentView: View {
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
         }
-        .task {
-            selectedNodeID = selectedNode
-        }
+//        .task {
+//            selectedNodeID = selectedNode
+//        }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $selectedNodeID)
@@ -138,35 +141,37 @@ struct ContentView: View {
     }
 
     private func updatePredicate() {
-        switch NodeType.fromString(typeString: selectedNodeID ?? Constants.emptyNodeGuid) {
-        case .empty:
-            predicate = #Predicate<Item>{ _ in false }
-        case .all:
-            predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.unread
-                } else {
-                    return true
-                }
-            }
-        case .starred:
-            predicate = #Predicate<Item>{ $0.starred }
-        case .folder(id:  let id):
-            if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
+        if let selectedNode, let node = feedModel.modelContext.model(for: selectedNode) as? NodeModel {
+            switch NodeType.fromString(typeString: node.nodeName) {
+            case .empty:
+                predicate = #Predicate<Item>{ _ in false }
+            case .all:
                 predicate = #Predicate<Item>{
                     if hideRead {
-                        return feedIds.contains($0.feedId) && $0.unread
+                        return $0.unread
                     } else {
-                        return feedIds.contains($0.feedId)
+                        return true
                     }
                 }
-            }
-        case .feed(id: let id):
-            predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.feedId == id && $0.unread
-                } else {
-                    return $0.feedId == id
+            case .starred:
+                predicate = #Predicate<Item>{ $0.starred }
+            case .folder(id:  let id):
+                if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
+                    predicate = #Predicate<Item>{
+                        if hideRead {
+                            return feedIds.contains($0.feedId) && $0.unread
+                        } else {
+                            return feedIds.contains($0.feedId)
+                        }
+                    }
+                }
+            case .feed(id: let id):
+                predicate = #Predicate<Item>{
+                    if hideRead {
+                        return $0.feedId == id && $0.unread
+                    } else {
+                        return $0.feedId == id
+                    }
                 }
             }
         }

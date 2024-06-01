@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ItemListToolbarContent: ToolbarContent {
     @Environment(FeedModel.self) private var feedModel
-    var node: Node
+    var node: NodeModel
 
     @ToolbarContentBuilder
     var body: some ToolbarContent {

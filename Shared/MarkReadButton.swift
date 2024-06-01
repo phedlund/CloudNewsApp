@@ -10,13 +10,13 @@ import SwiftUI
 
 struct MarkReadButton: View {
     @Environment(FeedModel.self) private var feedModel
-    private let node: Node
+    private let node: NodeModel
 
     @State private var isDisabled = true
 
     @Query private var items: [Item]
 
-    init(node: Node) {
+    init(node: NodeModel) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
         switch node.nodeType {
@@ -39,7 +39,7 @@ struct MarkReadButton: View {
 
     var body: some View {
         Button {
-            node.markRead()
+//      TODO      node.markRead()
         } label: {
             Label {
                 Text("Mark Read")

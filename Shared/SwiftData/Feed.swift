@@ -11,11 +11,11 @@ import SwiftData
 
 @Model
 final class Feed {
-    var added: Int64
+    var added: Date
     var faviconLink: String?
     var folderId: Int64
     @Attribute(.unique) var id: Int64
-    var lastModified: Int64
+    var lastModified: Date
     var lastUpdateError: String?
     var link: String?
     var ordering: Int64
@@ -27,8 +27,10 @@ final class Feed {
     var url: String?
     var useReader: Bool
 
-    @Relationship
-    var items: [Item]
+    // Parental relationship
+    public var node: NodeModel?
+
+    @Relationship var items: [Item]
 
     nonisolated var favIconUrl: URL? {
         get async throws {
@@ -43,7 +45,7 @@ final class Feed {
 
     private let validSchemas = ["http", "https", "file"]
 
-    init(added: Int64, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
+    init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
         self.folderId = folderId ?? 0
@@ -59,8 +61,24 @@ final class Feed {
 
         self.preferWeb = false
         self.useReader = false
-        self.lastModified = Int64(Date().timeIntervalSince1970)
+        self.lastModified = Date()
         self.items = items
+    }
+
+    convenience init(item: FeedDTO) {
+        self.init(added: item.added, 
+                  faviconLink: item.faviconLink,
+                  folderId: item.folderId,
+                  id: item.id,
+                  lastUpdateError: item.lastUpdateError,
+                  link: item.link,
+                  ordering: item.ordering,
+                  pinned: item.pinned,
+                  title: item.title,
+                  unreadCount: item.unreadCount,
+                  updateErrorCount: item.updateErrorCount,
+                  url: item.url,
+                  items: [Item]())
     }
 
     private func favIconUrl() async throws -> URL? {
@@ -81,7 +99,7 @@ final class Feed {
     }
 
 }
-
+/*
 extension Feed: Decodable {
     enum CodingKeys: String, CodingKey {
         case added = "added"
@@ -122,7 +140,7 @@ extension Feed: Decodable {
     }
 
 }
-
+*/
 extension Feed {
 
     static func reset() {

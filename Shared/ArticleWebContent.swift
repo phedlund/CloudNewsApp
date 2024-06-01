@@ -221,12 +221,12 @@ class ArticleWebContent {
     }
 
     private static func dateText(item: Item) -> String {
-        let dateNumber = TimeInterval(item.pubDate)
-        let date = Date(timeIntervalSince1970: dateNumber)
+//        let dateNumber = TimeInterval(item.pubDate.timeIntervalSince1970)
+//        let date = Date(timeIntervalSince1970: dateNumber)
         let dateFormat = DateFormatter()
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;
-        return dateFormat.string(from: date)
+        return dateFormat.string(from: item.pubDate)
     }
 
     private func updateCssVariables() -> String {

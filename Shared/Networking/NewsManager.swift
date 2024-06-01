@@ -42,7 +42,7 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    try await feedImporter.importFeeds(from: data)
+//                    try await feedImporter.importFeeds(from: data)
                     if let newFeed = modelContext.insertedModelsArray.first as? Feed {
                         let parameters: ParameterDict = ["batchSize": 200,
                                                          "offset": 0,
@@ -50,7 +50,7 @@ extension FeedModel {
                                                          "id": newFeed.id,
                                                          "getRead": NSNumber(value: true)]
                         let router = Router.items(parameters: parameters)
-                        try await itemImporter.fetchItems(router.urlRequest())
+//                        try await itemImporter.fetchItems(router.urlRequest())
                     }
                     try modelContext.save()
                 case 405:
@@ -79,7 +79,8 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    try await folderImporter.importFolders(from: data)
+                    break
+//                   TODO try await folderImporter.importFolders(from: data)
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -201,11 +202,13 @@ extension FeedModel {
 
         do {
 
-            try await folderImporter.fetchFolders(Router.folders.urlRequest())
-            try await feedImporter.fetchFeeds(Router.feeds.urlRequest())
-            try await itemImporter.fetchItems(unreadRouter.urlRequest())
-            try await itemImporter.fetchItems(starredRouter.urlRequest())
-            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
+            try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
+            try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
+            try await webImporter.updateItemsInDatabase(urlRequest: unreadRouter.urlRequest())
+            try await webImporter.updateItemsInDatabase(urlRequest: starredRouter.urlRequest())
+            nodeBuilder.update()
+
+//            try await itemPruner.pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
                 self.isSyncing = false
                 //                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
@@ -238,13 +241,10 @@ extension FeedModel {
         //
         isSyncing = true
         do {
-            if let container = NewsData.shared.container {
-                let context = ModelContext(container)
-                let itemCount = try context.fetchCount(FetchDescriptor<Item>())
-                if itemCount == 0 {
-                    try await self.initialSync()
-                    return
-                }
+            let itemCount = try modelContext.fetchCount(FetchDescriptor<Item>())
+            if itemCount == 0 {
+                try await self.initialSync()
+                return
             }
         } catch { }
 
@@ -335,11 +335,12 @@ extension FeedModel {
                                                     "id": 0]
             let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
 
-            try await ItemPruner().pruneItems(daysOld: Preferences().keepDuration)
-            try await folderImporter.fetchFolders(Router.folders.urlRequest())
-            try await feedImporter.fetchFeeds(Router.feeds.urlRequest())
-            try await itemImporter.fetchItems(updatedItemRouter.urlRequest())
-
+            try await itemPruner.pruneItems(daysOld: Preferences().keepDuration)
+            try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
+            try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
+            try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
+            nodeBuilder.update()
+//            try modelContext.save()
             DispatchQueue.main.async {
                 self.isSyncing = false
             }
@@ -354,7 +355,7 @@ extension FeedModel {
         var result: Int64 = 0
         do {
             if let item = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Item>()).max(by: { a, b in a.lastModified < b.lastModified }) {
-                result = item.lastModified
+                result = Int64(item.lastModified.timeIntervalSince1970)
             }
         } catch { }
         return result

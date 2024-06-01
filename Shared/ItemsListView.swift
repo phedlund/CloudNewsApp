@@ -26,7 +26,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode: Node.ID?
+    @AppStorage(SettingKeys.selectedNode) private var selectedNode: PersistentIdentifier?
 
     @Query private var items: [Item]
 
@@ -67,10 +67,10 @@ struct ItemsListView: View {
                                         selectedItem = item
                                     }
 #endif
-                                    .contextMenu {
-                                        ContextMenuContent(item: item)
-                                            .environment(feedModel)
-                                    }
+//                                    .contextMenu {
+//                                        ContextMenuContent(item: item)
+//                                            .environment(feedModel)
+//                                    }
                             }
                             .buttonStyle(.plain)
                         }

@@ -9,6 +9,91 @@ import SwiftData
 import Foundation
 import OSLog
 
+class WebImporter {
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+
+    @MainActor
+    func updateFoldersInDatabase(urlRequest: URLRequest) async {
+        do {
+            let foldersData: FoldersDTO = try await fetchData(fromUrlRequest: urlRequest)
+            for eachItem in foldersData.folders {
+                let itemToStore = Folder(item: eachItem)
+                modelContext.insert(itemToStore)
+            }
+        } catch {
+            print("Error fetching data")
+            print(error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    func updateFeedsInDatabase(urlRequest: URLRequest) async {
+        do {
+            let feedsData: FeedsDTO = try await fetchData(fromUrlRequest: urlRequest)
+            for eachItem in feedsData.feeds {
+                let itemToStore = Feed(item: eachItem)
+                modelContext.insert(itemToStore)
+            }
+        } catch {
+            print("Error fetching data")
+            print(error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    func updateItemsInDatabase(urlRequest: URLRequest) async {
+        do {
+            let itemsData: ItemsDTO = try await fetchData(fromUrlRequest: urlRequest)
+            for eachItem in itemsData.items {
+                let itemToStore = Item(item: eachItem)
+                modelContext.insert(itemToStore)
+            }
+        } catch {
+            print("Error fetching data")
+            print(error.localizedDescription)
+        }
+    }
+
+    private func fetchData<T: Codable>(fromUrlRequest: URLRequest) async throws -> T {
+        guard let downloadedData: T = await downloadData(fromUrlRequest: fromUrlRequest) else {
+            return T.self as! T
+        }
+
+        return downloadedData
+    }
+
+    private func downloadData<T: Codable>(fromUrlRequest: URLRequest) async -> T? {
+        do {
+            let (data, response) = try await ServerStatus.shared.session.data(for: fromUrlRequest, delegate: nil)
+            guard let response = response as? HTTPURLResponse else {
+                throw NetworkError.generic(message: "Bad response")
+            }
+            guard response.statusCode >= 200 && response.statusCode < 300 else {
+                throw NetworkError.generic(message: "Bad status code")
+            }
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            guard let decodedResponse = try? decoder.decode(T.self, from: data) else {
+                throw NetworkError.generic(message: "Unable to decode")
+            }
+            return decodedResponse
+        } catch NetworkError.generic(let message) {
+            print(message)
+        } catch {
+            print("An error occured downloading the data")
+        }
+
+        return nil
+    }
+
+}
+
+
 class FolderImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
     private let modelContext: ModelContext
@@ -47,9 +132,11 @@ class FolderImporter {
 
             let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
             for folder in folders {
-                modelContext.insert(folder)
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    modelContext.insert(folder)
+                }
             }
-            try modelContext.save()
             logger.debug("Finished importing folder data.")
         } catch {
             self.logger.debug("Failed to execute folders insert request.")
@@ -97,11 +184,29 @@ class FeedImporter {
         logger.debug("Start importing feed data to the store...")
         let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
 
-        let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
-        for feed in feeds {
-            modelContext.insert(feed)
-        }
-        try modelContext.save()
+//        let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
+//        for feed in feeds {
+//            DispatchQueue.main.async { [weak self] in
+//                guard let self else { return }
+//                modelContext.insert(feed)
+//            }
+//
+//            if feed.folderId > 0, let folderNodeModel = modelContext.folderNodeModel(nodeName: "cccc_\(String(format: "%03d", feed.folderId))") {
+//                DispatchQueue.main.async { [weak self] in
+//                    guard let self else { return }
+//                    modelContext.insert(feed)
+//                    modelContext.insert(feedNodeModel)
+//                    folderNodeModel.children?.append(feedNodeModel)
+//                }
+//            } else {
+//                DispatchQueue.main.async { [weak self] in
+//                    guard let self else { return }
+//                    modelContext.insert(feed)
+//                    modelContext.insert(feedNodeModel)
+//                }
+//            }
+//        }
+//        try modelContext.save()
         logger.debug("Finished importing feed data.")
     }
 
@@ -128,7 +233,6 @@ class ItemImporter {
                     }
                     logger.debug("Start importing item data to the store...")
                     try await importItems(from: itemDicts)
-                    logger.debug("Finished importing item data.")
                 default:
                     throw NetworkError.generic(message: "Error getting items: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }
@@ -193,28 +297,31 @@ class ItemImporter {
                     }
                 }
 
-                if let feedId = listItem["feedId"] as? Int64,
-                   let feed = modelContext.feed(id: feedId),
-                   let feedTitle = feed.title {
-                    if let itemAuthor = listItem["author"] as? String,
-                       !itemAuthor.isEmpty {
-                        if feedTitle != itemAuthor {
-                            dateLabelText.append(" | \(feedTitle)")
-                        }
-                    } else {
-                        dateLabelText.append(feedTitle)
-                    }
-                }
+//                if let feedId = listItem["feedId"] as? Int64,
+//                   let feed = modelContext.feed(id: feedId),
+//                   let feedTitle = feed.title {
+//                    if let itemAuthor = listItem["author"] as? String,
+//                       !itemAuthor.isEmpty {
+//                        if feedTitle != itemAuthor {
+//                            dateLabelText.append(" | \(feedTitle)")
+//                        }
+//                    } else {
+//                        dateLabelText.append(feedTitle)
+//                    }
+//                }
                 currentItem["dateFeedAuthor"] = dateLabelText
                 currentItems.append(currentItem)
             }
 
             let itemsData = try JSONSerialization.data(withJSONObject: currentItems)
-            let items = try JSONDecoder().decode([Item].self, from: itemsData)
-            for item in items {
-                modelContext.insert(item)
-            }
-            try modelContext.save()
+//            let items = try JSONDecoder().decode([Item].self, from: itemsData)
+//            for item in items {
+//                DispatchQueue.main.async { [weak self] in
+//                    guard let self else { return }
+//                    modelContext.insert(item)
+//                }
+//            }
+//            try modelContext.save()
             logger.debug("Finished importing item data.")
         } catch {
             self.logger.debug("Failed to execute items insert request.")
@@ -224,21 +331,23 @@ class ItemImporter {
 
 }
 
-@MainActor
 class ItemPruner {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemPruner.self))
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
 
     func pruneItems(daysOld: Int) async throws {
-        if let container = NewsData.shared.container {
-            do {
-                let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date())
-                let limitDateEpoch: Int64  = Int64(limitDate?.timeIntervalSince1970 ?? 1)
-                try container.mainContext.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDateEpoch } )
-                try container.mainContext.save()
-            } catch {
-                self.logger.debug("Failed to execute items insert request.")
-                throw DatabaseError.itemsFailedImport
+        do {
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date()) {
+                try modelContext.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDate } )
             }
+            //                try container.mainContext.save()
+        } catch {
+            self.logger.debug("Failed to execute items insert request.")
+            throw DatabaseError.itemsFailedImport
         }
     }
 }

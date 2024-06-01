@@ -56,7 +56,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-com.apple.CoreData.SQLDebug"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-com.apple.CoreData.ConcurrencyDebug 1"
@@ -67,7 +67,7 @@
          <EnvironmentVariable
             key = "SQLITE_ENABLE_THREAD_ASSERTIONS"
             value = "1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "SQLITE_AUTO_TRACE"
@@ -77,7 +77,7 @@
          <EnvironmentVariable
             key = "SQLITE_ENABLE_FILE_ASSERTIONS"
             value = "1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

@@ -39,18 +39,17 @@ struct SidebarView: View {
     @State private var isShowingRename = false
     @State private var isShowingAlert = false
     @State private var errorMessage = ""
-    @State private var confirmationNode: Node?
+    @State private var confirmationNode: NodeModel?
     @State private var alertInput = ""
     @State private var selectedFeed: Int64 = 0
 
-    @Binding var nodeSelection: Node.ID?
+    @Binding var nodeSelection: NodeModel.ID?
 
-    @Query(filter: #Predicate<NodeModel>{ $0.parentItem == nil }, sort: \NodeModel.id, order: .forward) private var nodes: [NodeModel]
+    @Query(filter: #Predicate<NodeModel>{ $0.parent == nil }) private var nodes: [NodeModel]
 
-    init(nodeSelection: Binding<Node.ID?>) {
+    init(nodeSelection: Binding<NodeModel.ID?>) {
         self._nodeSelection = nodeSelection
     }
-
 
     var body: some View {
         if isShowingError {
@@ -111,19 +110,19 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar(content: sidebarToolBarContent)
-        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
-            confirmationNode = feedModel.currentNode
-            isShowingConfirmation = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
-            confirmationNode = feedModel.currentNode
-            alertInput = feedModel.currentNode?.title ?? "Untitled"
-            isShowingRename = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
-            confirmationNode = feedModel.currentNode
-            isShowingConfirmation = true
-        }
+//        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
+//            confirmationNode = feedModel.currentNode
+//            isShowingConfirmation = true
+//        }
+//        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
+//            confirmationNode = feedModel.currentNode
+//            alertInput = feedModel.currentNode?.title ?? "Untitled"
+//            isShowingRename = true
+//        }
+//        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
+//            confirmationNode = feedModel.currentNode
+//            isShowingConfirmation = true
+//        }
 #if os(macOS)
         .onReceive(syncTimer) { _ in
             if syncInterval.rawValue > .zero {
@@ -156,48 +155,48 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
-        .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
-            TextField("Title", text: $alertInput)
-            Button("Rename") {
-                switch feedModel.currentNode!.nodeType {
-                case .empty, .all, .starred, .feed( _):
-                    break
-                case .folder(let id):
-                    if let folder = feedModel.modelContext.folder(id: id), feedModel.currentNode?.title != alertInput {
-                        Task {
-                            do {
-                                try await feedModel.renameFolder(folder: folder, to: alertInput)
-                                let node = feedModel.currentNode
-                                node?.title = alertInput
-                                folder.name = node?.title
-                                try NewsData.shared.container?.mainContext.save()
-                            } catch let error as NetworkError {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            } catch let error as DatabaseError {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            } catch let error {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            }
-                        }
-                    }
-                }
-                isShowingRename = false
-            }
-            .keyboardShortcut(.defaultAction)
-            Button("Cancel", role: .cancel) {
-//                node.title = alertInput
-                isShowingRename = false
-            }
-        }, message: {
-            Text("Rename the folder")
-        })
+//        .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
+//            TextField("Title", text: $alertInput)
+//            Button("Rename") {
+//                switch feedModel.currentNode!.nodeType {
+//                case .empty, .all, .starred, .feed( _):
+//                    break
+//                case .folder(let id):
+//                    if let folder = feedModel.modelContext.folder(id: id), feedModel.currentNode?.title != alertInput {
+//                        Task {
+//                            do {
+//                                try await feedModel.renameFolder(folder: folder, to: alertInput)
+//                                let node = feedModel.currentNode
+//                                node?.title = alertInput
+//                                folder.name = node?.title
+//                                try NewsData.shared.container?.mainContext.save()
+//                            } catch let error as NetworkError {
+//                                errorMessage = error.localizedDescription
+//                                isShowingError = true
+//                            } catch let error as DatabaseError {
+//                                errorMessage = error.localizedDescription
+//                                isShowingError = true
+//                            } catch let error {
+//                                errorMessage = error.localizedDescription
+//                                isShowingError = true
+//                            }
+//                        }
+//                    }
+//                }
+//                isShowingRename = false
+//            }
+//            .keyboardShortcut(.defaultAction)
+//            Button("Cancel", role: .cancel) {
+////                node.title = alertInput
+//                isShowingRename = false
+//            }
+//        }, message: {
+//            Text("Rename the folder")
+//        })
     }
 
     @ViewBuilder
-    private func contextMenu(node: Node) -> some View {
+    private func contextMenu(node: NodeModel) -> some View {
         switch node.nodeType {
         case .empty, .starred:
             EmptyView()
@@ -209,7 +208,7 @@ struct SidebarView: View {
                 .environment(feedModel)
             Button {
                 nodeSelection = node.id
-                feedModel.currentNode = node
+//                feedModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
             } label: {
@@ -229,7 +228,7 @@ struct SidebarView: View {
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
                 nodeSelection = node.id
-                feedModel.currentNode = node
+//                feedModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {
@@ -279,7 +278,7 @@ struct SidebarView: View {
     }
 
     private func sync() {
-        Task(priority: .userInitiated) {
+        Task.detached(priority: .userInitiated) {
             do {
                 try await feedModel.sync()
                 isShowingError = false

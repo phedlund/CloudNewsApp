@@ -99,9 +99,9 @@ struct ItemView: View {
             }
         }
         .task {
-            Task.detached {
-                favIconUrl = try await feeds.first?.favIconUrl
-            }
+//            Task.detached {
+//                favIconUrl = try await feeds.first?.favIconUrl
+//            }
         }
 #else
         .overlay(alignment: .topTrailing) {
