@@ -60,13 +60,6 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
-//        .onChange(of: folders, initial: true) { _, newValue in
-//            print("Folders changed")
-//            feedModel.folders = newValue
-//        }
-//        .onChange(of: feeds, initial: true) { _, newValue in
-//            feedModel.feeds = newValue
-//        }
         .onChange(of: selectedNode, initial: true) { _, newValue in
             if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
                 navigationTitle = model.title

@@ -47,7 +47,7 @@ class ArticleWebContent {
             urlString = Self.itemUrl(item: item)
             dateText = Self.dateText(item: item)
             author = Self.itemAuthor(item: item)
-            feedTitle = "Untitled"
+            feedTitle = item.feed?.title ?? "Untitled"
             fileName = "summary_\(item.id)"
         } else {
             title = "Untitled"
@@ -221,8 +221,6 @@ class ArticleWebContent {
     }
 
     private static func dateText(item: Item) -> String {
-//        let dateNumber = TimeInterval(item.pubDate.timeIntervalSince1970)
-//        let date = Date(timeIntervalSince1970: dateNumber)
         let dateFormat = DateFormatter()
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;

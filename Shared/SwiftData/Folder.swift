@@ -39,21 +39,6 @@ final class Folder {
     }
 }
 
-extension Folder: Decodable {
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
-    }
-
-    convenience init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        let inId = try values.decode(Int64.self, forKey: .id)
-        let inName = try values.decodeIfPresent(String.self, forKey: .name)
-        self.init(id: inId, opened: false, lastModified: Date(), name: inName, feeds: [Feed]())
-    }
-
-}
-
 extension Folder: Identifiable { }
 
 extension Folder {

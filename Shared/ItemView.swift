@@ -16,8 +16,6 @@ struct ItemView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
 
-    @Query private var feeds: [Feed]
-
     @State private var isHorizontalCompact = false
     @State private var isShowingThumbnail = true
     @State private var thumbnailSize = CGSize.zero
@@ -31,11 +29,6 @@ struct ItemView: View {
     init(item: Item, size: CGSize) {
         self.item = item
         self.cellSize = size
-        let itemFeedId = item.feedId
-        let predicate = #Predicate<Feed>{ $0.id == itemFeedId }
-        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        self._feeds = Query(descriptor)
     }
 
     var body: some View {
@@ -99,9 +92,9 @@ struct ItemView: View {
             }
         }
         .task {
-//            Task.detached {
-//                favIconUrl = try await feeds.first?.favIconUrl
-//            }
+            Task.detached {
+                favIconUrl = try await item.feed?.favIconUrl
+            }
         }
 #else
         .overlay(alignment: .topTrailing) {

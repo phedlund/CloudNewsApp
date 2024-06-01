@@ -24,7 +24,6 @@ final public class NodeModel {
     @Relationship(deleteRule: .noAction, inverse: \Feed.node) var feed: Feed?
     @Relationship(deleteRule: .noAction, inverse: \NodeModel.parent) var children: [NodeModel]?
 
-
     init(title: String, errorCount: Int64 = 0, nodeName: String, isExpanded: Bool = false, nodeType: NodeType) {
         self.title = title
         self.errorCount = errorCount
