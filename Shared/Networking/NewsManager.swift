@@ -189,7 +189,6 @@ extension FeedModel {
      */
 
     func initialSync() async throws {
-        isSyncing = true
         let unreadParameters: ParameterDict = ["type": 3,
                                                "getRead": false,
                                                "batchSize": -1]
@@ -207,17 +206,13 @@ extension FeedModel {
             try await webImporter.updateItemsInDatabase(urlRequest: unreadRouter.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: starredRouter.urlRequest())
             await nodeBuilder.update()
-
-//            try await itemPruner.pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
                 self.isSyncing = false
-                //                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: Date().timeIntervalSinceReferenceDate))
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
-
 
     /*
      Syncing

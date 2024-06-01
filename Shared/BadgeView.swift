@@ -19,32 +19,21 @@ struct BadgeView: View {
     init(node: NodeModel, modelContext: ModelContext) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
-        if let feed = node.feed {
-            let id = feed.id
+        switch node.nodeType {
+        case .empty:
+            break
+        case .all:
+            predicate = #Predicate<Item> { $0.unread == true }
+        case .starred:
+            predicate = #Predicate<Item> { $0.starred == true }
+        case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            self.feed = feed
-        }
-        if let folder = node.folder {
-            if let feedIds = modelContext.feedIdsInFolder(folder: folder.id) {
+            feed = node.feed
+        case .folder(let id):
+            if let feedIds = modelContext.feedIdsInFolder(folder: id) {
                 predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
             }
         }
-
-//        switch node.nodeType {
-//        case .empty:
-//            break
-//        case .all:
-//            predicate = #Predicate<Item> { $0.unread == true }
-//        case .starred:
-//            predicate = #Predicate<Item> { $0.starred == true }
-//        case .feed(let id):
-//            predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-//            feed = node.feed
-//        case .folder(let id):
-//            if let feedIds = modelContext.feedIdsInFolder(folder: id) {
-//                predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-//            }
-//        }
         _items = Query(filter: predicate)
     }
 

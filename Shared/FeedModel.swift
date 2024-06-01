@@ -19,7 +19,7 @@ class FeedModel {
 
     var currentItems = [Item]()
     var currentItem: Item? = nil
-//    var currentNodeID: NodeModel.
+    var currentNode: NodeModel? = nil
     var currentItemID: PersistentIdentifier? = nil
     var isSyncing = false
 

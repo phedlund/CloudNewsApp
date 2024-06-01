@@ -11,32 +11,18 @@ import SwiftUI
 
 struct NodeView: View {
     @Environment(FeedModel.self) private var feedModel
-//    @Query private var feeds: [Feed]
+
+    let node: NodeModel
 
     @State private var isShowingConfirmation = false
     @State private var favIconUrl: URL?
     @State private var title = "Untitled"
-
-    var node: NodeModel
 
 #if os(iOS)
     let noChildrenPadding = 18.0
 #else
     let noChildrenPadding = 0.0
 #endif
-
-    init(node: NodeModel) {
-        self.node = node
-//        switch node.nodeType {
-//        case .feed(let id):
-//            let predicate = #Predicate<Feed>{ $0.id == id }
-//            var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-//            descriptor.fetchLimit = 1
-////            self._feeds = Query(descriptor)
-//        default:
-//            break
-//        }
-    }
 
     var body: some View {
         LabeledContent {

@@ -63,9 +63,9 @@ struct ContentView: View {
         .onChange(of: selectedNode, initial: true) { _, newValue in
             if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
                 navigationTitle = model.title
+                feedModel.currentNode = model
             }
-//            selectedNode = newValue
-//            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
+            selectedNode = newValue
             updatePredicate()
         }
         .onChange(of: hideRead, initial: true) { _, _ in

@@ -19,17 +19,7 @@ class NodeBuilder {
     }
 
     @MainActor
-    func update(isAppLaunch: Bool = false) {
-        if isAppLaunch {
-            do {
-                let nodeModelCount = try modelContext.fetchCount(FetchDescriptor<NodeModel>())
-                if nodeModelCount > 2 {
-                    return
-                }
-                
-            } catch { }
-        }
-
+    func update() {
         let allNodeModel = NodeModel(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all)
         let starredNodeModel = NodeModel(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred)
         modelContext.insert(allNodeModel)

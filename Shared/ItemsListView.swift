@@ -67,10 +67,10 @@ struct ItemsListView: View {
                                         selectedItem = item
                                     }
 #endif
-//                                    .contextMenu {
-//                                        ContextMenuContent(item: item)
-//                                            .environment(feedModel)
-//                                    }
+                                    .contextMenu {
+                                        ContextMenuContent(item: item)
+                                            .environment(feedModel)
+                                    }
                             }
                             .buttonStyle(.plain)
                         }
