@@ -10,7 +10,7 @@ import Foundation
 import OSLog
 
 class WebImporter {
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: WebImporter.self))
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
@@ -89,125 +89,6 @@ class WebImporter {
         }
 
         return nil
-    }
-
-}
-
-
-class FolderImporter {
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
-    private let modelContext: ModelContext
-
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-
-    func fetchFolders(_ urlRequest: URLRequest) async throws {
-        do {
-            let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                switch httpResponse.statusCode {
-                case 200:
-                    try await importFolders(from: data)
-                default:
-                    throw NetworkError.generic(message: "Error getting folders: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
-                }
-            }
-        } catch let error as NetworkError {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
-    }
-
-    func importFolders(from data: Data) async throws {
-        do {
-            guard let foldersDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                  let folderDicts = foldersDict["folders"] as? [[String: Any]],
-                  !folderDicts.isEmpty else {
-                return
-            }
-            logger.debug("Start importing folder data to the store...")
-            let foldersData = try JSONSerialization.data(withJSONObject: folderDicts)
-
-            let folders = try JSONDecoder().decode([Folder].self, from: foldersData)
-            for folder in folders {
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
-                    modelContext.insert(folder)
-                }
-            }
-            logger.debug("Finished importing folder data.")
-        } catch {
-            self.logger.debug("Failed to execute folders insert request.")
-            throw DatabaseError.foldersFailedImport
-        }
-    }
-
-}
-
-class FeedImporter {
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FeedImporter.self))
-    private let modelContext: ModelContext
-
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-
-    func fetchFeeds(_ urlRequest: URLRequest) async throws {
-        do {
-            let (data, response) = try await ServerStatus.shared.session.data(for: urlRequest, delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-//                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//                print(String(data: data, encoding: .utf8) ?? "")
-                switch httpResponse.statusCode {
-                case 200:
-                    try await importFeeds(from: data)
-                default:
-                    throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
-                }
-            }
-        } catch let error as NetworkError {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
-    }
-
-    func importFeeds(from data: Data) async throws {
-        guard let feedsDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-              let feedDicts = feedsDict["feeds"] as? [[String: Any]],
-              !feedDicts.isEmpty else {
-            return
-        }
-
-        logger.debug("Start importing feed data to the store...")
-        let feedsData = try JSONSerialization.data(withJSONObject: feedDicts)
-
-//        let feeds = try JSONDecoder().decode([Feed].self, from: feedsData)
-//        for feed in feeds {
-//            DispatchQueue.main.async { [weak self] in
-//                guard let self else { return }
-//                modelContext.insert(feed)
-//            }
-//
-//            if feed.folderId > 0, let folderNodeModel = modelContext.folderNodeModel(nodeName: "cccc_\(String(format: "%03d", feed.folderId))") {
-//                DispatchQueue.main.async { [weak self] in
-//                    guard let self else { return }
-//                    modelContext.insert(feed)
-//                    modelContext.insert(feedNodeModel)
-//                    folderNodeModel.children?.append(feedNodeModel)
-//                }
-//            } else {
-//                DispatchQueue.main.async { [weak self] in
-//                    guard let self else { return }
-//                    modelContext.insert(feed)
-//                    modelContext.insert(feedNodeModel)
-//                }
-//            }
-//        }
-//        try modelContext.save()
-        logger.debug("Finished importing feed data.")
     }
 
 }

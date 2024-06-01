@@ -11,13 +11,14 @@ import OSLog
 
 class NodeBuilder {
 
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FolderImporter.self))
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: NodeBuilder.self))
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
+    @MainActor
     func update(isAppLaunch: Bool = false) {
         if isAppLaunch {
             do {

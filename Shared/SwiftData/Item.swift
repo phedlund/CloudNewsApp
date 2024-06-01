@@ -101,12 +101,65 @@ final class Item {
     }
 
     convenience init(item: ItemDTO) {
+        var displayTitle = plainSummary(raw: item.title)
+
+        var summary = ""
+        if let body = item.body {
+            summary = body
+        } else if let mediaDescription = item.mediaDescription {
+            summary = mediaDescription
+        }
+        if !summary.isEmpty {
+            if summary.range(of: "<style>", options: .caseInsensitive) != nil {
+                if summary.range(of: "</style>", options: .caseInsensitive) != nil {
+                    if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
+                       let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
+                        let sub = summary[start..<end]
+                        summary = summary.replacingOccurrences(of: sub, with: "")
+                    }
+                }
+            }
+        }
+        var displayBody = plainSummary(raw: summary)
+
+        let clipLength = 50
+        var dateLabelText = ""
+//        if let pubDate = item.pubDate {
+//            let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
+        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
+        if !dateLabelText.isEmpty {
+            dateLabelText.append(" | ")
+        }
+
+        if let itemAuthor = item.author,
+           !itemAuthor.isEmpty {
+            if itemAuthor.count > clipLength {
+                dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
+                dateLabelText.append(String(0x2026))
+            } else {
+                dateLabelText.append(itemAuthor)
+            }
+        }
+
+//                if let feedId = listItem["feedId"] as? Int64,
+//                   let feed = modelContext.feed(id: feedId),
+//                   let feedTitle = feed.title {
+//                    if let itemAuthor = listItem["author"] as? String,
+//                       !itemAuthor.isEmpty {
+//                        if feedTitle != itemAuthor {
+//                            dateLabelText.append(" | \(feedTitle)")
+//                        }
+//                    } else {
+//                        dateLabelText.append(feedTitle)
+//                    }
+//                }
+//        currentItem["dateFeedAuthor"] = dateLabelText
         self.init(author: item.author,
                   body: item.body,
                   contentHash: item.contentHash,
-                  displayBody: item.body ?? "",
-                  displayTitle: item.title,
-                  dateFeedAuthor: item.author ?? "",
+                  displayBody: displayBody,
+                  displayTitle: displayTitle,
+                  dateFeedAuthor: dateLabelText,
                   enclosureLink: item.enclosureLink,
                   enclosureMime: item.enclosureMime,
                   feedId: item.feedId,

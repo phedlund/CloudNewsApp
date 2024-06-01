@@ -206,7 +206,7 @@ extension FeedModel {
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: unreadRouter.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: starredRouter.urlRequest())
-            nodeBuilder.update()
+            await nodeBuilder.update()
 
 //            try await itemPruner.pruneItems(daysOld: Preferences().keepDuration)
             DispatchQueue.main.async {
@@ -339,7 +339,7 @@ extension FeedModel {
             try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
-            nodeBuilder.update()
+            await nodeBuilder.update()
 //            try modelContext.save()
             DispatchQueue.main.async {
                 self.isSyncing = false
