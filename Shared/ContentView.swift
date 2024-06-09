@@ -39,9 +39,9 @@ struct ContentView: View {
                 if selectedNode != nil {
                     ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
                         .environment(feedModel)
-//                        .toolbar {
-//                            ItemListToolbarContent(node: feedModel.currentNode)
-//                        }
+                        .toolbar {
+                            contentViewToolBarContent()
+                        }
                 } else {
                     ContentUnavailableView("No Feed Selected",
                                            image: "rss",
@@ -167,6 +167,14 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+    }
+
+    @ToolbarContentBuilder
+    func contentViewToolBarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            MarkReadButton()
+                .environment(feedModel)
         }
     }
 

@@ -8,19 +8,6 @@
 import SwiftData
 import SwiftUI
 
-struct ItemListToolbarContent: ToolbarContent {
-    @Environment(FeedModel.self) private var feedModel
-    var node: NodeModel
-
-    @ToolbarContentBuilder
-    var body: some ToolbarContent {
-        ToolbarItem(placement: .automatic) {
-            MarkReadButton(node: node)
-                .environment(feedModel)
-        }
-    }
-}
-
 struct ContextMenuContent: View {
     @Environment(FeedModel.self) private var feedModel
 

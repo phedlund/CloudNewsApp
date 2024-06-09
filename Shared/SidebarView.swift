@@ -79,7 +79,7 @@ struct SidebarView: View {
                 .environment(feedModel)
                 .tag(node.id)
                 .contextMenu {
-//                    contextMenu(node: node)
+                    contextMenu(node: node)
                 }
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
                     Button(role: .destructive) {

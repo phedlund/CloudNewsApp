@@ -10,31 +10,31 @@ import SwiftUI
 
 struct MarkReadButton: View {
     @Environment(FeedModel.self) private var feedModel
-    private let node: NodeModel
 
     @State private var isDisabled = true
 
     @Query private var items: [Item]
 
-    init(node: NodeModel) {
-        self.node = node
+    init() {
         var predicate = #Predicate<Item> { _ in return false }
-        switch node.nodeType {
-        case .empty:
-            break
-        case .all:
-            predicate = #Predicate<Item> { $0.unread == true }
-        case .starred:
-            predicate = #Predicate<Item> { $0.starred == true }
-
-        case .feed(let id):
-            predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-        case .folder(let id):
-            if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
-                predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-            }
-        }
-        _items = Query(filter: predicate)
+//        if let node = feedModel.currentNode {
+//            switch node.nodeType {
+//            case .empty:
+//                break
+//            case .all:
+//                predicate = #Predicate<Item> { $0.unread == true }
+//            case .starred:
+//                predicate = #Predicate<Item> { $0.starred == true }
+//
+//            case .feed(let id):
+//                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+//            case .folder(let id):
+//                if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
+//                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+//                }
+//            }
+//            _items = Query(filter: predicate)
+//        }
     }
 
     var body: some View {
