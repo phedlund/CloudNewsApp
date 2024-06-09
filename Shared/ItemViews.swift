@@ -5,53 +5,7 @@
 //  Created by Peter Hedlund on 10/10/21.
 //
 
-import SwiftData
 import SwiftUI
-
-struct ContextMenuContent: View {
-    @Environment(FeedModel.self) private var feedModel
-
-    var item: Item
-
-    var body: some View {
-        Button {
-            feedModel.toggleItemRead(item: item)
-        } label: {
-            Label {
-                Text(item.unread ? "Read" : "Unread")
-            } icon: {
-                Image(systemName: item.unread ? "eye" : "eye.slash")
-            }
-        }
-        Button {
-            Task {
-                try? await feedModel.markStarred(item: item, starred: !item.starred)
-            }
-        } label: {
-            Label {
-                Text(item.starred ? "Unstar" : "Star")
-            } icon: {
-                Image(systemName: item.starred ? "star" : "star.fill")
-            }
-        }
-    }
-}
-
-struct TitleView: View {
-    let font = Font.headline.weight(.semibold)
-    var title: String
-
-    var body: some View {
-        Text(title)
-            .multilineTextAlignment(.leading)
-            .font(font)
-        #if os(iOS)
-            .foregroundColor(.pbh.whiteText)
-        #endif
-            .lineLimit(2)
-            .fixedSize(horizontal: false, vertical: true) //force wrapping
-    }
-}
 
 extension View {
     @ViewBuilder
@@ -61,21 +15,6 @@ extension View {
         } else {
             self.labelStyle(.titleOnly)
         }
-    }
-}
-
-struct BodyView: View {
-    var displayBody: String
-
-    @ViewBuilder
-    var body: some View {
-        Text(displayBody)
-            .multilineTextAlignment(.leading)
-            .lineLimit(4)
-            .font(.body)
-#if os(iOS)
-            .foregroundColor(.pbh.whiteText)
-#endif
     }
 }
 

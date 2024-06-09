@@ -68,8 +68,7 @@ struct ItemsListView: View {
                                     }
 #endif
                                     .contextMenu {
-                                        ContextMenuContent(item: item)
-                                            .environment(feedModel)
+                                        contextMenu(item: item)
                                     }
                             }
                             .buttonStyle(.plain)
@@ -130,7 +129,7 @@ struct ItemsListView: View {
              .frame(height: cellHeight, alignment: .center)
              #endif
              .contextMenu {
-             ContextMenuContent(item: item)
+             contextMenu(item: item)
              .environment(feedModel)
              }
              .alignmentGuide(.listRowSeparatorLeading) { _ in
@@ -192,6 +191,30 @@ struct ItemsListView: View {
         }
     }
 
+    @ViewBuilder
+    private func contextMenu(item: Item) -> some View {
+        Button {
+            feedModel.toggleItemRead(item: item)
+        } label: {
+            Label {
+                Text(item.unread ? "Read" : "Unread")
+            } icon: {
+                Image(systemName: item.unread ? "eye" : "eye.slash")
+            }
+        }
+        Button {
+            Task {
+                try? await feedModel.markStarred(item: item, starred: !item.starred)
+            }
+        } label: {
+            Label {
+                Text(item.starred ? "Unstar" : "Star")
+            } icon: {
+                Image(systemName: item.starred ? "star" : "star.fill")
+            }
+        }
+    }
+    
     private func updateScrollPosition(_ position: CGFloat) {
         Task.detached {
             try await markRead(position)
