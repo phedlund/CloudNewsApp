@@ -43,9 +43,9 @@ struct NodeView: View {
             titleVisibility: .visible
         ) {
             Button("Yes", role: .destructive) {
-// TODO               withAnimation {
-//                   feedModel.delete(node)
-//                }
+                withAnimation {
+                   feedModel.delete(node)
+                }
             }
             .keyboardShortcut(.defaultAction)
             Button("No", role: .cancel) { }

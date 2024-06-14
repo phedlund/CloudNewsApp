@@ -61,22 +61,23 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode, initial: true) { _, newValue in
-            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
-                navigationTitle = model.title
-                feedModel.currentNode = model
-            }
-            selectedNode = newValue
+//            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
+//                navigationTitle = model.title
+//                feedModel.currentNode = model
+//            }
+//            selectedNode = newValue
             updatePredicate()
         }
-        .onChange(of: hideRead, initial: true) { _, _ in
-            updatePredicate()
-        }
+//        .onChange(of: hideRead, initial: true) { _, _ in
+//            updatePredicate()
+//        }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
         }
-//        .task {
+        .task {
+            updatePredicate()
 //            selectedNodeID = selectedNode
-//        }
+        }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $selectedNodeID)
