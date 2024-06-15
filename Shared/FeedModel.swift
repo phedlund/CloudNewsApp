@@ -75,6 +75,34 @@ class FeedModel {
         }
     }
 
+    func markCurrentNodeRead() {
+        if let currentNode {
+            var predicate = #Predicate<Item> { _ in return false }
+            switch currentNode.nodeType {
+            case .empty:
+                break
+            case .all:
+                predicate = #Predicate<Item> { $0.unread == true }
+            case .starred:
+                predicate = #Predicate<Item> { $0.starred == true }
+
+            case .feed(let id):
+                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+            case .folder(let id):
+                if let feedIds = modelContext.feedIdsInFolder(folder: id) {
+                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+                }
+            }
+            let descriptor = FetchDescriptor<Item>(predicate: predicate)
+            do {
+                let items = try modelContext.fetch(descriptor)
+                markItemsRead(items: items)
+            } catch let error as NSError {
+                print("Could not fetch \(error), \(error.userInfo)")
+            }
+        }
+    }
+
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return

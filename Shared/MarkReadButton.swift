@@ -11,35 +11,13 @@ import SwiftUI
 struct MarkReadButton: View {
     @Environment(FeedModel.self) private var feedModel
 
-    @State private var isDisabled = true
-
-    @Query private var items: [Item]
-
-    init() {
-        var predicate = #Predicate<Item> { _ in return false }
-//        if let node = feedModel.currentNode {
-//            switch node.nodeType {
-//            case .empty:
-//                break
-//            case .all:
-//                predicate = #Predicate<Item> { $0.unread == true }
-//            case .starred:
-//                predicate = #Predicate<Item> { $0.starred == true }
+//    @State private var isDisabled = true
 //
-//            case .feed(let id):
-//                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-//            case .folder(let id):
-//                if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
-//                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-//                }
-//            }
-//            _items = Query(filter: predicate)
-//        }
-    }
+//    @Query private var items: [Item]
 
     var body: some View {
         Button {
-//      TODO      node.markRead()
+            feedModel.markCurrentNodeRead()
         } label: {
             Label {
                 Text("Mark Read")
@@ -48,7 +26,7 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(items.count == 0)
+//        .disabled(items.count == 0)
     }
 
 }

@@ -19,9 +19,6 @@ struct ContentView: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
-    @Query private var folders: [Folder]
-    @Query private var feeds: [Feed]
-
     @State private var isShowingLogin = false
     @State private var navigationTitle: String?
     @State private var sortOrder = SortDescriptor(\Item.id)
