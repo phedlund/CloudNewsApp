@@ -78,7 +78,6 @@
 		D0F41D782A78186200EEAC78 /* Read.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D702A76CA4C00EEAC78 /* Read.swift */; };
 		D0F41D792A78186600EEAC78 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D712A76CA4C00EEAC78 /* Feed.swift */; };
 		D0F5BC0C295A6E7C001E728A /* ItemsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */; };
-		D0FA56CD2B8052F3005DCEE2 /* ScrollingSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FA56CC2B8052F3005DCEE2 /* ScrollingSupport.swift */; };
 		D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
 		D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */; };
 		D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */; };
@@ -154,7 +153,6 @@
 		D0F41D702A76CA4C00EEAC78 /* Read.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Read.swift; sourceTree = "<group>"; };
 		D0F41D712A76CA4C00EEAC78 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemsListView.swift; sourceTree = "<group>"; };
-		D0FA56CC2B8052F3005DCEE2 /* ScrollingSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingSupport.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PBHColors.swift; sourceTree = "<group>"; };
 		D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleWebContent.swift; sourceTree = "<group>"; };
@@ -219,7 +217,6 @@
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D035E343287A5C1D00E1FE5E /* ShareLinkButton.swift */,
-				D0FA56CC2B8052F3005DCEE2 /* ScrollingSupport.swift */,
 				D07EFCD22B0B011300032103 /* MarkReadButton.swift */,
 				D029FDD2299DC7540099FD95 /* ContainerView.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
@@ -458,7 +455,6 @@
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,
 				D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */,
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
-				D0FA56CD2B8052F3005DCEE2 /* ScrollingSupport.swift in Sources */,
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,
 				D0110DB32B86E3E900CFD0E5 /* NewsData.swift in Sources */,
 				D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */,
@@ -622,7 +618,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -655,7 +651,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
