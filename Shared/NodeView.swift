@@ -93,7 +93,7 @@ private extension NodeView {
             }
         }
         .task {
-            Task.detached {
+            Task {
                 favIconUrl = try await node.feed?.favIconUrl
             }
         }

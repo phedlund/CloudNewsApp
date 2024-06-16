@@ -101,7 +101,7 @@ final class Item {
     }
 
     convenience init(item: ItemDTO) {
-        var displayTitle = plainSummary(raw: item.title)
+        let displayTitle = plainSummary(raw: item.title)
 
         var summary = ""
         if let body = item.body {
@@ -120,7 +120,7 @@ final class Item {
                 }
             }
         }
-        var displayBody = plainSummary(raw: summary)
+        let displayBody = plainSummary(raw: summary)
 
         let clipLength = 50
         var dateLabelText = ""

@@ -278,7 +278,7 @@ struct SidebarView: View {
     }
 
     private func sync() {
-        Task.detached(priority: .userInitiated) {
+        Task {
             do {
                 try await feedModel.sync()
                 isShowingError = false

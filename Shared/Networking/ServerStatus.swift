@@ -132,7 +132,7 @@ class ServerStatus: NSObject {
         let directoryCertificate = ServerStatus.certificatesDirectory!
         let certificateTxtPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("txt")
         do {
-            return try String(contentsOf: certificateTxtPath)
+            return try String(contentsOf: certificateTxtPath, encoding: .utf8)
         } catch {
             return ""
         }

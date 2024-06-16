@@ -92,7 +92,7 @@ struct ItemView: View {
             }
         }
         .task {
-            Task.detached {
+            Task {
                 favIconUrl = try await item.feed?.favIconUrl
             }
         }
