@@ -198,3 +198,14 @@ extension View {
         }
     }
 }
+
+extension View {
+    @ViewBuilder
+    func labelStyle(includeFavIcon: Bool) -> some View {
+        if includeFavIcon {
+            self.labelStyle(.titleAndIcon)
+        } else {
+            self.labelStyle(.titleOnly)
+        }
+    }
+}
