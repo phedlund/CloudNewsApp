@@ -25,6 +25,7 @@ class WebImporter {
                 let itemToStore = Folder(item: eachItem)
                 modelContext.insert(itemToStore)
             }
+            try? modelContext.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)
@@ -39,6 +40,7 @@ class WebImporter {
                 let itemToStore = Feed(item: eachItem)
                 modelContext.insert(itemToStore)
             }
+            try? modelContext.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)
@@ -53,6 +55,7 @@ class WebImporter {
                 let itemToStore = Item(item: eachItem)
                 modelContext.insert(itemToStore)
             }
+            try? modelContext.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)

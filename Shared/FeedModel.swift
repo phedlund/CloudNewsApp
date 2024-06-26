@@ -25,7 +25,7 @@ class FeedModel: @unchecked Sendable {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.modelContext.autosaveEnabled = true
+        self.modelContext.autosaveEnabled = false
         self.webImporter = WebImporter(modelContext: modelContext)
         self.itemPruner = ItemPruner(modelContext: modelContext)
         self.nodeBuilder = NodeBuilder(modelContext: modelContext)

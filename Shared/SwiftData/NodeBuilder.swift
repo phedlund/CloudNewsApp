@@ -24,6 +24,7 @@ class NodeBuilder {
         let starredNodeModel = NodeModel(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred, isTopLevel: true)
         modelContext.insert(allNodeModel)
         modelContext.insert(starredNodeModel)
+        try? modelContext.save()
         if let folders = modelContext.allFolders() {
             for folder in folders {
                 let folderNodeModel = NodeModel(title: folder.name ?? "Untitled Folder", errorCount: 0, nodeName: "cccc_\(String(format: "%03d", folder.id))", isExpanded: folder.opened, nodeType: .folder(id: folder.id), isTopLevel: true)
@@ -42,6 +43,7 @@ class NodeBuilder {
                 folderNodeModel.folder = folder
                 folderNodeModel.children = children
                 folder.node = folderNodeModel
+                try? modelContext.save()
             }
         }
         if let feeds = modelContext.feedsInFolder(folder: 0) {
@@ -52,6 +54,7 @@ class NodeBuilder {
 //                feedNodeModel.children = nil
                 feed.node = feedNodeModel
             }
+            try? modelContext.save()
         }
     }
 
