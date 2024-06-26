@@ -46,13 +46,17 @@ struct ThumbnailImageView: View {
             .clipped()
         }
         .onChange(of: compactView, initial: true) { _, newValue in
-            updateSizeAndOffset()
+            Task {
+                await updateSizeAndOffset()
+            }
         }
         .onChange(of: showThumbnails, initial: true) { _, newValue in
-            updateSizeAndOffset()
+            Task {
+                await updateSizeAndOffset()
+            }
         }
         .task {
-            updateSizeAndOffset()
+            await updateSizeAndOffset()
         }
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
@@ -61,8 +65,8 @@ struct ThumbnailImageView: View {
 #endif
     }
 
-    private func updateSizeAndOffset() {
-        Task {
+    private func updateSizeAndOffset() async {
+//        Task {
             do {
                 if !showThumbnails {
                     thumbnailOffset = .zero
@@ -82,8 +86,8 @@ struct ThumbnailImageView: View {
                         imageSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
                     }
                 }
-            }
-        }
+            } catch { }
+//        }
     }
 
 }

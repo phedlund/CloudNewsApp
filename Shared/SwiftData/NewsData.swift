@@ -9,7 +9,7 @@ import SwiftData
 
 class NewsData {
 
-    static let shared = NewsData()
+    @MainActor static let shared = NewsData()
 
     let newsSchema = Schema([
             Feeds.self,

@@ -46,7 +46,8 @@ final class Item {
         return context?.feed(id: feedId)
     }
 
-    nonisolated var imageUrl: URL? {
+    @MainActor
+    var imageUrl: URL? {
         get async throws {
             var itemImageUrl: URL?
             if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
@@ -179,7 +180,8 @@ final class Item {
                   url: item.url)
     }
 
-    nonisolated private var internalUrl: URL? {
+    @MainActor
+    private var internalUrl: URL? {
         get async throws {
             if let urlString = url, let url = URL(string: urlString) {
                 do {

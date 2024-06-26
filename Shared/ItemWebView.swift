@@ -48,6 +48,7 @@ public struct WebView: WebViewRepresentable {
 
 }
 
+@MainActor
 private extension WebView {
 
     func makeView(context: Context) -> WKWebView {
@@ -89,7 +90,7 @@ private extension WebView {
 public class ItemWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
-        if let scheme = await webView.url?.scheme {
+        if let scheme = webView.url?.scheme {
             if scheme == "file" || scheme.hasPrefix("itms") {
                 if let url = navigationAction.request.url {
                     if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {

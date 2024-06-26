@@ -9,7 +9,8 @@ import SwiftUI
 import WebKit
 
 @dynamicMemberLookup
-class WebViewManager: ObservableObject, Identifiable, Equatable {
+@MainActor
+class WebViewManager: ObservableObject, @preconcurrency Identifiable {
     var id = UUID()
 
     @Published public var webView: WKWebView {
@@ -25,10 +26,6 @@ class WebViewManager: ObservableObject, Identifiable, Equatable {
         webConfig.websiteDataStore = .nonPersistent()
         self.webView = WKWebView(frame: .zero, configuration: webConfig)
         setupObservers()
-    }
-
-    static func == (lhs: WebViewManager, rhs: WebViewManager) -> Bool {
-        lhs.id == rhs.id
     }
 
     private func setupObservers() {

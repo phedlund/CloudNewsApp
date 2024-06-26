@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol ContainerView: View {
     associatedtype Content
     init(content: @escaping () -> Content)

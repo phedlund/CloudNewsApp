@@ -45,7 +45,7 @@ struct SidebarView: View {
 
     @Binding var nodeSelection: NodeModel.ID?
 
-    @Query(filter: #Predicate<NodeModel>{ $0.parent == nil }, sort: \.nodeName) private var nodes: [NodeModel]
+    @Query(filter: #Predicate<NodeModel>{ $0.isTopLevel }, sort: \.nodeName) private var nodes: [NodeModel]
 
     init(nodeSelection: Binding<NodeModel.ID?>) {
         self._nodeSelection = nodeSelection

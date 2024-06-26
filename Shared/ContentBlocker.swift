@@ -8,9 +8,10 @@
 import Foundation
 import WebKit
 
+@MainActor
 class ContentBlocker {
 
-    static let shared = ContentBlocker()
+    nonisolated(unsafe) static let shared = ContentBlocker()
 
     private var rules: WKContentRuleList?
 

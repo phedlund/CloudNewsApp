@@ -15,21 +15,23 @@ final public class NodeModel {
     var isExpanded = false
     var nodeType: NodeType
     var title: String
+    var isTopLevel: Bool
 
     // Parental relationship
     public var parent: NodeModel?
 
     // Inverse
-    @Relationship(deleteRule: .noAction, inverse: \Folder.node) var folder: Folder?
-    @Relationship(deleteRule: .noAction, inverse: \Feed.node) var feed: Feed?
     @Relationship(deleteRule: .noAction, inverse: \NodeModel.parent) var children: [NodeModel]?
+    @Relationship(deleteRule: .noAction) var folder: Folder?
+    @Relationship(deleteRule: .noAction) var feed: Feed?
 
-    init(title: String, errorCount: Int64 = 0, nodeName: String, isExpanded: Bool = false, nodeType: NodeType) {
+    init(title: String, errorCount: Int64 = 0, nodeName: String, isExpanded: Bool = false, nodeType: NodeType, isTopLevel: Bool) {
         self.title = title
         self.errorCount = errorCount
         self.nodeName = nodeName
         self.isExpanded = isExpanded
         self.nodeType = nodeType
+        self.isTopLevel = isTopLevel
     }
 
 }

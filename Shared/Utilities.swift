@@ -43,6 +43,7 @@ extension CGFloat {
 
 extension URL {
 
+    @MainActor
     init?(withCheck string: String?) {
         let regEx = "((https|http)://)((\\w|-)+)(([.]|[/])((\\w|-)+))+"
 #if os(macOS)

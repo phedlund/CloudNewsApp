@@ -24,7 +24,7 @@ struct Constants {
     #if os(macOS)
         static let minFontSize = 11
     #else
-        static let minFontSize = UIDevice.current.userInterfaceIdiom == .pad ? 11 : 9
+        static let minFontSize = 10
     #endif
         static let defaultFontSize = 14
         static let maxFontSize = 30

@@ -32,7 +32,8 @@ final class Feed {
 
     @Relationship var items: [Item]
 
-    nonisolated var favIconUrl: URL? {
+    @MainActor
+    var favIconUrl: URL? {
         get async throws {
             return try await favIconUrl()
         }

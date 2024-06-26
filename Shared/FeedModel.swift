@@ -10,7 +10,7 @@ import Observation
 import SwiftData
 
 @Observable
-class FeedModel {
+class FeedModel: @unchecked Sendable {
     let modelContext: ModelContext
     let webImporter: WebImporter
     let itemPruner: ItemPruner
@@ -75,7 +75,7 @@ class FeedModel {
         }
     }
 
-    func markCurrentNodeRead() {
+    @MainActor func markCurrentNodeRead() {
         if let currentNode {
             var predicate = #Predicate<Item> { _ in return false }
             switch currentNode.nodeType {
@@ -103,6 +103,7 @@ class FeedModel {
         }
     }
 
+    @MainActor
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return
@@ -110,11 +111,12 @@ class FeedModel {
         for item in items {
             item.unread = false
         }
-        Task.detached {
+        Task {
             try await self.markRead(items: items, unread: false)
         }
     }
 
+    @MainActor
     func toggleItemRead(item: Item) {
         do {
             item.unread.toggle()

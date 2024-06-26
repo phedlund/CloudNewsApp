@@ -98,6 +98,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func markRead(items: [Item], unread: Bool) async throws {
         guard !items.isEmpty else {
             return
@@ -141,6 +142,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func markStarred(item: Item, starred: Bool) async throws {
         do {
             item.starred = starred
@@ -228,6 +230,7 @@ extension FeedModel {
      7. Get new items and modified items: GET /items/updated?lastModified=12123123123&type=3
 
      */
+    @MainActor
     func sync() async throws {
         //        CDFeeds.reset()
         //        CDFeed.reset()
@@ -334,8 +337,7 @@ extension FeedModel {
             try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
-            await nodeBuilder.update()
-//            try modelContext.save()
+            nodeBuilder.update()
             DispatchQueue.main.async {
                 self.isSyncing = false
             }
