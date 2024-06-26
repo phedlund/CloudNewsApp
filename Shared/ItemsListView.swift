@@ -26,7 +26,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode: PersistentIdentifier?
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: NodeModel.ID?
 
     @Query private var items: [Item]
 
