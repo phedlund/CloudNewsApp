@@ -56,6 +56,7 @@ struct ContentView: View {
                 }
             }
         }
+        .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode, initial: true) { _, newValue in
             if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
