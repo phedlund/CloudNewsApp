@@ -26,7 +26,7 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-//        .disabled(items.count == 0)
+        .disabled(feedModel.unreadCount == 0)
     }
 
 }

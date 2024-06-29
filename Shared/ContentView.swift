@@ -62,6 +62,7 @@ struct ContentView: View {
             if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
                 navigationTitle = model.title
                 feedModel.currentNode = model
+                feedModel.updateUnreadCount()
             }
             selectedNode = newValue
             updatePredicate()

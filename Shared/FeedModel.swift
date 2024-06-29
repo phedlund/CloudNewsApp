@@ -21,6 +21,7 @@ class FeedModel: @unchecked Sendable {
     var currentItem: Item? = nil
     var currentNode: NodeModel? = nil
     var currentItemID: PersistentIdentifier? = nil
+    var unreadCount = 0
     var isSyncing = false
 
     init(modelContext: ModelContext) {
@@ -29,6 +30,9 @@ class FeedModel: @unchecked Sendable {
         self.webImporter = WebImporter(modelContext: modelContext)
         self.itemPruner = ItemPruner(modelContext: modelContext)
         self.nodeBuilder = NodeBuilder(modelContext: modelContext)
+        Task {
+            await updateUnreadCount()
+        }
     }
 
     func selectPreviousItem() {
@@ -97,6 +101,7 @@ class FeedModel: @unchecked Sendable {
             do {
                 let items = try modelContext.fetch(descriptor)
                 markItemsRead(items: items)
+                unreadCount = 0
             } catch let error as NSError {
                 print("Could not fetch \(error), \(error.userInfo)")
             }
@@ -113,6 +118,7 @@ class FeedModel: @unchecked Sendable {
         }
         Task {
             try await self.markRead(items: items, unread: false)
+            updateUnreadCount()
         }
     }
 
@@ -123,9 +129,38 @@ class FeedModel: @unchecked Sendable {
             try modelContext.save()
             Task {
                 try await self.markRead(items: [item], unread: !item.unread)
+                updateUnreadCount()
             }
         } catch {
             //
+        }
+    }
+
+    @MainActor
+    func updateUnreadCount() {
+        if let currentNode {
+            var predicate = #Predicate<Item> { _ in return false }
+            switch currentNode.nodeType {
+            case .empty:
+                break
+            case .all:
+                predicate = #Predicate<Item> { $0.unread == true }
+            case .starred:
+                predicate = #Predicate<Item> { $0.starred == true }
+
+            case .feed(let id):
+                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+            case .folder(let id):
+                if let feedIds = modelContext.feedIdsInFolder(folder: id) {
+                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+                }
+            }
+            let descriptor = FetchDescriptor<Item>(predicate: predicate)
+            do {
+                unreadCount = try modelContext.fetchCount(descriptor)
+            } catch let error as NSError {
+                print("Could not fetch \(error), \(error.userInfo)")
+            }
         }
     }
 
