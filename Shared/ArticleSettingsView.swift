@@ -126,6 +126,7 @@ struct ArticleSettingsView: View {
                 }
             }
         }
+        .accentColor(.accent)
         .buttonStyle(.bordered)
         .padding()
     }
