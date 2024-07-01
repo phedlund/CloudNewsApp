@@ -227,7 +227,7 @@ struct SidebarView: View {
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
                 nodeSelection = node.id
-//                feedModel.currentNode = node
+                feedModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {
