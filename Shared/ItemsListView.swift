@@ -97,6 +97,16 @@ struct ItemsListView: View {
                             }
                         }
                     }
+                    .onChange(of: feedModel.isSyncing) { _, newValue in
+                        if newValue == false {
+                            DispatchQueue.main.async {
+                                isScrollingToTop = true
+                                scrollId = items.first?.id
+                                lastOffset = 0.0
+                                isScrollingToTop = false
+                            }
+                        }
+                    }
                     .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
                         cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                     }
@@ -146,7 +156,7 @@ struct ItemsListView: View {
     
     @MainActor
     private func markRead(_ offset: CGFloat) async throws {
-        guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
+        guard feedModel.isSyncing == false, isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {
