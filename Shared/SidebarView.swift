@@ -74,7 +74,7 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-        List(nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
             NodeView(node: node)
                 .environment(feedModel)
                 .tag(node.id)

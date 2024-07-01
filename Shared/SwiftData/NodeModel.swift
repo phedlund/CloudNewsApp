@@ -37,3 +37,16 @@ final public class NodeModel {
 }
 
 extension NodeModel: Identifiable { }
+
+extension NodeModel {
+
+    var wrappedChildren: [NodeModel]? {
+        get {
+            if self.children?.count == 0 {
+                return nil
+            }
+            return Array(self.children!)
+        }
+    }
+}
+
