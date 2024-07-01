@@ -25,10 +25,7 @@ struct NodeView: View {
 #endif
 
     var body: some View {
-        LabeledContent {
-            BadgeView(node: node, modelContext: feedModel.modelContext)
-                .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
-        } label: {
+        HStack {
             Label {
                 Text(node.title)
                     .lineLimit(1)
@@ -36,6 +33,9 @@ struct NodeView: View {
                 favIconView
             }
             .labelStyle(.titleAndIcon)
+            Spacer()
+            BadgeView(node: node, modelContext: feedModel.modelContext)
+                .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
         }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
