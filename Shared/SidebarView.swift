@@ -155,44 +155,43 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
-//        .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
-//            TextField("Title", text: $alertInput)
-//            Button("Rename") {
-//                switch feedModel.currentNode!.nodeType {
-//                case .empty, .all, .starred, .feed( _):
-//                    break
-//                case .folder(let id):
-//                    if let folder = feedModel.modelContext.folder(id: id), feedModel.currentNode?.title != alertInput {
-//                        Task {
-//                            do {
-//                                try await feedModel.renameFolder(folder: folder, to: alertInput)
-//                                let node = feedModel.currentNode
-//                                node?.title = alertInput
-//                                folder.name = node?.title
-//                                try NewsData.shared.container?.mainContext.save()
-//                            } catch let error as NetworkError {
-//                                errorMessage = error.localizedDescription
-//                                isShowingError = true
-//                            } catch let error as DatabaseError {
-//                                errorMessage = error.localizedDescription
-//                                isShowingError = true
-//                            } catch let error {
-//                                errorMessage = error.localizedDescription
-//                                isShowingError = true
-//                            }
-//                        }
-//                    }
-//                }
-//                isShowingRename = false
-//            }
-//            .keyboardShortcut(.defaultAction)
-//            Button("Cancel", role: .cancel) {
-////                node.title = alertInput
-//                isShowingRename = false
-//            }
-//        }, message: {
-//            Text("Rename the folder")
-//        })
+        .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
+            TextField("Title", text: $alertInput)
+            Button("Rename") {
+                switch feedModel.currentNode!.nodeType {
+                case .empty, .all, .starred, .feed( _):
+                    break
+                case .folder(let id):
+                    if let folder = feedModel.modelContext.folder(id: id), feedModel.currentNode?.title != alertInput {
+                        Task {
+                            do {
+                                try await feedModel.renameFolder(folder: folder, to: alertInput)
+                                let node = feedModel.currentNode
+                                node?.title = alertInput
+                                folder.name = node?.title
+                                try feedModel.modelContext.save()
+                            } catch let error as NetworkError {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
+                            } catch let error as DatabaseError {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
+                            } catch let error {
+                                errorMessage = error.localizedDescription
+                                isShowingError = true
+                            }
+                        }
+                    }
+                }
+                isShowingRename = false
+            }
+            .keyboardShortcut(.defaultAction)
+            Button("Cancel", role: .cancel) {
+                isShowingRename = false
+            }
+        }, message: {
+            Text("Rename the folder")
+        })
     }
 
     @ViewBuilder
@@ -208,7 +207,7 @@ struct SidebarView: View {
                 .environment(feedModel)
             Button {
                 nodeSelection = node.id
-//                feedModel.currentNode = node
+                feedModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
             } label: {
