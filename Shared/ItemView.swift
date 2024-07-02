@@ -15,11 +15,13 @@ struct ItemView: View {
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
+    @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
 
     @State private var isHorizontalCompact = false
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
     @State private var favIconUrl: URL?
+    @State private var thumbnailUrl: URL?
 
     private var item: Item
     private var cellSize: CGSize
@@ -34,7 +36,7 @@ struct ItemView: View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
-                    ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
+                    thumbnailView
                         .padding(.top, compactView ? 1 : .zero)
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: .paddingSix) {
@@ -63,6 +65,12 @@ struct ItemView: View {
         .listRowInsets(.none)
         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
         .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
+        .onChange(of: compactView, initial: true) { _, newValue in
+            updateSizeAndOffset()
+        }
+        .onChange(of: showThumbnails, initial: true) { _, newValue in
+            updateSizeAndOffset()
+        }
 #if os(iOS)
         .frame(width: cellSize.width, height: cellSize.height)
         .padding([.trailing], .paddingSix)
@@ -87,6 +95,8 @@ struct ItemView: View {
         .task {
             Task {
                 favIconUrl = try await item.feed?.favIconUrl
+                thumbnailUrl = try await item.imageUrl
+                updateSizeAndOffset()
             }
         }
 #else
@@ -108,6 +118,7 @@ struct ItemView: View {
 
 private extension ItemView {
 
+    @MainActor
     var titleView: some View {
         HStack {
             Text(item.title ?? "Untitled")
@@ -152,6 +163,7 @@ private extension ItemView {
         .labelStyle(includeFavIcon: showFavIcons ?? true)
     }
 
+    @MainActor
     var bodyView: some View {
         VStack(alignment: .leading) {
             if compactView {
@@ -171,6 +183,47 @@ private extension ItemView {
             }
         }
         .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
+    }
+
+    @ViewBuilder
+    var thumbnailView: some View {
+        VStack {
+            LazyImage(url: thumbnailUrl)  { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else if phase.error != nil {
+                    Image("rss")
+                        .font(.system(size: 18, weight: .light))
+                } else {
+                    ProgressView()
+                }
+            }
+            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+            .clipped()
+        }
+    }
+
+    @MainActor
+    private func updateSizeAndOffset() {
+        if !showThumbnails {
+            thumbnailOffset = .zero
+            thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+        } else {
+            if thumbnailUrl != nil {
+                if compactView {
+                    thumbnailOffset = .compactThumbnailWidth + .paddingSix
+                    thumbnailSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
+                } else {
+                    thumbnailOffset = .defaultThumbnailWidth + .paddingSix
+                    thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                }
+            } else {
+                thumbnailOffset = .zero
+                thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+            }
+        }
     }
 
 }
