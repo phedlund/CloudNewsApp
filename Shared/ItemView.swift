@@ -17,7 +17,6 @@ struct ItemView: View {
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
 
     @State private var isHorizontalCompact = false
-    @State private var isShowingThumbnail = true
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
     @State private var favIconUrl: URL?
@@ -35,14 +34,8 @@ struct ItemView: View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
-                    if isShowingThumbnail {
-                        ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
-                            .padding(.top, compactView ? 1 : .zero)
-                    } else {
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(width: 1, height: thumbnailSize.height)
-                    }
+                    ThumbnailImageView(item: item, thumbnailOffset: $thumbnailOffset)
+                        .padding(.top, compactView ? 1 : .zero)
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: .paddingSix) {
                             HStack {

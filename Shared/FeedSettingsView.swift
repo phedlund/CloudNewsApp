@@ -102,7 +102,7 @@ struct FeedSettingsView: View {
             }
             .task {
                 switch feedModel.currentNode?.nodeType {
-                case .feed(id: let id):
+                case .feed(id: _):
                     if let feed = feedModel.currentNode?.feed,
                        let folders = feedModel.modelContext.allFolders() {
 //                        self.feed = feed

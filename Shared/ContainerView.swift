@@ -33,24 +33,6 @@ struct ListGroup<Content: View>: ContainerView {
     }
 }
 
-struct RowContainer<Content: View>: ContainerView {
-    var content: () -> Content
-
-    var body: some View {
-        Group {
-#if os(macOS)
-            Group(content: content)
-#else
-            HStack {
-                Spacer()
-                Group(content: content)
-                Spacer()
-            }
-#endif
-        }
-    }
-}
-
 struct ZStackGroup<Content: View>: View {
     var item: Item
     var content: () -> Content
