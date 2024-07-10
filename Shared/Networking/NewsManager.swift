@@ -21,6 +21,7 @@ struct SyncTimes {
 
 extension FeedModel {
 
+    @MainActor
     func version() async throws -> String {
         let router = Router.version
         do {
@@ -33,6 +34,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {
@@ -70,6 +72,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func addFolder(name: String) async throws {
         let router = Router.addFolder(name: name)
         do {
@@ -358,6 +361,7 @@ extension FeedModel {
         return result
     }
 
+    @MainActor
     func moveFeed(feed: Feed, to folder: Int64) async throws {
         let moveFeedRouter = Router.moveFeed(id: Int(feed.id), folder: Int(folder))
         do {
@@ -380,6 +384,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func renameFeed(feed: Feed, to name: String) async throws {
         let renameRouter = Router.renameFeed(id: Int(feed.id), newName: name)
         do {
@@ -428,6 +433,7 @@ extension FeedModel {
         }
     }
 
+    @MainActor
     func renameFolder(folder: Folder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
         do {
