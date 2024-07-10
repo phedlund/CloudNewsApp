@@ -12,8 +12,7 @@ import SwiftUI
 @main
 struct CloudNewsApp: App {
     private let container: ModelContainer
-
-    let feedModel: FeedModel
+    private let feedModel: FeedModel
 
 #if !os(macOS)
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate

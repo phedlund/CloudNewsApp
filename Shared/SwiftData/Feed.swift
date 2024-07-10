@@ -44,8 +44,6 @@ final class Feed {
         return context?.folder(id: folderId)
     }
 
-    private let validSchemas = ["http", "https", "file"]
-
     init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
@@ -82,7 +80,9 @@ final class Feed {
                   items: [Item]())
     }
 
+    @MainActor
     private func favIconUrl() async throws -> URL? {
+        let validSchemas = ["http", "https", "file"]
         var itemImageUrl: URL?
         if let link = faviconLink,
            let url = URL(string: link),

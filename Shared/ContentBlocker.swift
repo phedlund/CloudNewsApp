@@ -11,7 +11,7 @@ import WebKit
 @MainActor
 class ContentBlocker {
 
-    nonisolated(unsafe) static let shared = ContentBlocker()
+    static let shared = ContentBlocker()
 
     private var rules: WKContentRuleList?
 

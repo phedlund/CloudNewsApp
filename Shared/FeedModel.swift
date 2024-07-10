@@ -17,7 +17,7 @@ class FeedModel: @unchecked Sendable {
     let nodeBuilder: NodeBuilder
     let session = ServerStatus.shared.session
 
-    var currentItems = [Item]()
+//    var currentItems = [Item]()
     var currentItem: Item? = nil
     var currentNode: NodeModel? = nil
     var currentItemID: PersistentIdentifier? = nil
@@ -35,17 +35,17 @@ class FeedModel: @unchecked Sendable {
         }
     }
 
-    func selectPreviousItem() {
-        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
-            currentItemID = currentItems.element(before: currentIndex)?.persistentModelID
-        }
-    }
-
-    func selectNextItem() {
-        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
-            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
-        }
-    }
+//    func selectPreviousItem() {
+//        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
+//            currentItemID = currentItems.element(before: currentIndex)?.persistentModelID
+//        }
+//    }
+//
+//    func selectNextItem() {
+//        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
+//            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
+//        }
+//    }
 
     func delete(_ node: NodeModel) {
         switch node.nodeType {
@@ -79,7 +79,8 @@ class FeedModel: @unchecked Sendable {
         }
     }
 
-    @MainActor func markCurrentNodeRead() {
+    @MainActor
+    func markCurrentNodeRead() {
         if let currentNode {
             var predicate = #Predicate<Item> { _ in return false }
             switch currentNode.nodeType {

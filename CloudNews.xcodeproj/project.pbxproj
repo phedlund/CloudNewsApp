@@ -40,6 +40,8 @@
 		D03C891F2B51D71B00FE8806 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = D03C891E2B51D71B00FE8806 /* NukeUI */; };
 		D03C89212B51D71B00FE8806 /* NukeVideo in Frameworks */ = {isa = PBXBuildFile; productRef = D03C89202B51D71B00FE8806 /* NukeVideo */; };
 		D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
+		D04A9C002C3B810800335664 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D04A9BFF2C3B810800335664 /* Kingfisher */; };
+		D04A9C022C3CA5E300335664 /* ItemLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A9C012C3CA5E300335664 /* ItemLayout.swift */; };
 		D050B31427B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
 		D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
 		D061B1622BFA9BC500E5D993 /* NodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061B1612BFA9BC500E5D993 /* NodeBuilder.swift */; };
@@ -112,6 +114,7 @@
 		D0367B932A8C5E1D0099D34D /* Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
 		D0367B972A8C5F2D0099D34D /* CloudStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudStatus.swift; sourceTree = "<group>"; };
 		D045A15F26C5F6D4002E553F /* LoginWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginWebView.swift; sourceTree = "<group>"; };
+		D04A9C012C3CA5E300335664 /* ItemLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemLayout.swift; sourceTree = "<group>"; };
 		D050B31327B0BE0200442584 /* block-ads.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "block-ads.json"; sourceTree = "<group>"; };
 		D050B31627B0C0C100442584 /* ContentBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlocker.swift; sourceTree = "<group>"; };
 		D061B1612BFA9BC500E5D993 /* NodeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeBuilder.swift; sourceTree = "<group>"; };
@@ -165,6 +168,7 @@
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D03C89212B51D71B00FE8806 /* NukeVideo in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
+				D04A9C002C3B810800335664 /* Kingfisher in Frameworks */,
 				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
 				D03C891B2B51D71B00FE8806 /* Nuke in Frameworks */,
 				D03C891D2B51D71B00FE8806 /* NukeExtensions in Frameworks */,
@@ -207,6 +211,7 @@
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
 				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */,
+				D04A9C012C3CA5E300335664 /* ItemLayout.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemView.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
@@ -338,6 +343,7 @@
 				D03C891C2B51D71B00FE8806 /* NukeExtensions */,
 				D03C891E2B51D71B00FE8806 /* NukeUI */,
 				D03C89202B51D71B00FE8806 /* NukeVideo */,
+				D04A9BFF2C3B810800335664 /* Kingfisher */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -372,6 +378,7 @@
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
 				D03C89192B51D71B00FE8806 /* XCRemoteSwiftPackageReference "Nuke" */,
+				D04A9BFE2C3B810800335664 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -457,6 +464,7 @@
 				D029FDD3299DC7540099FD95 /* ContainerView.swift in Sources */,
 				D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */,
+				D04A9C022C3CA5E300335664 /* ItemLayout.swift in Sources */,
 				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D0F41D752A78185900EEAC78 /* Item.swift in Sources */,
@@ -714,6 +722,14 @@
 				minimumVersion = 12.3.0;
 			};
 		};
+		D04A9BFE2C3B810800335664 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.12.0;
+			};
+		};
 		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
@@ -755,6 +771,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D03C89192B51D71B00FE8806 /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = NukeVideo;
+		};
+		D04A9BFF2C3B810800335664 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D04A9BFE2C3B810800335664 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
 			isa = XCSwiftPackageProductDependency;

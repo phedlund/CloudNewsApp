@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
+import Kingfisher
 import NukeUI
 import SwiftData
 import SwiftUI
@@ -185,23 +186,32 @@ private extension ItemView {
         .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
-    @ViewBuilder
+    @MainActor
     var thumbnailView: some View {
         VStack {
-            LazyImage(url: thumbnailUrl)  { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } else if phase.error != nil {
-                    Image("rss")
-                        .font(.system(size: 18, weight: .light))
-                } else {
+            KFImage(thumbnailUrl)
+                .placeholder {
                     ProgressView()
                 }
-            }
-            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-            .clipped()
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                .clipped()
+
+//            LazyImage(url: thumbnailUrl)  { phase in
+//                if let image = phase.image {
+//                    image
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fill)
+//                } else if phase.error != nil {
+//                    Image("rss")
+//                        .font(.system(size: 18, weight: .light))
+//                } else {
+//                    ProgressView()
+//                }
+//            }
+//            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+//            .clipped()
         }
     }
 

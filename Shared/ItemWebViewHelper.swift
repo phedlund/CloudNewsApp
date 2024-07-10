@@ -36,30 +36,30 @@ class ItemWebViewHelper {
 
     func setupObservations() {
         if let webView {
-            webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
-                self?.canGoBack = newValue
-            }
-            .store(in: &cancellables)
-            webView.publisher(for: \.canGoForward).sink { [weak self] newValue in
-                self?.canGoForward = newValue
-            }
-            .store(in: &cancellables)
-            webView.publisher(for: \.isLoading).sink { [weak self] newValue in
-                self?.isLoading = newValue
-            }
-            .store(in: &cancellables)
-            webView.publisher(for: \.title).sink { [weak self] newValue in
-                if let newTitle = newValue, !newTitle.isEmpty {
-                    self?.title = newTitle
-                }
-            }
-            .store(in: &cancellables)
-#if os(iOS)
-            NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification, object: nil).sink { [weak self] _ in
-                self?.webView?.reload()
-            }
-            .store(in: &cancellables)
-#endif
+//            webView.publisher(for: \.canGoBack).sink { [weak self] newValue in
+//                self?.canGoBack = newValue
+//            }
+//            .store(in: &cancellables)
+//            webView.publisher(for: \.canGoForward).sink { [weak self] newValue in
+//                self?.canGoForward = newValue
+//            }
+//            .store(in: &cancellables)
+//            webView.publisher(for: \.isLoading).sink { [weak self] newValue in
+//                self?.isLoading = newValue
+//            }
+//            .store(in: &cancellables)
+//            webView.publisher(for: \.title).sink { [weak self] newValue in
+//                if let newTitle = newValue, !newTitle.isEmpty {
+//                    self?.title = newTitle
+//                }
+//            }
+//            .store(in: &cancellables)
+//#if os(iOS)
+//            NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification, object: nil).sink { [weak self] _ in
+//                self?.webView?.reload()
+//            }
+//            .store(in: &cancellables)
+//#endif
             if let feed = item?.feed {
                 if feed.preferWeb == true,
                    let urlString = item?.url,

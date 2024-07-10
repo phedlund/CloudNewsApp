@@ -17,7 +17,6 @@ class WebImporter {
         self.modelContext = modelContext
     }
 
-    @MainActor
     func updateFoldersInDatabase(urlRequest: URLRequest) async {
         do {
             let foldersData: FoldersDTO = try await fetchData(fromUrlRequest: urlRequest)
@@ -32,7 +31,6 @@ class WebImporter {
         }
     }
 
-    @MainActor
     func updateFeedsInDatabase(urlRequest: URLRequest) async {
         do {
             let feedsData: FeedsDTO = try await fetchData(fromUrlRequest: urlRequest)
@@ -47,7 +45,6 @@ class WebImporter {
         }
     }
 
-    @MainActor
     func updateItemsInDatabase(urlRequest: URLRequest) async {
         do {
             let itemsData: ItemsDTO = try await fetchData(fromUrlRequest: urlRequest)

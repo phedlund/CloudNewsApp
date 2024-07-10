@@ -39,8 +39,6 @@ final class Item {
 
     @Transient var webViewHelper = ItemWebViewHelper()
 
-    private let validSchemas = ["http", "https", "file"]
-
     nonisolated var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)
@@ -49,6 +47,7 @@ final class Item {
     @MainActor
     var imageUrl: URL? {
         get async throws {
+            let validSchemas = ["http", "https", "file"]
             var itemImageUrl: URL?
             if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
                 itemImageUrl = imgUrl
