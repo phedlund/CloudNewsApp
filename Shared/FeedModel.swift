@@ -21,8 +21,8 @@ class FeedModel: @unchecked Sendable {
     var currentItem: Item? = nil
     var currentNode: NodeModel? = nil
     var currentItemID: PersistentIdentifier? = nil
-    var unreadCount = 0
-    var isSyncing = false
+    @MainActor var unreadCount = 0
+    @MainActor var isSyncing = false
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

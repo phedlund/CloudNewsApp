@@ -93,7 +93,7 @@ private extension NodeView {
             }
         }
         .task {
-            Task {
+            Task { @MainActor in
                 favIconUrl = try await node.feed?.favIconUrl
             }
         }

@@ -11,7 +11,7 @@ struct ItemLayout: Layout {
     let cellSize: CGSize
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        return cellSize
+        proposal.replacingUnspecifiedDimensions()
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
@@ -25,13 +25,13 @@ struct ItemLayout: Layout {
 
             switch index {
             case 0:
-                subview.place(at: .zero, anchor: .topLeading, proposal: .unspecified)
+                subview.place(at: .zero, anchor: .topLeading, proposal: ProposedViewSize(width: .defaultThumbnailWidth, height: cellSize.height))
             case 1:
-                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 0), anchor: .topLeading, proposal: .unspecified)
+                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 0), anchor: .topLeading, proposal: ProposedViewSize(width: cellSize.width - .defaultThumbnailWidth, height: 20))
             case 2:
-                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 20), anchor: .topLeading, proposal: .unspecified)
+                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 24), anchor: .topLeading, proposal: ProposedViewSize(width: cellSize.width - .defaultThumbnailWidth, height: 10))
             case 3:
-                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 30), anchor: .topLeading, proposal: .unspecified)
+                subview.place(at: CGPoint(x: .defaultThumbnailWidth, y: 50), anchor: .topLeading, proposal: ProposedViewSize(width: cellSize.width - .defaultThumbnailWidth, height: cellSize.height - 30))
             default:
                 subview.place(at: .zero, anchor: .center, proposal: ProposedViewSize(width: .defaultThumbnailWidth, height: .defaultCellHeight))
             }
