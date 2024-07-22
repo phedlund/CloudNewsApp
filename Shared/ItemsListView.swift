@@ -30,10 +30,10 @@ struct ItemsListView: View {
 
     @Query private var items: [Item]
 
+    @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var itemSelection: PersistentIdentifier?
-    @State private var scrollId: Int64?
-    @State private var lastOffset: CGFloat = 0.0
+    @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
 
     @Binding var selectedItem: Item?
@@ -56,79 +56,82 @@ struct ItemsListView: View {
 #endif
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup {
-                ScrollView(.vertical) {
-                    LazyVStack(alignment: .center, spacing: 16.0) {
-                        ForEach(items, id: \.id) { item in
-                            NavigationLink(value: item) {
-                                ItemView(item: item, size: cellSize)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
+                        ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
+                        LazyVStack(alignment: .center, spacing: 16.0) {
+                            ForEach(items, id: \.id) { item in
+                                NavigationLink(value: item) {
+                                    ItemView(item: item, size: cellSize)
 #if os(macOS)
-                                    .frame(height: cellHeight, alignment: .center)
-                                    .onTapGesture {
-                                        selectedItem = item
-                                    }
+                                        .frame(height: cellHeight, alignment: .center)
+                                        .onTapGesture {
+                                            selectedItem = item
+                                        }
 #endif
-                                    .environment(itemSizeModel)
-                                    .contextMenu {
-                                        contextMenu(item: item)
-                                    }
+                                        .environment(itemSizeModel)
+                                        .contextMenu {
+                                            contextMenu(item: item)
+                                        }
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
-                    }
-                    .navigationDestination(for: Item.self) {
+                        .navigationDestination(for: Item.self) {
 #if !os(macOS)
-                        ArticlesPageView(item: $0, items: items)
-                            .environment(feedModel)
+                            ArticlesPageView(item: $0, items: items)
+                                .environment(feedModel)
 #endif
-                    }
-                    .scrollTargetLayout()
-                    .onChange(of: selectedNode) { _, _ in
-                        DispatchQueue.main.async {
-                            isScrollingToTop = true
-                            scrollId = items.first?.id
-                            lastOffset = 0.0
-                            isScrollingToTop = false
                         }
-                    }
-                    .onChange(of: scenePhase) { _, newPhase in
-                        if newPhase == .active {
+                        .scrollTargetLayout(isEnabled: true)
+                        .onChange(of: selectedNode) { _, _ in
                             DispatchQueue.main.async {
                                 isScrollingToTop = true
-                                scrollId = items.first?.id
-                                lastOffset = 0.0
+                                scrollToTop.toggle()
+                                lastOffset = .zero
                                 isScrollingToTop = false
                             }
                         }
+                        .onChange(of: scenePhase) { _, newPhase in
+                            if newPhase == .active {
+                                DispatchQueue.main.async {
+                                    isScrollingToTop = true
+                                    scrollToTop.toggle()
+                                    lastOffset = .zero
+                                    isScrollingToTop = false
+                                }
+                            }
+                        }
+                        .onChange(of: feedModel.isSyncing) { _, newValue in
+                            if newValue == false {
+                                DispatchQueue.main.async {
+                                    isScrollingToTop = true
+                                    scrollToTop.toggle()
+                                    lastOffset = .zero
+                                    isScrollingToTop = false
+                                }
+                            }
+                        }
+                        .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
+                            cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                        }
                     }
-                    .onChange(of: feedModel.isSyncing) { _, newValue in
-                        if newValue == false {
-                            DispatchQueue.main.async {
-                                isScrollingToTop = true
-                                scrollId = items.first?.id
-                                lastOffset = 0.0
-                                isScrollingToTop = false
+                    .scrollTargetBehavior(.viewAligned)
+                    .onScrollPhaseChange { _, newPhase, context in
+                        if newPhase == .decelerating || newPhase == .idle {
+                            Task {
+                                try? await markRead(context.geometry.contentOffset.y)
                             }
                         }
                     }
-                    .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
-                        cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                    .defaultScrollAnchor(.top)
+                    .environment(feedModel)
+                    .accentColor(.pbh.darkIcon)
+                    .background {
+                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                     }
+                    .scrollContentBackground(.hidden)
                 }
-                .onScrollPhaseChange { _, newPhase, context in
-                    if newPhase == .decelerating || newPhase == .idle {
-                        Task {
-                            try? await markRead(context.geometry.contentOffset.y)
-                        }
-                    }
-                }
-                .defaultScrollAnchor(.top)
-                .scrollPosition(id: $scrollId)
-                .environment(feedModel)
-                .accentColor(.pbh.darkIcon)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-                .scrollContentBackground(.hidden)
             }
         }
     }
@@ -198,5 +201,21 @@ struct NavigationDestinationModifier: ViewModifier {
 extension View {
     func newsNavigationDestination(type: Item.Type, items: [Item]) -> some View {
         modifier(NavigationDestinationModifier(type: Item.self, items: items))
+    }
+}
+
+struct ScrollToTopView: View {
+    private let topScrollPoint = "topScrollPoint"
+    let reader: ScrollViewProxy
+    @Binding var scrollOnChange: Bool
+
+    var body: some View {
+        EmptyView()
+            .id(topScrollPoint)
+            .onChange(of: scrollOnChange) { _, _ in
+                withAnimation {
+                    reader.scrollTo(topScrollPoint, anchor: .top)
+                }
+            }
     }
 }
