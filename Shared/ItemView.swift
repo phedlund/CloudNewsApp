@@ -13,15 +13,14 @@ import SwiftUI
 struct ItemView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(ItemSizeModel.self) private var itemSizeModel
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
 
     @State private var isHorizontalCompact = false
-//    @State private var thumbnailSize = CGSize.zero
-//    @State private var thumbnailOffset = CGFloat.zero
+    @State private var thumbnailSize = CGSize.zero
+    @State private var thumbnailOffset = CGFloat.zero
     @State private var favIconUrl: URL?
     @State private var thumbnailUrl: URL?
 
@@ -53,7 +52,7 @@ struct ItemView: View {
                                     }
                                 }
                             }
-                            .padding(.leading, (thumbnailUrl != nil) ? itemSizeModel.thumbnailOffset : 0)
+                            .padding(.leading, thumbnailOffset)
                             bodyView
                         }
                         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
@@ -68,12 +67,10 @@ struct ItemView: View {
         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
         .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
         .onChange(of: compactView, initial: true) { _, newValue in
-            itemSizeModel.update(newValue, showThumbnails)
-//            updateSizeAndOffset()
+            updateSizeAndOffset()
         }
         .onChange(of: showThumbnails, initial: true) { _, newValue in
-            itemSizeModel.update(newValue, showThumbnails)
-//            updateSizeAndOffset()
+            updateSizeAndOffset()
         }
 #if os(iOS)
         .frame(width: cellSize.width, height: cellSize.height)
@@ -98,9 +95,9 @@ struct ItemView: View {
         }
         .task {
             Task { @MainActor in
-                itemSizeModel.update(compactView, showThumbnails)
                 favIconUrl = try await item.feed?.favIconUrl
                 thumbnailUrl = try await item.imageUrl
+                updateSizeAndOffset()
             }
         }
 #else
@@ -183,10 +180,10 @@ private extension ItemView {
 #endif
                     Spacer()
                 }
-                .padding(.leading, isHorizontalCompact ? .zero : (thumbnailUrl != nil) ? itemSizeModel.thumbnailOffset : 0)
+                .padding(.leading, thumbnailOffset)
             }
         }
-        .bodyFrame(active: isHorizontalCompact, height: itemSizeModel.thumbnailSize.height - 4)
+        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
     @MainActor
@@ -198,8 +195,7 @@ private extension ItemView {
                 }
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: (thumbnailUrl != nil) ? itemSizeModel.thumbnailSize.width : itemSizeModel.noThumbnailSize.width,
-                       height: (thumbnailUrl != nil) ? itemSizeModel.thumbnailSize.height : itemSizeModel.noThumbnailSize.height)
+                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
                 .clipped()
 
 //            LazyImage(url: thumbnailUrl)  { phase in
@@ -219,26 +215,26 @@ private extension ItemView {
         }
     }
 
-//    @MainActor
-//    private func updateSizeAndOffset() {
-//        if !showThumbnails {
-//            thumbnailOffset = .zero
-//            thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
-//        } else {
-//            if thumbnailUrl != nil {
-//                if compactView {
-//                    thumbnailOffset = .compactThumbnailWidth + .paddingSix
-//                    thumbnailSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
-//                } else {
-//                    thumbnailOffset = .defaultThumbnailWidth + .paddingSix
-//                    thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
-//                }
-//            } else {
-//                thumbnailOffset = .zero
-//                thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
-//            }
-//        }
-//    }
+    @MainActor
+    private func updateSizeAndOffset() {
+        if !showThumbnails {
+            thumbnailOffset = .zero
+            thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+        } else {
+            if thumbnailUrl != nil {
+                if compactView {
+                    thumbnailOffset = .compactThumbnailWidth + .paddingSix
+                    thumbnailSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
+                } else {
+                    thumbnailOffset = .defaultThumbnailWidth + .paddingSix
+                    thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                }
+            } else {
+                thumbnailOffset = .zero
+                thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+            }
+        }
+    }
 
 }
 

@@ -38,8 +38,6 @@ struct ItemsListView: View {
 
     @Binding var selectedItem: Item?
 
-    private let itemSizeModel = ItemSizeModel()
-
     init(predicate: Predicate<Item>, sort: SortDescriptor<Item>, selectedItem: Binding<Item?>) {
         let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
         _items = Query(fetchDescriptor)
@@ -69,7 +67,6 @@ struct ItemsListView: View {
                                             selectedItem = item
                                         }
 #endif
-                                        .environment(itemSizeModel)
                                         .contextMenu {
                                             contextMenu(item: item)
                                         }
