@@ -154,7 +154,7 @@ private extension ItemView {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 22, height: 22)
                 } else if phase.error != nil {
-                    Image("rss")
+                    Image(.rss)
                         .font(.system(size: 18, weight: .light))
                 } else {
                     ProgressView()

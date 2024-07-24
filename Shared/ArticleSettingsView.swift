@@ -96,7 +96,7 @@ struct ArticleSettingsView: View {
                         lineHeight += 0.2
                     }
                 } label: {
-                    Image("custom.line.3.horizontal")
+                    Image(.customLine3Horizontal)
                         .imageScale(.large)
                         .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                         .contentShape(Rectangle())

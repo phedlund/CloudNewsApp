@@ -70,7 +70,7 @@ private extension NodeView {
         Group {
             switch node.nodeType {
             case .all, .empty:
-                Image("rss")
+                Image(.rss)
                     .font(.system(size: 18, weight: .light))
             case .starred:
                 Image(systemName: "star.fill")
@@ -83,7 +83,7 @@ private extension NodeView {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                     } else if phase.error != nil {
-                        Image("rss")
+                        Image(.rss)
                             .font(.system(size: 18, weight: .light))
                     } else {
                         ProgressView()

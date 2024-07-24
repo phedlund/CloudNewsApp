@@ -40,9 +40,11 @@ struct ContentView: View {
                             contentViewToolBarContent()
                         }
                 } else {
-                    ContentUnavailableView("No Feed Selected",
-                                           image: "rss",
-                                           description: Text("Select a feed from the list to display its articles"))
+                    ContentUnavailableView {
+                        Label("No Feed Selected", image: .rss)
+                    } description: {
+                        Text("Select a feed from the list to display its articles")
+                    }
                 }
             }
             .navigationTitle(navigationTitle ?? "Untitled")
@@ -88,9 +90,11 @@ struct ContentView: View {
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
                     .navigationTitle(feedModel.currentNode.title)
             } else {
-                ContentUnavailableView("No Feed Selected",
-                                       image: "rss",
-                                       description: Text("Select a feed from the list to display its articles"))
+                ContentUnavailableView {
+                    Label("No Feed Selected", image: .rss)
+                } description: {
+                    Text("Select a feed from the list to display its articles")
+                }
             }
         } detail: {
             if let selectedItem {
