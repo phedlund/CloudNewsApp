@@ -58,9 +58,9 @@ extension ModelContext {
         }
     }
 
-    func folderNodeModel(nodeName: String) -> NodeModel? {
-        let predicate = #Predicate<NodeModel>{ $0.nodeName == nodeName }
-        var descriptor = FetchDescriptor<NodeModel>(predicate: predicate)
+    func folderNodeModel(nodeName: String) -> Node? {
+        let predicate = #Predicate<Node>{ $0.nodeName == nodeName }
+        var descriptor = FetchDescriptor<Node>(predicate: predicate)
         descriptor.fetchLimit = 1
         do {
             let results  = try fetch(descriptor)

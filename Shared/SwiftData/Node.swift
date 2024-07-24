@@ -8,7 +8,7 @@
 import SwiftData
 
 @Model
-final public class NodeModel {
+final public class Node {
 
     var errorCount: Int64 = 0
     @Attribute(.unique) var nodeName: String
@@ -18,10 +18,10 @@ final public class NodeModel {
     var isTopLevel: Bool
 
     // Parental relationship
-    public var parent: NodeModel?
+    public var parent: Node?
 
     // Inverse
-    @Relationship(deleteRule: .noAction, inverse: \NodeModel.parent) var children: [NodeModel]?
+    @Relationship(deleteRule: .noAction, inverse: \Node.parent) var children: [Node]?
     @Relationship(deleteRule: .noAction) var folder: Folder?
     @Relationship(deleteRule: .noAction) var feed: Feed?
 
@@ -36,11 +36,11 @@ final public class NodeModel {
 
 }
 
-extension NodeModel: Identifiable { }
+extension Node: Identifiable { }
 
-extension NodeModel {
+extension Node {
 
-    var wrappedChildren: [NodeModel]? {
+    var wrappedChildren: [Node]? {
         get {
             if self.children?.count == 0 {
                 return nil

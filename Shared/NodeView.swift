@@ -12,7 +12,7 @@ import SwiftUI
 struct NodeView: View {
     @Environment(FeedModel.self) private var feedModel
 
-    let node: NodeModel
+    let node: Node
 
     @State private var isShowingConfirmation = false
     @State private var favIconUrl: URL?

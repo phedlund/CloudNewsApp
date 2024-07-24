@@ -20,7 +20,7 @@ class NewsData {
             Unread.self,
             Starred.self,
             Unstarred.self,
-            NodeModel.self
+            Node.self
         ])
 
     var container: ModelContainer?

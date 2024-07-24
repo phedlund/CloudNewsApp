@@ -28,7 +28,7 @@ final class Feed {
     var useReader: Bool
 
     // Parental relationship
-    public var node: NodeModel?
+    public var node: Node?
 
     @Relationship var items: [Item]
 

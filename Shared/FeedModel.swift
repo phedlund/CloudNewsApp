@@ -19,7 +19,7 @@ class FeedModel: @unchecked Sendable {
 
 //    var currentItems = [Item]()
     var currentItem: Item? = nil
-    var currentNode: NodeModel? = nil
+    var currentNode: Node? = nil
     var currentItemID: PersistentIdentifier? = nil
     @MainActor var unreadCount = 0
     @MainActor var isSyncing = false
@@ -47,7 +47,7 @@ class FeedModel: @unchecked Sendable {
 //        }
 //    }
 
-    func delete(_ node: NodeModel) {
+    func delete(_ node: Node) {
         switch node.nodeType {
         case .empty, .all, .starred:
             break

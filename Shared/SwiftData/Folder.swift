@@ -17,7 +17,7 @@ final class Folder {
     @Attribute(.ephemeral) var unreadCount: Int64 = 0
 
     // Parental relationship
-    public var node: NodeModel?
+    public var node: Node?
 
     @Relationship var feeds: [Feed]
 

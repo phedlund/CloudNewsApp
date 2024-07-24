@@ -15,7 +15,7 @@ struct ContentView: View {
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
-    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: NodeModel.ID?
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Node.ID?
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
@@ -61,7 +61,7 @@ struct ContentView: View {
         .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode, initial: true) { _, newValue in
-            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? NodeModel {
+            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? Node {
                 navigationTitle = model.title
                 feedModel.currentNode = model
                 feedModel.updateUnreadCount()
@@ -134,7 +134,7 @@ struct ContentView: View {
     }
 
     private func updatePredicate() {
-        if let selectedNode, let node = feedModel.modelContext.model(for: selectedNode) as? NodeModel {
+        if let selectedNode, let node = feedModel.modelContext.model(for: selectedNode) as? Node {
             switch NodeType.fromString(typeString: node.nodeName) {
             case .empty:
                 predicate = #Predicate<Item>{ _ in false }

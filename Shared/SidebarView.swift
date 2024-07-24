@@ -39,15 +39,15 @@ struct SidebarView: View {
     @State private var isShowingRename = false
     @State private var isShowingAlert = false
     @State private var errorMessage = ""
-    @State private var confirmationNode: NodeModel?
+    @State private var confirmationNode: Node?
     @State private var alertInput = ""
     @State private var selectedFeed: Int64 = 0
 
-    @Binding var nodeSelection: NodeModel.ID?
+    @Binding var nodeSelection: Node.ID?
 
-    @Query(filter: #Predicate<NodeModel>{ $0.isTopLevel }, sort: \.nodeName) private var nodes: [NodeModel]
+    @Query(filter: #Predicate<Node>{ $0.isTopLevel }, sort: \.nodeName) private var nodes: [Node]
 
-    init(nodeSelection: Binding<NodeModel.ID?>) {
+    init(nodeSelection: Binding<Node.ID?>) {
         self._nodeSelection = nodeSelection
     }
 
@@ -195,7 +195,7 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    private func contextMenu(node: NodeModel) -> some View {
+    private func contextMenu(node: Node) -> some View {
         switch node.nodeType {
         case .empty, .starred:
             EmptyView()
