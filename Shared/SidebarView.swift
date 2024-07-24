@@ -102,7 +102,7 @@ struct SidebarView: View {
                 }
         }
         .listStyle(.automatic)
-        .accentColor(.pbh.darkIcon)
+        .accentColor(.phDarkIcon)
         .refreshable {
             sync()
         }

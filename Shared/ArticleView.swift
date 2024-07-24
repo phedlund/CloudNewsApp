@@ -21,7 +21,8 @@ struct ArticleView: View {
         .navigationBarTitleDisplayMode(.inline)
 #endif
         .background {
-            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            Color.phWhiteBackground
+                .ignoresSafeArea(edges: .vertical)
         }
         .onChange(of: item.webViewHelper.urlRequest) { oldValue, newValue in
             if newValue != oldValue, let urlRequest = item.webViewHelper.urlRequest {

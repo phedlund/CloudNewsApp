@@ -77,7 +77,7 @@ struct ItemView: View {
         .padding([.trailing], .paddingSix)
         .background(in: RoundedRectangle(cornerRadius: 1.0))
         .backgroundStyle(
-            Color.pbh.whiteCellBackground
+            Color.phWhiteCellBackground
                 .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
         )
         .overlay(alignment: .topTrailing) {
@@ -126,7 +126,7 @@ private extension ItemView {
                 .multilineTextAlignment(.leading)
                 .font(Font.headline.weight(.semibold))
 #if os(iOS)
-                .foregroundColor(.pbh.whiteText)
+                .foregroundColor(.phWhiteText)
 #endif
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true) //force wrapping
@@ -143,7 +143,7 @@ private extension ItemView {
                 .font(.subheadline)
                 .italic()
 #if os(iOS)
-                .foregroundColor(.pbh.whiteText)
+                .foregroundColor(.phWhiteText)
 #endif
                 .lineLimit(1)
         } icon: {
@@ -176,7 +176,7 @@ private extension ItemView {
                         .lineLimit(4)
                         .font(.body)
 #if os(iOS)
-                        .foregroundColor(.pbh.whiteText)
+                        .foregroundColor(.phWhiteText)
 #endif
                     Spacer()
                 }

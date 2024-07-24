@@ -19,7 +19,7 @@ struct ItemsListView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let cellSpacing: CGFloat = 21.0
     let listRowSeparatorVisibility: Visibility = .hidden
-    let listRowBackground = Color.pbh.whiteBackground
+    let listRowBackground = Color.phWhiteBackground
 #endif
     @Environment(FeedModel.self) private var feedModel
     @Environment(\.scenePhase) private var scenePhase
@@ -123,9 +123,10 @@ struct ItemsListView: View {
                     }
                     .defaultScrollAnchor(.top)
                     .environment(feedModel)
-                    .accentColor(.pbh.darkIcon)
+                    .accentColor(.phDarkIcon)
                     .background {
-                        Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                        Color.phWhiteBackground
+                            .ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
                 }

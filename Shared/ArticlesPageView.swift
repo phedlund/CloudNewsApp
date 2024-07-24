@@ -51,7 +51,7 @@ struct ArticlesPageView: View {
         .navigationTitle(item.webViewHelper.title)
         .scrollContentBackground(.hidden)
         .background {
-            Color.pbh.whiteBackground
+            Color.phWhiteBackground
                 .ignoresSafeArea(edges: .vertical)
         }
         .toolbar(content: pageViewToolBarContent)

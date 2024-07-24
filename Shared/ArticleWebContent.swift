@@ -232,13 +232,13 @@ class ArticleWebContent {
         return """
             :root {
                 font: -apple-system-body;
-                --bg-color: \(Color.pbh.whiteBackground.hexaRGB!);
-                --text-color: \(Color.pbh.whiteText.hexaRGB!);
+                --bg-color: \(Color.phWhiteBackground.hexaRGB!);
+                --text-color: \(Color.phWhiteText.hexaRGB!);
                 --font-size: \(fontSize);
                 --body-width-portrait: \(preferences.marginPortrait)vw;
                 --body-width-landscape: \(preferences.marginPortrait)vw;
                 --line-height: \(preferences.lineHeight)em;
-                --link-color: \(Color.pbh.whiteLink.hexaRGB!);
+                --link-color: \(Color.phWhiteLink.hexaRGB!);
             }
         """
     }

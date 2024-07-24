@@ -80,7 +80,6 @@
 		D0F41D792A78186600EEAC78 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D712A76CA4C00EEAC78 /* Feed.swift */; };
 		D0F5BC0C295A6E7C001E728A /* ItemsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */; };
 		D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0FEBD59268AB55600AC0618 /* Colors.xcassets */; };
-		D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */; };
 		D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */; };
 		D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD6B268C09D200AC0618 /* HexColor.swift */; };
 		D0FEBD6F268D529600AC0618 /* ArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */; };
@@ -155,7 +154,6 @@
 		D0F41D712A76CA4C00EEAC78 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemsListView.swift; sourceTree = "<group>"; };
 		D0FEBD59268AB55600AC0618 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
-		D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PBHColors.swift; sourceTree = "<group>"; };
 		D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleWebContent.swift; sourceTree = "<group>"; };
 		D0FEBD6B268C09D200AC0618 /* HexColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		D0FEBD6E268D529600AC0618 /* ArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleSettingsView.swift; sourceTree = "<group>"; };
@@ -237,7 +235,6 @@
 				D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */,
 				D0F35C0527249B2F004BFC27 /* MailComposeView.swift */,
 				D0B399EB292DC5D600406DF1 /* XButtonStyle.swift */,
-				D0FEBD5C268AB57F00AC0618 /* PBHColors.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
 				D050B31327B0BE0200442584 /* block-ads.json */,
@@ -418,7 +415,6 @@
 				D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */,
 				D061B1622BFA9BC500E5D993 /* NodeBuilder.swift in Sources */,
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
-				D0FEBD5E268AB57F00AC0618 /* PBHColors.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0D5F28A2BC4D791007354B3 /* ModelContextExtension.swift in Sources */,
