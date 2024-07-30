@@ -12,6 +12,8 @@ import SwiftSoup
 
 @Model
 final class Item {
+    #Index<Item>([\.id], [\.feedId])
+
     var author: String?
     var body: String?
     var contentHash: String?

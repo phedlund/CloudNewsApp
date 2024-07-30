@@ -9,6 +9,7 @@ import SwiftData
 
 @Model
 final public class Node {
+    #Index<Node>([\.nodeName])
 
     var errorCount: Int64 = 0
     @Attribute(.unique) var nodeName: String

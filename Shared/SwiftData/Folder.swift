@@ -10,6 +10,8 @@ import SwiftData
 
 @Model
 final class Folder {
+    #Index<Folder>([\.id])
+
     @Attribute(.unique) var id: Int64
     var opened: Bool
     var lastModified: Date

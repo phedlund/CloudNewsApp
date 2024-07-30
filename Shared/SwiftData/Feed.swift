@@ -11,6 +11,8 @@ import SwiftData
 
 @Model
 final class Feed {
+    #Index<Feed>([\.id], [\.folderId])
+
     var added: Date
     var faviconLink: String?
     var folderId: Int64
