@@ -54,7 +54,6 @@
 		D0818A802863FC81002264D6 /* MacArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* MacArticleView.swift */; };
 		D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0873FAA29737CE70076DCB1 /* ItemView.swift */; };
 		D08ED86F2870FA4200A8F585 /* ItemWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08ED86E2870FA4200A8F585 /* ItemWebView.swift */; };
-		D08ED871287217E400A8F585 /* ItemWebViewHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08ED870287217E400A8F585 /* ItemWebViewHelper.swift */; };
 		D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2FB267ED1E800A997DB /* ArticleView.swift */; };
 		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
 		D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */; };
@@ -64,6 +63,8 @@
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0D5F28A2BC4D791007354B3 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5F2892BC4D791007354B3 /* ModelContextExtension.swift */; };
 		D0D5F28C2BDC8B2C007354B3 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5F28B2BDC8B2C007354B3 /* Node.swift */; };
+		D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* WebViewReader.swift */; };
+		D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B72C562857002694BC /* Publisher+Extension.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
@@ -127,7 +128,6 @@
 		D07EFCD22B0B011300032103 /* MarkReadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkReadButton.swift; sourceTree = "<group>"; };
 		D0873FAA29737CE70076DCB1 /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 		D08ED86E2870FA4200A8F585 /* ItemWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemWebView.swift; sourceTree = "<group>"; };
-		D08ED870287217E400A8F585 /* ItemWebViewHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemWebViewHelper.swift; sourceTree = "<group>"; };
 		D0A1005827E6B963005D7D70 /* FooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterLabel.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingKeys.swift; sourceTree = "<group>"; };
 		D0B0B2F5267ED1C600A997DB /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -137,6 +137,8 @@
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		D0D5F2892BC4D791007354B3 /* ModelContextExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContextExtension.swift; sourceTree = "<group>"; };
 		D0D5F28B2BDC8B2C007354B3 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
+		D0D853B52C557E4E002694BC /* WebViewReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewReader.swift; sourceTree = "<group>"; };
+		D0D853B72C562857002694BC /* Publisher+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extension.swift"; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
@@ -223,7 +225,8 @@
 				D0728A512816009600B85F72 /* MacArticleView.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
 				D08ED86E2870FA4200A8F585 /* ItemWebView.swift */,
-				D08ED870287217E400A8F585 /* ItemWebViewHelper.swift */,
+				D0D853B72C562857002694BC /* Publisher+Extension.swift */,
+				D0D853B52C557E4E002694BC /* WebViewReader.swift */,
 				D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */,
 				D050B31627B0C0C100442584 /* ContentBlocker.swift */,
 				D02FA073269E2E7600A77875 /* FeedSettingsView.swift */,
@@ -416,6 +419,7 @@
 				D061B1622BFA9BC500E5D993 /* NodeBuilder.swift in Sources */,
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
+				D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0D5F28A2BC4D791007354B3 /* ModelContextExtension.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
@@ -435,7 +439,6 @@
 				D0B399EC292DC5D600406DF1 /* XButtonStyle.swift in Sources */,
 				D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */,
 				D0F41D782A78186200EEAC78 /* Read.swift in Sources */,
-				D08ED871287217E400A8F585 /* ItemWebViewHelper.swift in Sources */,
 				D0367B922A8C5D960099D34D /* Meta.swift in Sources */,
 				D035E344287A5C1D00E1FE5E /* ShareLinkButton.swift in Sources */,
 				D08ED86F2870FA4200A8F585 /* ItemWebView.swift in Sources */,
@@ -465,6 +468,7 @@
 				D02DE6C32754691800533EB0 /* ItemImporter.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* FeedModel.swift in Sources */,
 				D04A9C022C3CA5E300335664 /* ItemLayout.swift in Sources */,
+				D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */,
 				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D0F41D752A78185900EEAC78 /* Item.swift in Sources */,

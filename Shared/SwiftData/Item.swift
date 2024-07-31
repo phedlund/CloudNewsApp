@@ -39,8 +39,6 @@ final class Item {
     var updatedDate: Date?
     var url: String?
 
-    @Transient var webViewHelper = ItemWebViewHelper()
-
     nonisolated var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)

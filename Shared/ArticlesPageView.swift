@@ -18,6 +18,7 @@ struct ArticlesPageView: View {
     @State private var item: Item
     @State private var scrollId: Int64?
     @State private var isShowingPopover = false
+    @State private var pageViewProxy = PageViewProxy()
 
     private let items: [Item]
 
@@ -27,39 +28,42 @@ struct ArticlesPageView: View {
     }
 
     var body: some View {
-        ScrollView(.horizontal) {
+        ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(item: item)
+                    ArticleView(item: item, pageViewReader: pageViewProxy)
                         .containerRelativeFrame([.horizontal, .vertical])
-                        .onChange(of: fontSize) {
-                            item.webViewHelper.webView?.reload()
-                        }
-                        .onChange(of: lineHeight) {
-                            item.webViewHelper.webView?.reload()
-                        }
-                        .onChange(of: marginPortrait) {
-                            item.webViewHelper.webView?.reload()
-                        }
+//                        .onChange(of: fontSize) {
+//                            item.webViewHelper.webView?.reload()
+//                        }
+//                        .onChange(of: lineHeight) {
+//                            item.webViewHelper.webView?.reload()
+//                        }
+//                        .onChange(of: marginPortrait) {
+//                            item.webViewHelper.webView?.reload()
+//                        }
                 }
             }
             .scrollTargetLayout()
         }
-        .scrollIndicators(.never)
-        .scrollPosition(id: $scrollId, anchor: .center)
-        .scrollTargetBehavior(.paging)
-        .navigationTitle(item.webViewHelper.title)
+        .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
+        .scrollPosition(id: $scrollId)
+        .navigationTitle(pageViewProxy.title)
         .scrollContentBackground(.hidden)
         .background {
             Color.phWhiteBackground
                 .ignoresSafeArea(edges: .vertical)
         }
-        .toolbar(content: pageViewToolBarContent)
+        .toolbar {
+            pageViewToolBarContent(pageViewProxy: pageViewProxy)
+        }
         .toolbarRole(.editor)
         .onAppear {
             scrollId = item.id
         }
-        .onChange(of: scrollId, initial: true) { _, newValue in
+        .onChange(of: scrollId ?? 0, initial: true) { _, newValue in
+            pageViewProxy.scrollId = newValue
+            print(newValue)
             if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
                 feedModel.markItemsRead(items: [newItem])
             }
@@ -67,28 +71,28 @@ struct ArticlesPageView: View {
     }
 
     @ToolbarContentBuilder
-    func pageViewToolBarContent() -> some ToolbarContent {
+    func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
         ToolbarItemGroup(placement: .navigationBarLeading) {
             Button {
-                item.webViewHelper.webView?.goBack()
+                pageViewProxy.goBack = true
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!item.webViewHelper.canGoBack)
+            .disabled(!pageViewProxy.canGoBack)
             Button {
-                item.webViewHelper.webView?.goForward()
+                pageViewProxy.goForward = true
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!item.webViewHelper.canGoForward)
+            .disabled(!pageViewProxy.canGoForward)
             Button {
-                if item.webViewHelper.isLoading {
-                    item.webViewHelper.webView?.stopLoading()
+                if pageViewProxy.isLoading {
+                    pageViewProxy.reload = false
                 } else {
-                    item.webViewHelper.webView?.reload()
+                    pageViewProxy.reload = true
                 }
             } label: {
-                if item.webViewHelper.isLoading {
+                if pageViewProxy.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -98,7 +102,7 @@ struct ArticlesPageView: View {
         ToolbarItemGroup(placement: .primaryAction) {
             if let currentItem = items.first(where: { $0.id == scrollId }) {
                 ShareLinkButton(item: currentItem)
-                    .disabled(item.webViewHelper.isLoading)
+                    .disabled(pageViewProxy.isLoading)
             } else {
                 EmptyView()
             }
@@ -107,7 +111,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(item.webViewHelper.isLoading)
+            .disabled(pageViewProxy.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let currentItem = items.first(where: { $0.id == scrollId }) {
                     ArticleSettingsView(item: currentItem)
