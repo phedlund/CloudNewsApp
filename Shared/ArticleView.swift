@@ -9,6 +9,10 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
     var item: Item
     @Bindable var pageViewReader: PageViewProxy
 
@@ -70,6 +74,15 @@ struct ArticleView: View {
                 } else {
                     reader.webView?.stopLoading()
                 }
+            }
+            .onChange(of: fontSize) {
+                reader.webView?.reload()
+            }
+            .onChange(of: lineHeight) {
+                reader.webView?.reload()
+            }
+            .onChange(of: marginPortrait) {
+                reader.webView?.reload()
             }
             .task {
                 if let request = reader.urlRequest {

@@ -11,9 +11,6 @@ import SwiftUI
 #if os(iOS)
 struct ArticlesPageView: View {
     @Environment(FeedModel.self) private var feedModel
-    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
-    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
-    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     @State private var item: Item
     @State private var scrollId: Int64?
@@ -33,15 +30,6 @@ struct ArticlesPageView: View {
                 ForEach(items, id: \.id) { item in
                     ArticleView(item: item, pageViewReader: pageViewProxy)
                         .containerRelativeFrame([.horizontal, .vertical])
-//                        .onChange(of: fontSize) {
-//                            item.webViewHelper.webView?.reload()
-//                        }
-//                        .onChange(of: lineHeight) {
-//                            item.webViewHelper.webView?.reload()
-//                        }
-//                        .onChange(of: marginPortrait) {
-//                            item.webViewHelper.webView?.reload()
-//                        }
                 }
             }
             .scrollTargetLayout()
