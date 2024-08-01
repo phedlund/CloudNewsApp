@@ -21,6 +21,7 @@ struct ArticleView: View {
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
+            .safeAreaPadding([.top], 20)
             .onAppear {
                 pageViewReader.title = reader.title
             }

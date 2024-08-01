@@ -58,6 +58,7 @@ struct ArticlesPageView: View {
             pageViewToolBarContent(pageViewProxy: pageViewProxy)
         }
         .toolbarRole(.editor)
+        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
         .onAppear {
             scrollId = item.id
         }
@@ -72,7 +73,7 @@ struct ArticlesPageView: View {
 
     @ToolbarContentBuilder
     func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
-        ToolbarItemGroup(placement: .navigationBarLeading) {
+        ToolbarItemGroup(placement: .topBarLeading) {
             Button {
                 pageViewProxy.goBack = true
             } label: {
