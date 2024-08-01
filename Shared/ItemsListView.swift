@@ -211,9 +211,7 @@ struct ScrollToTopView: View {
         EmptyView()
             .id(topScrollPoint)
             .onChange(of: scrollOnChange) { _, _ in
-                withAnimation {
-                    reader.scrollTo(topScrollPoint, anchor: .top)
-                }
+                reader.scrollTo(topScrollPoint, anchor: .top)
             }
     }
 }
