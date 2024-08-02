@@ -45,15 +45,15 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
 //                    try await feedImporter.importFeeds(from: data)
-                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
-                        let parameters: ParameterDict = ["batchSize": 200,
-                                                         "offset": 0,
-                                                         "type": 0,
-                                                         "id": newFeed.id,
-                                                         "getRead": NSNumber(value: true)]
-                        let router = Router.items(parameters: parameters)
+//                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
+//                        let parameters: ParameterDict = ["batchSize": 200,
+//                                                         "offset": 0,
+//                                                         "type": 0,
+//                                                         "id": newFeed.id,
+//                                                         "getRead": NSNumber(value: true)]
+//                        let router = Router.items(parameters: parameters)
 //                        try await itemImporter.fetchItems(router.urlRequest())
-                    }
+//                    }
                     try modelContext.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
@@ -328,7 +328,7 @@ extension FeedModel {
                 }
             }
 
-            let newestKnownLastModified = await maxLastModified()
+            let newestKnownLastModified = maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,

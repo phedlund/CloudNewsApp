@@ -104,11 +104,11 @@ final class ServerStatus: NSObject {
 
 final class ServerStatusDelegate: NSObject, URLSessionDelegate {
 
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         if checkTrustedChallenge(session, didReceive: challenge) {
-            completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
+            return (URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
         } else {
-            completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
+            return (URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
         }
     }
 
