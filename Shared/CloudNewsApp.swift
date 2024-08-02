@@ -15,7 +15,6 @@ struct CloudNewsApp: App {
     private let feedModel: FeedModel
 
 #if !os(macOS)
-    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @Environment(\.scenePhase) var scenePhase
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate

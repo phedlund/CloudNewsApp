@@ -38,23 +38,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
 }
 
-#else
-
-import SwiftData
-import UIKit
-
-class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-
-        UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
-            if error == nil {
-                // success!
-            }
-        }
-
-        return true
-    }
-
-}
 #endif

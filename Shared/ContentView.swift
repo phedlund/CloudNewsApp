@@ -49,6 +49,11 @@ struct ContentView: View {
             }
             .navigationTitle(navigationTitle ?? "Untitled")
             .onAppear {
+                UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
+                    if error == nil {
+                        // success!
+                    }
+                }
                 isShowingLogin = isNewInstall
             }
             .sheet(isPresented: $isShowingLogin) {
