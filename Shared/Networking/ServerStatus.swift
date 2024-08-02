@@ -7,7 +7,7 @@
 //
 
 import Foundation
-//import OpenSSL
+import OpenSSL
 
 final class ServerStatus: NSObject {
     nonisolated(unsafe) static let shared = ServerStatus()
@@ -151,31 +151,31 @@ final class ServerStatusDelegate: NSObject, URLSessionDelegate {
     }
 
     private func saveX509Certificate(_ certificate: SecCertificate, host: String, directoryCertificate: String) {
-//        let certNamePathTXT = directoryCertificate + "/" + host + ".txt"
-//        let data: CFData = SecCertificateCopyData(certificate)
-//        let mem = BIO_new_mem_buf(CFDataGetBytePtr(data), Int32(CFDataGetLength(data)))
-//        let x509cert = d2i_X509_bio(mem, nil)
-//
-//        if x509cert == nil {
-//            print("[LOG] OpenSSL couldn't parse X509 Certificate")
-//        } else {
-//            // save details
-//            if FileManager.default.fileExists(atPath: certNamePathTXT) {
-//                do {
-//                    try FileManager.default.removeItem(atPath: certNamePathTXT)
-//                } catch { }
-//            }
-//            let fileCertInfo = fopen(certNamePathTXT, "w")
-//            if fileCertInfo != nil {
-//                let output = BIO_new_fp(fileCertInfo, BIO_NOCLOSE)
-//                X509_print_ex(output, x509cert, UInt(XN_FLAG_COMPAT), UInt(X509_FLAG_COMPAT))
-//                BIO_free(output)
-//            }
-//            fclose(fileCertInfo)
-//            X509_free(x509cert)
-//        }
-//
-//        BIO_free(mem)
+        let certNamePathTXT = directoryCertificate + "/" + host + ".txt"
+        let data: CFData = SecCertificateCopyData(certificate)
+        let mem = BIO_new_mem_buf(CFDataGetBytePtr(data), Int32(CFDataGetLength(data)))
+        let x509cert = d2i_X509_bio(mem, nil)
+
+        if x509cert == nil {
+            print("[LOG] OpenSSL couldn't parse X509 Certificate")
+        } else {
+            // save details
+            if FileManager.default.fileExists(atPath: certNamePathTXT) {
+                do {
+                    try FileManager.default.removeItem(atPath: certNamePathTXT)
+                } catch { }
+            }
+            let fileCertInfo = fopen(certNamePathTXT, "w")
+            if fileCertInfo != nil {
+                let output = BIO_new_fp(fileCertInfo, BIO_NOCLOSE)
+                X509_print_ex(output, x509cert, UInt(XN_FLAG_COMPAT), UInt(X509_FLAG_COMPAT))
+                BIO_free(output)
+            }
+            fclose(fileCertInfo)
+            X509_free(x509cert)
+        }
+
+        BIO_free(mem)
     }
 
 }
