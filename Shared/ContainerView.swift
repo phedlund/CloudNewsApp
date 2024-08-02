@@ -19,7 +19,8 @@ extension ContainerView {
     }
 }
 
-struct ListGroup<Content: View>: ContainerView {
+struct ListGroup<Content: View>: View {
+    @Binding var path: [Item]
     var content: () -> Content
 
     var body: some View {
@@ -27,7 +28,7 @@ struct ListGroup<Content: View>: ContainerView {
 #if os(macOS)
             Group(content: content)
 #else
-            NavigationStack(root: content)
+            NavigationStack(path: $path, root: content)
 #endif
         }
     }

@@ -30,6 +30,7 @@ struct ItemsListView: View {
 
     @Query private var items: [Item]
 
+    @State private var path = [Item]()
     @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var itemSelection: PersistentIdentifier?
@@ -53,7 +54,7 @@ struct ItemsListView: View {
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
 #endif
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            ListGroup {
+            ListGroup(path: $path) {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
@@ -74,14 +75,10 @@ struct ItemsListView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .navigationDestination(for: Item.self) {
-#if !os(macOS)
-                            ArticlesPageView(item: $0, items: items)
-                                .environment(feedModel)
-#endif
-                        }
+                        .newsNavigationDestination(type: Item.self, items: items)
                         .scrollTargetLayout(isEnabled: true)
                         .onChange(of: selectedNode) { _, _ in
+                            path.removeAll()
                             DispatchQueue.main.async {
                                 isScrollingToTop = true
                                 scrollToTop.toggle()
