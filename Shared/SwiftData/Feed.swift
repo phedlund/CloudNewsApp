@@ -33,6 +33,7 @@ final class Feed {
     public var node: Node?
 
     @Relationship var items: [Item]
+    @Relationship(deleteRule: .cascade) var imageModel: ImageModel?
 
     @MainActor
     var favIconUrl: URL? {

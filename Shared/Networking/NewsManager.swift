@@ -340,6 +340,7 @@ extension FeedModel {
             try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
+            await imageImporter.updateFaviconsInDatabase()
             nodeBuilder.update()
             DispatchQueue.main.async {
                 self.isSyncing = false

@@ -5,9 +5,9 @@
 //  Created by Peter Hedlund on 11/28/21.
 //
 
-import SwiftData
 import Foundation
 import OSLog
+import SwiftData
 
 class WebImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: WebImporter.self))

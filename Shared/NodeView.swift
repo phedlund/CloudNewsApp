@@ -65,9 +65,8 @@ struct NodeView: View {
 
 private extension NodeView {
 
-    @MainActor
     var favIconView: some View {
-        Group {
+        HStack {
             switch node.nodeType {
             case .all, .empty:
                 Image(.rss)
@@ -76,29 +75,24 @@ private extension NodeView {
                 Image(systemName: "star.fill")
             case .folder( _):
                 Image(systemName: "folder")
-            case .feed( _):
-                LazyImage(url: favIconUrl)  { phase in
-                    if let image = phase.image {
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    } else if phase.error != nil {
-                        Image(.rss)
-                            .font(.system(size: 18, weight: .light))
-                    } else {
-                        ProgressView()
-                    }
-                }
-                .frame(width: 22, height: 22)
+            case .feed(id: let id):
+                Image(uiImage: favIconImage(feedId: id))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
             }
         }
-        .task {
-            Task { @MainActor in
-                favIconUrl = try await node.feed?.favIconUrl
-            }
-        }
+        .frame(width: 22, height: 22)
     }
 
+    func favIconImage(feedId: Int64) -> SystemImage {
+        var favImage = SystemImage(named: "rss")
+        if let model = feedModel.modelContext.feed(id: feedId)?.imageModel {
+            if let image = SystemImage(loadingDataFrom: model) {
+                favImage = image
+            }
+        }
+        return favImage ?? SystemImage()
+    }
 }
 //struct NodeView_Previews: PreviewProvider {
 //    static var previews: some View {

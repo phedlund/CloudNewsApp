@@ -147,19 +147,10 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            LazyImage(url: favIconUrl)  { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 22, height: 22)
-                } else if phase.error != nil {
-                    Image(.rss)
-                        .font(.system(size: 18, weight: .light))
-                } else {
-                    ProgressView()
-                }
-            }
+            Image(uiImage: favIconImage(feed: item.feed))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 22, height: 22)
         }
         .labelStyle(includeFavIcon: showFavIcons ?? true)
     }
@@ -234,6 +225,16 @@ private extension ItemView {
                 thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
             }
         }
+    }
+
+    func favIconImage(feed: Feed?) -> SystemImage {
+        var favImage = SystemImage(named: "rss")
+        if let model = feed?.imageModel {
+            if let image = SystemImage(loadingDataFrom: model) {
+                favImage = image
+            }
+        }
+        return favImage ?? SystemImage()
     }
 
 }
