@@ -13,7 +13,7 @@ import SwiftData
 class FeedModel: @unchecked Sendable {
     let modelContext: ModelContext
     let webImporter: WebImporter
-    let imageImporter: ImageImporter
+    let imageImporter: FaviconImporter
     let itemPruner: ItemPruner
     let nodeBuilder: NodeBuilder
     let session = ServerStatus.shared.session
@@ -29,7 +29,7 @@ class FeedModel: @unchecked Sendable {
         self.modelContext = modelContext
         self.modelContext.autosaveEnabled = false
         self.webImporter = WebImporter(modelContext: modelContext)
-        self.imageImporter = ImageImporter(modelContext: modelContext)
+        self.imageImporter = FaviconImporter(modelContext: modelContext)
         self.itemPruner = ItemPruner(modelContext: modelContext)
         self.nodeBuilder = NodeBuilder(modelContext: modelContext)
         Task {

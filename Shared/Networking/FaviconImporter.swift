@@ -9,8 +9,8 @@ import Foundation
 import OSLog
 import SwiftData
 
-class ImageImporter {
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ImageImporter.self))
+class FaviconImporter {
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: FaviconImporter.self))
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
