@@ -49,9 +49,16 @@ struct ContentView: View {
             }
             .navigationTitle(navigationTitle ?? "Untitled")
             .onAppear {
-                UNUserNotificationCenter.current().requestAuthorization(options: .badge) { granted, error in
-                    if error == nil {
-                        // success!
+                Task {
+                    let center = UNUserNotificationCenter.current()
+                    do {
+                        if try await center.requestAuthorization(options: [.badge]) == true {
+                            // You have authorization.
+                        } else {
+                            // You don't have authorization.
+                        }
+                    } catch {
+                        // Handle any errors.
                     }
                 }
                 isShowingLogin = isNewInstall
