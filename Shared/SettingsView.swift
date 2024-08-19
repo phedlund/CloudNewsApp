@@ -265,7 +265,7 @@ struct SettingsView: View {
         })
         .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
             Button("Reset Data", role: .destructive) {
-                NewsData.shared.resetDatabase()
+// TODO           NewsData.shared.resetDatabase()
 // TODO                newsManager.syncSubject.send(SyncTimes(previous: 0, current: 0))
                 server = ""
                 productName = ""

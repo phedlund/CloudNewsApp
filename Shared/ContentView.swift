@@ -11,11 +11,12 @@ import SwiftUI
 struct ContentView: View {
     @Environment(FeedModel.self) private var feedModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
-    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Node.ID?
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
@@ -24,6 +25,10 @@ struct ContentView: View {
     @State private var sortOrder = SortDescriptor(\Item.id)
     @State private var predicate = #Predicate<Item>{ _ in false }
     @State private var selectedItem: Item? = nil
+
+    @Query private var feeds: [Feed]
+    @Query private var folders: [Folder]
+    @Query private var items: [Item]
 
     var body: some View {
         let _ = Self._printChanges()
@@ -72,12 +77,26 @@ struct ContentView: View {
         }
         .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: selectedNode, initial: true) { _, newValue in
-            if let node = selectedNode, let model = feedModel.modelContext.model(for: node) as? Node {
-                navigationTitle = model.title
-                feedModel.currentNode = model
-                feedModel.updateUnreadCount()
+        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+            let nodeType = NodeType.fromData(newValue)
+            switch nodeType {
+            case .empty:
+                navigationTitle = ""
+            case .all:
+                navigationTitle = "All Articles"
+            case .starred:
+                navigationTitle = "Starred Articles"
+            case .folder(let id):
+                let folder = folders.first(where: { $0.id == id })
+                navigationTitle = folder?.name ?? "Untitled Folder"
+            case .feed(let id):
+                let feed = feeds.first(where: { $0.id == id })
+                navigationTitle = feed?.title ?? "Untitled Feed"
             }
+            // TODO           if let node = selectedNode, let model = nodes.first(where: { $0.nodeName == node }) {
+            //                feedModel.currentNode = model
+            ////                feedModel.updateUnreadCount()
+            //            }
             selectedNode = newValue
             updatePredicate()
         }
@@ -146,8 +165,8 @@ struct ContentView: View {
     }
 
     private func updatePredicate() {
-        if let selectedNode, let node = feedModel.modelContext.model(for: selectedNode) as? Node {
-            switch NodeType.fromString(typeString: node.nodeName) {
+        if let selectedNode {
+            switch NodeType.fromData(selectedNode) {
             case .empty:
                 predicate = #Predicate<Item>{ _ in false }
             case .all:
@@ -161,12 +180,14 @@ struct ContentView: View {
             case .starred:
                 predicate = #Predicate<Item>{ $0.starred }
             case .folder(id:  let id):
-                if let feedIds = feedModel.modelContext.feedIdsInFolder(folder: id) {
-                    predicate = #Predicate<Item>{
-                        if hideRead {
-                            return feedIds.contains($0.feedId) && $0.unread
-                        } else {
-                            return feedIds.contains($0.feedId)
+                Task {
+                    if let feedIds = await feedModel.backgroundModelActor.feedIdsInFolder(folder: id) {
+                        predicate = #Predicate<Item>{
+                            if hideRead {
+                                return feedIds.contains($0.feedId) && $0.unread
+                            } else {
+                                return feedIds.contains($0.feedId)
+                            }
                         }
                     }
                 }
@@ -190,6 +211,55 @@ struct ContentView: View {
         }
     }
 
+//    private func updateNodes() async {
+//        return
+//        let allNodeModel = Node(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all, isTopLevel: true)
+//        let starredNodeModel = Node(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred, isTopLevel: true)
+//        await feedModel.backgroundModelActor.insert(allNodeModel)
+//        await feedModel.backgroundModelActor.insert(starredNodeModel)
+//        try? await feedModel.backgroundModelActor.save()
+////        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
+//
+//        do {
+//            for folder in folders {
+//                let folderNodeModel = Node(title: folder.name ?? "Untitled Folder", errorCount: 0, nodeName: "cccc_\(String(format: "%03d", folder.id))", isExpanded: folder.opened, nodeType: .folder(id: folder.id), isTopLevel: true)
+//
+//                var children = [Node]()
+//                let folderFeeds = feeds.filter( { $0.folderId == folder.id })
+//                for feed in folderFeeds {
+//                    let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: false)
+//                    feedNodeModel.feed = feed
+//                    Task {
+//                        await feedModel.backgroundModelActor.insert(feedNodeModel)
+//                    }
+//                    children.append(feedNodeModel)
+//                    feed.node = feedNodeModel
+//                }
+//
+//                Task {
+//                    await feedModel.backgroundModelActor.insert(folderNodeModel)
+//                }
+//                folderNodeModel.folder = folder
+//                folderNodeModel.children = children
+//                folder.node = folderNodeModel
+//                try await feedModel.backgroundModelActor.save()
+//            }
+//
+//            let folderFreeFeeds = feeds.filter( { $0.folderId == 0 } )
+//            for feed in folderFreeFeeds {
+//                let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: true)
+//                feedNodeModel.feed = feed
+//                Task {
+//                    await feedModel.backgroundModelActor.insert(feedNodeModel)
+//                }
+//                feed.node = feedNodeModel
+//            }
+//            try await feedModel.backgroundModelActor.save()
+//        } catch {
+//
+//        }
+//
+//    }
 }
 
 //struct ContentView_Previews: PreviewProvider {

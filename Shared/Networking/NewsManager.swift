@@ -44,17 +44,17 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-//                    try await feedImporter.importFeeds(from: data)
-//                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
-//                        let parameters: ParameterDict = ["batchSize": 200,
-//                                                         "offset": 0,
-//                                                         "type": 0,
-//                                                         "id": newFeed.id,
-//                                                         "getRead": NSNumber(value: true)]
-//                        let router = Router.items(parameters: parameters)
-//                        try await itemImporter.fetchItems(router.urlRequest())
-//                    }
-                    try modelContext.save()
+                    //                    try await feedImporter.importFeeds(from: data)
+                    //                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
+                    //                        let parameters: ParameterDict = ["batchSize": 200,
+                    //                                                         "offset": 0,
+                    //                                                         "type": 0,
+                    //                                                         "id": newFeed.id,
+                    //                                                         "getRead": NSNumber(value: true)]
+                    //                        let router = Router.items(parameters: parameters)
+                    //                        try await itemImporter.fetchItems(router.urlRequest())
+                    //                    }
+                    try await backgroundModelActor.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -83,7 +83,7 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     break
-//                   TODO try await folderImporter.importFolders(from: data)
+                    //                   TODO try await folderImporter.importFolders(from: data)
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -120,23 +120,23 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-                        try modelContext.delete(model: Unread.self)
-                        try modelContext.save()
+                        try await backgroundModelActor.delete(Unread.self)
+                        try await backgroundModelActor.save()
                     } else {
-                        try modelContext.delete(model: Read.self)
-                        try modelContext.save()
+                        try await backgroundModelActor.delete(Read.self)
+                        try await backgroundModelActor.save()
                     }
                 default:
                     if unread {
                         for itemId in itemIds {
-                            modelContext.insert(Read(itemId: itemId))
+                            await backgroundModelActor.insert(Read(itemId: itemId))
                         }
-                        try modelContext.save()
+                        try await backgroundModelActor.save()
                     } else {
                         for itemId in itemIds {
-                            modelContext.insert(Unread(itemId: itemId))
+                            await backgroundModelActor.insert(Unread(itemId: itemId))
                         }
-                        try modelContext.save()
+                        try await backgroundModelActor.save()
                     }
                 }
             }
@@ -149,7 +149,7 @@ extension FeedModel {
     func markStarred(item: Item, starred: Bool) async throws {
         do {
             item.starred = starred
-            try modelContext.save()
+            try await backgroundModelActor.save()
 
             let parameters: ParameterDict = ["items": [["feedId": item.feedId,
                                                         "guidHash": item.guidHash as Any]]]
@@ -166,18 +166,18 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-                        try modelContext.delete(model: Unstarred.self)
+                        try await backgroundModelActor.delete(Unstarred.self)
                     } else {
-                        try modelContext.delete(model: Starred.self)
+                        try await backgroundModelActor.delete(Starred.self)
                     }
                 default:
                     if starred {
-                        modelContext.insert(Starred(itemId: item.id))
+                        await backgroundModelActor.insert(Starred(itemId: item.id))
                     } else {
-                        modelContext.insert(Unstarred(itemId: item.id))
+                        await backgroundModelActor.insert(Unstarred(itemId: item.id))
                     }
                 }
-                try modelContext.save()
+                try await backgroundModelActor.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
@@ -205,12 +205,10 @@ extension FeedModel {
         let starredRouter = Router.items(parameters: starredParameters)
 
         do {
-
             try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: unreadRouter.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: starredRouter.urlRequest())
-            await nodeBuilder.update()
             DispatchQueue.main.async {
                 self.isSyncing = false
             }
@@ -233,7 +231,7 @@ extension FeedModel {
      7. Get new items and modified items: GET /items/updated?lastModified=12123123123&type=3
 
      */
-    @MainActor
+
     func sync() async throws {
         //        CDFeeds.reset()
         //        CDFeed.reset()
@@ -242,93 +240,97 @@ extension FeedModel {
         //
         isSyncing = true
         do {
-            let itemCount = try modelContext.fetchCount(FetchDescriptor<Item>())
-            if itemCount == 0 {
-                try await self.initialSync()
-                return
-            }
-        } catch { }
+            //            let itemCount = try await backgroundModelActor.fetchCount()
+            //            if itemCount == 0 {
+            //                try await self.initialSync()
+            //                return
+            //            }
+            //        } catch { }
 
-        do {
-            let localRead = try modelContext.fetch(FetchDescriptor<Read>())
-            if !localRead.isEmpty {
-                let localReadIds = localRead.map( { $0.itemId } )
-                let readParameters = ["items": localReadIds]
-                let readRouter = Router.itemsRead(parameters: readParameters)
-                async let (_, readResponse) = session.data(for: readRouter.urlRequest(), delegate: nil)
-                let readItemsResponse = try await readResponse
-                if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
-                    switch httpReadResponse.statusCode {
-                    case 200:
-                        try modelContext.delete(model: Read.self)
-                    default:
-                        break
-                    }
-                }
+            //        do {
+            //            Task {
+            //                let localRead: [Read] = try await backgroundModelActor.fetchData()
+            //                if !localRead.isEmpty {
+            //                    let localReadIds = localRead.map( { $0.itemId } )
+            //                    let readParameters = ["items": localReadIds]
+            //                    let readRouter = Router.itemsRead(parameters: readParameters)
+            //                    async let (_, readResponse) = session.data(for: readRouter.urlRequest(), delegate: nil)
+            //                    let readItemsResponse = try await readResponse
+            //                    if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
+            //                        switch httpReadResponse.statusCode {
+            //                        case 200:
+            //                            try await backgroundModelActor.delete(Read.self)
+            //                        default:
+            //                            break
+            //                        }
+            //                    }
+            //                }
+            //
+            //                let localStarred: [Starred] = try await backgroundModelActor.fetchData()
+            //                if !localStarred.isEmpty {
+            //                    let localStarredIds = localStarred.map( { $0.itemId } )
+            //                    let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
+            //                        localStarredIds.contains($0.id)
+            //                    })
+            //                    let predicate = #Predicate<Item> {
+            //                        localStarredIds.contains($0.id)
+            //                    }
+            //                    let starredItems: [Item] = try await backgroundModelActor.fetchData(predicate: predicate)
+            //                    if !starredItems.isEmpty {
+            //                        var params = [Any]()
+            //                        for starredItem in starredItems {
+            //                            var param: [String: Any] = [:]
+            //                            param["feedId"] = starredItem.feedId
+            //                            param["guidHash"] = starredItem.guidHash
+            //                            params.append(param)
+            //                        }
+            //                        let starredParameters = ["items": params]
+            //                        let starredRouter = Router.itemsStarred(parameters: starredParameters)
+            //                        async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
+            //                        let starredItemsResponse = try await starredResponse
+            //                        if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
+            //                            switch httpStarredResponse.statusCode {
+            //                            case 200:
+            //                                try await backgroundModelActor.delete(Starred.self)
+            //                            default:
+            //                                break
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //
+            //                let localUnstarred: [Unstarred] = try await backgroundModelActor.fetchData()
+            //                if !localUnstarred.isEmpty {
+            //                    let localUnstarredIds = localUnstarred.map( { $0.itemId } )
+            //                    let predicate = #Predicate<Item> {
+            //                        localUnstarredIds.contains($0.id)
+            //                    }
+            //                    let unstarredItems: [Item] = try await backgroundModelActor.fetchData(predicate: predicate)
+            //                    if !unstarredItems.isEmpty {
+            //                        var params: [Any] = []
+            //                        for unstarredItem in unstarredItems {
+            //                            var param: [String: Any] = [:]
+            //                            param["feedId"] = unstarredItem.feedId
+            //                            param["guidHash"] = unstarredItem.guidHash
+            //                            params.append(param)
+            //                        }
+            //                        let unStarredParameters = ["items": params]
+            //                        let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
+            //                        async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
+            //                        let unStarredItemsResponse = try await unStarredResponse
+            //                        if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
+            //                            switch httpUnStarredResponse.statusCode {
+            //                            case 200:
+            //                                try await backgroundModelActor.delete(Unstarred.self)
+            //                            default:
+            //                                break
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
 
-
-                let localStarred = try modelContext.fetch(FetchDescriptor<Starred>())
-                if !localStarred.isEmpty {
-                    let localStarredIds = localStarred.map( { $0.itemId } )
-                    let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
-                        localStarredIds.contains($0.id)
-                    })
-                    let starredItems = try modelContext.fetch(starredItemsFetchDescriptor)
-                    if !starredItems.isEmpty {
-                        var params = [Any]()
-                        for starredItem in starredItems {
-                            var param: [String: Any] = [:]
-                            param["feedId"] = starredItem.feedId
-                            param["guidHash"] = starredItem.guidHash
-                            params.append(param)
-                        }
-                        let starredParameters = ["items": params]
-                        let starredRouter = Router.itemsStarred(parameters: starredParameters)
-                        async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
-                        let starredItemsResponse = try await starredResponse
-                        if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
-                            switch httpStarredResponse.statusCode {
-                            case 200:
-                                try modelContext.delete(model: Starred.self)
-                            default:
-                                break
-                            }
-                        }
-                    }
-                }
-
-                let localUnstarred = try modelContext.fetch(FetchDescriptor<Unstarred>())
-                if !localUnstarred.isEmpty {
-                    let localUnstarredIds = localUnstarred.map( { $0.itemId } )
-                    let unstarredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
-                        localUnstarredIds.contains($0.id)
-                    })
-                    let unstarredItems = try modelContext.fetch(unstarredItemsFetchDescriptor)
-                    if !unstarredItems.isEmpty {
-                        var params: [Any] = []
-                        for unstarredItem in unstarredItems {
-                            var param: [String: Any] = [:]
-                            param["feedId"] = unstarredItem.feedId
-                            param["guidHash"] = unstarredItem.guidHash
-                            params.append(param)
-                        }
-                        let unStarredParameters = ["items": params]
-                        let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
-                        async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
-                        let unStarredItemsResponse = try await unStarredResponse
-                        if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
-                            switch httpUnStarredResponse.statusCode {
-                            case 200:
-                                try modelContext.delete(model: Unstarred.self)
-                            default:
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-
-            let newestKnownLastModified = maxLastModified()
+            let newestKnownLastModified = await backgroundModelActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -338,10 +340,11 @@ extension FeedModel {
 
             try await itemPruner.pruneItems(daysOld: Preferences().keepDuration)
             try await webImporter.updateFoldersInDatabase(urlRequest: Router.folders.urlRequest())
+            print("Done with folders")
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
+            print("Done with feeds")
             try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
-            await imageImporter.updateFaviconsInDatabase()
-            nodeBuilder.update()
+            print("Done with items")
             DispatchQueue.main.async {
                 self.isSyncing = false
             }
@@ -350,16 +353,6 @@ extension FeedModel {
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
-    }
-
-    @MainActor private func maxLastModified() -> Int64 {
-        var result: Int64 = 0
-        do {
-            if let item = try NewsData.shared.container?.mainContext.fetch(FetchDescriptor<Item>()).max(by: { a, b in a.lastModified < b.lastModified }) {
-                result = Int64(item.lastModified.timeIntervalSince1970)
-            }
-        } catch { }
-        return result
     }
 
     @MainActor
@@ -420,8 +413,8 @@ extension FeedModel {
                 case 200:
                     break
                 case 404:
-                    try await modelContext.deleteItems(with: Int64(id))
-                    try await modelContext.deleteFeed(id: Int64(id))
+                    try await backgroundModelActor.deleteItems(with: Int64(id))
+                    try await backgroundModelActor.deleteFeed(id: Int64(id))
                     throw NetworkError.feedDoesNotExist
                 default:
                     throw NetworkError.feedErrorDeleting

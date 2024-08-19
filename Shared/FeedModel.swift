@@ -11,30 +11,26 @@ import SwiftData
 
 @Observable
 class FeedModel: @unchecked Sendable {
-    let modelContext: ModelContext
-    let webImporter: WebImporter
-    let imageImporter: FaviconImporter
-    let itemPruner: ItemPruner
-    let nodeBuilder: NodeBuilder
+    let backgroundModelActor: BackgroundModelActor
+    var webImporter: WebImporter
+    var itemPruner: ItemPruner
     let session = ServerStatus.shared.session
 
 //    var currentItems = [Item]()
     var currentItem: Item? = nil
-    var currentNode: Node? = nil
+    var currentNode: NodeStruct? = nil
     var currentItemID: PersistentIdentifier? = nil
-    @MainActor var unreadCount = 0
-    @MainActor var isSyncing = false
+//    @MainActor var unreadCount = 0
+    var isSyncing = false
 
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        self.modelContext.autosaveEnabled = false
-        self.webImporter = WebImporter(modelContext: modelContext)
-        self.imageImporter = FaviconImporter(modelContext: modelContext)
-        self.itemPruner = ItemPruner(modelContext: modelContext)
-        self.nodeBuilder = NodeBuilder(modelContext: modelContext)
-        Task {
-            await updateUnreadCount()
-        }
+    init(backgroundModelActor: BackgroundModelActor) {
+        self.backgroundModelActor = backgroundModelActor
+//        backgroundModelActor.modelContext.autosaveEnabled = false
+//        Task {
+            self.webImporter = WebImporter(backgroundModelActor: backgroundModelActor)
+            self.itemPruner = ItemPruner(backgroundModelActor: backgroundModelActor)
+//            await updateUnreadCount()
+//        }
     }
 
 //    func selectPreviousItem() {
@@ -49,7 +45,7 @@ class FeedModel: @unchecked Sendable {
 //        }
 //    }
 
-    func delete(_ node: Node) {
+    func delete(_ node: NodeStruct) {
         switch node.nodeType {
         case .empty, .all, .starred:
             break
@@ -57,13 +53,13 @@ class FeedModel: @unchecked Sendable {
             Task {
                 do {
                   try await deleteFolder(Int(id))
-                    if let feedIds = modelContext.feedIdsInFolder(folder: id) {
+                    if let feedIds = await backgroundModelActor.feedIdsInFolder(folder: id) {
                         for feedId in feedIds {
-                            try await modelContext.deleteItems(with: feedId)
-                            try await modelContext.deleteFolder(id: feedId)
+                            try await backgroundModelActor.deleteItems(with: feedId)
+                            try await backgroundModelActor.deleteFolder(id: feedId)
                         }
                     }
-                    try await modelContext.deleteFolder(id: id)
+                    try await backgroundModelActor.deleteFolder(id: id)
                 } catch {
                     //
                 }
@@ -72,8 +68,8 @@ class FeedModel: @unchecked Sendable {
             Task {
                 do {
                     try await deleteFeed(Int(id))
-                    try await modelContext.deleteItems(with: id)
-                    try await modelContext.deleteFeed(id: id)
+                    try await backgroundModelActor.deleteItems(with: id)
+                    try await backgroundModelActor.deleteFeed(id: id)
                 } catch {
                     //
                 }
@@ -83,30 +79,32 @@ class FeedModel: @unchecked Sendable {
 
     @MainActor
     func markCurrentNodeRead() {
-        if let currentNode {
-            var predicate = #Predicate<Item> { _ in return false }
-            switch currentNode.nodeType {
-            case .empty:
-                break
-            case .all:
-                predicate = #Predicate<Item> { $0.unread == true }
-            case .starred:
-                predicate = #Predicate<Item> { $0.starred == true }
+        Task {
+            if let currentNode {
+                var predicate = #Predicate<Item> { _ in return false }
+                switch currentNode.nodeType {
+                case .empty:
+                    break
+                case .all:
+                    predicate = #Predicate<Item> { $0.unread == true }
+                case .starred:
+                    predicate = #Predicate<Item> { $0.starred == true }
 
-            case .feed(let id):
-                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            case .folder(let id):
-                if let feedIds = modelContext.feedIdsInFolder(folder: id) {
-                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+                case .feed(let id):
+                    predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+                case .folder(let id):
+                    if let feedIds = await backgroundModelActor.feedIdsInFolder(folder: id) {
+                        predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+                    }
                 }
-            }
-            let descriptor = FetchDescriptor<Item>(predicate: predicate)
-            do {
-                let items = try modelContext.fetch(descriptor)
-                markItemsRead(items: items)
-                unreadCount = 0
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
+                let descriptor = FetchDescriptor<Item>(predicate: predicate)
+                do {
+//                    let items = try await backgroundModelActor.fetchData(predicate: predicate)
+//                    markItemsRead(items: items)
+//                    unreadCount = 0
+                } catch let error as NSError {
+                    print("Could not fetch \(error), \(error.userInfo)")
+                }
             }
         }
     }
@@ -121,50 +119,52 @@ class FeedModel: @unchecked Sendable {
         }
         Task {
             try await self.markRead(items: items, unread: false)
-            updateUnreadCount()
+//            updateUnreadCount()
         }
     }
 
     @MainActor
     func toggleItemRead(item: Item) {
-        do {
-            item.unread.toggle()
-            try modelContext.save()
-            Task {
-                try await self.markRead(items: [item], unread: !item.unread)
-                updateUnreadCount()
-            }
-        } catch {
-            //
-        }
-    }
-
-    @MainActor
-    func updateUnreadCount() {
-        if let currentNode {
-            var predicate = #Predicate<Item> { _ in return false }
-            switch currentNode.nodeType {
-            case .empty:
-                break
-            case .all:
-                predicate = #Predicate<Item> { $0.unread == true }
-            case .starred:
-                predicate = #Predicate<Item> { $0.starred == true }
-
-            case .feed(let id):
-                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            case .folder(let id):
-                if let feedIds = modelContext.feedIdsInFolder(folder: id) {
-                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-                }
-            }
-            let descriptor = FetchDescriptor<Item>(predicate: predicate)
+        Task {
             do {
-                unreadCount = try modelContext.fetchCount(descriptor)
-            } catch let error as NSError {
-                print("Could not fetch \(error), \(error.userInfo)")
+                item.unread.toggle()
+                try await backgroundModelActor.save()
+                Task {
+                    try await self.markRead(items: [item], unread: !item.unread)
+//                    updateUnreadCount()
+                }
+            } catch {
+                //
             }
         }
     }
+
+//    @MainActor
+//    func updateUnreadCount() {
+//        if let currentNode {
+//            var predicate = #Predicate<Item> { _ in return false }
+//            switch currentNode.nodeType {
+//            case .empty:
+//                break
+//            case .all:
+//                predicate = #Predicate<Item> { $0.unread == true }
+//            case .starred:
+//                predicate = #Predicate<Item> { $0.starred == true }
+//
+//            case .feed(let id):
+//                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+//            case .folder(let id):
+//                if let feedIds = backgroundModelActor.feedIdsInFolder(folder: id) {
+//                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+//                }
+//            }
+//            let descriptor = FetchDescriptor<Item>(predicate: predicate)
+//            do {
+//                unreadCount = try backgroundModelActor.fetchCount(predicate: predicate)
+//            } catch let error as NSError {
+//                print("Could not fetch \(error), \(error.userInfo)")
+//            }
+//        }
+//    }
 
 }

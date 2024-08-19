@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Nuke
 import SwiftData
 import SwiftSoup
+import SwiftUI
 
 @Model
 final class Item {
@@ -38,43 +38,14 @@ final class Item {
     var unread: Bool
     var updatedDate: Date?
     var url: String?
+    var thumbnailURL: URL?
 
     nonisolated var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)
     }
 
-    @MainActor
-    var imageUrl: URL? {
-        get async throws {
-            let validSchemas = ["http", "https", "file"]
-            var itemImageUrl: URL?
-            if let urlString = mediaThumbnail, let imgUrl = URL(string: urlString) {
-                itemImageUrl = imgUrl
-            } else if let summary = body {
-                do {
-                    let doc: Document = try SwiftSoup.parse(summary)
-                    let srcs: Elements = try doc.select("img[src]")
-                    let images = try srcs.array().map({ try $0.attr("src") })
-                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                        itemImageUrl = imgUrl
-                    } else {
-                        itemImageUrl = try await internalUrl
-                    }
-                } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                    print(message)
-                } catch(let error) {
-                    print(error.localizedDescription)
-                }
-            } else {
-                itemImageUrl = try await internalUrl
-            }
-            return itemImageUrl
-        }
-    }
-
-    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil) {
+    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil, thumbnailURL: URL? = nil) {
         self.author = author
         self.body = body
         self.contentHash = contentHash
@@ -98,9 +69,36 @@ final class Item {
         self.unread = unread
         self.updatedDate = updatedDate
         self.url = url
+        self.thumbnailURL = thumbnailURL
     }
 
-    convenience init(item: ItemDTO) {
+    convenience init(item: ItemDTO) async {
+
+        func internalUrl(_ urlString: String?) async -> URL? {
+            if let urlString, let url = URL(string: urlString) {
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                    if let html = String(data: data, encoding: .utf8) {
+                        let doc: Document = try SwiftSoup.parse(html)
+                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                            let ogImage = try meta.attr("content")
+                            let ogUrl = URL(string: ogImage)
+                            return ogUrl
+                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                            let twImage = try meta.attr("content")
+                            let twUrl = URL(string: twImage)
+                            return twUrl
+                        } else {
+                            return nil
+                        }
+                    }
+                } catch(let error) {
+                    print(error.localizedDescription)
+                }
+            }
+            return nil
+        }
+
         let displayTitle = plainSummary(raw: item.title)
 
         var summary = ""
@@ -124,8 +122,6 @@ final class Item {
 
         let clipLength = 50
         var dateLabelText = ""
-//        if let pubDate = item.pubDate {
-//            let date = Date(timeIntervalSince1970: TimeInterval(pubDate))
         dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
         if !dateLabelText.isEmpty {
             dateLabelText.append(" | ")
@@ -141,19 +137,30 @@ final class Item {
             }
         }
 
-//                if let feedId = listItem["feedId"] as? Int64,
-//                   let feed = modelContext.feed(id: feedId),
-//                   let feedTitle = feed.title {
-//                    if let itemAuthor = listItem["author"] as? String,
-//                       !itemAuthor.isEmpty {
-//                        if feedTitle != itemAuthor {
-//                            dateLabelText.append(" | \(feedTitle)")
-//                        }
-//                    } else {
-//                        dateLabelText.append(feedTitle)
-//                    }
-//                }
-//        currentItem["dateFeedAuthor"] = dateLabelText
+        let validSchemas = ["http", "https", "file"]
+        var itemImageUrl: URL?
+        if let urlString = item.mediaThumbnail, let imgUrl = URL(string: urlString) {
+            itemImageUrl = imgUrl
+        } else if let summary = item.body {
+            do {
+                let doc: Document = try SwiftSoup.parse(summary)
+                let srcs: Elements = try doc.select("img[src]")
+                let images = try srcs.array().map({ try $0.attr("src") })
+                let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                    itemImageUrl = imgUrl
+                } else {
+                    itemImageUrl = await internalUrl(item.url)
+                }
+            } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                print(message)
+            } catch(let error) {
+                print(error.localizedDescription)
+            }
+        } else {
+            itemImageUrl = await internalUrl(item.url)
+        }
+
         self.init(author: item.author,
                   body: item.body,
                   contentHash: item.contentHash,
@@ -176,35 +183,8 @@ final class Item {
                   title: item.title,
                   unread: item.unread,
                   updatedDate: item.updatedDate,
-                  url: item.url)
-    }
-
-    @MainActor
-    private var internalUrl: URL? {
-        get async throws {
-            if let urlString = url, let url = URL(string: urlString) {
-                do {
-                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-                    if let html = String(data: data, encoding: .utf8) {
-                        let doc: Document = try SwiftSoup.parse(html)
-                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                            let ogImage = try meta.attr("content")
-                            let ogUrl = URL(string: ogImage)
-                            return ogUrl
-                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                            let twImage = try meta.attr("content")
-                            let twUrl = URL(string: twImage)
-                            return twUrl
-                        } else {
-                            return nil
-                        }
-                    }
-                } catch(let error) {
-                    print(error.localizedDescription)
-                }
-            }
-            return nil
-        }
+                  url: item.url,
+                  thumbnailURL: itemImageUrl)
     }
 
 }

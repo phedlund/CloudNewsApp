@@ -5,17 +5,16 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
-import NukeUI
 import SwiftData
 import SwiftUI
 
 struct NodeView: View {
     @Environment(FeedModel.self) private var feedModel
 
-    let node: Node
+    let node: NodeStruct
 
     @State private var isShowingConfirmation = false
-    @State private var favIconUrl: URL?
+    @State private var favIcon: SystemImage?
     @State private var title = "Untitled"
 
 #if os(iOS)
@@ -34,8 +33,8 @@ struct NodeView: View {
             }
             .labelStyle(.titleAndIcon)
             Spacer()
-            BadgeView(node: node, modelContext: feedModel.modelContext)
-                .padding(.trailing, node.children?.isEmpty ?? true ? noChildrenPadding : 0)
+            BadgeView(node: node)
+                .padding(.trailing, node.isTopLevel ? 0 : noChildrenPadding)
         }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
@@ -44,7 +43,7 @@ struct NodeView: View {
         ) {
             Button("Yes", role: .destructive) {
                 withAnimation {
-                   feedModel.delete(node)
+//                   feedModel.delete(node)
                 }
             }
             .keyboardShortcut(.defaultAction)
@@ -75,24 +74,19 @@ private extension NodeView {
                 Image(systemName: "star.fill")
             case .folder( _):
                 Image(systemName: "folder")
-            case .feed(id: let id):
-                Image(uiImage: favIconImage(feedId: id))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+            case .feed( _):
+                AsyncImage(url: node.favIconURL) { image in
+                    image.resizable()
+                } placeholder: {
+                    Image(.rss)
+                        .font(.system(size: 18, weight: .light))
+                }
+                .frame(width: 22, height: 22)
             }
         }
         .frame(width: 22, height: 22)
     }
 
-    func favIconImage(feedId: Int64) -> SystemImage {
-        var favImage = SystemImage(named: "rss")
-        if let model = feedModel.modelContext.feed(id: feedId)?.imageModel {
-            if let image = SystemImage(loadingDataFrom: model) {
-                favImage = image
-            }
-        }
-        return favImage ?? SystemImage()
-    }
 }
 //struct NodeView_Previews: PreviewProvider {
 //    static var previews: some View {

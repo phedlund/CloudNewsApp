@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 7/13/21.
 //
 
+import SwiftData
 import SwiftUI
 
 let noFolderName = "(No Folder)"
@@ -12,6 +13,7 @@ let noFolderName = "(No Folder)"
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(FeedModel.self) private var feedModel
+    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
@@ -22,13 +24,15 @@ struct FeedSettingsView: View {
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
     @State private var pinned = false
-//    @State private var feed: Feed?
     @State private var updateErrorCount = ""
     @State private var lastUpdateError = ""
     @State private var url = ""
     @State private var added = ""
     @State private var initialTitle = ""
     @State private var initialFolderSelection = noFolderName
+
+    @Query private var folders: [Folder]
+    @Query private var feeds: [Feed]
 
     var body: some View {
         VStack {
@@ -102,12 +106,10 @@ struct FeedSettingsView: View {
             }
             .task {
                 switch feedModel.currentNode?.nodeType {
-                case .feed(id: _):
-                    if let feed = feedModel.currentNode?.feed,
-                       let folders = feedModel.modelContext.allFolders() {
-//                        self.feed = feed
+                case .feed(id: let id):
+                    if let feed = feeds.first(where: { $0.id == id }) {
                         var fNames = [noFolderName]
-                        let names = folders.compactMap( { $0.name } )
+                        let names = folders.compactMap( { $0.name } ).sorted()
                         fNames.append(contentsOf: names)
                         folderNames = fNames
                         if let folder = feed.folder,
@@ -137,16 +139,16 @@ struct FeedSettingsView: View {
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
-                if let feed = feedModel.currentNode?.feed {
-                    feed.preferWeb = newValue
-                    Task {
-                        do {
-                            try self.feedModel.modelContext.save()
-                        } catch {
-                            //
-                        }
-                    }
-                }
+// TODO               if let feed = feedModel.currentNode?.feed {
+//                    feed.preferWeb = newValue
+//                    Task {
+//                        do {
+//                            try await self.feedModel.backgroundModelActor.save()
+//                        } catch {
+//                            //
+//                        }
+//                    }
+//                }
             }
 #if os(macOS)
             HStack {
@@ -165,59 +167,59 @@ struct FeedSettingsView: View {
 
     @MainActor
     private func onTitleCommit() {
-        if let feed = feedModel.currentNode?.feed {
-            if !title.isEmpty, title != feed.title {
-                Task {
-                    do {
-                        try await feedModel.renameFeed(feed: feed, to: title)
-                        self.feedModel.currentNode?.title = title
-                        feed.title = title
-                        try self.feedModel.modelContext.save()
-                    } catch let error as NetworkError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error as DatabaseError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    }
-                }
-            }
-        }
+// TODO       if let feed = feedModel.currentNode?.feed {
+//            if !title.isEmpty, title != feed.title {
+//                Task {
+//                    do {
+//                        try await feedModel.renameFeed(feed: feed, to: title)
+//                        self.feedModel.currentNode?.title = title
+//                        feed.title = title
+//                        try await self.feedModel.backgroundModelActor.save()
+//                    } catch let error as NetworkError {
+//                        title = initialTitle
+//                        footerMessage = error.localizedDescription
+//                        footerSuccess = false
+//                    } catch let error as DatabaseError {
+//                        title = initialTitle
+//                        footerMessage = error.localizedDescription
+//                        footerSuccess = false
+//                    } catch let error {
+//                        title = initialTitle
+//                        footerMessage = error.localizedDescription
+//                        footerSuccess = false
+//                    }
+//                }
+//            }
+//        }
     }
 
     @MainActor
     private func onFolderSelection(_ newFolderName: String) {
-        if let feed = feedModel.currentNode?.feed {
-            Task {
-                var newFolderId: Int64 = 0
-                if let newFolder = feedModel.modelContext.folder(name: newFolderName) {
-                    newFolderId = newFolder.id
-                }
-                do {
-                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
-                    feed.folderId = newFolderId
-                    try self.feedModel.modelContext.save()
-                } catch let error as NetworkError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error as DatabaseError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                }
-            }
-        }
+// TODO       if let feed = feedModel.currentNode?.feed {
+//            Task {
+//                var newFolderId: Int64 = 0
+//                if let newFolder = folders.first(where: { $0.name == newFolderName }) {
+//                    newFolderId = newFolder.id
+//                }
+//                do {
+//                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
+//                    feed.folderId = newFolderId
+//                    try await feedModel.backgroundModelActor.save()
+//                } catch let error as NetworkError {
+//                    folderSelection = initialFolderSelection
+//                    footerMessage = error.localizedDescription
+//                    footerSuccess = false
+//                } catch let error as DatabaseError {
+//                    folderSelection = initialFolderSelection
+//                    footerMessage = error.localizedDescription
+//                    footerSuccess = false
+//                } catch let error {
+//                    folderSelection = initialFolderSelection
+//                    footerMessage = error.localizedDescription
+//                    footerSuccess = false
+//                }
+//            }
+//        }
     }
 
 }

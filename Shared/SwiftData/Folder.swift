@@ -18,9 +18,6 @@ final class Folder {
     var name: String?
     @Attribute(.ephemeral) var unreadCount: Int64 = 0
 
-    // Parental relationship
-    public var node: Node?
-
     @Relationship var feeds: [Feed]
 
     init(id: Int64, opened: Bool, lastModified: Date, name: String? = nil, feeds: [Feed]) {

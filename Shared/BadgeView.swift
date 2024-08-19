@@ -9,14 +9,17 @@ import SwiftData
 import SwiftUI
 
 struct BadgeView: View {
-    var node: Node
+    var node: NodeStruct
+    @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
+//    @Query private var folders: [Folder]
+    @Query private var feeds: [Feed]
 
     private let errorCount = 0
     private var feed: Feed?
 
-    init(node: Node, modelContext: ModelContext) {
+    init(node: NodeStruct) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
         switch node.nodeType {
@@ -28,10 +31,10 @@ struct BadgeView: View {
             predicate = #Predicate<Item> { $0.starred == true }
         case .feed(let id):
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            feed = node.feed
-        case .folder(let id):
-            if let feedIds = modelContext.feedIdsInFolder(folder: id) {
-                predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+            feed = feeds.first(where: { $0.id == id })
+        case .folder( _):
+            if let childIds = node.childIds {
+                predicate = #Predicate<Item> { childIds.contains($0.feedId) && $0.unread == true }
             }
         }
         _items = Query(filter: predicate)

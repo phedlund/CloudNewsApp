@@ -5,8 +5,6 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
-import Kingfisher
-import NukeUI
 import SwiftData
 import SwiftUI
 
@@ -21,8 +19,8 @@ struct ItemView: View {
     @State private var isHorizontalCompact = false
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
-    @State private var favIconUrl: URL?
-    @State private var thumbnailUrl: URL?
+    @State private var favIcon: SystemImage?
+    @State private var thumbnail: SystemImage?
 
     private var item: Item
     private var cellSize: CGSize
@@ -95,8 +93,6 @@ struct ItemView: View {
         }
         .task {
             Task { @MainActor in
-                favIconUrl = try await item.feed?.favIconUrl
-                thumbnailUrl = try await item.imageUrl
                 updateSizeAndOffset()
             }
         }
@@ -147,10 +143,13 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            Image(uiImage: favIconImage(feed: item.feed))
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 22, height: 22)
+            AsyncImage(url: item.feed?.favIconURL) { image in
+                image.resizable()
+            } placeholder: {
+                Image(.rss)
+                    .font(.system(size: 18, weight: .light))
+            }
+            .frame(width: 22, height: 22)
         }
         .labelStyle(includeFavIcon: showFavIcons ?? true)
     }
@@ -180,29 +179,21 @@ private extension ItemView {
     @MainActor
     var thumbnailView: some View {
         VStack {
-            KFImage(thumbnailUrl)
-                .placeholder {
-                    ProgressView()
-                }
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                .clipped()
+            AsyncImage(url: item.thumbnailURL) { image in
+                image.resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                    .clipped()
+            } placeholder: {
+//                ProgressView()
+            }
+            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
 
-//            LazyImage(url: thumbnailUrl)  { phase in
-//                if let image = phase.image {
-//                    image
-//                        .resizable()
-//                        .aspectRatio(contentMode: .fill)
-//                } else if phase.error != nil {
-//                    Image("rss")
-//                        .font(.system(size: 18, weight: .light))
-//                } else {
-//                    ProgressView()
-//                }
-//            }
-//            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-//            .clipped()
+//            item.thumbnail
+//                .resizable()
+//                .aspectRatio(contentMode: .fill)
+//                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+//                .clipped()
         }
     }
 
@@ -212,7 +203,7 @@ private extension ItemView {
             thumbnailOffset = .zero
             thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
         } else {
-            if thumbnailUrl != nil {
+            if item.thumbnailURL != nil {
                 if compactView {
                     thumbnailOffset = .compactThumbnailWidth + .paddingSix
                     thumbnailSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
@@ -225,16 +216,6 @@ private extension ItemView {
                 thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
             }
         }
-    }
-
-    func favIconImage(feed: Feed?) -> SystemImage {
-        var favImage = SystemImage(named: "rss")
-        if let model = feed?.imageModel {
-            if let image = SystemImage(loadingDataFrom: model) {
-                favImage = image
-            }
-        }
-        return favImage ?? SystemImage()
     }
 
 }

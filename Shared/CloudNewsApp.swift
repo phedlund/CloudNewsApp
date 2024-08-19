@@ -13,6 +13,7 @@ import SwiftUI
 struct CloudNewsApp: App {
     private let container: ModelContainer
     private let feedModel: FeedModel
+    private let newsData = NewsData()
 
 #if !os(macOS)
     @Environment(\.scenePhase) var scenePhase
@@ -23,8 +24,8 @@ struct CloudNewsApp: App {
     private let appRefreshTaskId = "dev.pbh.cloudnews.sync"
 
     init() {
-        container = NewsData.shared.container!
-        self.feedModel = FeedModel(modelContext: container.mainContext)
+        container = newsData.container!
+        self.feedModel = FeedModel(backgroundModelActor: BackgroundModelActor(modelContainer: container))
     }
 
     var body: some Scene {

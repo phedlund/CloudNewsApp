@@ -18,32 +18,19 @@ enum NodeType: Equatable, Hashable, Codable {
 
 extension NodeType {
 
-    static func fromString(typeString: String) -> NodeType {
-        switch typeString {
-        case Constants.allNodeGuid:
+    var asData: Data {
+        do {
+            return try JSONEncoder().encode(self)
+        } catch {
+            return Data()
+        }
+    }
+
+    static func fromData(_ data: Data) -> NodeType {
+        do {
+            return try JSONDecoder().decode(NodeType.self, from: data)
+        } catch {
             return .all
-        case Constants.starNodeGuid:
-            return .starred
-        case Constants.emptyNodeGuid:
-            return .empty
-        case _ where typeString.hasPrefix("cccc"):
-            if let index = typeString.lastIndex(of: "_") {
-                let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
-                let myId = Int64(idString)
-                return .folder(id: myId ?? 0)
-            } else {
-                return .empty
-            }
-        case _ where typeString.hasPrefix("dddd"):
-            if let index = typeString.lastIndex(of: "_") {
-                let idString = String(typeString.suffix(from: typeString.index(index, offsetBy: 1)))
-                let myId = Int64(idString)
-                return .feed(id: myId ?? 0)
-            } else {
-                return .empty
-            }
-        default:
-            return .empty
         }
     }
 

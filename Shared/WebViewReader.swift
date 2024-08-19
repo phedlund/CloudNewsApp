@@ -58,32 +58,32 @@ class WebViewProxy: @unchecked Sendable, Equatable {
     }
 
     private func observe(_ webView: WKWebView) {
-        task?.cancel()
-        task = Task {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { @MainActor in
-                    for await value in webView.publisher(for: \.title).bufferedValues() {
-                        self.title = value ?? "Untitled"
-                    }
-                }
-                group.addTask { @MainActor in
-                    for await value in webView.publisher(for: \.isLoading).bufferedValues() {
-                        self.isLoading = value
-                    }
-                }
-                group.addTask { @MainActor in
-                    for await value in webView.publisher(for: \.canGoBack).bufferedValues() {
-                        self.canGoBack = value
-                    }
-                }
-
-                group.addTask { @MainActor in
-                    for await value in webView.publisher(for: \.canGoForward).bufferedValues() {
-                        self.canGoForward = value
-                    }
-                }
-            }
-        }
+//        task?.cancel()
+//        task = Task {
+//            await withTaskGroup(of: Void.self) { group in
+//                group.addTask { @MainActor in
+//                    for await value in webView.publisher(for: \.title).bufferedValues() {
+//                        self.title = value ?? "Untitled"
+//                    }
+//                }
+//                group.addTask { @MainActor in
+//                    for await value in webView.publisher(for: \.isLoading).bufferedValues() {
+//                        self.isLoading = value
+//                    }
+//                }
+//                group.addTask { @MainActor in
+//                    for await value in webView.publisher(for: \.canGoBack).bufferedValues() {
+//                        self.canGoBack = value
+//                    }
+//                }
+//
+//                group.addTask { @MainActor in
+//                    for await value in webView.publisher(for: \.canGoForward).bufferedValues() {
+//                        self.canGoForward = value
+//                    }
+//                }
+//            }
+//        }
     }
 
 }

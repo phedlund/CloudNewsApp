@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 7/22/21.
 //
 
+import SwiftData
 import SwiftUI
 
 enum AddType: Int, Identifiable {
@@ -17,6 +18,7 @@ enum AddType: Int, Identifiable {
 struct AddView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(FeedModel.self) private var feedModel
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
     @State private var isAdding = false
@@ -25,6 +27,8 @@ struct AddView: View {
     @State private var folderSelection = noFolderName
     @State private var folderNames = [String]()
     @State private var folderId = 0
+
+    @Query private var folders: [Folder]
 
     init(_ selectedAddType: AddType) {
         self._selectedAdd = State(initialValue: selectedAddType)
@@ -134,16 +138,14 @@ struct AddView: View {
         .navigationTitle("Add Feed or Folder")
 #endif
         .onAppear {
-            if let folders = feedModel.modelContext.allFolders() {
-                var fNames = [noFolderName]
-                let names = folders.compactMap( { $0.name } )
-                fNames.append(contentsOf: names)
-                folderNames = fNames
-            }
+            var fNames = [noFolderName]
+            let names = folders.compactMap( { $0.name } ).sorted()
+            fNames.append(contentsOf: names)
+            folderNames = fNames
         }
         .onChange(of: folderSelection, { oldValue, newValue in
             if newValue != oldValue {
-                if let newFolder = feedModel.modelContext.folder(name: newValue) {
+                if let newFolder = folders.first(where: { $0.name == newValue }) {
                     folderId = Int(newFolder.id)
                 }
             }

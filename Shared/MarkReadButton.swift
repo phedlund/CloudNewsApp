@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MarkReadButton: View {
     @Environment(FeedModel.self) private var feedModel
+    @Environment(\.modelContext) private var modelContext
 
 //    @State private var isDisabled = true
 //
@@ -26,7 +27,7 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(feedModel.unreadCount == 0)
+//        .disabled(feedModel.unreadCount == 0)
     }
 
 }

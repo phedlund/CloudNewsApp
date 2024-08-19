@@ -23,10 +23,11 @@ struct ItemsListView: View {
 #endif
     @Environment(FeedModel.self) private var feedModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Node.ID?
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @Query private var items: [Item]
 

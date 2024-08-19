@@ -26,7 +26,7 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         item.unread.toggle()
-                        try feedModel.modelContext.save()
+                        try await feedModel.backgroundModelActor.save()
                         try? await feedModel.markRead(items: [item], unread: !isUnRead)
                     }
                 } label: {
