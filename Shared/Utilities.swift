@@ -29,7 +29,7 @@ extension DateFormatter {
 }
 
 extension TimeInterval {
-    static let fiveMinutes: TimeInterval = 300
+    static let fifteenMinutes: TimeInterval = 900
 }
 
 extension CGFloat {

@@ -104,7 +104,7 @@ struct CloudNewsApp: App {
 #if os(iOS)
     func scheduleAppRefresh() {
         let request = BGAppRefreshTaskRequest(identifier: appRefreshTaskId)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: .fiveMinutes)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: .fifteenMinutes)
         do {
             try BGTaskScheduler.shared.submit(request)
             print("Submit called")

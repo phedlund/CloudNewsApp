@@ -20,7 +20,6 @@ class FeedModel: @unchecked Sendable {
     var currentItem: Item? = nil
     var currentNode: NodeStruct? = nil
     var currentItemID: PersistentIdentifier? = nil
-//    @MainActor var unreadCount = 0
     var isSyncing = false
 
     init(backgroundModelActor: BackgroundModelActor) {
@@ -78,38 +77,6 @@ class FeedModel: @unchecked Sendable {
     }
 
     @MainActor
-    func markCurrentNodeRead() {
-        Task {
-            if let currentNode {
-                var predicate = #Predicate<Item> { _ in return false }
-                switch currentNode.nodeType {
-                case .empty:
-                    break
-                case .all:
-                    predicate = #Predicate<Item> { $0.unread == true }
-                case .starred:
-                    predicate = #Predicate<Item> { $0.starred == true }
-
-                case .feed(let id):
-                    predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-                case .folder(let id):
-                    if let feedIds = await backgroundModelActor.feedIdsInFolder(folder: id) {
-                        predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-                    }
-                }
-                let descriptor = FetchDescriptor<Item>(predicate: predicate)
-                do {
-//                    let items = try await backgroundModelActor.fetchData(predicate: predicate)
-//                    markItemsRead(items: items)
-//                    unreadCount = 0
-                } catch let error as NSError {
-                    print("Could not fetch \(error), \(error.userInfo)")
-                }
-            }
-        }
-    }
-
-    @MainActor
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return
@@ -119,7 +86,6 @@ class FeedModel: @unchecked Sendable {
         }
         Task {
             try await self.markRead(items: items, unread: false)
-//            updateUnreadCount()
         }
     }
 
@@ -131,40 +97,11 @@ class FeedModel: @unchecked Sendable {
                 try await backgroundModelActor.save()
                 Task {
                     try await self.markRead(items: [item], unread: !item.unread)
-//                    updateUnreadCount()
                 }
             } catch {
                 //
             }
         }
     }
-
-//    @MainActor
-//    func updateUnreadCount() {
-//        if let currentNode {
-//            var predicate = #Predicate<Item> { _ in return false }
-//            switch currentNode.nodeType {
-//            case .empty:
-//                break
-//            case .all:
-//                predicate = #Predicate<Item> { $0.unread == true }
-//            case .starred:
-//                predicate = #Predicate<Item> { $0.starred == true }
-//
-//            case .feed(let id):
-//                predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-//            case .folder(let id):
-//                if let feedIds = backgroundModelActor.feedIdsInFolder(folder: id) {
-//                    predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
-//                }
-//            }
-//            let descriptor = FetchDescriptor<Item>(predicate: predicate)
-//            do {
-//                unreadCount = try backgroundModelActor.fetchCount(predicate: predicate)
-//            } catch let error as NSError {
-//                print("Could not fetch \(error), \(error.userInfo)")
-//            }
-//        }
-//    }
 
 }

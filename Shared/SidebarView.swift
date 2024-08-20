@@ -42,14 +42,16 @@ struct SidebarView: View {
     @State private var confirmationNode: NodeStruct?
     @State private var alertInput = ""
     @State private var selectedFeed: Int64 = 0
+    @State private var unreadPredicate = #Predicate<Item>{ _ in false }
 
     @Binding var nodeSelection: Data?
 
     @Query private var folders: [Folder]
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
 
-    init(nodeSelection: Binding<Data?>) {
+    init(nodeSelection: Binding<Data?>, predicate: Predicate<Item>) {
         self._nodeSelection = nodeSelection
+        self.unreadPredicate = predicate
     }
 
     var body: some View {
@@ -95,6 +97,9 @@ struct SidebarView: View {
                                                   isTopLevel: true,
                                                   childIds: feeds.filter( { $0.folderId == folder.id }).map( { $0.id } )))
                             .tag(NodeType.folder(id: folder.id).asData)
+                            .onTapGesture {
+                                nodeSelection = NodeType.folder(id: folder.id).asData
+                            }
                     }
                 }
 
@@ -231,10 +236,10 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton()
+            MarkReadButton(predicate: unreadPredicate)
                 .environment(feedModel)
         case .folder( _):
-            MarkReadButton()
+            MarkReadButton(predicate: unreadPredicate)
                 .environment(feedModel)
             Button {
                 nodeSelection = node.nodeType.asData
@@ -251,7 +256,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
-            MarkReadButton()
+            MarkReadButton(predicate: unreadPredicate)
                 .environment(feedModel)
             Button {
 #if os(macOS)

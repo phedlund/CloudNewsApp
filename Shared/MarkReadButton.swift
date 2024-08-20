@@ -12,13 +12,15 @@ struct MarkReadButton: View {
     @Environment(FeedModel.self) private var feedModel
     @Environment(\.modelContext) private var modelContext
 
-//    @State private var isDisabled = true
-//
-//    @Query private var items: [Item]
+    @Query private var items: [Item]
+
+    init(predicate: Predicate<Item>) {
+        _items = Query(filter: predicate)
+    }
 
     var body: some View {
         Button {
-            feedModel.markCurrentNodeRead()
+            feedModel.markItemsRead(items: items)
         } label: {
             Label {
                 Text("Mark Read")
@@ -27,7 +29,7 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-//        .disabled(feedModel.unreadCount == 0)
+        .disabled(items.count == 0)
     }
 
 }

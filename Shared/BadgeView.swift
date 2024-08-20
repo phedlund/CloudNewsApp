@@ -13,7 +13,6 @@ struct BadgeView: View {
     @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
-//    @Query private var folders: [Folder]
     @Query private var feeds: [Feed]
 
     private let errorCount = 0

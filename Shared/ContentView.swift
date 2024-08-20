@@ -24,7 +24,9 @@ struct ContentView: View {
     @State private var navigationTitle: String?
     @State private var sortOrder = SortDescriptor(\Item.id)
     @State private var predicate = #Predicate<Item>{ _ in false }
+    @State private var unreadPredicate = #Predicate<Item>{ _ in false }
     @State private var selectedItem: Item? = nil
+    @State private var nodeType: NodeType = .empty
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
@@ -34,7 +36,7 @@ struct ContentView: View {
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView {
-            SidebarView(nodeSelection: $selectedNode)
+            SidebarView(nodeSelection: $selectedNode, predicate: unreadPredicate)
                 .environment(feedModel)
         } detail: {
             ZStack {
@@ -79,6 +81,7 @@ struct ContentView: View {
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             let nodeType = NodeType.fromData(newValue)
+            self.nodeType = nodeType
             switch nodeType {
             case .empty:
                 navigationTitle = ""
@@ -169,6 +172,7 @@ struct ContentView: View {
             switch NodeType.fromData(selectedNode) {
             case .empty:
                 predicate = #Predicate<Item>{ _ in false }
+                unreadPredicate = predicate
             case .all:
                 predicate = #Predicate<Item>{
                     if hideRead {
@@ -177,20 +181,20 @@ struct ContentView: View {
                         return true
                     }
                 }
+                unreadPredicate = #Predicate<Item>{ $0.unread }
             case .starred:
                 predicate = #Predicate<Item>{ $0.starred }
+                unreadPredicate = #Predicate<Item>{ _ in false }
             case .folder(id:  let id):
-                Task {
-                    if let feedIds = await feedModel.backgroundModelActor.feedIdsInFolder(folder: id) {
-                        predicate = #Predicate<Item>{
-                            if hideRead {
-                                return feedIds.contains($0.feedId) && $0.unread
-                            } else {
-                                return feedIds.contains($0.feedId)
-                            }
-                        }
+                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+                predicate = #Predicate<Item>{
+                    if hideRead {
+                        return feedIds.contains($0.feedId) && $0.unread
+                    } else {
+                        return feedIds.contains($0.feedId)
                     }
                 }
+                unreadPredicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
             case .feed(id: let id):
                 predicate = #Predicate<Item>{
                     if hideRead {
@@ -199,6 +203,7 @@ struct ContentView: View {
                         return $0.feedId == id
                     }
                 }
+                unreadPredicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
             }
         }
     }
@@ -206,7 +211,7 @@ struct ContentView: View {
     @ToolbarContentBuilder
     func contentViewToolBarContent() -> some ToolbarContent {
         ToolbarItem(placement: .automatic) {
-            MarkReadButton()
+            MarkReadButton(predicate: unreadPredicate)
                 .environment(feedModel)
         }
     }
