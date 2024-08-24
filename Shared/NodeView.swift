@@ -26,15 +26,19 @@ struct NodeView: View {
     var body: some View {
         HStack {
             Label {
-                Text(node.title)
-                    .lineLimit(1)
+                HStack {
+                    Text(node.title)
+                        .lineLimit(1)
+                    Spacer()
+                    BadgeView(node: node)
+                        .padding(.trailing, node.isTopLevel ? 0 : noChildrenPadding)
+                }
+                .contentShape(Rectangle())
             } icon: {
                 favIconView
             }
             .labelStyle(.titleAndIcon)
             Spacer()
-            BadgeView(node: node)
-                .padding(.trailing, node.isTopLevel ? 0 : noChildrenPadding)
         }
         .confirmationDialog(
             "Are you sure you want to delete \"\(node.title)\"?",
