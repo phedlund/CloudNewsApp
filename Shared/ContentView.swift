@@ -5,11 +5,13 @@
 //  Created by Peter Hedlund on 5/24/21.
 //
 
+import BackgroundTasks
 import SwiftData
 import SwiftUI
 
 struct ContentView: View {
     @Environment(FeedModel.self) private var feedModel
+    @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
     @KeychainStorage(SettingKeys.username) var username = ""
@@ -38,6 +40,7 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView(nodeSelection: $selectedNode, predicate: unreadPredicate)
                 .environment(feedModel)
+                .environment(syncManager)
         } detail: {
             ZStack {
                 if selectedNode != nil {
@@ -108,6 +111,50 @@ struct ContentView: View {
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
+        }
+        .onChange(of: syncManager.foldersData) { oldValue, newValue in
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: newValue) else {
+                //                    throw NetworkError.generic(message: "Unable to decode")
+                return
+            }
+            Task {
+                for eachItem in decodedResponse.folders {
+                    let itemToStore = Folder(item: eachItem)
+                    await feedModel.backgroundModelActor.insert(itemToStore)
+                }
+                try? await feedModel.backgroundModelActor.save()
+            }
+        }
+        .onChange(of: syncManager.feedsData) { oldValue, newValue in
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: newValue) else {
+                //                    throw NetworkError.generic(message: "Unable to decode")
+                return
+            }
+            Task {
+                for eachItem in decodedResponse.feeds {
+                    let itemToStore = Feed(item: eachItem)
+                    await feedModel.backgroundModelActor.insert(itemToStore)
+                }
+                try? await feedModel.backgroundModelActor.save()
+            }
+        }
+        .onChange(of: syncManager.itemsData) { oldValue, newValue in
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: newValue) else {
+                return
+            }
+            Task {
+                for eachItem in decodedResponse.items {
+                    let itemToStore = Item(item: eachItem)
+                    await feedModel.backgroundModelActor.insert(itemToStore)
+                }
+                try? await feedModel.backgroundModelActor.save()
+            }
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {

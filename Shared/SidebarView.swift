@@ -30,6 +30,7 @@ struct SidebarView: View {
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
     @Environment(FeedModel.self) private var feedModel
+    @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
 
@@ -140,7 +141,7 @@ struct SidebarView: View {
         .listStyle(.automatic)
         .accentColor(.phDarkIcon)
         .refreshable {
-            sync()
+            await syncManager.sync()
         }
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
@@ -298,7 +299,9 @@ struct SidebarView: View {
                 .progressViewStyle(.circular)
                 .opacity(feedModel.isSyncing ? 1.0 : 0.0)
             Button {
-                sync()
+                Task.detached(priority: .background) {
+                    await syncManager.sync()
+                }
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
@@ -312,24 +315,24 @@ struct SidebarView: View {
         }
     }
 
-    private func sync() {
-        Task {
-            do {
-                try await feedModel.sync()
-                isShowingError = false
-                errorMessage = ""
-            } catch let error as NetworkError {
-                errorMessage = error.localizedDescription
-                isShowingError = true
-            } catch let error as DatabaseError {
-                errorMessage = error.localizedDescription
-                isShowingError = true
-            } catch let error {
-                errorMessage = error.localizedDescription
-                isShowingError = true
-            }
-        }
-    }
+//    private func sync() {
+//        Task {
+//            do {
+//                syncManager.sync()
+//                isShowingError = false
+//                errorMessage = ""
+//            } catch let error as NetworkError {
+//                errorMessage = error.localizedDescription
+//                isShowingError = true
+//            } catch let error as DatabaseError {
+//                errorMessage = error.localizedDescription
+//                isShowingError = true
+//            } catch let error {
+//                errorMessage = error.localizedDescription
+//                isShowingError = true
+//            }
+//        }
+//    }
 }
 
 //struct SidebarView_Previews: PreviewProvider {
