@@ -112,50 +112,6 @@ struct ContentView: View {
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
         }
-        .onChange(of: syncManager.foldersData) { oldValue, newValue in
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .secondsSince1970
-            guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: newValue) else {
-                //                    throw NetworkError.generic(message: "Unable to decode")
-                return
-            }
-            Task {
-                for eachItem in decodedResponse.folders {
-                    let itemToStore = Folder(item: eachItem)
-                    await feedModel.backgroundModelActor.insert(itemToStore)
-                }
-                try? await feedModel.backgroundModelActor.save()
-            }
-        }
-        .onChange(of: syncManager.feedsData) { oldValue, newValue in
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .secondsSince1970
-            guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: newValue) else {
-                //                    throw NetworkError.generic(message: "Unable to decode")
-                return
-            }
-            Task {
-                for eachItem in decodedResponse.feeds {
-                    let itemToStore = Feed(item: eachItem)
-                    await feedModel.backgroundModelActor.insert(itemToStore)
-                }
-                try? await feedModel.backgroundModelActor.save()
-            }
-        }
-        .onChange(of: syncManager.itemsData) { oldValue, newValue in
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .secondsSince1970
-            guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: newValue) else {
-                return
-            }
-            Task {
-                for eachItem in decodedResponse.items {
-                    let itemToStore = Item(item: eachItem)
-                    await feedModel.backgroundModelActor.insert(itemToStore)
-                }
-                try? await feedModel.backgroundModelActor.save()
-            }
-        }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $selectedNodeID)

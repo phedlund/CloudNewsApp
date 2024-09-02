@@ -11,10 +11,6 @@ import Combine
 
 @Observable
 final class SyncManager: @unchecked Sendable {
-    var foldersData = Data()
-    var feedsData = Data()
-    var itemsData = Data()
-
     private let modelActor: BackgroundModelActor
     private var backgroundSession: URLSession?
 
@@ -30,6 +26,34 @@ final class SyncManager: @unchecked Sendable {
 
     func backgroundSync() async {
         if let backgroundSession {
+            let foldersRequest = try? Router.folders.urlRequest()
+            let foldersResponse = await withTaskCancellationHandler {
+                try? await URLSession.shared.data (for: foldersRequest!)
+            } onCancel: {
+                let task = backgroundSession.downloadTask(with: foldersRequest!)
+                task.taskDescription = "folders"
+                task.resume ()
+            }
+
+            if let data = foldersResponse {
+                parseFolders(data: data.0)
+            }
+
+            let feedsRequest = try? Router.feeds.urlRequest()
+
+            let feedsResponse = await withTaskCancellationHandler {
+                try? await URLSession.shared.data (for: feedsRequest!)
+            } onCancel: {
+                let task = backgroundSession.downloadTask(with: feedsRequest!)
+                task.taskDescription = "feeds"
+                task.resume ()
+            }
+
+            if let data = feedsResponse {
+                parseFeeds(data: data.0)
+            }
+
+
             let newestKnownLastModified = await modelActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
@@ -40,7 +64,7 @@ final class SyncManager: @unchecked Sendable {
 
             let itemsRequest = try? updatedItemRouter.urlRequest()
 
-            let response = await withTaskCancellationHandler {
+            let itemsResponse = await withTaskCancellationHandler {
                 try? await URLSession.shared.data (for: itemsRequest!)
             } onCancel: {
                 let task = backgroundSession.downloadTask(with: itemsRequest!)
@@ -48,8 +72,8 @@ final class SyncManager: @unchecked Sendable {
                 task.resume ()
             }
 
-            if let data = response {
-                itemsData = data.0
+            if let data = itemsResponse {
+                parseItems(data: data.0)
             }
         }
     }
@@ -63,7 +87,16 @@ final class SyncManager: @unchecked Sendable {
                 if let dlTask = task as? URLSessionDownloadTask {
                     if let url = dlTask.response?.url {
                         if let data = try? Data(contentsOf: url) {
-                            itemsData = data
+                            switch dlTask.taskDescription {
+                            case "folders":
+                                parseFolders(data: data)
+                            case "feeds":
+                                parseFeeds(data: data)
+                            case "items":
+                                parseItems(data: data)
+                            default:
+                                break
+                            }
                         }
                     }
                 }
@@ -85,11 +118,62 @@ final class SyncManager: @unchecked Sendable {
 
             let itemsRequest = try updatedItemRouter.urlRequest()
 
-            foldersData = try await URLSession.shared.data (for: foldersRequest).0
-            feedsData = try await URLSession.shared.data (for: feedsRequest).0
-            itemsData = try await URLSession.shared.data (for: itemsRequest).0
+            let foldersData = try await URLSession.shared.data (for: foldersRequest).0
+            let feedsData = try await URLSession.shared.data (for: feedsRequest).0
+            let itemsData = try await URLSession.shared.data (for: itemsRequest).0
+            parseFolders(data: foldersData)
+            parseFeeds(data: feedsData)
+            parseItems(data: itemsData)
         } catch {
 
         }
+    }
+
+    func parseFolders(data: Data) {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
+            //                    throw NetworkError.generic(message: "Unable to decode")
+            return
+        }
+        Task {
+            for eachItem in decodedResponse.folders {
+                let itemToStore = Folder(item: eachItem)
+                await modelActor.insert(itemToStore)
+            }
+            try? await modelActor.save()
+        }
+    }
+
+    func parseFeeds(data: Data) {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
+            //                    throw NetworkError.generic(message: "Unable to decode")
+            return
+        }
+        Task {
+            for eachItem in decodedResponse.feeds {
+                let itemToStore = Feed(item: eachItem)
+                await modelActor.insert(itemToStore)
+            }
+            try? await modelActor.save()
+        }
+    }
+
+    func parseItems(data: Data) {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
+            return
+        }
+        Task {
+            for eachItem in decodedResponse.items {
+                let itemToStore = await Item(item: eachItem)
+                await modelActor.insert(itemToStore)
+            }
+            try? await modelActor.save()
+        }
+
     }
 }

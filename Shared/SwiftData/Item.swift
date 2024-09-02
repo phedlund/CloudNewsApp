@@ -72,32 +72,32 @@ final class Item {
         self.thumbnailURL = thumbnailURL
     }
 
-    convenience init(item: ItemDTO) {
+    convenience init(item: ItemDTO) async {
 
-//        func internalUrl(_ urlString: String?) async -> URL? {
-//            if let urlString, let url = URL(string: urlString) {
-//                do {
-//                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-//                    if let html = String(data: data, encoding: .utf8) {
-//                        let doc: Document = try SwiftSoup.parse(html)
-//                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-//                            let ogImage = try meta.attr("content")
-//                            let ogUrl = URL(string: ogImage)
-//                            return ogUrl
-//                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-//                            let twImage = try meta.attr("content")
-//                            let twUrl = URL(string: twImage)
-//                            return twUrl
-//                        } else {
-//                            return nil
-//                        }
-//                    }
-//                } catch(let error) {
-//                    print(error.localizedDescription)
-//                }
-//            }
-//            return nil
-//        }
+        func internalUrl(_ urlString: String?) async -> URL? {
+            if let urlString, let url = URL(string: urlString) {
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                    if let html = String(data: data, encoding: .utf8) {
+                        let doc: Document = try SwiftSoup.parse(html)
+                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                            let ogImage = try meta.attr("content")
+                            let ogUrl = URL(string: ogImage)
+                            return ogUrl
+                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                            let twImage = try meta.attr("content")
+                            let twUrl = URL(string: twImage)
+                            return twUrl
+                        } else {
+                            return nil
+                        }
+                    }
+                } catch(let error) {
+                    print(error.localizedDescription)
+                }
+            }
+            return nil
+        }
 
         let displayTitle = plainSummary(raw: item.title)
 
@@ -150,7 +150,7 @@ final class Item {
                 if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
                     itemImageUrl = imgUrl
                 } else {
-//                    itemImageUrl = await internalUrl(item.url)
+                    itemImageUrl = await internalUrl(item.url)
                 }
             } catch Exception.Error(_, let message) { // An exception from SwiftSoup
                 print(message)
@@ -158,7 +158,7 @@ final class Item {
                 print(error.localizedDescription)
             }
         } else {
-//            itemImageUrl = await internalUrl(item.url)
+            itemImageUrl = await internalUrl(item.url)
         }
 
         self.init(author: item.author,
