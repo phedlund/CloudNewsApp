@@ -6,8 +6,7 @@
 //
 
 
-import SwiftUI
-import Combine
+import Foundation
 
 @Observable
 final class SyncManager: @unchecked Sendable {
@@ -25,6 +24,7 @@ final class SyncManager: @unchecked Sendable {
     }
 
     func backgroundSync() async {
+        try? await pruneItems()
         if let backgroundSession {
             let foldersRequest = try? Router.folders.urlRequest()
             let foldersResponse = await withTaskCancellationHandler {
@@ -106,6 +106,8 @@ final class SyncManager: @unchecked Sendable {
 
     func sync() async {
         do {
+            try await pruneItems()
+
             let foldersRequest = try Router.folders.urlRequest()
             let feedsRequest = try Router.feeds.urlRequest()
 
@@ -174,6 +176,17 @@ final class SyncManager: @unchecked Sendable {
             }
             try? await modelActor.save()
         }
-
     }
+
+    func pruneItems() async throws {
+        do {
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
+                print("limitDate: \(limitDate) date: \(Date())")
+                try await modelActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+            }
+        } catch {
+            throw DatabaseError.itemsFailedImport
+        }
+    }
+
 }
