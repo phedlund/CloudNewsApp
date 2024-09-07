@@ -77,7 +77,6 @@ struct ItemsListView: View {
                             }
                         }
                         .newsNavigationDestination(type: Item.self, items: items)
-                        .scrollTargetLayout(isEnabled: true)
                         .onChange(of: selectedNode) { _, _ in
                             path.removeAll()
                             DispatchQueue.main.async {
@@ -111,7 +110,6 @@ struct ItemsListView: View {
                             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                         }
                     }
-                    .scrollTargetBehavior(.viewAligned)
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .decelerating || newPhase == .idle {
                             Task {
