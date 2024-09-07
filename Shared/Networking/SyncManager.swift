@@ -11,6 +11,8 @@ import SwiftData
 
 @Observable
 final class SyncManager: @unchecked Sendable {
+    var isSyncing: Bool = false
+
     private let modelActor: BackgroundModelActor
     private var backgroundSession: URLSession?
 
@@ -107,14 +109,17 @@ final class SyncManager: @unchecked Sendable {
 
     func sync() async {
         do {
-            let fetchDescriptor = FetchDescriptor<Item>(predicate: nil )
+            isSyncing = true
             let itemCount = try await modelActor.itemCount()
             if itemCount == 0 {
                 await initialSync()
             } else {
                 await repeatSync()
             }
-        } catch { }
+            isSyncing = false
+        } catch {
+            isSyncing = false
+        }
     }
 
     func initialSync() async {

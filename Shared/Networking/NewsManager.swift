@@ -209,9 +209,9 @@ extension FeedModel {
             try await webImporter.updateFeedsInDatabase(urlRequest: Router.feeds.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: unreadRouter.urlRequest())
             try await webImporter.updateItemsInDatabase(urlRequest: starredRouter.urlRequest())
-            DispatchQueue.main.async {
-                self.isSyncing = false
-            }
+//            DispatchQueue.main.async {
+//                self.isSyncing = false
+//            }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
@@ -238,7 +238,7 @@ extension FeedModel {
         //        CDFolder.reset()
         //        CDItem.reset()
         //
-        isSyncing = true
+//        isSyncing = true
         do {
             //            let itemCount = try await backgroundModelActor.fetchCount()
             //            if itemCount == 0 {
@@ -345,9 +345,9 @@ extension FeedModel {
             print("Done with feeds")
             try await webImporter.updateItemsInDatabase(urlRequest: updatedItemRouter.urlRequest())
             print("Done with items")
-            DispatchQueue.main.async {
-                self.isSyncing = false
-            }
+//            DispatchQueue.main.async {
+//                self.isSyncing = false
+//            }
         } catch let error as NetworkError {
             throw error
         } catch(let error) {

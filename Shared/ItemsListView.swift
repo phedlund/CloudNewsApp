@@ -22,6 +22,7 @@ struct ItemsListView: View {
     let listRowBackground = Color.phWhiteBackground
 #endif
     @Environment(FeedModel.self) private var feedModel
+    @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -96,7 +97,7 @@ struct ItemsListView: View {
                                 }
                             }
                         }
-                        .onChange(of: feedModel.isSyncing) { _, newValue in
+                        .onChange(of: syncManager.isSyncing) { _, newValue in
                             if newValue == false {
                                 DispatchQueue.main.async {
                                     isScrollingToTop = true
@@ -156,7 +157,7 @@ struct ItemsListView: View {
     
     @MainActor
     private func markRead(_ offset: CGFloat) async throws {
-        guard feedModel.isSyncing == false, isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
+        guard syncManager.isSyncing == false, isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {

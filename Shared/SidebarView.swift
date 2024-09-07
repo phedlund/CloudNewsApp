@@ -297,7 +297,7 @@ struct SidebarView: View {
 #else
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(feedModel.isSyncing ? 1.0 : 0.0)
+                .opacity(syncManager.isSyncing ? 1.0 : 0.0)
             Button {
                 Task.detached(priority: .background) {
                     await syncManager.sync()
@@ -305,7 +305,7 @@ struct SidebarView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(feedModel.isSyncing || isNewInstall)
+            .disabled(syncManager.isSyncing || isNewInstall)
             Button {
                 modalSheet = .settings
             } label: {

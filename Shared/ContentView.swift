@@ -46,6 +46,7 @@ struct ContentView: View {
                 if selectedNode != nil {
                     ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
                         .environment(feedModel)
+                        .environment(syncManager)
                         .toolbar {
                             contentViewToolBarContent()
                         }

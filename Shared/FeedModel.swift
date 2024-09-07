@@ -20,7 +20,6 @@ class FeedModel: @unchecked Sendable {
     var currentItem: Item? = nil
     var currentNode: NodeStruct? = nil
     var currentItemID: PersistentIdentifier? = nil
-    var isSyncing = false
 
     init(backgroundModelActor: BackgroundModelActor) {
         self.backgroundModelActor = backgroundModelActor
