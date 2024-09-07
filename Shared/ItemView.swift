@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
+import Kingfisher
 import SwiftData
 import SwiftUI
 
@@ -143,13 +144,13 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            AsyncImage(url: item.feed?.favIconURL) { image in
-                image.resizable()
-            } placeholder: {
-                Image(.rss)
-                    .font(.system(size: 18, weight: .light))
-            }
-            .frame(width: 22, height: 22)
+            KFImage(item.feed?.favIconURL)
+                .placeholder {
+                    Image(.rss)
+                        .font(.system(size: 18, weight: .light))
+                }
+                .resizable()
+                .frame(width: 22, height: 22)
         }
         .labelStyle(includeFavIcon: showFavIcons ?? true)
     }
@@ -179,21 +180,11 @@ private extension ItemView {
     @MainActor
     var thumbnailView: some View {
         VStack {
-            AsyncImage(url: item.thumbnailURL) { image in
-                image.resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                    .clipped()
-            } placeholder: {
-//                ProgressView()
-            }
-            .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-
-//            item.thumbnail
-//                .resizable()
-//                .aspectRatio(contentMode: .fill)
-//                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-//                .clipped()
+            KFImage(item.thumbnailURL)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                .clipped()
         }
     }
 
