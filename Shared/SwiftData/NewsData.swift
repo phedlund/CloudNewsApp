@@ -70,6 +70,12 @@ public actor BackgroundModelActor {
         return count
     }
 
+    public func itemCount() async throws -> Int {
+        let fetchDescriptor = FetchDescriptor<Item>()
+        let count = try modelContext.fetchCount(fetchDescriptor)
+        return count
+    }
+
     public func delete<T: PersistentModel>(_ model: T.Type) throws {
         try modelContext.delete(model: T.self)
         try? modelContext.save()

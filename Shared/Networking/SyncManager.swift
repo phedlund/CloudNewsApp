@@ -7,6 +7,7 @@
 
 
 import Foundation
+import SwiftData
 
 @Observable
 final class SyncManager: @unchecked Sendable {
@@ -105,6 +106,22 @@ final class SyncManager: @unchecked Sendable {
     }
 
     func sync() async {
+        do {
+            let fetchDescriptor = FetchDescriptor<Item>(predicate: nil )
+            let itemCount = try await modelActor.itemCount()
+            if itemCount == 0 {
+                await initialSync()
+            } else {
+                await repeatSync()
+            }
+        } catch { }
+    }
+
+    func initialSync() async {
+
+    }
+
+    func repeatSync() async {
         do {
             try await pruneItems()
 
