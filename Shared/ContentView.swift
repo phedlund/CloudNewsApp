@@ -13,7 +13,7 @@ struct ContentView: View {
     @Environment(FeedModel.self) private var feedModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.database) private var database
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
@@ -32,7 +32,7 @@ struct ContentView: View {
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
-    @Query private var items: [Item]
+//    @Query private var items: [Item]
 
     var body: some View {
         let _ = Self._printChanges()

@@ -13,8 +13,8 @@ import SwiftUI
 struct CloudNewsApp: App {
     private let container: ModelContainer
     private let feedModel: FeedModel
-    private let newsData = NewsData()
-    private let modelActor: BackgroundModelActor
+//    private let newsData = NewsData()
+    private let modelActor: NewsDataModelActor
     private let syncManager: SyncManager
 
 #if !os(macOS)
@@ -24,10 +24,10 @@ struct CloudNewsApp: App {
 #endif
     
     init() {
-        container = newsData.container!
-        self.modelActor = BackgroundModelActor(modelContainer: container)
-        self.feedModel = FeedModel(backgroundModelActor: modelActor)
-        self.syncManager = SyncManager(modelActor: modelActor)
+        container = SharedDatabase.shared.modelContainer
+        self.modelActor = NewsDataModelActor(modelContainer: container)
+        self.feedModel = FeedModel(databaseActor: modelActor)
+        self.syncManager = SyncManager(databaseActor: modelActor)
         syncManager.configureSession()
     }
     
@@ -38,6 +38,7 @@ struct CloudNewsApp: App {
                 .environment(syncManager)
         }
         .modelContainer(container)
+        .database(SharedDatabase.shared.database)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
             await syncManager.backgroundSync()

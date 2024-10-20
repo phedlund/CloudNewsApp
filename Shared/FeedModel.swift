@@ -11,7 +11,7 @@ import SwiftData
 
 @Observable
 class FeedModel: @unchecked Sendable {
-    let backgroundModelActor: BackgroundModelActor
+    let databaseActor: NewsDataModelActor
     var webImporter: WebImporter
     var itemPruner: ItemPruner
     let session = ServerStatus.shared.session
@@ -21,12 +21,12 @@ class FeedModel: @unchecked Sendable {
     var currentNode: NodeStruct? = nil
     var currentItemID: PersistentIdentifier? = nil
 
-    init(backgroundModelActor: BackgroundModelActor) {
-        self.backgroundModelActor = backgroundModelActor
+    init(databaseActor: NewsDataModelActor) {
+        self.databaseActor = databaseActor
 //        backgroundModelActor.modelContext.autosaveEnabled = false
 //        Task {
-            self.webImporter = WebImporter(backgroundModelActor: backgroundModelActor)
-            self.itemPruner = ItemPruner(backgroundModelActor: backgroundModelActor)
+            self.webImporter = WebImporter(databaseActor: databaseActor)
+            self.itemPruner = ItemPruner(databaseActor: databaseActor)
 //            await updateUnreadCount()
 //        }
     }
@@ -51,13 +51,13 @@ class FeedModel: @unchecked Sendable {
             Task {
                 do {
                   try await deleteFolder(Int(id))
-                    if let feedIds = await backgroundModelActor.feedIdsInFolder(folder: id) {
+                    if let feedIds = await databaseActor.feedIdsInFolder(folder: id) {
                         for feedId in feedIds {
-                            try await backgroundModelActor.deleteItems(with: feedId)
-                            try await backgroundModelActor.deleteFolder(id: feedId)
+                            try await databaseActor.deleteItems(with: feedId)
+                            try await databaseActor.deleteFolder(id: feedId)
                         }
                     }
-                    try await backgroundModelActor.deleteFolder(id: id)
+                    try await databaseActor.deleteFolder(id: id)
                 } catch {
                     //
                 }
@@ -66,8 +66,8 @@ class FeedModel: @unchecked Sendable {
             Task {
                 do {
                     try await deleteFeed(Int(id))
-                    try await backgroundModelActor.deleteItems(with: id)
-                    try await backgroundModelActor.deleteFeed(id: id)
+                    try await databaseActor.deleteItems(with: id)
+                    try await databaseActor.deleteFeed(id: id)
                 } catch {
                     //
                 }
@@ -93,7 +93,7 @@ class FeedModel: @unchecked Sendable {
         Task {
             do {
                 item.unread.toggle()
-                try await backgroundModelActor.save()
+                try await databaseActor.save()
                 Task {
                     try await self.markRead(items: [item], unread: !item.unread)
                 }

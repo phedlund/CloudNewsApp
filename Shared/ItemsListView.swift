@@ -48,7 +48,7 @@ struct ItemsListView: View {
     }
 
     var body: some View {
-        //        let _ = Self._printChanges()
+        let _ = Self._printChanges()
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
@@ -61,7 +61,7 @@ struct ItemsListView: View {
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
                         LazyVStack(alignment: .center, spacing: 16.0) {
-                            ForEach(items, id: \.id) { item in
+                            ForEach(items) { item in
                                 NavigationLink(value: item) {
                                     ItemView(item: item, size: cellSize)
 #if os(macOS)
@@ -97,16 +97,16 @@ struct ItemsListView: View {
                                 }
                             }
                         }
-                        .onChange(of: syncManager.isSyncing) { _, newValue in
-                            if newValue == false {
-                                DispatchQueue.main.async {
-                                    isScrollingToTop = true
-                                    scrollToTop.toggle()
-                                    lastOffset = .zero
-                                    isScrollingToTop = false
-                                }
-                            }
-                        }
+//                        .onChange(of: syncManager.isSyncing) { _, newValue in
+//                            if newValue == false {
+//                                DispatchQueue.main.async {
+//                                    isScrollingToTop = true
+//                                    scrollToTop.toggle()
+//                                    lastOffset = .zero
+//                                    isScrollingToTop = false
+//                                }
+//                            }
+//                        }
                         .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
                             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                         }
@@ -155,9 +155,9 @@ struct ItemsListView: View {
         }
     }
     
-    @MainActor
+//    @MainActor
     private func markRead(_ offset: CGFloat) async throws {
-        guard syncManager.isSyncing == false, isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
+        guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {

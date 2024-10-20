@@ -11,10 +11,10 @@ import SwiftData
 
 class WebImporter {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: WebImporter.self))
-    private let backgroundModelActor: BackgroundModelActor
+    private let databaseActor: NewsDataModelActor
 
-    init(backgroundModelActor: BackgroundModelActor) {
-        self.backgroundModelActor = backgroundModelActor
+    init(databaseActor: NewsDataModelActor) {
+        self.databaseActor = databaseActor
     }
 
     func updateFoldersInDatabase(urlRequest: URLRequest) async {
@@ -22,9 +22,9 @@ class WebImporter {
             let foldersData: FoldersDTO = try await fetchData(fromUrlRequest: urlRequest)
             for eachItem in foldersData.folders {
                 let itemToStore = Folder(item: eachItem)
-                await backgroundModelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await backgroundModelActor.save()
+            try? await databaseActor.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)
@@ -36,9 +36,9 @@ class WebImporter {
             let feedsData: FeedsDTO = try await fetchData(fromUrlRequest: urlRequest)
             for eachItem in feedsData.feeds {
                 let itemToStore = Feed(item: eachItem)
-                await backgroundModelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await backgroundModelActor.save()
+            try? await databaseActor.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)
@@ -50,9 +50,9 @@ class WebImporter {
             let itemsData: ItemsDTO = try await fetchData(fromUrlRequest: urlRequest)
             for eachItem in itemsData.items {
                 let itemToStore = await Item(item: eachItem)
-                await backgroundModelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await backgroundModelActor.save()
+            try? await databaseActor.save()
         } catch {
             print("Error fetching data")
             print(error.localizedDescription)
@@ -95,16 +95,16 @@ class WebImporter {
 
 class ItemPruner {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ItemPruner.self))
-    private let backgroundModelActor: BackgroundModelActor
+    private let databaseActor: NewsDataModelActor
 
-    init(backgroundModelActor: BackgroundModelActor) {
-        self.backgroundModelActor = backgroundModelActor
+    init(databaseActor: NewsDataModelActor) {
+        self.databaseActor = databaseActor
     }
 
     func pruneItems(daysOld: Int) async throws {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * daysOld), to: Date()) {
-                try await backgroundModelActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDate } )
+                try await databaseActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false  && $0.lastModified < limitDate } )
             }
         } catch {
             self.logger.debug("Failed to execute item pruning.")

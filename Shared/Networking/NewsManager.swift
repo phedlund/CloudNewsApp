@@ -54,7 +54,7 @@ extension FeedModel {
                     //                        let router = Router.items(parameters: parameters)
                     //                        try await itemImporter.fetchItems(router.urlRequest())
                     //                    }
-                    try await backgroundModelActor.save()
+                    try await databaseActor.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -120,23 +120,23 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-                        try await backgroundModelActor.delete(Unread.self)
-                        try await backgroundModelActor.save()
+//                        try await databaseActor.delete<Unread>(Unread.Type)
+                        try await databaseActor.save()
                     } else {
-                        try await backgroundModelActor.delete(Read.self)
-                        try await backgroundModelActor.save()
+//                        try await databaseActor.delete(Read.self)
+                        try await databaseActor.save()
                     }
                 default:
                     if unread {
                         for itemId in itemIds {
-                            await backgroundModelActor.insert(Read(itemId: itemId))
+                            await databaseActor.insert(Read(itemId: itemId))
                         }
-                        try await backgroundModelActor.save()
+                        try await databaseActor.save()
                     } else {
                         for itemId in itemIds {
-                            await backgroundModelActor.insert(Unread(itemId: itemId))
+                            await databaseActor.insert(Unread(itemId: itemId))
                         }
-                        try await backgroundModelActor.save()
+                        try await databaseActor.save()
                     }
                 }
             }
@@ -149,7 +149,7 @@ extension FeedModel {
     func markStarred(item: Item, starred: Bool) async throws {
         do {
             item.starred = starred
-            try await backgroundModelActor.save()
+            try await databaseActor.save()
 
             let parameters: ParameterDict = ["items": [["feedId": item.feedId,
                                                         "guidHash": item.guidHash as Any]]]
@@ -166,18 +166,18 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-                        try await backgroundModelActor.delete(Unstarred.self)
+//                        try await databaseActor.delete(Unstarred.self)
                     } else {
-                        try await backgroundModelActor.delete(Starred.self)
+//                        try await databaseActor.delete(Starred.self)
                     }
                 default:
                     if starred {
-                        await backgroundModelActor.insert(Starred(itemId: item.id))
+                        await databaseActor.insert(Starred(itemId: item.id))
                     } else {
-                        await backgroundModelActor.insert(Unstarred(itemId: item.id))
+                        await databaseActor.insert(Unstarred(itemId: item.id))
                     }
                 }
-                try await backgroundModelActor.save()
+                try await databaseActor.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
@@ -330,7 +330,7 @@ extension FeedModel {
             //                }
             //            }
 
-            let newestKnownLastModified = await backgroundModelActor.maxLastModified()
+            let newestKnownLastModified = await databaseActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -413,8 +413,8 @@ extension FeedModel {
                 case 200:
                     break
                 case 404:
-                    try await backgroundModelActor.deleteItems(with: Int64(id))
-                    try await backgroundModelActor.deleteFeed(id: Int64(id))
+                    try await databaseActor.deleteItems(with: Int64(id))
+                    try await databaseActor.deleteFeed(id: Int64(id))
                     throw NetworkError.feedDoesNotExist
                 default:
                     throw NetworkError.feedErrorDeleting

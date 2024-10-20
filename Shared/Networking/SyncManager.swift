@@ -11,13 +11,11 @@ import SwiftData
 
 @Observable
 final class SyncManager: @unchecked Sendable {
-    var isSyncing: Bool = false
-
-    private let modelActor: BackgroundModelActor
+    private let databaseActor: NewsDataModelActor
     private var backgroundSession: URLSession?
 
-    init(modelActor: BackgroundModelActor) {
-        self.modelActor = modelActor
+    init(databaseActor: NewsDataModelActor) {
+        self.databaseActor = databaseActor
     }
 
     func configureSession() {
@@ -57,7 +55,7 @@ final class SyncManager: @unchecked Sendable {
             }
 
 
-            let newestKnownLastModified = await modelActor.maxLastModified()
+            let newestKnownLastModified = await databaseActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -109,16 +107,14 @@ final class SyncManager: @unchecked Sendable {
 
     func sync() async {
         do {
-            isSyncing = true
-            let itemCount = try await modelActor.itemCount()
+            let itemCount = try await databaseActor.itemCount()
             if itemCount == 0 {
                 await initialSync()
             } else {
                 await repeatSync()
             }
-            isSyncing = false
         } catch {
-            isSyncing = false
+            //
         }
     }
 
@@ -133,7 +129,7 @@ final class SyncManager: @unchecked Sendable {
             let foldersRequest = try Router.folders.urlRequest()
             let feedsRequest = try Router.feeds.urlRequest()
 
-            let newestKnownLastModified = await modelActor.maxLastModified()
+            let newestKnownLastModified = await databaseActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
             let updatedParameters: ParameterDict = ["type": 3,
                                                     "lastModified": newestKnownLastModified,
@@ -163,9 +159,9 @@ final class SyncManager: @unchecked Sendable {
         Task {
             for eachItem in decodedResponse.folders {
                 let itemToStore = Folder(item: eachItem)
-                await modelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await modelActor.save()
+            try? await databaseActor.save()
         }
     }
 
@@ -179,9 +175,9 @@ final class SyncManager: @unchecked Sendable {
         Task {
             for eachItem in decodedResponse.feeds {
                 let itemToStore = Feed(item: eachItem)
-                await modelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await modelActor.save()
+            try? await databaseActor.save()
         }
     }
 
@@ -194,9 +190,9 @@ final class SyncManager: @unchecked Sendable {
         Task {
             for eachItem in decodedResponse.items {
                 let itemToStore = await Item(item: eachItem)
-                await modelActor.insert(itemToStore)
+                await databaseActor.insert(itemToStore)
             }
-            try? await modelActor.save()
+            try? await databaseActor.save()
         }
     }
 
@@ -204,7 +200,7 @@ final class SyncManager: @unchecked Sendable {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")
-                try await modelActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+                try await databaseActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
             throw DatabaseError.itemsFailedImport

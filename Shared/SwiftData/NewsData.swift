@@ -8,44 +8,55 @@
 import Foundation
 import SwiftData
 
-class NewsData {
-
-    let newsSchema = Schema([
-            Feeds.self,
-            Feed.self,
-            Folder.self,
-            Item.self,
-            Read.self,
-            Unread.self,
-            Starred.self,
-            Unstarred.self
-        ])
-
-    var container: ModelContainer?
-
-    init() {
-        do {
-            container = try ModelContainer(for: newsSchema, configurations: ModelConfiguration())
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
-
-    func resetDatabase() {
-        //
-    }
-}
+//class NewsData {
+//
+//    let newsSchema = Schema([
+//            Feeds.self,
+//            Feed.self,
+//            Folder.self,
+//            Item.self,
+//            Read.self,
+//            Unread.self,
+//            Starred.self,
+//            Unstarred.self
+//        ])
+//
+//    var container: ModelContainer?
+//
+//    init() {
+//        do {
+//            container = try ModelContainer(for: newsSchema, configurations: ModelConfiguration())
+//        } catch {
+//            print(error.localizedDescription)
+//        }
+//    }
+//
+//    func resetDatabase() {
+//        //
+//    }
+//}
 
 @ModelActor
-public actor BackgroundModelActor {
-
-    public func save() throws {
-        try modelContext.save()
+public actor NewsDataModelActor: NewsDatabase {
+    public func fetch<T: Sendable>(_ descriptor: @Sendable @escaping () -> FetchDescriptor<T>) async throws -> [T] where T : PersistentModel {
+        return [T]()
     }
 
-    public func insert<T: PersistentModel>(_ model: T) {
-        modelContext.insert(model)
-        try? modelContext.save()
+    public func delete<T>(where predicate: Predicate<T>?) async throws where T : PersistentModel {
+        try self.modelContext.delete(model: T.self, where: predicate)
+    }
+
+    public func delete<T>(_ model: T) async where T : PersistentModel {
+        self.modelContext.delete(model)
+    }
+
+    public func save() async throws {
+        try self.modelContext.save()
+    }
+
+    public func insert<T>(_ model: T) async where T : PersistentModel {
+        self.modelContext.insert(model)
+        try? await save()
     }
 
     // Function to get a feed by ID
@@ -76,27 +87,16 @@ public actor BackgroundModelActor {
         return count
     }
 
-    public func delete<T: PersistentModel>(_ model: T.Type) throws {
-        try modelContext.delete(model: T.self)
-        try? modelContext.save()
-    }
-
-    public func delete<T: PersistentModel>(_ model: T.Type, where predicate: Predicate<T>) throws {
+    public func delete<T: PersistentModel>(_ model: T.Type, where predicate: Predicate<T>) async throws {
         try modelContext.delete(model: T.self, where: predicate)
+        try await save()
     }
-
-//    func fetchAllFeedData() async throws -> [FeedInAppDTO] {
-//        let fetchDescriptor = FetchDescriptor<Feed>()
-//        let feeds: [Feed] = try modelContext.fetch(fetchDescriptor)
-//        let feedInAppDTOs = feeds.map { FeedInAppDTO(id: $0.id, preferWeb: $0.preferWeb, favIconData: $0.favIconData, faviconLink: $0.faviconLink, link: $0.link) }
-//        return feedInAppDTOs
-//    }
 
 }
 
-extension BackgroundModelActor {
+extension NewsDataModelActor {
 
-func maxLastModified() async -> Int64 {
+    func maxLastModified() async -> Int64 {
         var result: Int64 = 0
         do {
             let items: [Item] = try fetchData()
@@ -147,10 +147,8 @@ func maxLastModified() async -> Int64 {
 
     func deleteFolder(id: Int64) async throws {
         do {
-            try modelContext.delete(model: Folder.self, where: #Predicate { $0.id == id } )
-            try save()
+            try await delete(Folder.self, where: #Predicate { $0.id == id })
         } catch {
-            //                self.logger.debug("Failed to execute items insert request.")
             throw DatabaseError.folderErrorDeleting
         }
     }
@@ -204,20 +202,16 @@ func maxLastModified() async -> Int64 {
 
     func deleteFeed(id: Int64) async throws {
         do {
-            try modelContext.delete(model: Feed.self, where: #Predicate { $0.id == id } )
-            try save()
+            try await delete(Feed.self, where: #Predicate { $0.id == id } )
         } catch {
-            //                self.logger.debug("Failed to execute items insert request.")
             throw DatabaseError.feedErrorDeleting
         }
     }
 
     func deleteItems(with feedId: Int64) async throws {
         do {
-            try modelContext.delete(model: Item.self, where: #Predicate { $0.feedId == feedId } )
-            try save()
+            try await delete(Item.self, where: #Predicate { $0.feedId == feedId } )
         } catch {
-            //                self.logger.debug("Failed to execute items insert request.")
             throw DatabaseError.itemErrorDeleting
         }
     }
@@ -231,6 +225,15 @@ func maxLastModified() async -> Int64 {
             print("Could not fetch \(error), \(error.userInfo)")
         }
         return nil
+    }
+
+    func update<T>(_ persistentIdentifier: PersistentIdentifier, keypath: ReferenceWritableKeyPath<Item, T>, to value: T) async throws {
+        guard let model = try? await model(by: persistentIdentifier) as? Item else {
+            // Error handling
+            return
+        }
+        model[keyPath: keypath] = value
+        try? await save()
     }
 
 }

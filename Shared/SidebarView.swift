@@ -31,7 +31,7 @@ struct SidebarView: View {
 #endif
     @Environment(FeedModel.self) private var feedModel
     @Environment(SyncManager.self) private var syncManager
-    @Environment(\.modelContext) private var modelContext
+//    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
 
     @State private var modalSheet: ModalSheet?
@@ -39,6 +39,7 @@ struct SidebarView: View {
     @State private var isShowingError = false
     @State private var isShowingRename = false
     @State private var isShowingAlert = false
+    @State private var isSyncing = false
     @State private var errorMessage = ""
     @State private var confirmationNode: NodeStruct?
     @State private var alertInput = ""
@@ -81,14 +82,17 @@ struct SidebarView: View {
         List(selection: $nodeSelection) {
             Group {
                 NodeView(node: NodeStruct(nodeName: Constants.allNodeGuid, nodeType: .all, title: "All Articles", isTopLevel: false))
+                    .id(NodeType.all.asData)
                     .tag(NodeType.all.asData)
                 NodeView(node: NodeStruct(nodeName: Constants.starNodeGuid, nodeType: .starred, title: "Starred Articles", isTopLevel: false))
+                    .id(NodeType.starred.asData)
                     .tag(NodeType.starred.asData)
 
                 ForEach(folders) { folder in
                     DisclosureGroup {
                         ForEach(feeds.filter( { $0.folderId == folder.id })) { feed in
                             NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
+                                .id(NodeType.feed(id: feed.id).asData)
                                 .tag(NodeType.feed(id: feed.id).asData)
                         }
                     } label: {
@@ -97,6 +101,7 @@ struct SidebarView: View {
                                                   title: folder.name ?? "Untitled Folder",
                                                   isTopLevel: true,
                                                   childIds: feeds.filter( { $0.folderId == folder.id }).map( { $0.id } )))
+                            .id(NodeType.folder(id: folder.id).asData)
                             .tag(NodeType.folder(id: folder.id).asData)
                             .onTapGesture {
                                 nodeSelection = NodeType.folder(id: folder.id).asData
@@ -106,6 +111,7 @@ struct SidebarView: View {
 
                 ForEach(feeds.filter( { $0.folderId == 0 })) { feed in
                     NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
+                        .id(NodeType.feed(id: feed.id).asData)
                         .tag(NodeType.feed(id: feed.id).asData)
                 }
             }
@@ -206,7 +212,7 @@ struct SidebarView: View {
                                 var node = feedModel.currentNode
                                 node?.title = alertInput
                                 folder.name = node?.title
-                                try await feedModel.backgroundModelActor.save()
+                                try await feedModel.databaseActor.save()
                             } catch let error as NetworkError {
                                 errorMessage = error.localizedDescription
                                 isShowingError = true
@@ -286,26 +292,28 @@ struct SidebarView: View {
             Spacer()
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(newsManager.isSyncing ? 1.0 : 0.0)
+                .opacity(isSyncing ? 1.0 : 0.0)
                 .controlSize(.small)
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(newsManager.isSyncing || isNewInstall)
+            .disabled(isSyncing || isNewInstall)
 #else
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(syncManager.isSyncing ? 1.0 : 0.0)
+                .opacity(isSyncing ? 1.0 : 0.0)
             Button {
+                isSyncing = true
                 Task.detached(priority: .background) {
                     await syncManager.sync()
                 }
+                isSyncing = false
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(syncManager.isSyncing || isNewInstall)
+            .disabled(isSyncing || isNewInstall)
             Button {
                 modalSheet = .settings
             } label: {
