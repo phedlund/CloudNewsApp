@@ -10,8 +10,8 @@ import SwiftUI
 import WebKit
 
 @Observable
-class PageViewProxy: @unchecked Sendable {
-    var scrollId: Int64 = 0
+class PageViewProxy {
+    var scrollId: Int64?
     var canGoBack = false
     var goBack = false
     var canGoForward = false

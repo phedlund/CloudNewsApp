@@ -39,7 +39,6 @@ struct SidebarView: View {
     @State private var isShowingError = false
     @State private var isShowingRename = false
     @State private var isShowingAlert = false
-    @State private var isSyncing = false
     @State private var errorMessage = ""
     @State private var confirmationNode: NodeStruct?
     @State private var alertInput = ""
@@ -303,17 +302,15 @@ struct SidebarView: View {
 #else
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(isSyncing ? 1.0 : 0.0)
+                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
             Button {
-                isSyncing = true
                 Task.detached(priority: .background) {
                     await syncManager.sync()
                 }
-                isSyncing = false
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing || isNewInstall)
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
             Button {
                 modalSheet = .settings
             } label: {

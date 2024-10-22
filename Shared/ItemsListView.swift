@@ -97,16 +97,16 @@ struct ItemsListView: View {
                                 }
                             }
                         }
-//                        .onChange(of: syncManager.isSyncing) { _, newValue in
-//                            if newValue == false {
-//                                DispatchQueue.main.async {
-//                                    isScrollingToTop = true
-//                                    scrollToTop.toggle()
-//                                    lastOffset = .zero
-//                                    isScrollingToTop = false
-//                                }
-//                            }
-//                        }
+                        .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
+                            if newValue == false {
+                                DispatchQueue.main.async {
+                                    isScrollingToTop = true
+                                    scrollToTop.toggle()
+                                    lastOffset = .zero
+                                    isScrollingToTop = false
+                                }
+                            }
+                        }
                         .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
                             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
                         }
@@ -186,7 +186,6 @@ struct NavigationDestinationModifier: ViewModifier {
                 ArticlesPageView(item: item, items: items)
                     .environment(feedModel)
             }
-
 #else
         content
 #endif

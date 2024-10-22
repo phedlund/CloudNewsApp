@@ -10,9 +10,15 @@ import Foundation
 import SwiftData
 
 @Observable
+final class SyncManagerReader {
+    var isSyncing = false
+}
+
+@Observable
 final class SyncManager: @unchecked Sendable {
     private let databaseActor: NewsDataModelActor
     private var backgroundSession: URLSession?
+    var syncManagerReader = SyncManagerReader()
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
@@ -107,14 +113,16 @@ final class SyncManager: @unchecked Sendable {
 
     func sync() async {
         do {
+            syncManagerReader.isSyncing = true
             let itemCount = try await databaseActor.itemCount()
             if itemCount == 0 {
                 await initialSync()
             } else {
                 await repeatSync()
             }
+            syncManagerReader.isSyncing = false
         } catch {
-            //
+            syncManagerReader.isSyncing = false
         }
     }
 

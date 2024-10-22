@@ -13,9 +13,9 @@ struct ArticlesPageView: View {
     @Environment(FeedModel.self) private var feedModel
 
     @State private var item: Item
-    @State private var scrollId: Int64?
+//    @State private var scrollId: Int64?
     @State private var isShowingPopover = false
-    @State private var pageViewProxy = PageViewProxy()
+    @Bindable var pageViewProxy = PageViewProxy()
 
     private let items: [Item]
 
@@ -35,7 +35,6 @@ struct ArticlesPageView: View {
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
-        .scrollPosition(id: $scrollId)
         .navigationTitle(pageViewProxy.title)
         .scrollContentBackground(.hidden)
         .background {
@@ -48,15 +47,16 @@ struct ArticlesPageView: View {
         .toolbarRole(.editor)
         .toolbarBackgroundVisibility(.visible, for: .navigationBar)
         .onAppear {
-            scrollId = item.id
+            pageViewProxy.scrollId = item.id
         }
-        .onChange(of: scrollId ?? 0, initial: true) { _, newValue in
-            pageViewProxy.scrollId = newValue
+        .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
+//            pageViewProxy.scrollId = newValue
             print(newValue)
             if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
                 feedModel.markItemsRead(items: [newItem])
             }
         }
+        .scrollPosition(id: $pageViewProxy.scrollId)
     }
 
     @ToolbarContentBuilder
@@ -89,7 +89,7 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let currentItem = items.first(where: { $0.id == scrollId }) {
+            if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
                 ShareLinkButton(item: currentItem)
                     .disabled(pageViewProxy.isLoading)
             } else {
@@ -102,7 +102,7 @@ struct ArticlesPageView: View {
             }
             .disabled(pageViewProxy.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let currentItem = items.first(where: { $0.id == scrollId }) {
+                if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
                     ArticleSettingsView(item: currentItem)
                         .presentationDetents([.height(300.0)])
                 }

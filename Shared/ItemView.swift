@@ -20,12 +20,9 @@ struct ItemView: View {
     @State private var isHorizontalCompact = false
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
-    @State private var favIcon: SystemImage?
-    @State private var thumbnail: SystemImage?
 
-    private var item: Item
-    private var cellSize: CGSize
-    private var cellWidth = CGFloat.infinity
+    private let item: Item
+    private let cellSize: CGSize
 
     init(item: Item, size: CGSize) {
         self.item = item
