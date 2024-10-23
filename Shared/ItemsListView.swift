@@ -35,7 +35,6 @@ struct ItemsListView: View {
     @State private var path = [Item]()
     @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
-    @State private var itemSelection: PersistentIdentifier?
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
 
@@ -80,31 +79,16 @@ struct ItemsListView: View {
                         .newsNavigationDestination(type: Item.self, items: items)
                         .onChange(of: selectedNode) { _, _ in
                             path.removeAll()
-                            DispatchQueue.main.async {
-                                isScrollingToTop = true
-                                scrollToTop.toggle()
-                                lastOffset = .zero
-                                isScrollingToTop = false
-                            }
+                            doScrollToTop()
                         }
                         .onChange(of: scenePhase) { _, newPhase in
                             if newPhase == .active {
-                                DispatchQueue.main.async {
-                                    isScrollingToTop = true
-                                    scrollToTop.toggle()
-                                    lastOffset = .zero
-                                    isScrollingToTop = false
-                                }
+                                doScrollToTop()
                             }
                         }
                         .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
                             if newValue == false {
-                                DispatchQueue.main.async {
-                                    isScrollingToTop = true
-                                    scrollToTop.toggle()
-                                    lastOffset = .zero
-                                    isScrollingToTop = false
-                                }
+                                doScrollToTop()
                             }
                         }
                         .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
@@ -129,6 +113,14 @@ struct ItemsListView: View {
                 }
             }
         }
+    }
+
+    @MainActor
+    func doScrollToTop() {
+        isScrollingToTop = true
+        scrollToTop.toggle()
+        lastOffset = .zero
+        isScrollingToTop = false
     }
 
     @ViewBuilder
