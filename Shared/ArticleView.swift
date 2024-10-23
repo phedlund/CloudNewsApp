@@ -34,7 +34,7 @@ struct ArticleView: View {
                     .ignoresSafeArea(edges: .vertical)
             }
             .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
-                print("got scroll id: \(newValue)")
+                print("got scroll id: \(newValue ?? -1)")
                 if newValue == item.id {
                     pageViewReader.title = reader.title
                     pageViewReader.canGoBack = reader.canGoBack
