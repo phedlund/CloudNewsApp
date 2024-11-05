@@ -31,7 +31,7 @@ struct SidebarView: View {
 #endif
     @Environment(FeedModel.self) private var feedModel
     @Environment(SyncManager.self) private var syncManager
-//    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
 
     @State private var modalSheet: ModalSheet?

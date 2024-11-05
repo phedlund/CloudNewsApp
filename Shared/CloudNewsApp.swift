@@ -13,7 +13,6 @@ import SwiftUI
 struct CloudNewsApp: App {
     private let container: ModelContainer
     private let feedModel: FeedModel
-//    private let newsData = NewsData()
     private let modelActor: NewsDataModelActor
     private let syncManager: SyncManager
 
