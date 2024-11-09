@@ -211,47 +211,6 @@ struct ContentView: View {
         }
     }
 
-//    private func updatePredicate() {
-//        if let selectedNode {
-//            switch NodeType.fromData(selectedNode) {
-//            case .empty:
-//                predicate = #Predicate<Item>{ _ in false }
-//                unreadPredicate = predicate
-//            case .all:
-//                predicate = #Predicate<Item>{
-//                    if hideRead {
-//                        return $0.unread
-//                    } else {
-//                        return true
-//                    }
-//                }
-//                unreadPredicate = #Predicate<Item>{ $0.unread }
-//            case .starred:
-//                predicate = #Predicate<Item>{ $0.starred }
-//                unreadPredicate = #Predicate<Item>{ _ in false }
-//            case .folder(id:  let id):
-//                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-//                predicate = #Predicate<Item>{
-//                    if hideRead {
-//                        return feedIds.contains($0.feedId) && $0.unread
-//                    } else {
-//                        return feedIds.contains($0.feedId)
-//                    }
-//                }
-//                unreadPredicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-//            case .feed(id: let id):
-//                predicate = #Predicate<Item>{
-//                    if hideRead {
-//                        return $0.feedId == id && $0.unread
-//                    } else {
-//                        return $0.feedId == id
-//                    }
-//                }
-//                unreadPredicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-//            }
-//        }
-//    }
-
     @ToolbarContentBuilder
     func contentViewToolBarContent() -> some ToolbarContent {
         ToolbarItem(placement: .automatic) {
