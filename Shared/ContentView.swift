@@ -24,15 +24,13 @@ struct ContentView: View {
 
     @State private var isShowingLogin = false
     @State private var navigationTitle: String?
-    @State private var sortOrder = SortDescriptor(\Item.id)
-    @State private var predicate = #Predicate<Item>{ _ in false }
     @State private var unreadPredicate = #Predicate<Item>{ _ in false }
     @State private var selectedItem: Item? = nil
     @State private var nodeType: NodeType = .empty
+    @State private var fetchDescriptor = FetchDescriptor<Item>()
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
-//    @Query private var items: [Item]
 
     var body: some View {
         let _ = Self._printChanges()
@@ -44,7 +42,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNode != nil {
-                    ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
+                    ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
                         .environment(feedModel)
                         .environment(syncManager)
                         .toolbar {
@@ -105,13 +103,13 @@ struct ContentView: View {
             ////                feedModel.updateUnreadCount()
             //            }
             selectedNode = newValue
-            updatePredicate()
+            updateFetchDescriptor()
         }
         .onChange(of: hideRead, initial: true) { _, _ in
-            updatePredicate()
+            updateFetchDescriptor()
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
+            updateFetchDescriptor()
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -171,14 +169,15 @@ struct ContentView: View {
 #endif
     }
 
-    private func updatePredicate() {
+    private func updateFetchDescriptor() {
+        fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         if let selectedNode {
             switch NodeType.fromData(selectedNode) {
             case .empty:
-                predicate = #Predicate<Item>{ _ in false }
-                unreadPredicate = predicate
+                fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+                unreadPredicate = #Predicate<Item>{ _ in false }
             case .all:
-                predicate = #Predicate<Item>{
+                fetchDescriptor.predicate = #Predicate<Item>{
                     if hideRead {
                         return $0.unread
                     } else {
@@ -187,11 +186,11 @@ struct ContentView: View {
                 }
                 unreadPredicate = #Predicate<Item>{ $0.unread }
             case .starred:
-                predicate = #Predicate<Item>{ $0.starred }
+                fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
                 unreadPredicate = #Predicate<Item>{ _ in false }
             case .folder(id:  let id):
                 let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-                predicate = #Predicate<Item>{
+                fetchDescriptor.predicate = #Predicate<Item>{
                     if hideRead {
                         return feedIds.contains($0.feedId) && $0.unread
                     } else {
@@ -200,7 +199,7 @@ struct ContentView: View {
                 }
                 unreadPredicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
             case .feed(id: let id):
-                predicate = #Predicate<Item>{
+                fetchDescriptor.predicate = #Predicate<Item>{
                     if hideRead {
                         return $0.feedId == id && $0.unread
                     } else {
@@ -211,6 +210,47 @@ struct ContentView: View {
             }
         }
     }
+
+//    private func updatePredicate() {
+//        if let selectedNode {
+//            switch NodeType.fromData(selectedNode) {
+//            case .empty:
+//                predicate = #Predicate<Item>{ _ in false }
+//                unreadPredicate = predicate
+//            case .all:
+//                predicate = #Predicate<Item>{
+//                    if hideRead {
+//                        return $0.unread
+//                    } else {
+//                        return true
+//                    }
+//                }
+//                unreadPredicate = #Predicate<Item>{ $0.unread }
+//            case .starred:
+//                predicate = #Predicate<Item>{ $0.starred }
+//                unreadPredicate = #Predicate<Item>{ _ in false }
+//            case .folder(id:  let id):
+//                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+//                predicate = #Predicate<Item>{
+//                    if hideRead {
+//                        return feedIds.contains($0.feedId) && $0.unread
+//                    } else {
+//                        return feedIds.contains($0.feedId)
+//                    }
+//                }
+//                unreadPredicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+//            case .feed(id: let id):
+//                predicate = #Predicate<Item>{
+//                    if hideRead {
+//                        return $0.feedId == id && $0.unread
+//                    } else {
+//                        return $0.feedId == id
+//                    }
+//                }
+//                unreadPredicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+//            }
+//        }
+//    }
 
     @ToolbarContentBuilder
     func contentViewToolBarContent() -> some ToolbarContent {

@@ -40,8 +40,7 @@ struct ItemsListView: View {
 
     @Binding var selectedItem: Item?
 
-    init(predicate: Predicate<Item>, sort: SortDescriptor<Item>, selectedItem: Binding<Item?>) {
-        let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate, sortBy: [sort])
+    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
         _items = Query(fetchDescriptor)
         self._selectedItem = selectedItem
     }

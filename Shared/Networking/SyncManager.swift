@@ -116,7 +116,7 @@ final class SyncManager: @unchecked Sendable {
             syncManagerReader.isSyncing = true
             let itemCount = try await databaseActor.itemCount()
             if itemCount == 0 {
-                await initialSync()
+                await repeatSync()
             } else {
                 await repeatSync()
             }

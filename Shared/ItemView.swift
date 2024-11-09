@@ -9,6 +9,17 @@ import Kingfisher
 import SwiftData
 import SwiftUI
 
+extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: @autoclosure () -> Bool, transform: (Self) -> Content) -> some View {
+        if condition() {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
 struct ItemView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -82,12 +93,8 @@ struct ItemView: View {
                     .padding([.top, .trailing],  .paddingSix)
             }
         }
-        .overlay {
-            if !item.unread, !item.starred {
-                Color.primary
-                    .colorInvert()
-                    .opacity(0.6)
-            }
+        .if(!item.unread && !item.starred) {
+            $0.opacity(0.4)
         }
         .task {
             Task { @MainActor in
@@ -171,7 +178,10 @@ private extension ItemView {
                 .padding(.leading, thumbnailOffset)
             }
         }
-        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
+        .if(isHorizontalCompact) {
+            $0.frame(height: thumbnailSize.height - 4)
+        }
+//        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
     @MainActor
