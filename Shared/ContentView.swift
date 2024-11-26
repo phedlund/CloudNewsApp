@@ -170,7 +170,7 @@ struct ContentView: View {
     }
 
     private func updateFetchDescriptor() {
-        fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+        fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.lastModified, order: .forward)] : [SortDescriptor(\Item.lastModified, order: .reverse)]
         if let selectedNode {
             switch NodeType.fromData(selectedNode) {
             case .empty:
