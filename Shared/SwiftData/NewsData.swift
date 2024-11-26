@@ -50,6 +50,14 @@ public actor NewsDataModelActor: NewsDatabase {
         self.modelContext.delete(model)
     }
 
+    public func delete(_ indentifier: PersistentIdentifier) async {
+        await delete(self.modelContext.model(for: indentifier))
+    }
+
+    public func deleteAll<T>( _ model: T.Type) async where T : PersistentModel {
+        try? self.modelContext.delete(model: T.self)
+    }
+
     public func save() async throws {
         try self.modelContext.save()
     }
@@ -67,6 +75,10 @@ public actor NewsDataModelActor: NewsDatabase {
     func allModels<T: PersistentModel>() async throws -> [T] {
         let fetchRequest = FetchDescriptor<T>()
         return try modelContext.fetch(fetchRequest)
+    }
+
+    func allModelIds<T: PersistentModel>(_ descriptor: FetchDescriptor<T>) async throws -> [PersistentIdentifier] {
+        try modelContext.fetchIdentifiers(descriptor)
     }
 
     public func fetchData<T: PersistentModel>(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) throws -> [T] {
@@ -92,6 +104,22 @@ public actor NewsDataModelActor: NewsDatabase {
         try await save()
     }
 
+    public func fetchItemId(by id: PersistentIdentifier) async throws -> Int64? {
+        let model = modelContext.model(for: id)
+        if let model = model as? Read {
+            return model.itemId
+        }
+        if let model = model as? Unread {
+            return model.itemId
+        }
+        if let model = model as? Starred {
+            return model.itemId
+        }
+        if let model = model as? Unstarred {
+            return model.itemId
+        }
+        return nil
+    }
 }
 
 extension NewsDataModelActor {

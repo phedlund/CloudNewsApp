@@ -27,7 +27,6 @@ struct ItemsListView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @Query private var items: [Item]
@@ -146,7 +145,6 @@ struct ItemsListView: View {
         }
     }
     
-//    @MainActor
     private func markRead(_ offset: CGFloat) async throws {
         guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
