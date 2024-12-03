@@ -98,10 +98,6 @@ struct ContentView: View {
                 let feed = feeds.first(where: { $0.id == id })
                 navigationTitle = feed?.title ?? "Untitled Feed"
             }
-            // TODO           if let node = selectedNode, let model = nodes.first(where: { $0.nodeName == node }) {
-            //                feedModel.currentNode = model
-            ////                feedModel.updateUnreadCount()
-            //            }
             selectedNode = newValue
             updateFetchDescriptor()
         }
@@ -109,7 +105,7 @@ struct ContentView: View {
             updateFetchDescriptor()
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            updateFetchDescriptor()
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.pubDate, order: .forward)] : [SortDescriptor(\Item.pubDate, order: .reverse)]
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -170,7 +166,6 @@ struct ContentView: View {
     }
 
     private func updateFetchDescriptor() {
-        fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.lastModified, order: .forward)] : [SortDescriptor(\Item.lastModified, order: .reverse)]
         if let selectedNode {
             switch NodeType.fromData(selectedNode) {
             case .empty:
