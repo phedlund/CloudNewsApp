@@ -19,15 +19,27 @@ struct ArticleView: View {
     var body: some View {
         WebViewReader { reader in
             WebView { webView in
-                reader.setup(item: item, webView: webView)
+                reader.setup(webView: webView)
             }
             .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
             .safeAreaPadding([.top], 20)
-            .onAppear {
+            .task {
                 pageViewReader.title = reader.title
+                if let feed = item.feed {
+                    if feed.preferWeb == true,
+                       let urlString = item.url,
+                       let url = URL(string: urlString) {
+                        reader.webView?.load(URLRequest(url: url))
+                    } else {
+                        let content = ArticleWebContent(item: item)
+                        if let url = content.url {
+                            reader.webView?.load(URLRequest(url: url))
+                        }
+                    }
+                }
             }
             .background {
                 Color.phWhiteBackground
@@ -40,11 +52,6 @@ struct ArticleView: View {
                     pageViewReader.canGoBack = reader.canGoBack
                     pageViewReader.canGoForward = reader.canGoForward
                     pageViewReader.isLoading = reader.isLoading
-                }
-            }
-            .onChange(of: reader.urlRequest) { oldValue, newValue in
-                if newValue != oldValue, let urlRequest = reader.urlRequest {
-                    reader.webView?.load(urlRequest)
                 }
             }
             .onChange(of: reader.canGoBack) { _, newValue in
@@ -83,11 +90,6 @@ struct ArticleView: View {
             }
             .onChange(of: marginPortrait) {
                 reader.webView?.reload()
-            }
-            .task {
-                if let request = reader.urlRequest {
-                    reader.webView?.load(request)
-                }
             }
         }
     }

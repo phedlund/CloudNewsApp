@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 7/27/24.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 import WebKit
@@ -21,75 +22,59 @@ class PageViewProxy {
     var title = ""
 }
 
-@Observable
-class WebViewProxy: @unchecked Sendable, Equatable {
-    static func == (lhs: WebViewProxy, rhs: WebViewProxy) -> Bool {
-        lhs.item == rhs.item
-    }
-
+@MainActor
+public final class WebViewProxy: ObservableObject {
     private(set) weak var webView: WKWebView?
 
-    var canGoBack = false
-    var canGoForward = false
-    var isLoading = false
-    var title = ""
-    var urlRequest: URLRequest?
+    @Published public private(set) var canGoBack = false
+    @Published public private(set) var canGoForward = false
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var title = ""
+    @Published public private(set) var url: URL?
 
-    private var item: Item?
-    private var content: ArticleWebContent?
-    private var task: Task<Void, Never>?
+    private var tasks = [Task<Void, Never>]()
 
-    func setup(item: Item, webView: WKWebView) {
-        self.item = item
+    func setup(webView: WKWebView) {
         self.webView = webView
-        if let feed = item.feed {
-            if feed.preferWeb == true,
-               let urlString = item.url,
-               let url = URL(string: urlString) {
-                urlRequest = URLRequest(url: url)
-            } else {
-                content = ArticleWebContent(item: item)
-                if let url = content?.url {
-                    urlRequest = URLRequest(url: url)
-                }
-            }
-        }
         observe(webView)
     }
 
     private func observe(_ webView: WKWebView) {
-//        task?.cancel()
-//        task = Task {
-//            await withTaskGroup(of: Void.self) { group in
-//                group.addTask { @MainActor in
-//                    for await value in webView.publisher(for: \.title).bufferedValues() {
-//                        self.title = value ?? "Untitled"
-//                    }
-//                }
-//                group.addTask { @MainActor in
-//                    for await value in webView.publisher(for: \.isLoading).bufferedValues() {
-//                        self.isLoading = value
-//                    }
-//                }
-//                group.addTask { @MainActor in
-//                    for await value in webView.publisher(for: \.canGoBack).bufferedValues() {
-//                        self.canGoBack = value
-//                    }
-//                }
-//
-//                group.addTask { @MainActor in
-//                    for await value in webView.publisher(for: \.canGoForward).bufferedValues() {
-//                        self.canGoForward = value
-//                    }
-//                }
-//            }
-//        }
-    }
+        tasks.forEach { $0.cancel() }
+        tasks.removeAll()
 
+        tasks = [
+            Task { @MainActor in
+                for await value in webView.publisher(for: \.title).bufferedValues() {
+                    self.title = value ?? "Untitled"
+                }
+            },
+            Task { @MainActor in
+                for await value in webView.publisher(for: \.isLoading).bufferedValues() {
+                    self.isLoading = value
+                }
+            },
+            Task { @MainActor in
+                for await value in webView.publisher(for: \.url).bufferedValues() {
+                    self.url = value
+                }
+            },
+            Task { @MainActor in
+                for await value in webView.publisher(for: \.canGoBack).bufferedValues() {
+                    self.canGoBack = value
+                }
+            },
+            Task { @MainActor in
+                for await value in webView.publisher(for: \.canGoForward).bufferedValues() {
+                    self.canGoForward = value
+                }
+            }
+        ]
+    }
 }
 
 public struct WebViewReader<Content: View>: View {
-    @State private var proxy = WebViewProxy()
+    @StateObject private var proxy = WebViewProxy()
 
     private let content: (WebViewProxy) -> Content
 
