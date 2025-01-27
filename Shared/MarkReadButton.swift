@@ -14,9 +14,9 @@ struct MarkReadButton: View {
 
     @Query private var items: [Item]
 
-    init(predicate: Predicate<Item>) {
-        _items = Query(filter: predicate)
-    }
+//    init() {
+//        _items = Query(unreadFetchDescriptor)
+//    }
 
     var body: some View {
         Button {

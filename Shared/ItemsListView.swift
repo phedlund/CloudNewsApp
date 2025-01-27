@@ -36,12 +36,24 @@ struct ItemsListView: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
+//    @State private var fetchDescriptor = FetchDescriptor<Item>()
+    @State private var sortDescriptors: [SortDescriptor<Item>]
+    @State private var unreadPredicate: Predicate<Item>
 
     @Binding var selectedItem: Item?
 
     init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
-        _items = Query(fetchDescriptor)
         self._selectedItem = selectedItem
+        sortDescriptors = fetchDescriptor.sortBy
+        if let predicate = fetchDescriptor.predicate {
+            unreadPredicate = predicate
+        } else {
+            unreadPredicate = #Predicate { item in
+                true
+            }
+        }
+        _items = Query(fetchDescriptor)
+//        self.unreadFetchDescriptor = unreadFetchDescriptor
     }
 
     var body: some View {
@@ -58,9 +70,10 @@ struct ItemsListView: View {
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
                         LazyVStack(alignment: .center, spacing: 16.0) {
-                            ForEach(items) { item in
+                            ForEach(items, id: \.id) { item in
                                 NavigationLink(value: item) {
                                     ItemView(item: item, size: cellSize)
+                                        .id(item.id)
 #if os(macOS)
                                         .frame(height: cellHeight, alignment: .center)
                                         .onTapGesture {
@@ -96,12 +109,11 @@ struct ItemsListView: View {
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .decelerating || newPhase == .idle {
                             Task {
-                                try? await markRead(context.geometry.contentOffset.y)
+                                try? markRead(context.geometry.contentOffset.y)
                             }
                         }
                     }
                     .defaultScrollAnchor(.top)
-                    .environment(feedModel)
                     .accentColor(.phDarkIcon)
                     .background {
                         Color.phWhiteBackground
@@ -145,17 +157,18 @@ struct ItemsListView: View {
         }
     }
     
-    private func markRead(_ offset: CGFloat) async throws {
+    private func markRead(_ offset: CGFloat) throws {
         guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {
-            let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
+            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
             if numberOfItems > 0 {
-                let itemsToMarkRead = items
-                    .prefix(through: Int(numberOfItems))
-                    .filter( { $0.unread })
-                feedModel.markItemsRead(items: itemsToMarkRead)
+                let fetchDescriptor = FetchDescriptor<Item>(predicate: unreadPredicate, sortBy: sortDescriptors)
+                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
+                    .prefix(numberOfItems)
+                    .filter( { $0.unread == true } )
+                feedModel.markItemsRead(items: Array(itemsToMarkRead))
             }
         }
         lastOffset = offset

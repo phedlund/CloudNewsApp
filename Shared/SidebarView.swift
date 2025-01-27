@@ -50,9 +50,8 @@ struct SidebarView: View {
     @Query private var folders: [Folder]
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
 
-    init(nodeSelection: Binding<Data?>, predicate: Predicate<Item>) {
+    init(nodeSelection: Binding<Data?>) {
         self._nodeSelection = nodeSelection
-        self.unreadPredicate = predicate
     }
 
     var body: some View {
@@ -242,10 +241,10 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton(predicate: unreadPredicate)
+            MarkReadButton()
                 .environment(feedModel)
         case .folder( _):
-            MarkReadButton(predicate: unreadPredicate)
+            MarkReadButton()
                 .environment(feedModel)
             Button {
                 nodeSelection = node.nodeType.asData
@@ -262,7 +261,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
-            MarkReadButton(predicate: unreadPredicate)
+            MarkReadButton()
                 .environment(feedModel)
             Button {
 #if os(macOS)

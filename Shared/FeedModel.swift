@@ -12,23 +12,12 @@ import SwiftData
 @Observable
 class FeedModel: @unchecked Sendable {
     let databaseActor: NewsDataModelActor
-    var webImporter: WebImporter
-    var itemPruner: ItemPruner
     let session = ServerStatus.shared.session
 
-//    var currentItems = [Item]()
-    var currentItem: Item? = nil
     var currentNode: NodeStruct? = nil
-    var currentItemID: PersistentIdentifier? = nil
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
-//        backgroundModelActor.modelContext.autosaveEnabled = false
-//        Task {
-            self.webImporter = WebImporter(databaseActor: databaseActor)
-            self.itemPruner = ItemPruner(databaseActor: databaseActor)
-//            await updateUnreadCount()
-//        }
     }
 
 //    func selectPreviousItem() {
