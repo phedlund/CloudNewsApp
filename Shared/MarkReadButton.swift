@@ -13,10 +13,12 @@ struct MarkReadButton: View {
     @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
+    @Query private var feeds: [Feed]
+    @Query private var folders: [Folder]
 
-//    init() {
-//        _items = Query(unreadFetchDescriptor)
-//    }
+    init(fetchDescriptor: FetchDescriptor<Item> = .init()) {
+        _items = Query(fetchDescriptor)
+    }
 
     var body: some View {
         Button {

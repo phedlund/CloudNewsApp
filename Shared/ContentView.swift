@@ -25,9 +25,8 @@ struct ContentView: View {
     @State private var isShowingLogin = false
     @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
-    @State private var nodeType: NodeType = .empty
     @State private var fetchDescriptor = FetchDescriptor<Item>()
-//    @State private var unreadFetchDescriptor = FetchDescriptor<Item>()
+    @State private var unreadFetchDescriptor = FetchDescriptor<Item>()
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
@@ -83,7 +82,6 @@ struct ContentView: View {
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             let nodeType = NodeType.fromData(newValue)
-            self.nodeType = nodeType
             switch nodeType {
             case .empty:
                 navigationTitle = ""
@@ -98,11 +96,11 @@ struct ContentView: View {
                 let feed = feeds.first(where: { $0.id == id })
                 navigationTitle = feed?.title ?? "Untitled Feed"
             }
-//            selectedNode = newValue
-            updateFetchDescriptor()
+            updateFetchDescriptor(nodeType: nodeType)
         }
         .onChange(of: hideRead, initial: true) { _, _ in
-            updateFetchDescriptor()
+            let nodeType = NodeType.fromData(selectedNode ?? Data())
+            updateFetchDescriptor(nodeType: nodeType)
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.pubDate, order: .forward)] : [SortDescriptor(\Item.pubDate, order: .reverse)]
@@ -165,51 +163,49 @@ struct ContentView: View {
 #endif
     }
 
-    private func updateFetchDescriptor() {
-        if let selectedNode {
-            switch NodeType.fromData(selectedNode) {
-            case .empty:
-                fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-//                unreadPredicate = #Predicate<Item>{ _ in false }
-            case .all:
-                fetchDescriptor.predicate = #Predicate<Item>{
-                    if hideRead {
-                        return $0.unread
-                    } else {
-                        return true
-                    }
+    private func updateFetchDescriptor(nodeType: NodeType) {
+        switch nodeType {
+        case .empty:
+            fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .all:
+            fetchDescriptor.predicate = #Predicate<Item>{
+                if hideRead {
+                    return $0.unread
+                } else {
+                    return true
                 }
-//                unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
-            case .starred:
-                fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
-//                unreadPredicate = #Predicate<Item>{ _ in false }
-            case .folder(id:  let id):
-                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-                fetchDescriptor.predicate = #Predicate<Item>{
-                    if hideRead {
-                        return feedIds.contains($0.feedId) && $0.unread
-                    } else {
-                        return feedIds.contains($0.feedId)
-                    }
-                }
-//                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            case .feed(id: let id):
-                fetchDescriptor.predicate = #Predicate<Item>{
-                    if hideRead {
-                        return $0.feedId == id && $0.unread
-                    } else {
-                        return $0.feedId == id
-                    }
-                }
-//                unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
             }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+        case .starred:
+            fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .folder(id:  let id):
+            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+            fetchDescriptor.predicate = #Predicate<Item>{
+                if hideRead {
+                    return feedIds.contains($0.feedId) && $0.unread
+                } else {
+                    return feedIds.contains($0.feedId)
+                }
+            }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+        case .feed(id: let id):
+            fetchDescriptor.predicate = #Predicate<Item>{
+                if hideRead {
+                    return $0.feedId == id && $0.unread
+                } else {
+                    return $0.feedId == id
+                }
+            }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
         }
     }
 
     @ToolbarContentBuilder
     func contentViewToolBarContent() -> some ToolbarContent {
         ToolbarItem(placement: .automatic) {
-            MarkReadButton()
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor)
                 .environment(feedModel)
         }
     }

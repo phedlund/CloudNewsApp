@@ -36,7 +36,6 @@ struct ItemsListView: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
-//    @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var sortDescriptors: [SortDescriptor<Item>]
     @State private var unreadPredicate: Predicate<Item>
 
