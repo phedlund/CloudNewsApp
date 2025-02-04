@@ -16,7 +16,7 @@ struct MarkReadButton: View {
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
 
-    init(fetchDescriptor: FetchDescriptor<Item> = .init()) {
+    init(fetchDescriptor: FetchDescriptor<Item>) {
         _items = Query(fetchDescriptor)
     }
 

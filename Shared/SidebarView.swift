@@ -241,10 +241,10 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton()
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
                 .environment(feedModel)
         case .folder( _):
-            MarkReadButton()
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
                 .environment(feedModel)
             Button {
                 nodeSelection = node.nodeType.asData
@@ -261,7 +261,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
-            MarkReadButton()
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
                 .environment(feedModel)
             Button {
 #if os(macOS)
@@ -319,24 +319,27 @@ struct SidebarView: View {
         }
     }
 
-//    private func sync() {
-//        Task {
-//            do {
-//                syncManager.sync()
-//                isShowingError = false
-//                errorMessage = ""
-//            } catch let error as NetworkError {
-//                errorMessage = error.localizedDescription
-//                isShowingError = true
-//            } catch let error as DatabaseError {
-//                errorMessage = error.localizedDescription
-//                isShowingError = true
-//            } catch let error {
-//                errorMessage = error.localizedDescription
-//                isShowingError = true
-//            }
-//        }
-//    }
+    private func unreadFetchDescriptor() -> FetchDescriptor<Item> {
+        var result = FetchDescriptor<Item>()
+        if let nodeSelection {
+            let nodeType = NodeType.fromData(nodeSelection)
+            switch nodeType {
+            case .empty:
+                result.predicate = #Predicate<Item>{ _ in false }
+            case .all:
+                result.predicate = #Predicate<Item>{ $0.unread }
+            case .starred:
+                result.predicate = #Predicate<Item>{ _ in false }
+            case .folder(id:  let id):
+                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+                result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+            case .feed(id: let id):
+                result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+            }
+        }
+        return result
+    }
+
 }
 
 //struct SidebarView_Previews: PreviewProvider {
