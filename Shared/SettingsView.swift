@@ -194,6 +194,7 @@ struct SettingsView: View {
             } header: {
                 Text("Support")
             }
+            .accentColor(.pbh.whiteIcon)
 #endif
         }
         .formStyle(.grouped)

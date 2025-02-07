@@ -52,6 +52,7 @@ struct ContentView: View {
                 }
             }
         }
+        .accentColor(.pbh.whiteIcon)
 #elseif os(macOS)
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $model.currentNodeID)
