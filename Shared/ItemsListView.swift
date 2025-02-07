@@ -94,7 +94,7 @@ struct ItemsListView: View {
                 }
                 .newsNavigationDestination(type: CDItem.self, model: model)
                 .listStyle(.plain)
-                .accentColor(.pbh.darkIcon)
+                .accentColor(.pbh.whiteIcon)
                 .background {
                     Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
                 }
