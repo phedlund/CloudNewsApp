@@ -121,6 +121,7 @@ struct ArticleSettingsView: View {
             }
         }
         .buttonStyle(.bordered)
+        .accentColor(.pbh.whiteIcon)
         .padding()
     }
 }
