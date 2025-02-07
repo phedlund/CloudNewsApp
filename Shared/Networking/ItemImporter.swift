@@ -93,9 +93,9 @@ class FeedImporter {
                         return
                     }
 
-                    logger.debug("Start importing folder data to the store...")
+                    logger.debug("Start importing feed data to the store...")
                     try await importFeeds(from: feedDicts)
-                    logger.debug("Finished importing folder data.")
+                    logger.debug("Finished importing feed data.")
                 default:
                     throw NetworkError.generic(message: "Error getting feeds: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 }

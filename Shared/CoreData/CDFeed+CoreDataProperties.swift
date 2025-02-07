@@ -25,6 +25,7 @@ extension CDFeed {
     @NSManaged public var lastModified: Int32
     @NSManaged public var lastUpdateError: String?
     @NSManaged public var link: String?
+    @NSManaged public var nextUpdateTime: Int32
     @NSManaged public var ordering: Int32
     @NSManaged public var pinned: Bool
     @NSManaged public var preferWeb: Bool
