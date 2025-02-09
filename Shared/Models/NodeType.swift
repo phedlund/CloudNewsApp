@@ -26,11 +26,11 @@ extension NodeType {
         }
     }
 
-    static func fromData(_ data: Data) -> NodeType {
+    static func fromData(_ data: Data) -> NodeType? {
         do {
             return try JSONDecoder().decode(NodeType.self, from: data)
         } catch {
-            return .all
+            return nil
         }
     }
 

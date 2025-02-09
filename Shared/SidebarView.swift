@@ -322,19 +322,20 @@ struct SidebarView: View {
     private func unreadFetchDescriptor() -> FetchDescriptor<Item> {
         var result = FetchDescriptor<Item>()
         if let nodeSelection {
-            let nodeType = NodeType.fromData(nodeSelection)
-            switch nodeType {
-            case .empty:
-                result.predicate = #Predicate<Item>{ _ in false }
-            case .all:
-                result.predicate = #Predicate<Item>{ $0.unread }
-            case .starred:
-                result.predicate = #Predicate<Item>{ _ in false }
-            case .folder(id:  let id):
-                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-                result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            case .feed(id: let id):
-                result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+            if let nodeType = NodeType.fromData(nodeSelection) {
+                switch nodeType {
+                case .empty:
+                    result.predicate = #Predicate<Item>{ _ in false }
+                case .all:
+                    result.predicate = #Predicate<Item>{ $0.unread }
+                case .starred:
+                    result.predicate = #Predicate<Item>{ _ in false }
+                case .folder(id:  let id):
+                    let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+                    result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+                case .feed(id: let id):
+                    result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+                }
             }
         }
         return result

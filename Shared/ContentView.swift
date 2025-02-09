@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var selectedItem: Item? = nil
     @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var unreadFetchDescriptor = FetchDescriptor<Item>()
+    @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
@@ -34,7 +35,7 @@ struct ContentView: View {
     var body: some View {
         let _ = Self._printChanges()
 #if os(iOS)
-        NavigationSplitView {
+        NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(feedModel)
                 .environment(syncManager)
@@ -81,26 +82,29 @@ struct ContentView: View {
         .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
-            let nodeType = NodeType.fromData(newValue)
-            switch nodeType {
-            case .empty:
-                navigationTitle = ""
-            case .all:
-                navigationTitle = "All Articles"
-            case .starred:
-                navigationTitle = "Starred Articles"
-            case .folder(let id):
-                let folder = folders.first(where: { $0.id == id })
-                navigationTitle = folder?.name ?? "Untitled Folder"
-            case .feed(let id):
-                let feed = feeds.first(where: { $0.id == id })
-                navigationTitle = feed?.title ?? "Untitled Feed"
+            if let nodeType = NodeType.fromData(newValue) {
+                switch nodeType {
+                case .empty:
+                    navigationTitle = ""
+                case .all:
+                    navigationTitle = "All Articles"
+                case .starred:
+                    navigationTitle = "Starred Articles"
+                case .folder(let id):
+                    let folder = folders.first(where: { $0.id == id })
+                    navigationTitle = folder?.name ?? "Untitled Folder"
+                case .feed(let id):
+                    let feed = feeds.first(where: { $0.id == id })
+                    navigationTitle = feed?.title ?? "Untitled Feed"
+                }
+                preferredColumn = .detail
+                updateFetchDescriptor(nodeType: nodeType)
             }
-            updateFetchDescriptor(nodeType: nodeType)
         }
         .onChange(of: hideRead, initial: true) { _, _ in
-            let nodeType = NodeType.fromData(selectedNode ?? Data())
-            updateFetchDescriptor(nodeType: nodeType)
+            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+                updateFetchDescriptor(nodeType: nodeType)
+            }
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.pubDate, order: .forward)] : [SortDescriptor(\Item.pubDate, order: .reverse)]
