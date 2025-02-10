@@ -42,7 +42,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNode != nil {
-                    ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
+                    ItemsListView(fetchDescriptor: fetchDescriptor, unreadFetchDescriptor: unreadFetchDescriptor, selectedItem: $selectedItem)
                         .environment(feedModel)
                         .environment(syncManager)
                         .toolbar {

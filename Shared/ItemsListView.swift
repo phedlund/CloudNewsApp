@@ -37,22 +37,16 @@ struct ItemsListView: View {
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
     @State private var sortDescriptors: [SortDescriptor<Item>]
-    @State private var unreadPredicate: Predicate<Item>
 
     @Binding var selectedItem: Item?
 
-    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
+    let unreadFetchDescriptor: FetchDescriptor<Item>
+
+    init(fetchDescriptor: FetchDescriptor<Item>, unreadFetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
         self._selectedItem = selectedItem
         sortDescriptors = fetchDescriptor.sortBy
-        if let predicate = fetchDescriptor.predicate {
-            unreadPredicate = predicate
-        } else {
-            unreadPredicate = #Predicate { item in
-                true
-            }
-        }
+        self.unreadFetchDescriptor = unreadFetchDescriptor
         _items = Query(fetchDescriptor)
-//        self.unreadFetchDescriptor = unreadFetchDescriptor
     }
 
     var body: some View {
@@ -163,8 +157,7 @@ struct ItemsListView: View {
         if markReadWhileScrolling {
             let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
             if numberOfItems > 0 {
-                let fetchDescriptor = FetchDescriptor<Item>(predicate: unreadPredicate, sortBy: sortDescriptors)
-                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
+                let itemsToMarkRead = try modelContext.fetch(unreadFetchDescriptor)
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
                 feedModel.markItemsRead(items: Array(itemsToMarkRead))
