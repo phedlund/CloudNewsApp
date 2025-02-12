@@ -40,12 +40,12 @@ struct ItemsListView: View {
 
     @Binding var selectedItem: Item?
 
-    let unreadFetchDescriptor: FetchDescriptor<Item>
+    let fetchDescriptor: FetchDescriptor<Item>
 
-    init(fetchDescriptor: FetchDescriptor<Item>, unreadFetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
+    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
         self._selectedItem = selectedItem
         sortDescriptors = fetchDescriptor.sortBy
-        self.unreadFetchDescriptor = unreadFetchDescriptor
+        self.fetchDescriptor = fetchDescriptor
         _items = Query(fetchDescriptor)
     }
 
@@ -157,7 +157,7 @@ struct ItemsListView: View {
         if markReadWhileScrolling {
             let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
             if numberOfItems > 0 {
-                let itemsToMarkRead = try modelContext.fetch(unreadFetchDescriptor)
+                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
                 feedModel.markItemsRead(items: Array(itemsToMarkRead))
