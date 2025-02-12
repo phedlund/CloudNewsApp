@@ -107,7 +107,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.pubDate, order: .forward)] : [SortDescriptor(\Item.pubDate, order: .reverse)]
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
