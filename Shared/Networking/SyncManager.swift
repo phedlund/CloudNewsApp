@@ -20,6 +20,10 @@ final class SyncManager: @unchecked Sendable {
     private var backgroundSession: URLSession?
     var syncManagerReader = SyncManagerReader()
 
+    private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
+    private var folderNode = Node(id: "", type: .empty, title: "")
+    private var feedNode = Node(id: "", type: .empty, title: "")
+
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
     }
@@ -318,23 +322,29 @@ final class SyncManager: @unchecked Sendable {
         }
     }
 
-    func parseFolders(data: Data) {
+    private func parseFolders(data: Data) {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
             //                    throw NetworkError.generic(message: "Unable to decode")
             return
         }
-        Task {
-            for eachItem in decodedResponse.folders {
-                let itemToStore = Folder(item: eachItem)
-                await databaseActor.insert(itemToStore)
-            }
-            try? await databaseActor.save()
-        }
+        self.foldersDTO = decodedResponse
+
+//        Task {
+//            self.foldersDTO = decodedResponse
+//            let allNode = Node(id: Constants.allNodeGuid, title: "All Articles")
+//            await databaseActor.insert(allNode)
+//            let starredNode = Node(id: Constants.starNodeGuid, title: "Starred Articles")
+//            for eachItem in decodedResponse.folders {
+//                let itemToStore = Folder(item: eachItem)
+//                await databaseActor.insert(itemToStore)
+//            }
+//            try? await databaseActor.save()
+//        }
     }
 
-    func parseFeeds(data: Data) {
+    private func parseFeeds(data: Data) {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
@@ -342,15 +352,40 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
-            for eachItem in decodedResponse.feeds {
-                let itemToStore = Feed(item: eachItem)
+            let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles")
+            await databaseActor.insert(allNode)
+            let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles")
+            await databaseActor.insert(starredNode)
+            for folderDTO in foldersDTO.folders {
+                var feeds = [Node]()
+                let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
+                for feedDTO in feedDTOs  {
+                    let feedToStore = Feed(item: feedDTO)
+                    let type = NodeType.feed(id: feedDTO.id)
+                    feedNode = Node(id: type.asString, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
+                    feeds.append(feedNode)
+                    await databaseActor.insert(feedToStore)
+//                    await databaseActor.insert(feedNode)
+                }
+                let type = NodeType.folder(id: folderDTO.id)
+                folderNode = Node(id: type.asString, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, errorCount: 0)
+                await databaseActor.insert(folderNode)
+                let itemToStore = Folder(item: folderDTO)
                 await databaseActor.insert(itemToStore)
+            }
+            let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
+            for feedDTO in feedDTOs {
+                let feedToStore = Feed(item: feedDTO)
+                let type = NodeType.feed(id: feedDTO.id)
+                feedNode = Node(id: type.asString, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
+                await databaseActor.insert(feedToStore)
+                await databaseActor.insert(feedNode)
             }
             try? await databaseActor.save()
         }
     }
 
-    func parseItems(data: Data) {
+    private func parseItems(data: Data) {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {

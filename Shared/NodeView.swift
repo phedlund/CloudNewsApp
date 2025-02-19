@@ -12,7 +12,7 @@ import SwiftUI
 struct NodeView: View {
     @Environment(FeedModel.self) private var feedModel
 
-    let node: NodeStruct
+    let node: Node
 
     @State private var isShowingConfirmation = false
     @State private var favIcon: SystemImage?
@@ -32,7 +32,7 @@ struct NodeView: View {
                         .lineLimit(1)
                     Spacer()
                     BadgeView(node: node)
-                        .padding(.trailing, node.isTopLevel ? 0 : noChildrenPadding)
+                        .padding(.trailing, node.parent == nil ? 0 : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
             } icon: {
@@ -54,7 +54,7 @@ struct NodeView: View {
             .keyboardShortcut(.defaultAction)
             Button("No", role: .cancel) { }
         } message: {
-            switch node.nodeType {
+            switch node.type {
             case .empty, .all, .starred:
                 EmptyView()
             case .folder(_):
@@ -71,7 +71,7 @@ private extension NodeView {
 
     var favIconView: some View {
         HStack {
-            switch node.nodeType {
+            switch node.type {
             case .all, .empty:
                 Image(.rss)
                     .font(.system(size: 18, weight: .light))

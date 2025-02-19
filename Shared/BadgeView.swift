@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct BadgeView: View {
-    var node: NodeStruct
+    var node: Node
     @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
@@ -18,10 +18,10 @@ struct BadgeView: View {
     private let errorCount = 0
     private var feed: Feed?
 
-    init(node: NodeStruct) {
+    init(node: Node) {
         self.node = node
         var predicate = #Predicate<Item> { _ in return false }
-        switch node.nodeType {
+        switch node.type {
         case .empty:
             break
         case .all:
@@ -32,8 +32,17 @@ struct BadgeView: View {
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
             feed = feeds.first(where: { $0.id == id })
         case .folder( _):
-            if let childIds = node.childIds {
-                predicate = #Predicate<Item> { childIds.contains($0.feedId) && $0.unread == true }
+            if let children = node.children {
+                var feedIds = [Int64]()
+                for child in children {
+                    switch child.type {
+                    case .empty, .all, .starred, .folder:
+                        break
+                    case .feed(let id):
+                        feedIds.append(id)
+                    }
+                }
+                predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
             }
         }
         _items = Query(filter: predicate)
@@ -58,7 +67,7 @@ struct BadgeView: View {
             }
         }
         .onChange(of: items.count, initial: true) { _, newValue in
-            if node.nodeType == .all {
+            if node.type == .all {
 #if os(macOS)
                 NSApp.dockTile.badgeLabel = newValue > 0 ? "\(newValue)" : ""
 #else

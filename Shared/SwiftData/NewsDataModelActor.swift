@@ -70,6 +70,7 @@ public struct SharedDatabase {
     nonisolated(unsafe) public static let shared: SharedDatabase = .init()
 
     public let schema = Schema([
+        Node.self,
         Feeds.self,
         Feed.self,
         Folder.self,

@@ -34,6 +34,8 @@ struct SidebarView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
 
+    @AppStorage("SelectedNode") var selectedNode: String?
+
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
@@ -49,6 +51,7 @@ struct SidebarView: View {
 
     @Query private var folders: [Folder]
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
+    @Query(filter: #Predicate<Node>{ $0.parent == nil }, sort: \.id) private var nodes: [Node]
 
     init(nodeSelection: Binding<Data?>) {
         self._nodeSelection = nodeSelection
@@ -77,73 +80,89 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-        List(selection: $nodeSelection) {
-            Group {
-                NodeView(node: NodeStruct(nodeName: Constants.allNodeGuid, nodeType: .all, title: "All Articles", isTopLevel: false))
-                    .id(NodeType.all.asData)
-                    .tag(NodeType.all.asData)
-                NodeView(node: NodeStruct(nodeName: Constants.starNodeGuid, nodeType: .starred, title: "Starred Articles", isTopLevel: false))
-                    .id(NodeType.starred.asData)
-                    .tag(NodeType.starred.asData)
-
-                ForEach(folders) { folder in
-                    DisclosureGroup {
-                        ForEach(feeds.filter( { $0.folderId == folder.id })) { feed in
-                            NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
-                                .id(NodeType.feed(id: feed.id).asData)
-                                .tag(NodeType.feed(id: feed.id).asData)
-                        }
-                    } label: {
-                        NodeView(node: NodeStruct(nodeName: "cccc_\(String(format: "%03d", folder.id))",
-                                                  nodeType: .folder(id: folder.id),
-                                                  title: folder.name ?? "Untitled Folder",
-                                                  isTopLevel: true,
-                                                  childIds: feeds.filter( { $0.folderId == folder.id }).map( { $0.id } )))
-                            .id(NodeType.folder(id: folder.id).asData)
-                            .tag(NodeType.folder(id: folder.id).asData)
-                            .onTapGesture {
-                                nodeSelection = NodeType.folder(id: folder.id).asData
-                            }
-                    }
-                }
-
-                ForEach(feeds.filter( { $0.folderId == 0 })) { feed in
-                    NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
-                        .id(NodeType.feed(id: feed.id).asData)
-                        .tag(NodeType.feed(id: feed.id).asData)
-                }
-            }
-            .environment(feedModel)
-        }
 //        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
 //            NodeView(node: node)
-//                .environment(feedModel)
-//                .tag(node.id)
-//                .contextMenu {
-//                    contextMenu(node: node)
-//                }
-//                .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
-//                    Button(role: .destructive) {
-//                        feedModel.delete(detail)
-//                    } label: {
-//                        Text("Delete \(detail.title)")
-//                    }
-//                    Button("Cancel", role: .cancel) {
-//                        confirmationNode = nil
-//                    }
-//                } message: { detail in
-//                    switch detail.nodeType {
-//                    case .all, .empty, .starred:
-//                        EmptyView()
-//                    case .feed(id: _):
-//                        Text("This will delete the feed \(detail.title)")
-//                    case .folder(id: _):
-//                        Text("This will delete the folder \(detail.title) and all its feeds")
-//                    }
-//                }
+//                .tag(node.type.asData)
 //        }
+//        List(selection: $nodeSelection) {
+//            Group {
+//                NodeView(node: NodeStruct(nodeName: Constants.allNodeGuid, nodeType: .all, title: "All Articles", isTopLevel: false))
+//                    .id(NodeType.all.asData)
+//                    .tag(NodeType.all.asData)
+//                NodeView(node: NodeStruct(nodeName: Constants.starNodeGuid, nodeType: .starred, title: "Starred Articles", isTopLevel: false))
+//                    .id(NodeType.starred.asData)
+//                    .tag(NodeType.starred.asData)
+//
+//                ForEach(folders) { folder in
+//                    DisclosureGroup {
+//                        ForEach(feeds.filter( { $0.folderId == folder.id })) { feed in
+//                            NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
+//                                .id(NodeType.feed(id: feed.id).asData)
+//                                .tag(NodeType.feed(id: feed.id).asData)
+//                        }
+//                    } label: {
+//                        NodeView(node: NodeStruct(nodeName: "cccc_\(String(format: "%03d", folder.id))",
+//                                                  nodeType: .folder(id: folder.id),
+//                                                  title: folder.name ?? "Untitled Folder",
+//                                                  isTopLevel: true,
+//                                                  childIds: feeds.filter( { $0.folderId == folder.id }).map( { $0.id } )))
+//                            .id(NodeType.folder(id: folder.id).asData)
+//                            .tag(NodeType.folder(id: folder.id).asData)
+//                            .onTapGesture {
+//                                nodeSelection = NodeType.folder(id: folder.id).asData
+//                            }
+//                    }
+//                }
+//
+//                ForEach(feeds.filter( { $0.folderId == 0 })) { feed in
+//                    NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
+//                        .id(NodeType.feed(id: feed.id).asData)
+//                        .tag(NodeType.feed(id: feed.id).asData)
+//                }
+//            }
+//            .environment(feedModel)
+//        }
+        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
+            NodeView(node: node)
+                .environment(feedModel)
+                .tag(node.type.asData)
+                .contentShape(Rectangle()) // Makes the entire row tappable
+                .onTapGesture {
+                    nodeSelection = node.type.asData
+                }
+//                .listRowInsets(EdgeInsets()) // Removes default padding
+//                .background(nodeSelection == node.type.asData ? Color.white : Color.clear)
+//                .clipShape(RoundedRectangle(cornerRadius: 10))
+//                .listRowBackground(nodeSelection == node.type.asData ? Color.white : Color.clear)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .stroke(nodeSelection == node.type.asData ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
+//                )
+                .contextMenu {
+                    contextMenu(node: node)
+                }
+                .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
+                    Button(role: .destructive) {
+                        feedModel.delete(detail)
+                    } label: {
+                        Text("Delete \(detail.title)")
+                    }
+                    Button("Cancel", role: .cancel) {
+                        confirmationNode = nil
+                    }
+                } message: { detail in
+                    switch detail.nodeType {
+                    case .all, .empty, .starred:
+                        EmptyView()
+                    case .feed(id: _):
+                        Text("This will delete the feed \(detail.title)")
+                    case .folder(id: _):
+                        Text("This will delete the folder \(detail.title) and all its feeds")
+                    }
+                }
+        }
         .listStyle(.automatic)
-        .accentColor(.phDarkIcon)
+//        .accentColor(.phDarkIcon)
         .refreshable {
             await syncManager.sync()
         }
@@ -236,8 +255,8 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    private func contextMenu(node: NodeStruct) -> some View {
-        switch node.nodeType {
+    private func contextMenu(node: Node) -> some View {
+        switch node.type {
         case .empty, .starred:
             EmptyView()
         case .all:
@@ -247,15 +266,15 @@ struct SidebarView: View {
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
                 .environment(feedModel)
             Button {
-                nodeSelection = node.nodeType.asData
-                feedModel.currentNode = node
+                nodeSelection = node.type.asData
+//                feedModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
             }
             Button(role: .destructive) {
-                confirmationNode = node
+//                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
                 Label("Delete...", systemImage: "trash")
@@ -267,15 +286,15 @@ struct SidebarView: View {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
-                nodeSelection = node.nodeType.asData
-                feedModel.currentNode = node
+                nodeSelection = node.type.asData
+//                feedModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {
                 Label("Settings...", systemImage: "gearshape")
             }
             Button(role: .destructive) {
-                confirmationNode = node
+//                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
                 Label("Delete...", systemImage: "trash")
