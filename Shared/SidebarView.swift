@@ -80,48 +80,6 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-//        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
-//            NodeView(node: node)
-//                .tag(node.type.asData)
-//        }
-//        List(selection: $nodeSelection) {
-//            Group {
-//                NodeView(node: NodeStruct(nodeName: Constants.allNodeGuid, nodeType: .all, title: "All Articles", isTopLevel: false))
-//                    .id(NodeType.all.asData)
-//                    .tag(NodeType.all.asData)
-//                NodeView(node: NodeStruct(nodeName: Constants.starNodeGuid, nodeType: .starred, title: "Starred Articles", isTopLevel: false))
-//                    .id(NodeType.starred.asData)
-//                    .tag(NodeType.starred.asData)
-//
-//                ForEach(folders) { folder in
-//                    DisclosureGroup {
-//                        ForEach(feeds.filter( { $0.folderId == folder.id })) { feed in
-//                            NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
-//                                .id(NodeType.feed(id: feed.id).asData)
-//                                .tag(NodeType.feed(id: feed.id).asData)
-//                        }
-//                    } label: {
-//                        NodeView(node: NodeStruct(nodeName: "cccc_\(String(format: "%03d", folder.id))",
-//                                                  nodeType: .folder(id: folder.id),
-//                                                  title: folder.name ?? "Untitled Folder",
-//                                                  isTopLevel: true,
-//                                                  childIds: feeds.filter( { $0.folderId == folder.id }).map( { $0.id } )))
-//                            .id(NodeType.folder(id: folder.id).asData)
-//                            .tag(NodeType.folder(id: folder.id).asData)
-//                            .onTapGesture {
-//                                nodeSelection = NodeType.folder(id: folder.id).asData
-//                            }
-//                    }
-//                }
-//
-//                ForEach(feeds.filter( { $0.folderId == 0 })) { feed in
-//                    NodeView(node: NodeStruct(nodeName: "dddd_\(String(format: "%03d", feed.id))", nodeType: .feed(id: feed.id), title: feed.title ?? "Untitled Feed", isTopLevel: false, favIconURL: feed.favIconURL, errorCount: 0))
-//                        .id(NodeType.feed(id: feed.id).asData)
-//                        .tag(NodeType.feed(id: feed.id).asData)
-//                }
-//            }
-//            .environment(feedModel)
-//        }
         List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
             NodeView(node: node)
                 .environment(feedModel)
@@ -130,14 +88,6 @@ struct SidebarView: View {
                 .onTapGesture {
                     nodeSelection = node.type.asData
                 }
-//                .listRowInsets(EdgeInsets()) // Removes default padding
-//                .background(nodeSelection == node.type.asData ? Color.white : Color.clear)
-//                .clipShape(RoundedRectangle(cornerRadius: 10))
-//                .listRowBackground(nodeSelection == node.type.asData ? Color.white : Color.clear)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 10)
-//                        .stroke(nodeSelection == node.type.asData ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
-//                )
                 .contextMenu {
                     contextMenu(node: node)
                 }
