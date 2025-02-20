@@ -265,13 +265,18 @@ struct SettingsView: View {
         })
         .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
             Button("Reset Data", role: .destructive) {
-// TODO           NewsData.shared.resetDatabase()
-// TODO                newsManager.syncSubject.send(SyncTimes(previous: 0, current: 0))
-                server = ""
-                productName = ""
-                productVersion = ""
-                isNewInstall = true
-                updateFooter()
+                Task {
+                    do {
+                        try await feedModel.resetDataBase()
+                        server = ""
+                        productName = ""
+                        productVersion = ""
+                        isNewInstall = true
+                        updateFooter()
+                    } catch {
+                        //
+                    }
+                }
             }
             Button("Cancel", role: .cancel) {
                 isShowingConfirmation = false

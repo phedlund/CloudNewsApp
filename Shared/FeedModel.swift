@@ -92,4 +92,20 @@ class FeedModel: @unchecked Sendable {
         }
     }
 
+    func resetDataBase() async throws {
+        do {
+            try await databaseActor.delete(model: Node.self)
+            try await databaseActor.delete(model: Feeds.self)
+            try await databaseActor.delete(model: Feed.self)
+            try await databaseActor.delete(model: Folder.self)
+            try await databaseActor.delete(model: Item.self)
+            try await databaseActor.delete(model: Read.self)
+            try await databaseActor.delete(model: Unread.self)
+            try await databaseActor.delete(model: Starred.self)
+            try await databaseActor.delete(model: Unstarred.self)
+        } catch {
+            throw DatabaseError.generic(message: "Failed to clear the local database")
+        }
+    }
+
 }

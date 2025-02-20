@@ -31,9 +31,6 @@ import SwiftData
 //        }
 //    }
 //
-//    func resetDatabase() {
-//        //
-//    }
 //}
 
 @ModelActor

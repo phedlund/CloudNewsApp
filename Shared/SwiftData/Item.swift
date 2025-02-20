@@ -188,20 +188,3 @@ final class Item {
     }
 
 }
-
-extension Item {
-
-    static func reset() {
-//        TODO NewsData.shared.container.viewContext.performAndWait {
-//            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-//            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request )
-//            do {
-//                try NewsData.shared.container.viewContext.executeAndMergeChanges(using: deleteRequest)
-//            } catch {
-//                let updateError = error as NSError
-//                print("\(updateError), \(updateError.userInfo)")
-//            }
-//        }
-    }
-
-}
