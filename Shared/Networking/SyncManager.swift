@@ -362,13 +362,13 @@ final class SyncManager: @unchecked Sendable {
                 for feedDTO in feedDTOs  {
                     let feedToStore = Feed(item: feedDTO)
                     let type = NodeType.feed(id: feedDTO.id)
-                    feedNode = Node(id: type.asString, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
+                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
                     feeds.append(feedNode)
                     await databaseActor.insert(feedToStore)
 //                    await databaseActor.insert(feedNode)
                 }
                 let type = NodeType.folder(id: folderDTO.id)
-                folderNode = Node(id: type.asString, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, errorCount: 0)
+                folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, errorCount: 0)
                 await databaseActor.insert(folderNode)
                 let itemToStore = Folder(item: folderDTO)
                 await databaseActor.insert(itemToStore)
@@ -377,7 +377,7 @@ final class SyncManager: @unchecked Sendable {
             for feedDTO in feedDTOs {
                 let feedToStore = Feed(item: feedDTO)
                 let type = NodeType.feed(id: feedDTO.id)
-                feedNode = Node(id: type.asString, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
+                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL)
                 await databaseActor.insert(feedToStore)
                 await databaseActor.insert(feedNode)
             }

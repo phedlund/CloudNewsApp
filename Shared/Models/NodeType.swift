@@ -16,6 +16,24 @@ enum NodeType: Equatable, Hashable, Codable {
     case feed(id: Int64)
 }
 
+extension NodeType: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .empty:
+            return ""
+        case .all:
+            return "aaaa"
+        case .starred:
+            return "bbbb"
+        case .folder(id: let id):
+            return "cccc_\(String(format: "%03d", id))"
+        case .feed(id: let id):
+            return "dddd_\(String(format: "%03d", id))"
+        }
+    }
+    
+}
+
 extension NodeType {
 
     var asData: Data {
@@ -34,18 +52,4 @@ extension NodeType {
         }
     }
 
-    var asString: String {
-        switch self {
-        case .empty:
-            return ""
-        case .all:
-            return "aaaa"
-        case .starred:
-            return "bbbb"
-        case .folder(id: let id):
-            return "cccc_\(String(format: "%03d", id))"
-        case .feed(id: let id):
-            return "dddd_\(String(format: "%03d", id))"
-        }
-    }
 }
