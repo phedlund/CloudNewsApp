@@ -139,16 +139,16 @@ struct FeedSettingsView: View {
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
-// TODO               if let feed = feedModel.currentNode?.feed {
-//                    feed.preferWeb = newValue
-//                    Task {
-//                        do {
-//                            try await self.feedModel.backgroundModelActor.save()
-//                        } catch {
-//                            //
-//                        }
-//                    }
-//                }
+                if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+                    feed.preferWeb = newValue
+                    Task {
+                        do {
+                            try await self.feedModel.databaseActor.save()
+                        } catch {
+                            //
+                        }
+                    }
+                }
             }
 #if os(macOS)
             HStack {
@@ -167,59 +167,68 @@ struct FeedSettingsView: View {
 
     @MainActor
     private func onTitleCommit() {
-// TODO       if let feed = feedModel.currentNode?.feed {
-//            if !title.isEmpty, title != feed.title {
-//                Task {
-//                    do {
-//                        try await feedModel.renameFeed(feed: feed, to: title)
-//                        self.feedModel.currentNode?.title = title
-//                        feed.title = title
-//                        try await self.feedModel.backgroundModelActor.save()
-//                    } catch let error as NetworkError {
-//                        title = initialTitle
-//                        footerMessage = error.localizedDescription
-//                        footerSuccess = false
-//                    } catch let error as DatabaseError {
-//                        title = initialTitle
-//                        footerMessage = error.localizedDescription
-//                        footerSuccess = false
-//                    } catch let error {
-//                        title = initialTitle
-//                        footerMessage = error.localizedDescription
-//                        footerSuccess = false
-//                    }
-//                }
-//            }
-//        }
+        if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+            if !title.isEmpty, title != feed.title {
+                Task {
+                    do {
+                        try await feedModel.renameFeed(feed: feed, to: title)
+                        self.feedModel.currentNode?.title = title
+                        feed.title = title
+                        try await self.feedModel.databaseActor.save()
+                    } catch let error as NetworkError {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
+                    } catch let error as DatabaseError {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
+                    } catch let error {
+                        title = initialTitle
+                        footerMessage = error.localizedDescription
+                        footerSuccess = false
+                    }
+                }
+            }
+        }
     }
 
     @MainActor
     private func onFolderSelection(_ newFolderName: String) {
-// TODO       if let feed = feedModel.currentNode?.feed {
-//            Task {
-//                var newFolderId: Int64 = 0
-//                if let newFolder = folders.first(where: { $0.name == newFolderName }) {
-//                    newFolderId = newFolder.id
-//                }
-//                do {
-//                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
-//                    feed.folderId = newFolderId
-//                    try await feedModel.backgroundModelActor.save()
-//                } catch let error as NetworkError {
-//                    folderSelection = initialFolderSelection
-//                    footerMessage = error.localizedDescription
-//                    footerSuccess = false
-//                } catch let error as DatabaseError {
-//                    folderSelection = initialFolderSelection
-//                    footerMessage = error.localizedDescription
-//                    footerSuccess = false
-//                } catch let error {
-//                    folderSelection = initialFolderSelection
-//                    footerMessage = error.localizedDescription
-//                    footerSuccess = false
-//                }
-//            }
-//        }
+        if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+            Task {
+                var newFolderId: Int64 = 0
+                if let newFolder = folders.first(where: { $0.name == newFolderName }) {
+                    newFolderId = newFolder.id
+                }
+                do {
+                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
+                    feed.folderId = newFolderId
+                    try await feedModel.databaseActor.save()
+                } catch let error as NetworkError {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error as DatabaseError {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error {
+                    folderSelection = initialFolderSelection
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                }
+            }
+        }
+    }
+
+    private func feedForNodeType(_ nodeType: NodeType) -> Feed? {
+        switch nodeType {
+        case .empty, .all, .starred, .folder:
+            return nil
+        case .feed(let id):
+            return feeds.first(where: { $0.id == id })
+        }
     }
 
 }
