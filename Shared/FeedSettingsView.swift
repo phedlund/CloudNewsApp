@@ -105,7 +105,7 @@ struct FeedSettingsView: View {
                 }
             }
             .task {
-                switch feedModel.currentNode?.nodeType {
+                switch feedModel.currentNode?.type {
                 case .feed(id: let id):
                     if let feed = feeds.first(where: { $0.id == id }) {
                         var fNames = [noFolderName]

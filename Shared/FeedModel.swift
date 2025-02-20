@@ -14,7 +14,7 @@ class FeedModel: @unchecked Sendable {
     let databaseActor: NewsDataModelActor
     let session = ServerStatus.shared.session
 
-    var currentNode: NodeStruct? = nil
+    var currentNode: Node? = nil
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
@@ -32,8 +32,8 @@ class FeedModel: @unchecked Sendable {
 //        }
 //    }
 
-    func delete(_ node: NodeStruct) {
-        switch node.nodeType {
+    func delete(_ node: Node) {
+        switch node.type {
         case .empty, .all, .starred:
             break
         case .folder(let id):

@@ -42,7 +42,7 @@ struct SidebarView: View {
     @State private var isShowingRename = false
     @State private var isShowingAlert = false
     @State private var errorMessage = ""
-    @State private var confirmationNode: NodeStruct?
+    @State private var confirmationNode: Node?
     @State private var alertInput = ""
     @State private var selectedFeed: Int64 = 0
     @State private var unreadPredicate = #Predicate<Item>{ _ in false }
@@ -84,7 +84,7 @@ struct SidebarView: View {
             NodeView(node: node)
                 .environment(feedModel)
                 .tag(node.type.asData)
-                .contentShape(Rectangle()) // Makes the entire row tappable
+                .contentShape(Rectangle())
                 .onTapGesture {
                     nodeSelection = node.type.asData
                 }
@@ -101,7 +101,7 @@ struct SidebarView: View {
                         confirmationNode = nil
                     }
                 } message: { detail in
-                    switch detail.nodeType {
+                    switch detail.type {
                     case .all, .empty, .starred:
                         EmptyView()
                     case .feed(id: _):
@@ -168,7 +168,7 @@ struct SidebarView: View {
         .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
-                switch feedModel.currentNode!.nodeType {
+                switch feedModel.currentNode!.type {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
@@ -210,41 +210,41 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
                 .environment(feedModel)
         case .folder( _):
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
                 .environment(feedModel)
             Button {
                 nodeSelection = node.type.asData
-//                feedModel.currentNode = node
+                feedModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
             }
             Button(role: .destructive) {
-//                confirmationNode = node
+                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed(let feedId):
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor())
+            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
                 .environment(feedModel)
             Button {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
                 nodeSelection = node.type.asData
-//                feedModel.currentNode = node
+                feedModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {
                 Label("Settings...", systemImage: "gearshape")
             }
             Button(role: .destructive) {
-//                confirmationNode = node
+                confirmationNode = node
                 isShowingConfirmation = true
             } label: {
                 Label("Delete...", systemImage: "trash")
@@ -288,24 +288,18 @@ struct SidebarView: View {
         }
     }
 
-    private func unreadFetchDescriptor() -> FetchDescriptor<Item> {
+    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
         var result = FetchDescriptor<Item>()
-        if let nodeSelection {
-            if let nodeType = NodeType.fromData(nodeSelection) {
-                switch nodeType {
-                case .empty:
-                    result.predicate = #Predicate<Item>{ _ in false }
-                case .all:
-                    result.predicate = #Predicate<Item>{ $0.unread }
-                case .starred:
-                    result.predicate = #Predicate<Item>{ _ in false }
-                case .folder(id:  let id):
-                    let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-                    result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-                case .feed(id: let id):
-                    result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-                }
-            }
+        switch node.type {
+        case .empty, .starred:
+            result.predicate = #Predicate<Item>{ _ in false }
+        case .all:
+            result.predicate = #Predicate<Item>{ $0.unread }
+        case .folder(id: let id):
+            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+        case .feed(id: let id):
+            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
         }
         return result
     }
