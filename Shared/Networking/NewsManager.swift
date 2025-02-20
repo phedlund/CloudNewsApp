@@ -83,7 +83,6 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     break
-                    //                   TODO try await folderImporter.importFolders(from: data)
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
