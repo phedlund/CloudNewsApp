@@ -176,7 +176,7 @@ struct SidebarView: View {
                         Task {
                             do {
                                 try await feedModel.renameFolder(folder: folder, to: alertInput)
-                                var node = feedModel.currentNode
+                                let node = feedModel.currentNode
                                 node?.title = alertInput
                                 folder.name = node?.title
                                 try await feedModel.databaseActor.save()
