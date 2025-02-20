@@ -347,7 +347,7 @@ struct SettingsView: View {
                 if error.code == NSURLErrorServerCertificateUntrusted {
                     isShowingCertificateAlert = true
                 } else {
-                    //                let alertController = UIAlertController(title: NSLocalizedString("Connection error", comment: ""), message: error.localizedDescription, preferredStyle: .alert)
+                    // TODO               let alertController = UIAlertController(title: NSLocalizedString("Connection error", comment: ""), message: error.localizedDescription, preferredStyle: .alert)
                     //                alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { _ in }))
                     //                self.present(alertController, animated: true, completion: { })
                 }

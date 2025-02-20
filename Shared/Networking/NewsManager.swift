@@ -44,7 +44,7 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    //                    try await feedImporter.importFeeds(from: data)
+                    // TODO                    try await feedImporter.importFeeds(from: data)
                     //                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
                     //                        let parameters: ParameterDict = ["batchSize": 200,
                     //                                                         "offset": 0,
@@ -119,10 +119,10 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-//                        try await databaseActor.delete<Unread>(Unread.Type)
+                        try await databaseActor.delete(model: Unread.self)
                         try await databaseActor.save()
                     } else {
-//                        try await databaseActor.delete(Read.self)
+                        try await databaseActor.delete(model: Read.self)
                         try await databaseActor.save()
                     }
                 default:
@@ -165,9 +165,9 @@ extension FeedModel {
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-//                        try await databaseActor.delete(Unstarred.self)
+                        try await databaseActor.delete(model: Unstarred.self)
                     } else {
-//                        try await databaseActor.delete(Starred.self)
+                        try await databaseActor.delete(model: Starred.self)
                     }
                 default:
                     if starred {

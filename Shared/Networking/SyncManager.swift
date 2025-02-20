@@ -233,7 +233,7 @@ final class SyncManager: @unchecked Sendable {
                     }
                 }
             }
-            //
+            // TODO
             //                let localStarred: [Starred] = try await backgroundModelActor.fetchData()
             //                if !localStarred.isEmpty {
             //                    let localStarredIds = localStarred.map( { $0.itemId } )

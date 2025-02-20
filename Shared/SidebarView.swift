@@ -120,19 +120,6 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar(content: sidebarToolBarContent)
-//        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
-//            confirmationNode = feedModel.currentNode
-//            isShowingConfirmation = true
-//        }
-//        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
-//            confirmationNode = feedModel.currentNode
-//            alertInput = feedModel.currentNode?.title ?? "Untitled"
-//            isShowingRename = true
-//        }
-//        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
-//            confirmationNode = feedModel.currentNode
-//            isShowingConfirmation = true
-//        }
 #if os(macOS)
         .onReceive(syncTimer) { _ in
             if syncInterval.rawValue > .zero {

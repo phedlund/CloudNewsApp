@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D009FCC22C432E1D008DF83A /* ItemSizeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D009FCC12C432E1D008DF83A /* ItemSizeModel.swift */; };
 		D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1426937C9700BAED44 /* SettingsView.swift */; };
 		D00AFA1B269383CB00BAED44 /* OCS.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCS.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
@@ -83,7 +82,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		D009FCC12C432E1D008DF83A /* ItemSizeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSizeModel.swift; sourceTree = "<group>"; };
 		D00AFA1426937C9700BAED44 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D00AFA1A269383CB00BAED44 /* OCS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCS.swift; sourceTree = "<group>"; };
 		D00AFA1D2693872800BAED44 /* KeychainStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainStorage.swift; sourceTree = "<group>"; };
@@ -205,7 +203,6 @@
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
 				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */,
-				D009FCC12C432E1D008DF83A /* ItemSizeModel.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemView.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
@@ -413,7 +410,6 @@
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
 				D0A551AC2C7D6E0A00118C99 /* SyncManager.swift in Sources */,
 				D02F44EF265C89F700A3505B /* NewsManager.swift in Sources */,
-				D009FCC22C432E1D008DF83A /* ItemSizeModel.swift in Sources */,
 				D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */,
 				D0E88405290CB7CD001ACB25 /* CertificateView.swift in Sources */,
 				D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */,

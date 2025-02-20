@@ -8,31 +8,6 @@
 import Foundation
 import SwiftData
 
-//class NewsData {
-//
-//    let newsSchema = Schema([
-//            Feeds.self,
-//            Feed.self,
-//            Folder.self,
-//            Item.self,
-//            Read.self,
-//            Unread.self,
-//            Starred.self,
-//            Unstarred.self
-//        ])
-//
-//    var container: ModelContainer?
-//
-//    init() {
-//        do {
-//            container = try ModelContainer(for: newsSchema, configurations: ModelConfiguration())
-//        } catch {
-//            print(error.localizedDescription)
-//        }
-//    }
-//
-//}
-
 @ModelActor
 public actor NewsDataModelActor: NewsDatabase {
     public func fetch<T: Sendable>(_ descriptor: @Sendable @escaping () -> FetchDescriptor<T>) async throws -> [T] where T : PersistentModel {
