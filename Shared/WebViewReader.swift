@@ -20,6 +20,7 @@ class PageViewProxy {
     var isLoading = false
     var reload = false
     var title = ""
+    var url: URL?
 }
 
 @MainActor

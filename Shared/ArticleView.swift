@@ -32,10 +32,12 @@ struct ArticleView: View {
                     if feed.preferWeb == true,
                        let urlString = item.url,
                        let url = URL(string: urlString) {
+                        pageViewReader.url = url
                         reader.webView?.load(URLRequest(url: url))
                     } else {
                         let content = ArticleWebContent(item: item)
                         if let url = content.url {
+                            pageViewReader.url = url
                             reader.webView?.load(URLRequest(url: url))
                         }
                     }

@@ -8,23 +8,23 @@
 import SwiftUI
 
 struct ShareLinkButton: View {
-    @State var item: Item
-    
+    var item: Item
+    var url: URL?
+
     var body: some View {
-        Image(systemName: "square.and.arrow.up")
-// TODO       let subject = item.title ?? "Untitled"
-//        let message = item.displayBody
-//        if let url = item.webViewHelper.urlRequest?.url {
-//            if url.scheme?.hasPrefix("file") ?? false {
-//                if let urlString = item.url, let itemUrl = URL(string: urlString) {
-//                    ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
-//                }
-//            } else {
-//                ShareLink(item: url, subject: Text(subject), message: Text(message))
-//            }
-//        } else if !subject.isEmpty {
-//            ShareLink(item: subject, subject: Text(subject), message: Text(message))
-//        }
+        let subject = item.title ?? "Untitled"
+        let message = item.displayBody
+        if let url {
+            if url.scheme?.hasPrefix("file") ?? false {
+                if let urlString = item.url, let itemUrl = URL(string: urlString) {
+                    ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
+                }
+            } else {
+                ShareLink(item: url, subject: Text(subject), message: Text(message))
+            }
+        } else if !subject.isEmpty {
+            ShareLink(item: subject, subject: Text(subject), message: Text(message))
+        }
     }
     
 }

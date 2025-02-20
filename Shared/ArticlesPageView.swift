@@ -90,7 +90,7 @@ struct ArticlesPageView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                ShareLinkButton(item: currentItem)
+                ShareLinkButton(item: currentItem, url: pageViewProxy.url)
                     .disabled(pageViewProxy.isLoading)
             } else {
                 EmptyView()
