@@ -72,6 +72,7 @@ struct SettingsView: View {
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
     @State private var isShowingCertificateAlert = false
+    @State private var isShowingConnectionError = false
 
     var body: some View {
         Form {
@@ -232,7 +233,7 @@ struct SettingsView: View {
 #endif
             }
         })
-        .alert(Text("The certificate for this server is invalid"), isPresented: $isShowingCertificateAlert, actions: {
+        .alert("The certificate for this server is invalid", isPresented: $isShowingCertificateAlert, actions: {
             Button {
                 if let host = URL(string: server)?.host {
                     ServerStatus.shared.writeCertificate(host: host)
@@ -262,6 +263,13 @@ struct SettingsView: View {
             }
         }, message: {
             Text("Do you want to connect to the server anyway?")
+        })
+        .alert("Connection Error", isPresented: $isShowingConnectionError, actions: {
+            Button {
+                isShowingConnectionError = false
+            } label: {
+                Text("OK")
+            }
         })
         .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
             Button("Reset Data", role: .destructive) {
@@ -347,9 +355,7 @@ struct SettingsView: View {
                 if error.code == NSURLErrorServerCertificateUntrusted {
                     isShowingCertificateAlert = true
                 } else {
-                    // TODO               let alertController = UIAlertController(title: NSLocalizedString("Connection error", comment: ""), message: error.localizedDescription, preferredStyle: .alert)
-                    //                alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { _ in }))
-                    //                self.present(alertController, animated: true, completion: { })
+                    isShowingConnectionError = true
                 }
             }
         }
