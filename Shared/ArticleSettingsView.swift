@@ -13,7 +13,7 @@ struct ArticleSettingsView: View {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    var item: Item
+    let item: Item
 
     private let buttonHeight = 25.0
     private let buttonWidth = 100.0
@@ -21,13 +21,14 @@ struct ArticleSettingsView: View {
     var body: some View {
         Grid(alignment: .center, horizontalSpacing: 15, verticalSpacing: 20) {
             GridRow {
-                let isUnRead = item.unread
-                let isStarred = item.starred
+                let itemCopy = item
+                let isUnRead = itemCopy.unread
+                let isStarred = itemCopy.starred
                 Button {
                     Task {
                         item.unread.toggle()
                         try await feedModel.databaseActor.save()
-                        try? await feedModel.markRead(items: [item], unread: !isUnRead)
+                        try? await feedModel.markRead(items: [itemCopy], unread: !isUnRead)
                     }
                 } label: {
                     Label {
@@ -42,7 +43,7 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        try? await feedModel.markStarred(item: item, starred: !isStarred)
+                        try? await feedModel.markStarred(item: itemCopy, starred: !isStarred)
                     }
                 } label: {
                     Label {

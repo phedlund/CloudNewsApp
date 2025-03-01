@@ -100,7 +100,6 @@ extension FeedModel {
         }
     }
 
-    @MainActor
     func markRead(items: [Item], unread: Bool) async throws {
         guard !items.isEmpty else {
             return
