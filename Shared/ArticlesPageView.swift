@@ -13,7 +13,7 @@ struct ArticlesPageView: View {
     @Environment(FeedModel.self) private var feedModel
 
     @State private var item: Item
-//    @State private var scrollId: Int64?
+    @State private var itemsToMarkRead = [Item]()
     @State private var isShowingPopover = false
     @Bindable var pageViewProxy = PageViewProxy()
 
@@ -50,10 +50,14 @@ struct ArticlesPageView: View {
             pageViewProxy.scrollId = item.id
         }
         .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
-//            pageViewProxy.scrollId = newValue
-            print(newValue)
             if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
-                feedModel.markItemsRead(items: [newItem])
+                itemsToMarkRead.append(newItem)
+            }
+        }
+        .onScrollPhaseChange { _, newPhase in
+            if  newPhase == .idle {
+                feedModel.markItemsRead(items: itemsToMarkRead)
+                itemsToMarkRead.removeAll()
             }
         }
         .scrollPosition(id: $pageViewProxy.scrollId)
