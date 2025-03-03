@@ -100,7 +100,7 @@ struct ItemsListView: View {
                         }
                     }
                     .onScrollPhaseChange { _, newPhase, context in
-                        if newPhase == .decelerating || newPhase == .idle {
+                        if newPhase == .idle {
                             Task {
                                 try? markRead(context.geometry.contentOffset.y)
                             }
