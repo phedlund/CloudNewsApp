@@ -193,11 +193,12 @@ extension NewsDataModelActor {
         return nil
     }
 
-    func feedIdsInFolder(folder: Int64) -> [Int64]? {
-        if let feeds = feedsInFolder(folder: folder) {
-            return feeds.map { $0.id }
+    func deleteNode(type: NodeType) async throws {
+        do {
+            try await delete(Node.self, where: #Predicate { $0.type == type } )
+        } catch {
+            throw DatabaseError.nodeErrorDeleting
         }
-        return nil
     }
 
     func deleteFeed(id: Int64) async throws {

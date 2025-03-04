@@ -93,7 +93,27 @@ struct SidebarView: View {
                 }
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
                     Button(role: .destructive) {
-                        feedModel.delete(detail)
+                        switch detail.type {
+                        case .all, .empty, .starred:
+                            break
+                        case .feed(id: _):
+                            Task {
+                                do {
+                                    try await feedModel.delete(detail)
+                                } catch {
+                                    //
+                                }
+                            }
+                        case .folder(id: let folderId):
+                            let folderFeeds = feeds.filter( { $0.folderId == folderId })
+                            Task {
+                                do {
+                                    try await feedModel.delete(detail, feeds: folderFeeds)
+                                } catch {
+                                    // TODO notify user
+                                }
+                            }
+                        }
                     } label: {
                         Text("Delete \(detail.title)")
                     }
@@ -112,7 +132,6 @@ struct SidebarView: View {
                 }
         }
         .listStyle(.automatic)
-//        .accentColor(.phDarkIcon)
         .refreshable {
             await syncManager.sync()
         }

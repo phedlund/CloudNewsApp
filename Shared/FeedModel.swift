@@ -32,35 +32,23 @@ class FeedModel: @unchecked Sendable {
 //        }
 //    }
 
-    func delete(_ node: Node) {
+    func delete(_ node: Node, feeds: [Feed]? = nil) async throws {
         switch node.type {
         case .empty, .all, .starred:
             break
         case .folder(let id):
-            Task {
-                do {
-                  try await deleteFolder(Int(id))
-                    if let feedIds = await databaseActor.feedIdsInFolder(folder: id) {
-                        for feedId in feedIds {
-                            try await databaseActor.deleteItems(with: feedId)
-                            try await databaseActor.deleteFolder(id: feedId)
-                        }
-                    }
-                    try await databaseActor.deleteFolder(id: id)
-                } catch {
-                    //
-                }
+            let feedIds = feeds?.compactMap(\.id) ?? []
+            try await deleteFolder(Int(id))
+            for feedId in feedIds {
+                try await databaseActor.deleteItems(with: feedId)
             }
+            try await databaseActor.deleteFolder(id: id)
+            try await databaseActor.deleteNode(type: node.type)
         case .feed(let id):
-            Task {
-                do {
-                    try await deleteFeed(Int(id))
-                    try await databaseActor.deleteItems(with: id)
-                    try await databaseActor.deleteFeed(id: id)
-                } catch {
-                    //
-                }
-            }
+            try await deleteFeed(Int(id))
+            try await databaseActor.deleteItems(with: id)
+            try await databaseActor.deleteFeed(id: id)
+            try await databaseActor.deleteNode(type: node.type)
         }
     }
 
