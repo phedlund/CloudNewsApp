@@ -10,12 +10,8 @@ import SwiftUI
 
 enum ModalSheet: String {
     case login
-    case folderRename
     case settings
     case feedSettings
-    case addFeed
-    case addFolder
-    case acknowledgement
 }
 
 extension ModalSheet: Identifiable {
@@ -167,8 +163,8 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
-            case .addFeed, .addFolder, .folderRename, .acknowledgement:
-                EmptyView()
+//            case .addFeed, .addFolder, .acknowledgement:
+//                EmptyView()
             }
         })
         .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
