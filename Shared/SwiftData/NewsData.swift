@@ -193,10 +193,11 @@ extension NewsDataModelActor {
         return nil
     }
 
-    func deleteNode(type: NodeType) async throws {
+    func deleteNode(id: String) async throws {
         do {
-            try await delete(Node.self, where: #Predicate { $0.type == type } )
-        } catch {
+            try await delete(Node.self, where: #Predicate { $0.id == id } )
+        } catch(let error) {
+            print(error.localizedDescription)
             throw DatabaseError.nodeErrorDeleting
         }
     }

@@ -72,31 +72,35 @@ extension FeedModel {
         }
     }
 
-    @MainActor
     func addFolder(name: String) async throws {
         let router = Router.addFolder(name: name)
-        do {
-            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
-                switch httpResponse.statusCode {
-                case 200:
-                    break
-                case 405:
-                    throw NetworkError.methodNotAllowed
-                case 409:
-                    throw NetworkError.folderAlreadyExists
-                case 422:
-                    throw NetworkError.folderNameInvalid
-                default:
-                    throw NetworkError.folderErrorAdding
+        let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+        if let httpResponse = response as? HTTPURLResponse {
+            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            print(String(data: data, encoding: .utf8) ?? "")
+            switch httpResponse.statusCode {
+            case 200:
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .secondsSince1970
+                guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
+                    return
                 }
+                if let folderDTO = decodedResponse.folders.first {
+                    let type = NodeType.folder(id: folderDTO.id)
+                    let folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: [], errorCount: 0)
+                    await databaseActor.insert(folderNode)
+                    let itemToStore = Folder(item: folderDTO)
+                    await databaseActor.insert(itemToStore)
+                }
+            case 405:
+                throw NetworkError.methodNotAllowed
+            case 409:
+                throw NetworkError.folderAlreadyExists
+            case 422:
+                throw NetworkError.folderNameInvalid
+            default:
+                throw NetworkError.folderErrorAdding
             }
-        } catch(let error as NetworkError) {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
@@ -230,30 +234,6 @@ extension FeedModel {
         }
     }
 
-    func deleteFeed(_ id: Int) async throws {
-        let deleteRouter = Router.deleteFeed(id: id)
-        do {
-            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-            if let httpResponse = deleteResponse as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                switch httpResponse.statusCode {
-                case 200:
-                    break
-                case 404:
-                    try await databaseActor.deleteItems(with: Int64(id))
-                    try await databaseActor.deleteFeed(id: Int64(id))
-                    throw NetworkError.feedDoesNotExist
-                default:
-                    throw NetworkError.feedErrorDeleting
-                }
-            }
-        } catch let error as NetworkError {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
-    }
-
     @MainActor
     func renameFolder(folder: Folder, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
@@ -272,28 +252,6 @@ extension FeedModel {
                     throw NetworkError.folderNameInvalid
                 default:
                     throw NetworkError.folderErrorRenaming
-                }
-            }
-        } catch let error as NetworkError {
-            throw error
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
-        }
-    }
-
-    func deleteFolder(_ id: Int) async throws {
-        let deleteRouter = Router.deleteFolder(id: id)
-        do {
-            let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-            if let httpResponse = deleteResponse as? HTTPURLResponse {
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                switch httpResponse.statusCode {
-                case 200:
-                    break
-                case 404:
-                    throw NetworkError.folderDoesNotExist
-                default:
-                    throw NetworkError.folderErrorDeleting
                 }
             }
         } catch let error as NetworkError {

@@ -16,7 +16,8 @@ struct BadgeView: View {
     @Query private var feeds: [Feed]
 
     private let errorCount = 0
-    private var feed: Feed?
+    @State private var feed: Feed?
+    private var feedId: Int64 = -1
 
     init(node: Node) {
         self.node = node
@@ -29,8 +30,8 @@ struct BadgeView: View {
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
         case .feed(let id):
+            feedId = id
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-            feed = feeds.first(where: { $0.id == id })
         case .folder( _):
             if let children = node.children {
                 var feedIds = [Int64]()
@@ -65,6 +66,9 @@ struct BadgeView: View {
                         .fill(.gray)
                         .opacity(text.isEmpty ? 0.0 : 1.0))
             }
+        }
+        .task {
+            feed = feeds.first(where: { $0.id == feedId })
         }
         .onChange(of: items.count, initial: true) { _, newValue in
             if node.type == .all {

@@ -38,17 +38,47 @@ class FeedModel: @unchecked Sendable {
             break
         case .folder(let id):
             let feedIds = feeds?.compactMap(\.id) ?? []
-            try await deleteFolder(Int(id))
-            for feedId in feedIds {
-                try await databaseActor.deleteItems(with: feedId)
+            let deleteRouter = Router.deleteFolder(id: Int(id))
+            do {
+                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+                if let httpResponse = deleteResponse as? HTTPURLResponse {
+                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    switch httpResponse.statusCode {
+                    case 200, 404: // 404 = Folder does not exist but the app thinks it does, so delete locally
+                        for feedId in feedIds {
+                            try await databaseActor.deleteItems(with: feedId)
+                        }
+                        try await databaseActor.deleteNode(id: node.id)
+                        try await databaseActor.deleteFolder(id: id)
+                    default:
+                        throw NetworkError.folderErrorDeleting
+                    }
+                }
+            } catch let error as NetworkError {
+                throw error
+            } catch(let error) {
+                throw NetworkError.generic(message: error.localizedDescription)
             }
-            try await databaseActor.deleteFolder(id: id)
-            try await databaseActor.deleteNode(type: node.type)
         case .feed(let id):
-            try await deleteFeed(Int(id))
-            try await databaseActor.deleteItems(with: id)
-            try await databaseActor.deleteFeed(id: id)
-            try await databaseActor.deleteNode(type: node.type)
+            let deleteRouter = Router.deleteFeed(id: Int(id))
+            do {
+                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+                if let httpResponse = deleteResponse as? HTTPURLResponse {
+                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    switch httpResponse.statusCode {
+                    case 200, 404: // 404 = Feed does not exist but the app thinks it does, so delete locally
+                        try await databaseActor.deleteItems(with: Int64(id))
+                        try await databaseActor.deleteNode(id: node.id)
+                        try await databaseActor.deleteFeed(id: Int64(id))
+                    default:
+                        throw NetworkError.feedErrorDeleting
+                    }
+                }
+            } catch let error as NetworkError {
+                throw error
+            } catch(let error) {
+                throw NetworkError.generic(message: error.localizedDescription)
+            }
         }
     }
 
