@@ -19,7 +19,8 @@ struct NodeView: View {
     @State private var title = "Untitled"
 
 #if os(iOS)
-    let noChildrenPadding = 18.0
+    let noChildrenPadding = 10.0
+    let childrenPadding = -8.0
 #else
     let noChildrenPadding = 0.0
 #endif
@@ -32,7 +33,7 @@ struct NodeView: View {
                         .lineLimit(1)
                     Spacer()
                     BadgeView(node: node)
-                        .padding(.trailing, node.parent == nil ? 0 : noChildrenPadding)
+                        .padding(.trailing, node.id.hasPrefix("cccc_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
             } icon: {
