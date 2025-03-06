@@ -14,6 +14,7 @@ struct BadgeView: View {
 
     @Query private var items: [Item]
     @Query private var feeds: [Feed]
+    @Query private var folders: [Folder]
 
     private let errorCount = 0
     @State private var feed: Feed?
@@ -52,19 +53,18 @@ struct BadgeView: View {
     @ViewBuilder
     var body: some View {
         HStack {
-            if feed?.updateErrorCount ?? 0 > 20 {
+            if node.errorCount > 0 {
                 Image(systemName: "exclamationmark.triangle")
                     .foregroundStyle(.black, .red)
-            } else {
-                let text = items.count > 0 ? "\(items.count)" : ""
-                Text(text)
+            }
+            if items.count > 0 {
+                Text("\(items.count)")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
                     .background(Capsule()
-                        .fill(.gray)
-                        .opacity(text.isEmpty ? 0.0 : 1.0))
+                        .fill(.gray))
             }
         }
         .task {
