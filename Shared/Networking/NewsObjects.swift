@@ -31,20 +31,13 @@ struct FeedDTO: Codable {
     let link: String?
     let updateErrorCount: Int64
     let title: String?
-    let unreadCount: Int64
-}
-
-struct FeedInAppDTO: Codable {
-    let id: Int64
-    let preferWeb: Bool
-    let favIconData: Data?
-    let faviconLink: String?
-    let link: String?
+    let unreadCount: Int64?
+    let nextUpdateTime: Date?
 }
 
 struct FeedsDTO: Codable {
     let newestItemId: Int64
-    let starredCount: Int64
+    let starredCount: Int64?
     let feeds: [FeedDTO]
 }
 

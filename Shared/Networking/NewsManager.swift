@@ -34,7 +34,6 @@ extension FeedModel {
         }
     }
 
-    @MainActor
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {
@@ -54,6 +53,18 @@ extension FeedModel {
                     //                        let router = Router.items(parameters: parameters)
                     //                        try await itemImporter.fetchItems(router.urlRequest())
                     //                    }
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .secondsSince1970
+                    guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
+                        return
+                    }
+                    if let feedDTO = decodedResponse.feeds.first {
+                        let type = NodeType.feed(id: feedDTO.id)
+                        let feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, children: [], errorCount: 0)
+                        await databaseActor.insert(feedNode)
+                        let itemToStore = Feed(item: feedDTO)
+                        await databaseActor.insert(itemToStore)
+                    }
                     try await databaseActor.save()
                 case 405:
                     throw NetworkError.methodNotAllowed

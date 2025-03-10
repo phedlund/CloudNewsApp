@@ -82,7 +82,7 @@ final class Feed {
                   ordering: item.ordering,
                   pinned: item.pinned,
                   title: item.title,
-                  unreadCount: item.unreadCount,
+                  unreadCount: item.unreadCount ?? 0,
                   updateErrorCount: item.updateErrorCount,
                   url: item.url,
                   favIconURL: itemImageUrl,

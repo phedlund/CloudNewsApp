@@ -10,10 +10,10 @@ import SwiftData
 
 @Model
 final class Feeds {
-    var newestItemId: Int32
-    var starredCount: Int32
+    var newestItemId: Int64
+    var starredCount: Int64?
 
-    init(newestItemId: Int32, starredCount: Int32) {
+    init(newestItemId: Int64, starredCount: Int64?) {
         self.newestItemId = newestItemId
         self.starredCount = starredCount
     }

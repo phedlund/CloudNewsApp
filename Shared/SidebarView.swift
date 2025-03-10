@@ -163,8 +163,6 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
-//            case .addFeed, .addFolder, .acknowledgement:
-//                EmptyView()
             }
         })
         .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
