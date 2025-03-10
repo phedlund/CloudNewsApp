@@ -14,6 +14,7 @@ struct ArticlesPageView: View {
 
     @State private var item: Item
     @State private var itemsToMarkRead = [Item]()
+    @State private var isAppearing = false
     @State private var isShowingPopover = false
     @Bindable var pageViewProxy = PageViewProxy()
 
@@ -48,10 +49,16 @@ struct ArticlesPageView: View {
         .toolbarBackgroundVisibility(.visible, for: .navigationBar)
         .onAppear {
             pageViewProxy.scrollId = item.id
+            isAppearing = true
         }
         .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
             if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
-                itemsToMarkRead.append(newItem)
+                if isAppearing {
+                    feedModel.markItemsRead(items: [newItem])
+                    isAppearing = false
+                } else {
+                    itemsToMarkRead.append(newItem)
+                }
             }
         }
         .onScrollPhaseChange { _, newPhase in
