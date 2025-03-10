@@ -43,16 +43,6 @@ extension FeedModel {
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
-                    // TODO                    try await feedImporter.importFeeds(from: data)
-                    //                    if let newFeed = modelContext.insertedModelsArray.first as? Feed {
-                    //                        let parameters: ParameterDict = ["batchSize": 200,
-                    //                                                         "offset": 0,
-                    //                                                         "type": 0,
-                    //                                                         "id": newFeed.id,
-                    //                                                         "getRead": NSNumber(value: true)]
-                    //                        let router = Router.items(parameters: parameters)
-                    //                        try await itemImporter.fetchItems(router.urlRequest())
-                    //                    }
                     let decoder = JSONDecoder()
                     decoder.dateDecodingStrategy = .secondsSince1970
                     guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
@@ -64,8 +54,8 @@ extension FeedModel {
                         await databaseActor.insert(feedNode)
                         let itemToStore = Feed(item: feedDTO)
                         await databaseActor.insert(itemToStore)
+                        try await addItems(feed: feedDTO.id)
                     }
-                    try await databaseActor.save()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -111,6 +101,34 @@ extension FeedModel {
                 throw NetworkError.folderNameInvalid
             default:
                 throw NetworkError.folderErrorAdding
+            }
+        }
+    }
+
+    func addItems(feed: Int64) async throws {
+        let parameters: ParameterDict = ["batchSize": 200,
+                                         "offset": 0,
+                                         "type": 0,
+                                         "id": feed,
+                                         "getRead": true]
+        let router = Router.items(parameters: parameters)
+        let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+        if let httpResponse = response as? HTTPURLResponse {
+            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            print(String(data: data, encoding: .utf8) ?? "")
+            switch httpResponse.statusCode {
+            case 200:
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .secondsSince1970
+                guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
+                    return
+                }
+                for eachItem in decodedResponse.items {
+                    let itemToStore = await Item(item: eachItem)
+                    await databaseActor.insert(itemToStore)
+                }
+            default:
+                break
             }
         }
     }
