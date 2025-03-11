@@ -172,25 +172,8 @@ struct SidebarView: View {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
-                    if let folder = folders.first(where: { $0.id == id }), feedModel.currentNode?.title != alertInput {
-                        Task {
-                            do {
-                                try await feedModel.renameFolder(folder: folder, to: alertInput)
-                                let node = feedModel.currentNode
-                                node?.title = alertInput
-                                folder.name = node?.title
-                                try await feedModel.databaseActor.save()
-                            } catch let error as NetworkError {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            } catch let error as DatabaseError {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            } catch let error {
-                                errorMessage = error.localizedDescription
-                                isShowingError = true
-                            }
-                        }
+                    Task {
+                        await folderRenameAction(folderId: id, newName: alertInput)
                     }
                 }
                 isShowingRename = false
@@ -202,6 +185,28 @@ struct SidebarView: View {
         }, message: {
             Text("Rename the folder")
         })
+    }
+
+    private func folderRenameAction(folderId: Int64, newName: String) async {
+        if let folder = folders.first(where: { $0.id == folderId }), feedModel.currentNode?.title != newName {
+            do {
+                try await feedModel.renameFolder(folderId: folderId, to: newName)
+                if let node = feedModel.currentNode {
+                    node.title = newName
+                }
+                folder.name = newName
+                try await feedModel.databaseActor.save()
+            } catch let error as NetworkError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            } catch let error as DatabaseError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            } catch let error {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            }
+        }
     }
 
     @ViewBuilder

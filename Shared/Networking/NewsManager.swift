@@ -263,9 +263,8 @@ extension FeedModel {
         }
     }
 
-    @MainActor
-    func renameFolder(folder: Folder, to name: String) async throws {
-        let renameRouter = Router.renameFolder(id: Int(folder.id), newName: name)
+    func renameFolder(folderId: Int64, to name: String) async throws {
+        let renameRouter = Router.renameFolder(id: Int(folderId), newName: name)
         do {
             let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
             if let httpResponse = renameResponse as? HTTPURLResponse {
