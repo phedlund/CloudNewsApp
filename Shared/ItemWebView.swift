@@ -17,6 +17,7 @@ import SwiftUI
 import WebKit
 
 public struct WebView: WebViewRepresentable {
+    @Environment(\.openURL) var openURL
     @AppStorage(SettingKeys.adBlock) var adBlock = true
 
     private let configuration: (WKWebView) -> Void
@@ -43,7 +44,7 @@ public struct WebView: WebViewRepresentable {
 #endif
 
     public func makeCoordinator() -> ItemWebViewCoordinator {
-        ItemWebViewCoordinator()
+        ItemWebViewCoordinator(openUrlAction: openURL)
     }
 
 }
@@ -89,12 +90,18 @@ private extension WebView {
 
 public class ItemWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
+    var openUrlAction: OpenURLAction
+
+    init(openUrlAction: OpenURLAction) {
+        self.openUrlAction = openUrlAction
+    }
+
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
         if let scheme = webView.url?.scheme {
             if scheme == "file" || scheme.hasPrefix("itms") {
                 if let url = navigationAction.request.url {
                     if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
-                        //TODO                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        openUrlAction.callAsFunction(url)
                         return .cancel
                     }
                 }
