@@ -110,6 +110,18 @@ class FeedModel: @unchecked Sendable {
         }
     }
 
+    func version() async throws -> String {
+        let router = Router.version
+        do {
+            let (data, _) = try await session.data(for: router.urlRequest(), delegate: nil)
+            let decoder = JSONDecoder()
+            let result = try decoder.decode(Status.self, from: data)
+            return result.version ?? ""
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
+    }
+
     func addFeed(url: String, folderId: Int) async throws {
         let router = Router.addFeed(url: url, folder: folderId)
         do {

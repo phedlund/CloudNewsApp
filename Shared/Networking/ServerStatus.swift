@@ -9,6 +9,11 @@
 import Foundation
 import OpenSSL
 
+struct ProductStatus {
+    var name: String
+    var version: String
+}
+
 final class ServerStatus: NSObject {
     nonisolated(unsafe) static let shared = ServerStatus()
     private let preferences = Preferences()
