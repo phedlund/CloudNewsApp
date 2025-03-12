@@ -10,7 +10,7 @@ import SwiftUI
 #if os(macOS)
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
-    var model: FeedModel
+    var model: NewsModel
 
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
@@ -25,7 +25,7 @@ struct AppCommands: Commands {
         CommandGroup(after: .sidebar) {
             Divider()
             MarkReadButton(node: model.currentNode)
-                .environment(feedModel)
+                .environment(newsModel)
             Divider()
             Button("Refresh") {
                 Task {

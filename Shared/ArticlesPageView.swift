@@ -10,7 +10,7 @@ import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
 
     @State private var item: Item
     @State private var itemsToMarkRead = [Item]()
@@ -54,7 +54,7 @@ struct ArticlesPageView: View {
         .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
             if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
                 if isAppearing {
-                    feedModel.markItemsRead(items: [newItem])
+                    newsModel.markItemsRead(items: [newItem])
                     isAppearing = false
                 } else {
                     itemsToMarkRead.append(newItem)
@@ -63,7 +63,7 @@ struct ArticlesPageView: View {
         }
         .onScrollPhaseChange { _, newPhase in
             if  newPhase == .idle {
-                feedModel.markItemsRead(items: itemsToMarkRead)
+                newsModel.markItemsRead(items: itemsToMarkRead)
                 itemsToMarkRead.removeAll()
             }
         }

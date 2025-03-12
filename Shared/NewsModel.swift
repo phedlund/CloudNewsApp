@@ -10,7 +10,7 @@ import Observation
 import SwiftData
 
 @Observable
-class FeedModel: @unchecked Sendable {
+class NewsModel: @unchecked Sendable {
     let databaseActor: NewsDataModelActor
     let session = ServerStatus.shared.session
 

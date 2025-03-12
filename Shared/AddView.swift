@@ -17,7 +17,7 @@ enum AddType: Int, Identifiable {
 
 struct AddView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
     @State private var selectedAdd: AddType = .feed
     @State private var input = ""
@@ -68,7 +68,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await feedModel.addFeed(url: input, folderId: folderId)
+                                        try await newsModel.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -87,7 +87,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await feedModel.addFolder(name: input)
+                                        try await newsModel.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {

@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct MarkReadButton: View {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
@@ -20,7 +20,7 @@ struct MarkReadButton: View {
 
     var body: some View {
         Button {
-            feedModel.markItemsRead(items: items)
+            newsModel.markItemsRead(items: items)
         } label: {
             Label {
                 Text("Mark Read")

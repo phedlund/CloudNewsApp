@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ArticleSettingsView: View {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
@@ -27,8 +27,8 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         item.unread.toggle()
-                        try await feedModel.databaseActor.save()
-                        try? await feedModel.markRead(items: [itemCopy], unread: !isUnRead)
+                        try await newsModel.databaseActor.save()
+                        try? await newsModel.markRead(items: [itemCopy], unread: !isUnRead)
                     }
                 } label: {
                     Label {
@@ -43,7 +43,7 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        try? await feedModel.markStarred(item: itemCopy, starred: !isStarred)
+                        try? await newsModel.markStarred(item: itemCopy, starred: !isStarred)
                     }
                 } label: {
                     Label {

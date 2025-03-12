@@ -40,7 +40,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
 #else
@@ -275,7 +275,7 @@ struct SettingsView: View {
             Button("Reset Data", role: .destructive) {
                 Task {
                     do {
-                        try await feedModel.resetDataBase()
+                        try await newsModel.resetDataBase()
                         server = ""
                         productName = ""
                         productVersion = ""
@@ -320,7 +320,7 @@ struct SettingsView: View {
                     let status = try await ServerStatus.shared.check()
                     productName = status?.name ?? ""
                     productVersion = status?.version ?? ""
-                    newsVersion = try await feedModel.version()
+                    newsVersion = try await newsModel.version()
                     updateFooter()
                     isNewInstall = false
                 } catch {

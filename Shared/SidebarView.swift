@@ -25,7 +25,7 @@ struct SidebarView: View {
     @State private var timerStart = Date.now
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
@@ -78,7 +78,7 @@ struct SidebarView: View {
         }
         List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
             NodeView(node: node)
-                .environment(feedModel)
+                .environment(newsModel)
                 .tag(node.type.asData)
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -95,7 +95,7 @@ struct SidebarView: View {
                         case .feed(id: _):
                             Task {
                                 do {
-                                    try await feedModel.delete(detail)
+                                    try await newsModel.delete(detail)
                                 } catch {
                                     //
                                 }
@@ -104,7 +104,7 @@ struct SidebarView: View {
                             let folderFeeds = feeds.filter( { $0.folderId == folderId })
                             Task {
                                 do {
-                                    try await feedModel.delete(detail, feeds: folderFeeds)
+                                    try await newsModel.delete(detail, feeds: folderFeeds)
                                 } catch {
                                     // TODO notify user
                                 }
@@ -157,7 +157,7 @@ struct SidebarView: View {
             case .feedSettings:
                 NavigationView {
                     FeedSettingsView()
-                        .environment(feedModel)
+                        .environment(newsModel)
                 }
             case .login:
                 NavigationView {
@@ -165,10 +165,10 @@ struct SidebarView: View {
                 }
             }
         })
-        .alert(Text(feedModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
+        .alert(Text(newsModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
-                switch feedModel.currentNode!.type {
+                switch newsModel.currentNode!.type {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
@@ -188,14 +188,14 @@ struct SidebarView: View {
     }
 
     private func folderRenameAction(folderId: Int64, newName: String) async {
-        if let folder = folders.first(where: { $0.id == folderId }), feedModel.currentNode?.title != newName {
+        if let folder = folders.first(where: { $0.id == folderId }), newsModel.currentNode?.title != newName {
             do {
-                try await feedModel.renameFolder(folderId: folderId, to: newName)
-                if let node = feedModel.currentNode {
+                try await newsModel.renameFolder(folderId: folderId, to: newName)
+                if let node = newsModel.currentNode {
                     node.title = newName
                 }
                 folder.name = newName
-                try await feedModel.databaseActor.save()
+                try await newsModel.databaseActor.save()
             } catch let error as NetworkError {
                 errorMessage = error.localizedDescription
                 isShowingError = true
@@ -216,13 +216,13 @@ struct SidebarView: View {
             EmptyView()
         case .all:
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
-                .environment(feedModel)
+                .environment(newsModel)
         case .folder( _):
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
-                .environment(feedModel)
+                .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
-                feedModel.currentNode = node
+                newsModel.currentNode = node
                 alertInput = node.title
                 isShowingRename = true
             } label: {
@@ -236,13 +236,13 @@ struct SidebarView: View {
             }
         case .feed(let feedId):
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
-                .environment(feedModel)
+                .environment(newsModel)
             Button {
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
 #else
                 nodeSelection = node.type.asData
-                feedModel.currentNode = node
+                newsModel.currentNode = node
                 modalSheet = .feedSettings
 #endif
             } label: {

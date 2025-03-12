@@ -12,7 +12,7 @@ let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
@@ -110,7 +110,7 @@ struct FeedSettingsView: View {
                 }
             }
             .task {
-                switch feedModel.currentNode?.type {
+                switch newsModel.currentNode?.type {
                 case .feed(id: let id):
                     if let feed = feeds.first(where: { $0.id == id }) {
                         var fNames = [noFolderName]
@@ -146,11 +146,11 @@ struct FeedSettingsView: View {
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
-                if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+                if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
                     feed.preferWeb = newValue
                     Task {
                         do {
-                            try await self.feedModel.databaseActor.save()
+                            try await self.newsModel.databaseActor.save()
                         } catch {
                             //
                         }
@@ -173,13 +173,13 @@ struct FeedSettingsView: View {
     }
 
     private func onTitleCommit() async {
-        if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+        if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
             if !title.isEmpty, title != feed.title {
                 do {
-                    try await feedModel.renameFeed(feedId: feed.id, to: title)
+                    try await newsModel.renameFeed(feedId: feed.id, to: title)
                     node.title = title
                     feed.title = title
-                    try await self.feedModel.databaseActor.save()
+                    try await self.newsModel.databaseActor.save()
                 } catch let error as NetworkError {
                     title = initialTitle
                     footerMessage = error.localizedDescription
@@ -198,13 +198,13 @@ struct FeedSettingsView: View {
     }
 
     private func onFolderSelection(_ newFolderName: String) async {
-        if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
+        if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
             var newFolderId: Int64 = 0
             if let newFolder = folders.first(where: { $0.name == newFolderName }) {
                 newFolderId = newFolder.id
             }
             do {
-                try await feedModel.moveFeed(feedId: feed.id, to: newFolderId)
+                try await newsModel.moveFeed(feedId: feed.id, to: newFolderId)
                 if newFolderId == 0 {
                     node.parent = nil
                 } else {
@@ -213,7 +213,7 @@ struct FeedSettingsView: View {
                     }
                 }
                 feed.folderId = newFolderId
-                try await feedModel.databaseActor.save()
+                try await newsModel.databaseActor.save()
             } catch let error as NetworkError {
                 folderSelection = initialFolderSelection
                 footerMessage = error.localizedDescription

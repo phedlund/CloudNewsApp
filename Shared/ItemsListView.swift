@@ -21,7 +21,7 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.phWhiteBackground
 #endif
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
@@ -129,7 +129,7 @@ struct ItemsListView: View {
     @ViewBuilder
     private func contextMenu(item: Item) -> some View {
         Button {
-            feedModel.toggleItemRead(item: item)
+            newsModel.toggleItemRead(item: item)
         } label: {
             Label {
                 Text(item.unread ? "Read" : "Unread")
@@ -139,7 +139,7 @@ struct ItemsListView: View {
         }
         Button {
             Task {
-                try? await feedModel.markStarred(item: item, starred: !item.starred)
+                try? await newsModel.markStarred(item: item, starred: !item.starred)
             }
         } label: {
             Label {
@@ -160,7 +160,7 @@ struct ItemsListView: View {
                 let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
-                feedModel.markItemsRead(items: Array(itemsToMarkRead))
+                newsModel.markItemsRead(items: Array(itemsToMarkRead))
             }
         }
         lastOffset = offset
@@ -169,7 +169,7 @@ struct ItemsListView: View {
 }
 
 struct NavigationDestinationModifier: ViewModifier {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     let type: Item.Type
     let items: [Item]
 
@@ -178,7 +178,7 @@ struct NavigationDestinationModifier: ViewModifier {
         content
             .navigationDestination(for: type) { item in
                 ArticlesPageView(item: item, items: items)
-                    .environment(feedModel)
+                    .environment(newsModel)
             }
 #else
         content

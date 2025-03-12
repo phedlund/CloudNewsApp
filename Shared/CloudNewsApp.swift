@@ -12,7 +12,7 @@ import SwiftUI
 @main
 struct CloudNewsApp: App {
     private let container: ModelContainer
-    private let feedModel: FeedModel
+    private let newsModel: NewsModel
     private let modelActor: NewsDataModelActor
     private let syncManager: SyncManager
 
@@ -25,7 +25,7 @@ struct CloudNewsApp: App {
     init() {
         container = SharedDatabase.shared.modelContainer
         self.modelActor = NewsDataModelActor(modelContainer: container)
-        self.feedModel = FeedModel(databaseActor: modelActor)
+        self.newsModel = NewsModel(databaseActor: modelActor)
         self.syncManager = SyncManager(databaseActor: modelActor)
         syncManager.configureSession()
     }
@@ -33,7 +33,7 @@ struct CloudNewsApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(feedModel)
+                .environment(newsModel)
                 .environment(syncManager)
         }
         .modelContainer(container)
@@ -61,7 +61,7 @@ struct CloudNewsApp: App {
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(model: feedModel)
+            AppCommands(model: newsModel)
         }
 #else
         //        .backgroundTask(.urlSession(appRefreshTaskId)) {

@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.database) private var database
@@ -37,13 +37,13 @@ struct ContentView: View {
 #if os(iOS)
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             SidebarView(nodeSelection: $selectedNode)
-                .environment(feedModel)
+                .environment(newsModel)
                 .environment(syncManager)
         } detail: {
             ZStack {
                 if selectedNode != nil {
                     ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
-                        .environment(feedModel)
+                        .environment(newsModel)
                         .environment(syncManager)
                         .toolbar {
                             contentViewToolBarContent()
@@ -75,7 +75,7 @@ struct ContentView: View {
             .sheet(isPresented: $isShowingLogin) {
                 NavigationView {
                     SettingsView()
-                        .environment(feedModel)
+                        .environment(newsModel)
                 }
             }
         }
@@ -112,17 +112,17 @@ struct ContentView: View {
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $selectedNodeID)
-                .environment(feedModel)
+                .environment(newsModel)
         } content: {
             if selectedNodeID != Constants.emptyNodeGuid {
                 let _ = Self._printChanges()
                 ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
-                    .environment(feedModel)
+                    .environment(newsModel)
                     .toolbar {
-                        ItemListToolbarContent(node: feedModel.currentNode)
+                        ItemListToolbarContent(node: newsModel.currentNode)
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .navigationTitle(feedModel.currentNode.title)
+                    .navigationTitle(newsModel.currentNode.title)
             } else {
                 ContentUnavailableView {
                     Label("No Feed Selected", image: .rss)
@@ -145,14 +145,14 @@ struct ContentView: View {
             }
         }
         .onChange(of: folders, initial: true) { _, newValue in
-            feedModel.folders = newValue
+            newsModel.folders = newValue
         }
         .onChange(of: feeds, initial: true) { _, newValue in
-            feedModel.feeds = newValue
+            newsModel.feeds = newValue
         }
         .onChange(of: selectedNodeID, initial: false) { _, newValue in
             selectedNode = newValue
-            feedModel.currentNode = feedModel.node(id: newValue ?? Constants.emptyNodeGuid)
+            newsModel.currentNode = newsModel.node(id: newValue ?? Constants.emptyNodeGuid)
             updatePredicate()
         }
         .onChange(of: hideRead, initial: true) { _, _ in
@@ -210,7 +210,7 @@ struct ContentView: View {
     func contentViewToolBarContent() -> some ToolbarContent {
         ToolbarItem(placement: .automatic) {
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor)
-                .environment(feedModel)
+                .environment(newsModel)
         }
     }
 
@@ -218,9 +218,9 @@ struct ContentView: View {
 //        return
 //        let allNodeModel = Node(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all, isTopLevel: true)
 //        let starredNodeModel = Node(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred, isTopLevel: true)
-//        await feedModel.backgroundModelActor.insert(allNodeModel)
-//        await feedModel.backgroundModelActor.insert(starredNodeModel)
-//        try? await feedModel.backgroundModelActor.save()
+//        await newsModel.backgroundModelActor.insert(allNodeModel)
+//        await newsModel.backgroundModelActor.insert(starredNodeModel)
+//        try? await newsModel.backgroundModelActor.save()
 ////        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
 //
 //        do {
@@ -233,19 +233,19 @@ struct ContentView: View {
 //                    let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: false)
 //                    feedNodeModel.feed = feed
 //                    Task {
-//                        await feedModel.backgroundModelActor.insert(feedNodeModel)
+//                        await newsModel.backgroundModelActor.insert(feedNodeModel)
 //                    }
 //                    children.append(feedNodeModel)
 //                    feed.node = feedNodeModel
 //                }
 //
 //                Task {
-//                    await feedModel.backgroundModelActor.insert(folderNodeModel)
+//                    await newsModel.backgroundModelActor.insert(folderNodeModel)
 //                }
 //                folderNodeModel.folder = folder
 //                folderNodeModel.children = children
 //                folder.node = folderNodeModel
-//                try await feedModel.backgroundModelActor.save()
+//                try await newsModel.backgroundModelActor.save()
 //            }
 //
 //            let folderFreeFeeds = feeds.filter( { $0.folderId == 0 } )
@@ -253,11 +253,11 @@ struct ContentView: View {
 //                let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: true)
 //                feedNodeModel.feed = feed
 //                Task {
-//                    await feedModel.backgroundModelActor.insert(feedNodeModel)
+//                    await newsModel.backgroundModelActor.insert(feedNodeModel)
 //                }
 //                feed.node = feedNodeModel
 //            }
-//            try await feedModel.backgroundModelActor.save()
+//            try await newsModel.backgroundModelActor.save()
 //        } catch {
 //
 //        }

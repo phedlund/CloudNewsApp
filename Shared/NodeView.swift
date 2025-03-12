@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI
 
 struct NodeView: View {
-    @Environment(FeedModel.self) private var feedModel
+    @Environment(NewsModel.self) private var newsModel
 
     let node: Node
 
@@ -49,7 +49,7 @@ struct NodeView: View {
         ) {
             Button("Yes", role: .destructive) {
                 withAnimation {
-//                   feedModel.delete(node)
+//                   newsModel.delete(node)
                 }
             }
             .keyboardShortcut(.defaultAction)
