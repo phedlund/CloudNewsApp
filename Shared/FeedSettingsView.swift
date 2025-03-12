@@ -31,6 +31,7 @@ struct FeedSettingsView: View {
     @State private var initialTitle = ""
     @State private var initialFolderSelection = noFolderName
 
+    @Query private var nodes: [Node]
     @Query private var folders: [Folder]
     @Query private var feeds: [Feed]
 
@@ -40,10 +41,14 @@ struct FeedSettingsView: View {
                 Section {
                     TextField("Title", text: $title) { isEditing in
                         if !isEditing {
-                            onTitleCommit()
+                            Task {
+                                await onTitleCommit()
+                            }
                         }
                     } onCommit: {
-                        onTitleCommit()
+                        Task {
+                            await onTitleCommit()
+                        }
                     }
                     .textFieldStyle(.roundedBorder)
                     Picker(selection: $folderSelection) {
@@ -135,7 +140,9 @@ struct FeedSettingsView: View {
             }
             .onChange(of: folderSelection) { oldValue, newValue in
                 if newValue != oldValue {
-                    onFolderSelection(newValue == noFolderName ? "" : newValue)
+                    Task {
+                        await onFolderSelection(newValue == noFolderName ? "" : newValue)
+                    }
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
@@ -165,59 +172,60 @@ struct FeedSettingsView: View {
         }
     }
 
-    @MainActor
-    private func onTitleCommit() {
+    private func onTitleCommit() async {
         if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
             if !title.isEmpty, title != feed.title {
-                Task {
-                    do {
-                        try await feedModel.renameFeed(feed: feed, to: title)
-                        self.feedModel.currentNode?.title = title
-                        feed.title = title
-                        try await self.feedModel.databaseActor.save()
-                    } catch let error as NetworkError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error as DatabaseError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    }
+                do {
+                    try await feedModel.renameFeed(feedId: feed.id, to: title)
+                    node.title = title
+                    feed.title = title
+                    try await self.feedModel.databaseActor.save()
+                } catch let error as NetworkError {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error as DatabaseError {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
                 }
             }
         }
     }
 
-    @MainActor
-    private func onFolderSelection(_ newFolderName: String) {
+    private func onFolderSelection(_ newFolderName: String) async {
         if let node = feedModel.currentNode, let feed = feedForNodeType(node.type) {
-            Task {
-                var newFolderId: Int64 = 0
-                if let newFolder = folders.first(where: { $0.name == newFolderName }) {
-                    newFolderId = newFolder.id
+            var newFolderId: Int64 = 0
+            if let newFolder = folders.first(where: { $0.name == newFolderName }) {
+                newFolderId = newFolder.id
+            }
+            do {
+                try await feedModel.moveFeed(feedId: feed.id, to: newFolderId)
+                if newFolderId == 0 {
+                    node.parent = nil
+                } else {
+                    if let newParentNode = nodes.first(where: { $0.type == NodeType.folder(id: newFolderId) }) {
+                        newParentNode.children?.append(node)
+                    }
                 }
-                do {
-                    try await feedModel.moveFeed(feed: feed, to: newFolderId)
-                    feed.folderId = newFolderId
-                    try await feedModel.databaseActor.save()
-                } catch let error as NetworkError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error as DatabaseError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                }
+                feed.folderId = newFolderId
+                try await feedModel.databaseActor.save()
+            } catch let error as NetworkError {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
+            } catch let error as DatabaseError {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
+            } catch let error {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
             }
         }
     }

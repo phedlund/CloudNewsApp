@@ -110,6 +110,78 @@ class FeedModel: @unchecked Sendable {
         }
     }
 
+    func renameFeed(feedId: Int64, to name: String) async throws {
+        let renameRouter = Router.renameFeed(id: Int(feedId), newName: name)
+        do {
+            let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
+            if let httpResponse = renameResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 200:
+                    break
+                case 404:
+                    throw NetworkError.feedDoesNotExist
+                case 405:
+                    throw NetworkError.newsAppNeedsUpdate
+                default:
+                    throw NetworkError.feedErrorRenaming
+                }
+            }
+        } catch let error as NetworkError {
+            throw error
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
+    }
+
+    func renameFolder(folderId: Int64, to name: String) async throws {
+        let renameRouter = Router.renameFolder(id: Int(folderId), newName: name)
+        do {
+            let (_, renameResponse) = try await session.data(for: renameRouter.urlRequest(), delegate: nil)
+            if let httpResponse = renameResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 200:
+                    break
+                case 404:
+                    throw NetworkError.folderDoesNotExist
+                case 409:
+                    throw NetworkError.folderAlreadyExists
+                case 422:
+                    throw NetworkError.folderNameInvalid
+                default:
+                    throw NetworkError.folderErrorRenaming
+                }
+            }
+        } catch let error as NetworkError {
+            throw error
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
+    }
+
+    func moveFeed(feedId: Int64, to folder: Int64) async throws {
+        let moveFeedRouter = Router.moveFeed(id: Int(feedId), folder: Int(folder))
+        do {
+            let (_, moveResponse) = try await session.data(for: moveFeedRouter.urlRequest(), delegate: nil)
+            if let httpResponse = moveResponse as? HTTPURLResponse {
+                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                switch httpResponse.statusCode {
+                case 200:
+                    break
+                case 404:
+                    throw NetworkError.feedDoesNotExist
+                default:
+                    throw NetworkError.feedErrorMoving
+                }
+            }
+        } catch let error as NetworkError {
+            throw error
+        } catch(let error) {
+            throw NetworkError.generic(message: error.localizedDescription)
+        }
+    }
+
     func resetDataBase() async throws {
         do {
             try await databaseActor.delete(model: Node.self)
