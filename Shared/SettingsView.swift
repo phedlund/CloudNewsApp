@@ -93,6 +93,7 @@ struct SettingsView: View {
                         onLogin()
                     } label: {
                         Text("Log In...")
+                            .padding(.horizontal)
                     }
                     .foregroundStyle(.phWhiteIcon)
                     .buttonStyle(.bordered)

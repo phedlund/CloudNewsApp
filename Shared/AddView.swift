@@ -109,6 +109,7 @@ struct AddView: View {
                             }
                         } label: {
                             Text("Add")
+                                .padding(.horizontal)
                         }
                         .foregroundStyle(.phWhiteIcon)
                         .buttonStyle(.bordered)
