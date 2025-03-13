@@ -77,7 +77,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
-                TextField(text: $server, prompt: Text("https://example.com/cloud")) {
+                TextField(text: $server, prompt: Text(verbatim: "https://example.com/cloud")) {
                     Text("URL")
                 }
 #if !os(macOS)
@@ -87,13 +87,18 @@ struct SettingsView: View {
 #endif
                 .disableAutocorrection(true)
                 .textFieldStyle(.roundedBorder)
-                Button {
-                    onLogin()
-                } label: {
-                    Text("Log In...")
+                HStack {
+                    Spacer()
+                    Button {
+                        onLogin()
+                    } label: {
+                        Text("Log In...")
+                    }
+                    .foregroundStyle(.phWhiteIcon)
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.roundedRectangle)
+                    .disabled(server.isEmpty)
                 }
-                .buttonStyle(.plain)
-                .disabled(server.isEmpty)
             } header: {
                 Text("Server")
             } footer: {
@@ -374,7 +379,7 @@ struct SettingsView: View {
         footerMessage = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
         footerSuccess = true
     }
-    
+
 #if !os(macOS)
     private func sendMail() {
         if MFMailComposeViewController.canSendMail() {

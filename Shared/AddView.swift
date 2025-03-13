@@ -62,6 +62,10 @@ struct AddView: View {
                         .disabled(input.isEmpty)
                     }
                     HStack {
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .opacity(isAdding ? 1.0 : 0.0)
                         Button {
                             switch selectedAdd {
                             case .feed:
@@ -106,12 +110,10 @@ struct AddView: View {
                         } label: {
                             Text("Add")
                         }
+                        .foregroundStyle(.phWhiteIcon)
                         .buttonStyle(.bordered)
+                        .buttonBorderShape(.roundedRectangle)
                         .disabled(input.isEmpty)
-                        Spacer()
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .opacity(isAdding ? 1.0 : 0.0)
 #if os(macOS)
                             .controlSize(.small)
 #endif
@@ -168,7 +170,7 @@ struct AddViewSegment: View {
     var body: some View {
         switch addType {
         case .feed:
-            TextField("URL", text: $input, prompt: Text("https://example.com/feed"))
+            TextField("URL", text: $input, prompt: Text(verbatim: "https://example.com/feed"))
 #if !os(macOS)
                 .autocapitalization(.none)
                 .textContentType(.URL)
