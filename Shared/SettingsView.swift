@@ -172,9 +172,14 @@ struct SettingsView: View {
                 }
 #if !os(macOS)
                 NavigationLink {
-                    AddView(.feed)
+                    AddView(selectedAdd: .feed)
                 } label: {
-                    Text("Add Feed or Folder...")
+                    Text("Add Feed...")
+                }
+                NavigationLink {
+                    AddView(selectedAdd: .folder)
+                } label: {
+                    Text("Add Folder...")
                 }
 #endif
                 Button(role: .destructive) {
@@ -218,7 +223,7 @@ struct SettingsView: View {
             switch sheet {
             case .add:
                 NavigationView {
-                    AddView(.feed)
+                    AddView(selectedAdd: .feed)
                 }
             case .login:
                 LoginWebViewView()

@@ -19,7 +19,9 @@ struct AddView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedAdd: AddType = .feed
+
+    var selectedAdd: AddType
+    
     @State private var input = ""
     @State private var isAdding = false
     @State private var footerMessage = ""
@@ -30,25 +32,10 @@ struct AddView: View {
 
     @Query private var folders: [Folder]
 
-    init(_ selectedAddType: AddType) {
-        self._selectedAdd = State(initialValue: selectedAddType)
-    }
-
     var body: some View {
         VStack {
             Form {
                 Section {
-#if !os(macOS)
-                    Picker(selection: $selectedAdd) {
-                        Text("Feed")
-                            .tag(AddType.feed)
-                        Text("Folder")
-                            .tag(AddType.folder)
-                    } label: {
-                        Text("Add")
-                    }
-                    .pickerStyle(.segmented)
-#endif
                     AddViewSegment(input: $input, addType: selectedAdd)
                     if selectedAdd == .feed {
                         Picker(selection: $folderSelection) {
@@ -138,7 +125,7 @@ struct AddView: View {
 #endif
         }
 #if os(iOS)
-        .navigationTitle("Add Feed or Folder")
+        .navigationTitle( selectedAdd == .feed ? "Add Feed" : "Add Folder")
 #endif
         .onAppear {
             var fNames = [noFolderName]
@@ -159,7 +146,7 @@ struct AddView: View {
 
 struct AddView_Previews: PreviewProvider {
     static var previews: some View {
-        AddView(.feed)
+        AddView(selectedAdd: .feed)
     }
 }
 
