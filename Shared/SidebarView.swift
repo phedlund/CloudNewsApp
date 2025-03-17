@@ -154,6 +154,7 @@ struct SidebarView: View {
                 NavigationView {
                     SettingsView()
                 }
+                .tint(.accent)
             case .feedSettings:
                 NavigationView {
                     FeedSettingsView()
