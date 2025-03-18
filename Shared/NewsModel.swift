@@ -289,10 +289,11 @@ class NewsModel: @unchecked Sendable {
                         try await databaseActor.delete(model: Starred.self)
                     }
                 default:
+                    let itemDataId = try JSONEncoder().encode(item.persistentModelID)
                     if starred {
-                        await databaseActor.insert(Starred(itemId: item.id))
+                        await databaseActor.insert(Starred(itemIdData: itemDataId))
                     } else {
-                        await databaseActor.insert(Unstarred(itemId: item.id))
+                        await databaseActor.insert(Unstarred(itemIdData: itemDataId))
                     }
                 }
                 try await databaseActor.save()

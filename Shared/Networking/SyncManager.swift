@@ -233,71 +233,66 @@ final class SyncManager: @unchecked Sendable {
                     }
                 }
             }
-            // TODO
-            //                let localStarred: [Starred] = try await backgroundModelActor.fetchData()
-            //                if !localStarred.isEmpty {
-            //                    let localStarredIds = localStarred.map( { $0.itemId } )
-            //                    let starredItemsFetchDescriptor = FetchDescriptor<Item>(predicate: #Predicate {
-            //                        localStarredIds.contains($0.id)
-            //                    })
-            //                    let predicate = #Predicate<Item> {
-            //                        localStarredIds.contains($0.id)
-            //                    }
-            //                    let starredItems: [Item] = try await backgroundModelActor.fetchData(predicate: predicate)
-            //                    if !starredItems.isEmpty {
-            //                        var params = [Any]()
-            //                        for starredItem in starredItems {
-            //                            var param: [String: Any] = [:]
-            //                            param["feedId"] = starredItem.feedId
-            //                            param["guidHash"] = starredItem.guidHash
-            //                            params.append(param)
-            //                        }
-            //                        let starredParameters = ["items": params]
-            //                        let starredRouter = Router.itemsStarred(parameters: starredParameters)
-            //                        async let (_, starredResponse) = session.data(for: starredRouter.urlRequest(), delegate: nil)
-            //                        let starredItemsResponse = try await starredResponse
-            //                        if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
-            //                            switch httpStarredResponse.statusCode {
-            //                            case 200:
-            //                                try await backgroundModelActor.delete(Starred.self)
-            //                            default:
-            //                                break
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //
-            //                let localUnstarred: [Unstarred] = try await backgroundModelActor.fetchData()
-            //                if !localUnstarred.isEmpty {
-            //                    let localUnstarredIds = localUnstarred.map( { $0.itemId } )
-            //                    let predicate = #Predicate<Item> {
-            //                        localUnstarredIds.contains($0.id)
-            //                    }
-            //                    let unstarredItems: [Item] = try await backgroundModelActor.fetchData(predicate: predicate)
-            //                    if !unstarredItems.isEmpty {
-            //                        var params: [Any] = []
-            //                        for unstarredItem in unstarredItems {
-            //                            var param: [String: Any] = [:]
-            //                            param["feedId"] = unstarredItem.feedId
-            //                            param["guidHash"] = unstarredItem.guidHash
-            //                            params.append(param)
-            //                        }
-            //                        let unStarredParameters = ["items": params]
-            //                        let unStarredRouter = Router.itemsUnstarred(parameters: unStarredParameters)
-            //                        async let (_, unStarredResponse) = session.data(for: unStarredRouter.urlRequest(), delegate: nil)
-            //                        let unStarredItemsResponse = try await unStarredResponse
-            //                        if let httpUnStarredResponse = unStarredItemsResponse as? HTTPURLResponse {
-            //                            switch httpUnStarredResponse.statusCode {
-            //                            case 200:
-            //                                try await backgroundModelActor.delete(Unstarred.self)
-            //                            default:
-            //                                break
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
+            
+            var localStarredParameters = [StarredParameter]()
+            let starredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Starred>())
+            for identifier in starredIdentifiers {
+                if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+                    localStarredParameters.append(parameters)
+                }
+            }
 
+            if !localStarredParameters.isEmpty {
+                var params = [Any]()
+                for starredItem in localStarredParameters {
+                    var param: [String: Any] = [:]
+                    param["feedId"] = starredItem.feedId
+                    param["guidHash"] = starredItem.guidHash
+                    params.append(param)
+                }
+                let starredParameters = ["items": params]
+                let starredRouter = Router.itemsStarred(parameters: starredParameters)
+                async let (_, starredResponse) = URLSession.shared.data(for: starredRouter.urlRequest(), delegate: nil)
+                let starredItemsResponse = try await starredResponse
+                if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
+                    switch httpStarredResponse.statusCode {
+                    case 200:
+                        await databaseActor.deleteAll(Starred.self)
+                    default:
+                        break
+                    }
+                }
+            }
+
+            var localUnstarredParameters = [StarredParameter]()
+            let unStarredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unstarred>())
+            for identifier in unStarredIdentifiers {
+                if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+                    localUnstarredParameters.append(parameters)
+                }
+            }
+
+            if !localUnstarredParameters.isEmpty {
+                var params = [Any]()
+                for unstarredItem in localUnstarredParameters {
+                    var param: [String: Any] = [:]
+                    param["feedId"] = unstarredItem.feedId
+                    param["guidHash"] = unstarredItem.guidHash
+                    params.append(param)
+                }
+                let unstarredParameters = ["items": params]
+                let unstarredRouter = Router.itemsStarred(parameters: unstarredParameters)
+                async let (_, unstarredResponse) = URLSession.shared.data(for: unstarredRouter.urlRequest(), delegate: nil)
+                let unstarredItemsResponse = try await unstarredResponse
+                if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
+                    switch httpStarredResponse.statusCode {
+                    case 200:
+                        await databaseActor.deleteAll(Unstarred.self)
+                    default:
+                        break
+                    }
+                }
+            }
 
             let foldersRequest = try Router.folders.urlRequest()
             let feedsRequest = try Router.feeds.urlRequest()

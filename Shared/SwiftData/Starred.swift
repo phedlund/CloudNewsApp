@@ -10,18 +10,18 @@ import SwiftData
 
 @Model
 final class Unstarred {
-    @Attribute(.unique) var itemId: Int64
+    @Attribute(.unique) var itemIdData: Data
 
-    init(itemId: Int64) {
-        self.itemId = itemId
+    init(itemIdData: Data) {
+        self.itemIdData = itemIdData
     }
 }
 
 @Model
 final class Starred {
-    @Attribute(.unique) var itemId: Int64
+    @Attribute(.unique) var itemIdData: Data
 
-    init(itemId: Int64) {
-        self.itemId = itemId
+    init(itemIdData: Data) {
+        self.itemIdData = itemIdData
     }
 }

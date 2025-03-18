@@ -8,6 +8,11 @@
 import Foundation
 import SwiftData
 
+public struct StarredParameter: Sendable {
+    var feedId: Int64
+    var guidHash: String
+}
+
 @ModelActor
 public actor NewsDataModelActor: NewsDatabase {
     public func fetch<T: Sendable>(_ descriptor: @Sendable @escaping () -> FetchDescriptor<T>) async throws -> [T] where T : PersistentModel {
@@ -84,11 +89,18 @@ public actor NewsDataModelActor: NewsDatabase {
         if let model = model as? Unread {
             return model.itemId
         }
+        return nil
+    }
+
+    public func fetchStarredParameter(by id: PersistentIdentifier) async throws -> StarredParameter? {
+        let model = modelContext.model(for: id)
         if let model = model as? Starred {
-            return model.itemId
-        }
-        if let model = model as? Unstarred {
-            return model.itemId
+            let data = model.itemIdData
+            let id: PersistentIdentifier = try JSONDecoder().decode(PersistentIdentifier.self, from: data)
+            let model = modelContext.model(for: id)
+            if let model = model as? Item {
+                return StarredParameter(feedId: model.feedId, guidHash: model.guidHash ?? "")
+            }
         }
         return nil
     }
