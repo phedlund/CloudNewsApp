@@ -180,7 +180,6 @@
 		D02F449C265C86BE00A3505B /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				D0AD1A992A76BC620037068B /* Environment */,
 				D02F44C6265C89F700A3505B /* Models */,
 				D0B0B2EF267C2A4D00A997DB /* Networking */,
 				D0F41D6A2A76CA4C00EEAC78 /* SwiftData */,
@@ -268,13 +267,6 @@
 				D0367B932A8C5E1D0099D34D /* Version.swift */,
 			);
 			path = Nextcloud;
-			sourceTree = "<group>";
-		};
-		D0AD1A992A76BC620037068B /* Environment */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Environment;
 			sourceTree = "<group>";
 		};
 		D0B0B2EF267C2A4D00A997DB /* Networking */ = {
