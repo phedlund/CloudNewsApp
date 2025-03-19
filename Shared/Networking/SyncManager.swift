@@ -119,6 +119,7 @@ final class SyncManager: @unchecked Sendable {
         do {
             syncManagerReader.isSyncing = true
             let itemCount = try await databaseActor.itemCount()
+            let currentStatus = await newsStatus()
             if itemCount == 0 {
                 await initialSync()
             } else {
@@ -130,6 +131,22 @@ final class SyncManager: @unchecked Sendable {
         }
     }
 
+    private func newsStatus() async -> Bool {
+        do {
+            let statusRequest = try Router.status.urlRequest()
+            let statusData = try await URLSession.shared.data (for: statusRequest).0
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            guard let decodedResponse = try? decoder.decode(NewsStatusDTO.self, from: statusData) else {
+                return false
+            }
+            print(decodedResponse)
+        } catch {
+            //
+        }
+        return false
+    }
+
     /*
      Initial sync
 
@@ -139,7 +156,7 @@ final class SyncManager: @unchecked Sendable {
      4. feeds: GET /feeds
      */
 
-    func initialSync() async {
+    private func initialSync() async {
         do {
             let foldersRequest = try Router.folders.urlRequest()
             let feedsRequest = try Router.feeds.urlRequest()
@@ -184,7 +201,7 @@ final class SyncManager: @unchecked Sendable {
 
      */
 
-    func repeatSync() async {
+    private func repeatSync() async {
         do {
             try await pruneItems()
 
@@ -325,18 +342,6 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         self.foldersDTO = decodedResponse
-
-//        Task {
-//            self.foldersDTO = decodedResponse
-//            let allNode = Node(id: Constants.allNodeGuid, title: "All Articles")
-//            await databaseActor.insert(allNode)
-//            let starredNode = Node(id: Constants.starNodeGuid, title: "Starred Articles")
-//            for eachItem in decodedResponse.folders {
-//                let itemToStore = Folder(item: eachItem)
-//                await databaseActor.insert(itemToStore)
-//            }
-//            try? await databaseActor.save()
-//        }
     }
 
     private func parseFeeds(data: Data) {
@@ -360,7 +365,6 @@ final class SyncManager: @unchecked Sendable {
                     feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0)
                     feeds.append(feedNode)
                     await databaseActor.insert(feedToStore)
-//                    await databaseActor.insert(feedNode)
                 }
                 let type = NodeType.folder(id: folderDTO.id)
                 folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds)
@@ -399,7 +403,7 @@ final class SyncManager: @unchecked Sendable {
         }
     }
 
-    func pruneItems() async throws {
+    private func pruneItems() async throws {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")

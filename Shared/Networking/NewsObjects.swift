@@ -68,3 +68,12 @@ struct ItemsDTO: Codable {
     let items: [ItemDTO]
 }
 
+struct NewsWarningsDTO: Codable {
+    let improperlyConfiguredCron: Bool  // if true the webapp will fail to update the feeds correctly
+    let incorrectDbCharset: Bool
+}
+
+struct NewsStatusDTO: Codable {
+    let version: String
+    let warnings: NewsWarningsDTO
+}

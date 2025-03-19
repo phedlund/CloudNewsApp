@@ -116,12 +116,13 @@ enum Router {
     case allItemsRead
 
     case version
+    case status
 
     static let applicationJson = "application/json"
 
     private var method: UrlSessionMethod {
         switch self {
-        case .feeds, .folders, .items, .updatedItems, .version:
+        case .feeds, .folders, .items, .updatedItems, .version, .status:
             return .get
         case .addFeed, .addFolder:
             return .post
@@ -182,6 +183,8 @@ enum Router {
             return "/items/read"
         case .version:
             return "/version"
+        case .status:
+            return "/status"
         }
     }
 
@@ -213,6 +216,7 @@ enum Router {
         switch self {
         case .folders, .feeds:
             break
+
         case .addFeed(let url, let folder):
             let parameters = ["url": url, "folderId": folder == 0 ? NSNull() : folder] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
@@ -221,6 +225,7 @@ enum Router {
             }
         case .deleteFeed(_):
             break
+
         case .moveFeed( _, let folder):
             let parameters = ["folderId": folder == 0 ? NSNull() : folder] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
@@ -234,8 +239,7 @@ enum Router {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
-//        markFeedRead
-        
+
         case .addFolder(let name):
             let parameters = ["name": name]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
@@ -244,14 +248,14 @@ enum Router {
             }
         case .deleteFolder( _):
             break
+
         case .renameFolder( _, let name):
             let parameters = ["name": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
-//            markFolderRead
-        
+
         case .items(let parameters), .updatedItems(let parameters):
             if let url = urlRequest.url {
                 var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -268,13 +272,10 @@ enum Router {
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
 
-        case .version:
-            break
-            
-        default:
+        case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemsUnread, .itemStarred, .itemUnstarred, .allItemsRead:
             break
         }
-        
+
         return urlRequest
     }
 }
