@@ -28,10 +28,9 @@ struct SidebarView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
+
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
-
-    @AppStorage("SelectedNode") var selectedNode: String?
 
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
