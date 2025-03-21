@@ -115,36 +115,28 @@ final class SyncManager: @unchecked Sendable {
         }
     }
 
-    func sync() async {
-        do {
-            syncManagerReader.isSyncing = true
-            let itemCount = try await databaseActor.itemCount()
-            let currentStatus = await newsStatus()
-            if itemCount == 0 {
-                await initialSync()
-            } else {
-                await repeatSync()
-            }
-            syncManagerReader.isSyncing = false
-        } catch {
-            syncManagerReader.isSyncing = false
+    func sync() async throws -> NewsStatusDTO? {
+        syncManagerReader.isSyncing = true
+        let itemCount = try await databaseActor.itemCount()
+        let currentStatus = try await newsStatus()
+        if itemCount == 0 {
+            try await initialSync()
+        } else {
+            try await repeatSync()
         }
+        syncManagerReader.isSyncing = false
+        return currentStatus
     }
 
-    private func newsStatus() async -> Bool {
-        do {
-            let statusRequest = try Router.status.urlRequest()
-            let statusData = try await URLSession.shared.data (for: statusRequest).0
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .secondsSince1970
-            guard let decodedResponse = try? decoder.decode(NewsStatusDTO.self, from: statusData) else {
-                return false
-            }
-            print(decodedResponse)
-        } catch {
-            //
+    private func newsStatus() async throws -> NewsStatusDTO? {
+        let statusRequest = try Router.status.urlRequest()
+        let statusData = try await URLSession.shared.data (for: statusRequest).0
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        guard let decodedResponse = try? decoder.decode(NewsStatusDTO.self, from: statusData) else {
+            return nil
         }
-        return false
+        return decodedResponse
     }
 
     /*
@@ -156,34 +148,29 @@ final class SyncManager: @unchecked Sendable {
      4. feeds: GET /feeds
      */
 
-    private func initialSync() async {
-        do {
-            let foldersRequest = try Router.folders.urlRequest()
-            let feedsRequest = try Router.feeds.urlRequest()
+    private func initialSync() async throws {
+        let foldersRequest = try Router.folders.urlRequest()
+        let feedsRequest = try Router.feeds.urlRequest()
 
-            let unreadParameters: ParameterDict = ["type": 3,
-                                                   "getRead": false,
-                                                   "batchSize": -1]
-            let unreadRouter = Router.items(parameters: unreadParameters)
+        let unreadParameters: ParameterDict = ["type": 3,
+                                               "getRead": false,
+                                               "batchSize": -1]
+        let unreadRouter = Router.items(parameters: unreadParameters)
 
-            let starredParameters: ParameterDict = ["type": 2,
-                                                    "getRead": true,
-                                                    "batchSize": -1]
-            let starredRouter = Router.items(parameters: starredParameters)
+        let starredParameters: ParameterDict = ["type": 2,
+                                                "getRead": true,
+                                                "batchSize": -1]
+        let starredRouter = Router.items(parameters: starredParameters)
 
-            let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-            let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-            let unreadItemsData = try await URLSession.shared.data (for: unreadRouter.urlRequest()).0
-            let starredItemsData = try await URLSession.shared.data (for: starredRouter.urlRequest()).0
+        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
+        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
+        let unreadItemsData = try await URLSession.shared.data (for: unreadRouter.urlRequest()).0
+        let starredItemsData = try await URLSession.shared.data (for: starredRouter.urlRequest()).0
 
-            parseFolders(data: foldersData)
-            parseFeeds(data: feedsData)
-            parseItems(data: unreadItemsData)
-            parseItems(data: starredItemsData)
-        } catch {
-
-        }
-
+        parseFolders(data: foldersData)
+        parseFeeds(data: feedsData)
+        parseItems(data: unreadItemsData)
+        parseItems(data: starredItemsData)
     }
 
     /*
@@ -201,137 +188,133 @@ final class SyncManager: @unchecked Sendable {
 
      */
 
-    private func repeatSync() async {
-        do {
-            try await pruneItems()
+    private func repeatSync() async throws {
+        try await pruneItems()
 
-            var localReadIds = [Int64]()
-            let identifiers = try await databaseActor.allModelIds(FetchDescriptor<Read>())
-            for identifier in identifiers {
-                if let itemId = try await databaseActor.fetchItemId(by: identifier) {
-                    localReadIds.append(itemId)
-                }
+        var localReadIds = [Int64]()
+        let identifiers = try await databaseActor.allModelIds(FetchDescriptor<Read>())
+        for identifier in identifiers {
+            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+                localReadIds.append(itemId)
             }
-
-            if !localReadIds.isEmpty {
-                let readParameters = ["items": localReadIds]
-                let readRouter = Router.itemsRead(parameters: readParameters)
-                async let (_, readResponse) = URLSession.shared.data(for: readRouter.urlRequest(), delegate: nil)
-                let readItemsResponse = try await readResponse
-                if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
-                    switch httpReadResponse.statusCode {
-                    case 200:
-                        await databaseActor.deleteAll(Read.self)
-                    default:
-                        break
-                    }
-                }
-            }
-
-            var localUnreadIds = [Int64]()
-            let unreadIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unread>())
-            for identifier in unreadIdentifiers {
-                if let itemId = try await databaseActor.fetchItemId(by: identifier) {
-                    localUnreadIds.append(itemId)
-                }
-            }
-
-            if !localUnreadIds.isEmpty {
-                let unreadParameters = ["items": localUnreadIds]
-                let unreadRouter = Router.itemsUnread(parameters: unreadParameters)
-                async let (_, unreadResponse) = URLSession.shared.data(for: unreadRouter.urlRequest(), delegate: nil)
-                let unreadItemsResponse = try await unreadResponse
-                if let httpUnreadResponse = unreadItemsResponse as? HTTPURLResponse {
-                    switch httpUnreadResponse.statusCode {
-                    case 200:
-                        await databaseActor.deleteAll(Unread.self)
-                    default:
-                        break
-                    }
-                }
-            }
-            
-            var localStarredParameters = [StarredParameter]()
-            let starredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Starred>())
-            for identifier in starredIdentifiers {
-                if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
-                    localStarredParameters.append(parameters)
-                }
-            }
-
-            if !localStarredParameters.isEmpty {
-                var params = [Any]()
-                for starredItem in localStarredParameters {
-                    var param: [String: Any] = [:]
-                    param["feedId"] = starredItem.feedId
-                    param["guidHash"] = starredItem.guidHash
-                    params.append(param)
-                }
-                let starredParameters = ["items": params]
-                let starredRouter = Router.itemsStarred(parameters: starredParameters)
-                async let (_, starredResponse) = URLSession.shared.data(for: starredRouter.urlRequest(), delegate: nil)
-                let starredItemsResponse = try await starredResponse
-                if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
-                    switch httpStarredResponse.statusCode {
-                    case 200:
-                        await databaseActor.deleteAll(Starred.self)
-                    default:
-                        break
-                    }
-                }
-            }
-
-            var localUnstarredParameters = [StarredParameter]()
-            let unStarredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unstarred>())
-            for identifier in unStarredIdentifiers {
-                if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
-                    localUnstarredParameters.append(parameters)
-                }
-            }
-
-            if !localUnstarredParameters.isEmpty {
-                var params = [Any]()
-                for unstarredItem in localUnstarredParameters {
-                    var param: [String: Any] = [:]
-                    param["feedId"] = unstarredItem.feedId
-                    param["guidHash"] = unstarredItem.guidHash
-                    params.append(param)
-                }
-                let unstarredParameters = ["items": params]
-                let unstarredRouter = Router.itemsStarred(parameters: unstarredParameters)
-                async let (_, unstarredResponse) = URLSession.shared.data(for: unstarredRouter.urlRequest(), delegate: nil)
-                let unstarredItemsResponse = try await unstarredResponse
-                if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
-                    switch httpStarredResponse.statusCode {
-                    case 200:
-                        await databaseActor.deleteAll(Unstarred.self)
-                    default:
-                        break
-                    }
-                }
-            }
-
-            let foldersRequest = try Router.folders.urlRequest()
-            let feedsRequest = try Router.feeds.urlRequest()
-
-            let newestKnownLastModified = await databaseActor.maxLastModified()
-            Preferences().lastModified = Int32(newestKnownLastModified)
-            let updatedParameters: ParameterDict = ["type": 3,
-                                                    "lastModified": newestKnownLastModified,
-                                                    "id": 0]
-            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-
-            let itemsRequest = try updatedItemRouter.urlRequest()
-
-            let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-            let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-            let itemsData = try await URLSession.shared.data (for: itemsRequest).0
-            parseFolders(data: foldersData)
-            parseFeeds(data: feedsData)
-            parseItems(data: itemsData)
-        } catch {
-
         }
+
+        if !localReadIds.isEmpty {
+            let readParameters = ["items": localReadIds]
+            let readRouter = Router.itemsRead(parameters: readParameters)
+            async let (_, readResponse) = URLSession.shared.data(for: readRouter.urlRequest(), delegate: nil)
+            let readItemsResponse = try await readResponse
+            if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
+                switch httpReadResponse.statusCode {
+                case 200:
+                    await databaseActor.deleteAll(Read.self)
+                default:
+                    break
+                }
+            }
+        }
+
+        var localUnreadIds = [Int64]()
+        let unreadIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unread>())
+        for identifier in unreadIdentifiers {
+            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+                localUnreadIds.append(itemId)
+            }
+        }
+
+        if !localUnreadIds.isEmpty {
+            let unreadParameters = ["items": localUnreadIds]
+            let unreadRouter = Router.itemsUnread(parameters: unreadParameters)
+            async let (_, unreadResponse) = URLSession.shared.data(for: unreadRouter.urlRequest(), delegate: nil)
+            let unreadItemsResponse = try await unreadResponse
+            if let httpUnreadResponse = unreadItemsResponse as? HTTPURLResponse {
+                switch httpUnreadResponse.statusCode {
+                case 200:
+                    await databaseActor.deleteAll(Unread.self)
+                default:
+                    break
+                }
+            }
+        }
+
+        var localStarredParameters = [StarredParameter]()
+        let starredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Starred>())
+        for identifier in starredIdentifiers {
+            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+                localStarredParameters.append(parameters)
+            }
+        }
+
+        if !localStarredParameters.isEmpty {
+            var params = [Any]()
+            for starredItem in localStarredParameters {
+                var param: [String: Any] = [:]
+                param["feedId"] = starredItem.feedId
+                param["guidHash"] = starredItem.guidHash
+                params.append(param)
+            }
+            let starredParameters = ["items": params]
+            let starredRouter = Router.itemsStarred(parameters: starredParameters)
+            async let (_, starredResponse) = URLSession.shared.data(for: starredRouter.urlRequest(), delegate: nil)
+            let starredItemsResponse = try await starredResponse
+            if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
+                switch httpStarredResponse.statusCode {
+                case 200:
+                    await databaseActor.deleteAll(Starred.self)
+                default:
+                    break
+                }
+            }
+        }
+
+        var localUnstarredParameters = [StarredParameter]()
+        let unStarredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unstarred>())
+        for identifier in unStarredIdentifiers {
+            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+                localUnstarredParameters.append(parameters)
+            }
+        }
+
+        if !localUnstarredParameters.isEmpty {
+            var params = [Any]()
+            for unstarredItem in localUnstarredParameters {
+                var param: [String: Any] = [:]
+                param["feedId"] = unstarredItem.feedId
+                param["guidHash"] = unstarredItem.guidHash
+                params.append(param)
+            }
+            let unstarredParameters = ["items": params]
+            let unstarredRouter = Router.itemsStarred(parameters: unstarredParameters)
+            async let (_, unstarredResponse) = URLSession.shared.data(for: unstarredRouter.urlRequest(), delegate: nil)
+            let unstarredItemsResponse = try await unstarredResponse
+            if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
+                switch httpStarredResponse.statusCode {
+                case 200:
+                    await databaseActor.deleteAll(Unstarred.self)
+                default:
+                    break
+                }
+            }
+        }
+
+        let foldersRequest = try Router.folders.urlRequest()
+        let feedsRequest = try Router.feeds.urlRequest()
+
+        let newestKnownLastModified = await databaseActor.maxLastModified()
+        Preferences().lastModified = Int32(newestKnownLastModified)
+        let updatedParameters: ParameterDict = ["type": 3,
+                                                "lastModified": newestKnownLastModified,
+                                                "id": 0]
+        let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
+
+        let itemsRequest = try updatedItemRouter.urlRequest()
+
+        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
+        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
+        let itemsData = try await URLSession.shared.data (for: itemsRequest).0
+        parseFolders(data: foldersData)
+        parseFeeds(data: feedsData)
+        parseItems(data: itemsData)
     }
 
     private func parseFolders(data: Data) {

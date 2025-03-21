@@ -29,6 +29,7 @@ struct SidebarView: View {
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
+    @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
 
     @AppStorage("SelectedNode") var selectedNode: String?
 
@@ -129,7 +130,7 @@ struct SidebarView: View {
         }
         .listStyle(.automatic)
         .refreshable {
-            await syncManager.sync()
+            sync()
         }
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
@@ -278,9 +279,7 @@ struct SidebarView: View {
                 .progressViewStyle(.circular)
                 .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
             Button {
-                Task.detached(priority: .background) {
-                    await syncManager.sync()
-                }
+                sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
@@ -310,6 +309,26 @@ struct SidebarView: View {
         return result
     }
 
+    private func sync() {
+        Task {
+            do {
+                if let newsStatus = try await syncManager.sync() {
+                    newsVersion = newsStatus.version
+                    if newsStatus.warnings.incorrectDbCharset {
+                        errorMessage = NSLocalizedString("The Nextcloud server database charset is not configured properly", comment: "Message that the database on the Nextcloud server is not configured properly")
+                        isShowingError = true
+                    }
+                    if newsStatus.warnings.improperlyConfiguredCron {
+                        errorMessage = NSLocalizedString("The cron job on the Nextcloud server is not configured properly", comment: "Message that the Nextcloud server cron job is not configured properly")
+                        isShowingError = true
+                    }
+                }
+            } catch {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            }
+        }
+    }
 }
 
 //struct SidebarView_Previews: PreviewProvider {
