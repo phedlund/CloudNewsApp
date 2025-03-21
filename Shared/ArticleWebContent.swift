@@ -25,7 +25,6 @@ class ArticleWebContent {
     private let fileName: String
 
     private var preferences = Preferences()
-    private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
 
     private var cssPath: String {
@@ -60,29 +59,11 @@ class ArticleWebContent {
             fileName = "summary_000"
         }
 
-        preferences.$marginPortrait.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        preferences.$fontSize.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        preferences.$lineHeight.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        saveItemSummary()
+        reloadItemSummary()
         isInInit = false
     }
 
-    private func saveItemSummary() {
+    func reloadItemSummary() {
 
         let htmlTemplate = """
         <?xml version="1.0" encoding="utf-8"?>

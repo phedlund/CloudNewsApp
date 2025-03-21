@@ -13,8 +13,15 @@ struct ArticleView: View {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
+    @State private var content: ArticleWebContent
     var item: Item
     @Bindable var pageViewReader: PageViewProxy
+
+    init(item: Item, pageViewReader: PageViewProxy) {
+        self.item = item
+        self.pageViewReader = pageViewReader
+        _content = State(initialValue: ArticleWebContent(item: item))
+    }
 
     var body: some View {
         WebViewReader { reader in
@@ -35,7 +42,6 @@ struct ArticleView: View {
                         pageViewReader.url = url
                         reader.webView?.load(URLRequest(url: url))
                     } else {
-                        let content = ArticleWebContent(item: item)
                         if let url = content.url {
                             pageViewReader.url = url
                             reader.webView?.load(URLRequest(url: url))
@@ -85,12 +91,15 @@ struct ArticleView: View {
                 }
             }
             .onChange(of: fontSize) {
+                content.reloadItemSummary()
                 reader.webView?.reload()
             }
             .onChange(of: lineHeight) {
+                content.reloadItemSummary()
                 reader.webView?.reload()
             }
             .onChange(of: marginPortrait) {
+                content.reloadItemSummary()
                 reader.webView?.reload()
             }
         }
