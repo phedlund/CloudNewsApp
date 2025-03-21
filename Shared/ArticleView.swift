@@ -32,7 +32,7 @@ struct ArticleView: View {
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
-            .safeAreaPadding([.top], 20)
+            .safeAreaPadding([.top], 40)
             .task {
                 pageViewReader.title = reader.title
                 if let feed = item.feed {
