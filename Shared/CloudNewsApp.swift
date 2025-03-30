@@ -38,13 +38,16 @@ struct CloudNewsApp: App {
         }
         .modelContainer(container)
         .database(SharedDatabase.shared.database)
+#if !os(macOS)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
             await syncManager.backgroundSync()
         }
+#endif
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
             syncManager.processSessionData()
         }
+#if !os(macOS)
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
@@ -57,11 +60,12 @@ struct CloudNewsApp: App {
                 fatalError("Unknown scene phase")
             }
         }
+#endif
 #if os(macOS)
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(model: newsModel)
+            AppCommands(newsModel: newsModel, syncManager: syncManager)
         }
 #else
         //        .backgroundTask(.urlSession(appRefreshTaskId)) {
@@ -73,40 +77,49 @@ struct CloudNewsApp: App {
 #if os(macOS)
         Settings {
             SettingsView()
+                .environment(newsModel)
+                .frame(width: 550, height: 500)
         }
-        
+        .restorationBehavior(.disabled)
+
         WindowGroup(Text("Log In"), id: "login") {
             LoginWebViewView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
-        
-        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
-            if let value = feedId.wrappedValue {
-                //                FeedSettingsView(Int(value))
-                //                    .frame(width: 600, height: 500)
-            }
+        .restorationBehavior(.disabled)
+
+        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
+            FeedSettingsView()
+                .environment(newsModel)
+                .frame(width: 600, height: 500)
+            
         }
         .windowResizability(.contentSize)
-        
+        .restorationBehavior(.disabled)
+
         WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
-            AddView(.feed)
+            AddView(selectedAdd: .feed)
+                .environment(newsModel)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
-        
+        .restorationBehavior(.disabled)
+
         WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
-            AddView(.folder)
+            AddView(selectedAdd: .folder)
+                .environment(newsModel)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
-        
+        .restorationBehavior(.disabled)
+
         WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }
         .windowResizability(.contentSize)
-        
+        .restorationBehavior(.disabled)
 #endif
     }
 
