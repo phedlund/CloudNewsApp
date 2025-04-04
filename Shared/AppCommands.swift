@@ -5,12 +5,14 @@
 //  Created by Peter Hedlund on 3/19/23.
 //
 
+import SwiftData
 import SwiftUI
 
 #if os(macOS)
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
-    var model: NewsModel
+    let newsModel: NewsModel
+    let syncManager: SyncManager
 
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
@@ -23,13 +25,13 @@ struct AppCommands: Commands {
             EmptyView()
         }
         CommandGroup(after: .sidebar) {
-            Divider()
-            MarkReadButton(node: model.currentNode)
-                .environment(newsModel)
+//            Divider()
+// TODO           MarkReadButton(node: newsModel.currentNode)
+//                .environment(newsModel)
             Divider()
             Button("Refresh") {
                 Task {
-                    try await NewsManager.shared.sync()
+                    try await syncManager.sync()
                 }
             }
             .keyboardShortcut("r")
@@ -59,11 +61,13 @@ struct AppCommands: Commands {
             .keyboardShortcut("n")
             Divider()
             Button("Settings...") {
-                switch model.currentNode.nodeType {
-                case .empty, .all, .starred, .folder(id: _):
-                    break
-                case .feed(id: let scrollId):
-                    openWindow(id: ModalSheet.feedSettings.rawValue, value: scrollId)
+                if let node = newsModel.currentNode {
+                    switch node.type {
+                    case .empty, .all, .starred, .folder(id: _):
+                        break
+                    case .feed(id: let scrollId):
+                        openWindow(id: ModalSheet.feedSettings.rawValue, value: scrollId)
+                    }
                 }
             }
             .disabled(isFeedSettingsDisabled())
@@ -78,33 +82,33 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-                model.selectPreviousItem()
+                newsModel.selectPreviousItem()
             }
             .keyboardShortcut("p", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button("Next") {
-                model.selectNextItem()
+                newsModel.selectNextItem()
             }
             .keyboardShortcut("n", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
-            Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
-                Task {
-                    try? await NewsManager.shared.markRead(items: [model.currentItem!], unread: !model.currentItem!.unread)
-                }
+            Button(newsModel.currentItem?.unread ?? false ? "Read" : "Unread") {
+// TODO               Task {
+//                    try? await newsModel.markRead(items: [newsModel.currentItem!], unread: !newsModel.currentItem!.unread)
+//                }
             }
             .keyboardShortcut("u", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
-            Button(model.currentItem?.starred ?? false ? "Unstar" : "Star") {
-                Task {
-                    try? await NewsManager.shared.markStarred(item: model.currentItem!, starred: !model.currentItem!.starred)
-                }
+            Button(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star") {
+// TODO               Task {
+//                    try? await newsModel.markStarred(item: newsModel.currentItem!, starred: !newsModel.currentItem!.starred)
+//                }
             }
             .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
             Button("Copy Link") {
-                if let urlString = model.currentItem?.url, let url = URL(string: urlString) {
+                if let urlString = newsModel.currentItem?.url, let url = URL(string: urlString) {
                     MacClipboard.set(url: url)
                 }
             }
@@ -190,21 +194,24 @@ struct AppCommands: Commands {
     }
 
     private func isCurrentItemDisabled() -> Bool {
-        return model.currentItemID == nil
+        return newsModel.currentItem == nil
     }
 
     private func isCopyCurrentLinkDisabled() -> Bool {
-        if model.currentItemID == nil {
+        guard let item = newsModel.currentItem else {
             return true
         }
-        if let urlString = model.currentItem?.url, let _ = URL(string: urlString) {
+        if let urlString = item.url, let _ = URL(string: urlString) {
             return false
         }
         return true
     }
 
     private func isFolderRenameDisabled() -> Bool {
-        switch model.currentNode.nodeType {
+        guard let node = newsModel.currentNode else {
+            return true
+        }
+        switch node.type {
         case .empty, .all, .starred, .feed(id: _):
             return true
         case .folder(id: _):
@@ -213,12 +220,32 @@ struct AppCommands: Commands {
     }
 
     private func isFeedSettingsDisabled() -> Bool {
-        switch model.currentNode.nodeType {
+        guard let node = newsModel.currentNode else {
+            return true
+        }
+        switch node.type {
         case .empty, .all, .starred, .folder(id: _):
             return true
         case .feed(id: _):
             return false
         }
+    }
+
+    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
+        var result = FetchDescriptor<Item>()
+        switch node.type {
+        case .empty, .starred:
+            result.predicate = #Predicate<Item>{ _ in false }
+        case .all:
+            result.predicate = #Predicate<Item>{ $0.unread }
+        case .folder(id: let id):
+// TODO           let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+//            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+            result.predicate = #Predicate<Item>{ $0.unread }
+        case .feed(id: let id):
+            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+        }
+        return result
     }
 
     var supportURL: URL {

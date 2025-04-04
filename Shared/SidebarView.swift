@@ -9,6 +9,9 @@ import SwiftData
 import SwiftUI
 
 enum ModalSheet: String {
+    case acknowledgement
+    case addFeed
+    case addFolder
     case login
     case settings
     case feedSettings
@@ -19,16 +22,16 @@ extension ModalSheet: Identifiable {
 }
 
 struct SidebarView: View {
+    @Environment(NewsModel.self) private var newsModel
+    @Environment(SyncManager.self) private var syncManager
+    @Environment(\.modelContext) private var modelContext
+
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
     @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
     @State private var timerStart = Date.now
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
-    @Environment(NewsModel.self) private var newsModel
-    @Environment(SyncManager.self) private var syncManager
-    @Environment(\.modelContext) private var modelContext
-
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
 
@@ -153,6 +156,7 @@ struct SidebarView: View {
             case .settings:
                 NavigationView {
                     SettingsView()
+                        .environment(newsModel)
                 }
                 .tint(.accent)
             case .feedSettings:
@@ -163,7 +167,10 @@ struct SidebarView: View {
             case .login:
                 NavigationView {
                     SettingsView()
+                        .environment(newsModel)
                 }
+            case .acknowledgement, .addFeed, .addFolder:
+                EmptyView()
             }
         })
         .alert(Text(newsModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
@@ -235,15 +242,15 @@ struct SidebarView: View {
             } label: {
                 Label("Delete...", systemImage: "trash")
             }
-        case .feed(let feedId):
+        case .feed( _):
             MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
                 .environment(newsModel)
             Button {
-#if os(macOS)
-                openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
-#else
                 nodeSelection = node.type.asData
                 newsModel.currentNode = node
+#if os(macOS)
+                openWindow(id: ModalSheet.feedSettings.rawValue)
+#else
                 modalSheet = .feedSettings
 #endif
             } label: {
@@ -265,14 +272,14 @@ struct SidebarView: View {
             Spacer()
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(isSyncing ? 1.0 : 0.0)
+                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
                 .controlSize(.small)
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing || isNewInstall)
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
 #else
             ProgressView()
                 .progressViewStyle(.circular)
@@ -313,6 +320,7 @@ struct SidebarView: View {
             do {
                 if let newsStatus = try await syncManager.sync() {
                     newsVersion = newsStatus.version
+                    isShowingError = false
                     if newsStatus.warnings.incorrectDbCharset {
                         errorMessage = NSLocalizedString("The Nextcloud server database charset is not configured properly", comment: "Message that the database on the Nextcloud server is not configured properly")
                         isShowingError = true

@@ -23,6 +23,7 @@ struct NodeView: View {
     let childrenPadding = -8.0
 #else
     let noChildrenPadding = 0.0
+    let childrenPadding = 0.0
 #endif
 
     var body: some View {

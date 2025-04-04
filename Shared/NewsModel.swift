@@ -15,22 +15,23 @@ class NewsModel: @unchecked Sendable {
     let session = ServerStatus.shared.session
 
     var currentNode: Node? = nil
+    var currentItem: Item? = nil
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
     }
 
-//    func selectPreviousItem() {
+    func selectPreviousItem() {
 //        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
 //            currentItemID = currentItems.element(before: currentIndex)?.persistentModelID
 //        }
-//    }
-//
-//    func selectNextItem() {
+    }
+
+    func selectNextItem() {
 //        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
 //            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
 //        }
-//    }
+    }
 
     func delete(_ node: Node, feeds: [Feed]? = nil) async throws {
         switch node.type {

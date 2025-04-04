@@ -101,6 +101,7 @@ struct FeedSettingsView: View {
             }
             .formStyle(.grouped)
             .navigationTitle("Feed Settings")
+#if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("") {
@@ -109,7 +110,9 @@ struct FeedSettingsView: View {
                     .buttonStyle(XButton())
                 }
             }
+#endif
             .task {
+                sleep(1)
                 switch newsModel.currentNode?.type {
                 case .feed(id: let id):
                     if let feed = feeds.first(where: { $0.id == id }) {

@@ -8,12 +8,16 @@
 import BackgroundTasks
 import SwiftData
 import SwiftUI
+import UserNotifications
 
 struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.database) private var database
+#if os(macOS)
+    @Environment(\.openSettings) private var openSettings
+#endif
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
@@ -111,18 +115,20 @@ struct ContentView: View {
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
-            SidebarView(nodeSelection: $selectedNodeID)
+            SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
+                .environment(syncManager)
         } content: {
-            if selectedNodeID != Constants.emptyNodeGuid {
+            if selectedNode != nil {
                 let _ = Self._printChanges()
-                ItemsListView(predicate: predicate, sort: sortOrder, selectedItem: $selectedItem)
+                ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
                     .environment(newsModel)
+                    .environment(syncManager)
                     .toolbar {
-                        ItemListToolbarContent(node: newsModel.currentNode)
+                        contentViewToolBarContent()
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .navigationTitle(newsModel.currentNode.title)
+//                    .navigationTitle(newsModel.currentNode.title)
             } else {
                 ContentUnavailableView {
                     Label("No Feed Selected", image: .rss)
@@ -132,7 +138,7 @@ struct ContentView: View {
             }
         } detail: {
             if let selectedItem {
-                MacArticleView(item: selectedItem)
+                MacArticleView(item: selectedItem, pageViewReader: PageViewProxy())
             } else {
                 ContentUnavailableView("No Article Selected",
                                        systemImage: "doc.richtext",
@@ -140,30 +146,60 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            NSWindow.allowsAutomaticWindowTabbing = false
+            Task {
+                let center = UNUserNotificationCenter.current()
+                do {
+                    if try await center.requestAuthorization(options: [.badge]) == true {
+                        // You have authorization.
+                    } else {
+                        // You don't have authorization.
+                    }
+                } catch {
+                    // Handle any errors.
+                }
+            }
             if isNewInstall {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                openSettings()
             }
         }
-        .onChange(of: folders, initial: true) { _, newValue in
-            newsModel.folders = newValue
-        }
-        .onChange(of: feeds, initial: true) { _, newValue in
-            newsModel.feeds = newValue
-        }
-        .onChange(of: selectedNodeID, initial: false) { _, newValue in
-            selectedNode = newValue
-            newsModel.currentNode = newsModel.node(id: newValue ?? Constants.emptyNodeGuid)
-            updatePredicate()
+//        .onChange(of: folders, initial: true) { _, newValue in
+//            newsModel.folders = newValue
+//        }
+//        .onChange(of: feeds, initial: true) { _, newValue in
+//            newsModel.feeds = newValue
+//        }
+        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+            if let nodeType = NodeType.fromData(newValue) {
+                switch nodeType {
+                case .empty:
+                    navigationTitle = ""
+                case .all:
+                    navigationTitle = "All Articles"
+                case .starred:
+                    navigationTitle = "Starred Articles"
+                case .folder(let id):
+                    let folder = folders.first(where: { $0.id == id })
+                    navigationTitle = folder?.name ?? "Untitled Folder"
+                case .feed(let id):
+                    let feed = feeds.first(where: { $0.id == id })
+                    navigationTitle = feed?.title ?? "Untitled Feed"
+                }
+                preferredColumn = .detail
+                updateFetchDescriptor(nodeType: nodeType)
+            }
         }
         .onChange(of: hideRead, initial: true) { _, _ in
-            updatePredicate()
+            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+                updateFetchDescriptor(nodeType: nodeType)
+            }
         }
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            sortOrder = newValue ? SortDescriptor(\Item.id, order: .forward) : SortDescriptor(\Item.id, order: .reverse)
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
-        .task {
-            selectedNodeID = selectedNode
-        }
+// TODO Needed?       .task {
+//            selectedNodeID = selectedNode
+//        }
 #endif
     }
 

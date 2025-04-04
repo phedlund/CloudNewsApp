@@ -77,16 +77,17 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
-                TextField(text: $server, prompt: Text(verbatim: "https://example.com/cloud")) {
-                    Text("URL")
-                }
+                    TextField(text: $server, prompt: Text(verbatim: "https://example.com/cloud")) {
+                        Text("URL")
+                    }
+                    .textContentType(.URL)
+                    .listRowSeparator(.hidden)
 #if !os(macOS)
-                .textContentType(.URL)
-                .autocapitalization(.none)
-                .listRowSeparator(.hidden)
+                    .autocapitalization(.none)
 #endif
-                .disableAutocorrection(true)
-                .textFieldStyle(.roundedBorder)
+                    .disableAutocorrection(true)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
                 HStack {
                     Spacer()
                     Button {
