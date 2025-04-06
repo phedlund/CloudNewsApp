@@ -127,7 +127,7 @@ struct ContentView: View {
                         contentViewToolBarContent()
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-//                    .navigationTitle(newsModel.currentNode.title)
+                    .navigationTitle(navigationTitle ?? "Untitled")
             } else {
                 ContentUnavailableView {
                     Label("No Feed Selected", image: .rss)
