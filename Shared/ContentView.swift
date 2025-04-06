@@ -170,6 +170,7 @@ struct ContentView: View {
 //        }
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {
+                newsModel.currentNodeType = nodeType
                 switch nodeType {
                 case .empty:
                     navigationTitle = ""
@@ -186,6 +187,9 @@ struct ContentView: View {
                 }
                 preferredColumn = .detail
                 updateFetchDescriptor(nodeType: nodeType)
+                Task {
+                    try? await newsModel.updateUnreadItemIds()
+                }
             }
         }
         .onChange(of: hideRead, initial: true) { _, _ in

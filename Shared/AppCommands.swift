@@ -25,9 +25,9 @@ struct AppCommands: Commands {
             EmptyView()
         }
         CommandGroup(after: .sidebar) {
-//            Divider()
-// TODO           MarkReadButton(node: newsModel.currentNode)
-//                .environment(newsModel)
+            Divider()
+            MarkReadButton(fetchDescriptor: FetchDescriptor<Item>())
+                .environment(newsModel)
             Divider()
             Button("Refresh") {
                 Task {

@@ -104,6 +104,14 @@ public actor NewsDataModelActor: NewsDatabase {
         }
         return nil
     }
+
+    func fetchUnreadIds(descriptor: FetchDescriptor<Item>) async throws -> [Int64] {
+        var result = [Int64]()
+        let items = try modelContext.fetch(descriptor)
+        let ids: [Int64] = items.map(\.id)
+        result.append(contentsOf: ids)
+        return result
+    }
 }
 
 extension NewsDataModelActor {

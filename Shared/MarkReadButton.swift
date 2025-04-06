@@ -14,6 +14,8 @@ struct MarkReadButton: View {
 
     @Query private var items: [Item]
 
+    @State private var isDisabled = true
+
     init(fetchDescriptor: FetchDescriptor<Item>) {
         _items = Query(fetchDescriptor)
     }
@@ -29,7 +31,10 @@ struct MarkReadButton: View {
             }
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(items.count == 0)
+        .disabled(isDisabled)
+        .onChange(of: newsModel.unreadItemIds) { oldValue, newValue in
+            isDisabled = newValue.count == 0
+        }
     }
 
 }

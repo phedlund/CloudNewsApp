@@ -15,7 +15,9 @@ class NewsModel: @unchecked Sendable {
     let session = ServerStatus.shared.session
 
     var currentNode: Node? = nil
+    var currentNodeType: NodeType = .empty
     var currentItem: Item? = nil
+    var unreadItemIds = Set<Int64>()
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
@@ -31,6 +33,26 @@ class NewsModel: @unchecked Sendable {
 //        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
 //            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
 //        }
+    }
+
+    func updateUnreadItemIds() async throws {
+        var unreadFetchDescriptor = FetchDescriptor<Item>()
+        switch currentNodeType {
+        case .empty:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .all:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+        case .starred:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .folder(id:  let id):
+            //                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+            //                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+        case .feed(id: let id):
+            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+        }
+        let ids = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
+        unreadItemIds = Set(ids)
     }
 
     func delete(_ node: Node, feeds: [Feed]? = nil) async throws {
@@ -246,6 +268,7 @@ class NewsModel: @unchecked Sendable {
                         try await databaseActor.delete(model: Read.self)
                         try await databaseActor.save()
                     }
+                    try await updateUnreadItemIds()
                 default:
                     if unread {
                         for itemId in itemIds {
