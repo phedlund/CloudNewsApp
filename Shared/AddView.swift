@@ -111,6 +111,7 @@ struct AddView: View {
                 }
             }
             .formStyle(.grouped)
+            .scrollDisabled(true)
 #if os(macOS)
             HStack {
                 Spacer()

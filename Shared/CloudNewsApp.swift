@@ -97,7 +97,7 @@ struct CloudNewsApp: App {
         WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(selectedAdd: .feed)
                 .environment(newsModel)
-                .frame(width: 500, height: 200)
+                .frame(width: 500, height: 220)
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
