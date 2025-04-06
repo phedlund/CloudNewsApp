@@ -67,11 +67,6 @@ struct CloudNewsApp: App {
         .commands {
             AppCommands(newsModel: newsModel, syncManager: syncManager)
         }
-#else
-        //        .backgroundTask(.urlSession(appRefreshTaskId)) {
-        //            dataImporter.sync()
-        //            await scheduleAppRefresh()
-        //        }
 #endif
         
 #if os(macOS)
