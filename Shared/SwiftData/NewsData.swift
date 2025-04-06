@@ -92,23 +92,6 @@ public actor NewsDataModelActor: NewsDatabase {
         return nil
     }
 
-    func fetchFeed(by id: Int64) async throws -> FeedSettingsDTO? {
-        let fetchDescriptorFeeds = FetchDescriptor<Feed>()
-        let feeds = try modelContext.fetch(fetchDescriptorFeeds)
-        let fetchDescriptorFolders = FetchDescriptor<Folder>()
-        let folders = try modelContext.fetch(fetchDescriptorFolders)
-        var folderNames = [noFolderName]
-        folderNames.append(contentsOf: folders.compactMap( { $0.name } ).sorted())
-
-        if let feed = feeds.first(where: { $0.id == id }) {
-            let folderSettings = folders.map { folder in
-                return FolderSettingsDTO(id: folder.id, name: folder.name ?? "")
-            }
-            return FeedSettingsDTO(url: feed.url, id: feed.id, added: feed.added, lastUpdateError: feed.lastUpdateError, folderId: feed.folderId, folderSettings: folderSettings, pinned: feed.pinned, link: feed.link, updateErrorCount: feed.updateErrorCount, title: feed.title, preferWeb: feed.preferWeb)
-        }
-        return nil
-    }
-
     public func fetchStarredParameter(by id: PersistentIdentifier) async throws -> StarredParameter? {
         let model = modelContext.model(for: id)
         if let model = model as? Starred {

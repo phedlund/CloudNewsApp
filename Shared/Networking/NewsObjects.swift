@@ -35,25 +35,6 @@ struct FeedDTO: Codable {
     let nextUpdateTime: Date?
 }
 
-struct FolderSettingsDTO: Codable {
-    let id: Int64
-    let name: String
-}
-
-struct FeedSettingsDTO: Codable {
-    let url: String?
-    let id: Int64
-    let added: Date
-    let lastUpdateError: String?
-    let folderId: Int64
-    let folderSettings: [FolderSettingsDTO]
-    let pinned: Bool
-    let link: String?
-    let updateErrorCount: Int64
-    let title: String?
-    let preferWeb: Bool
-}
-
 struct FeedsDTO: Codable {
     let newestItemId: Int64
     let starredCount: Int64?
