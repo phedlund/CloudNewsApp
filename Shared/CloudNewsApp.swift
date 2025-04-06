@@ -37,7 +37,7 @@ struct CloudNewsApp: App {
                 .environment(syncManager)
         }
         .modelContainer(container)
-        .database(SharedDatabase.shared.database)
+        .database(SharedDatabase.shared.database) // TODO remove?
 #if !os(macOS)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()

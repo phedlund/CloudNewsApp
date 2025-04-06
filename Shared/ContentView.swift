@@ -14,7 +14,6 @@ struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.database) private var database
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
 #endif
