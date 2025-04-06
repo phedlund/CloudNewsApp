@@ -55,7 +55,6 @@ struct FeedSettingsView: View {
                         ForEach(folderNames, id: \.self) {
                             Text($0)
                         }
-                        .navigationTitle("Folder")
                     } label: {
                       Text("Folder")
                     }
@@ -112,30 +111,28 @@ struct FeedSettingsView: View {
             }
 #endif
             .task {
-                sleep(1)
                 switch newsModel.currentNode?.type {
                 case .feed(id: let id):
-                    if let feed = feeds.first(where: { $0.id == id }) {
-                        var fNames = [noFolderName]
-                        let names = folders.compactMap( { $0.name } ).sorted()
-                        fNames.append(contentsOf: names)
-                        folderNames = fNames
-                        if let folder = feed.folder,
-                           let folderName = folder.name {
-                            folderSelection = folderName
-                            initialFolderSelection = folderName
+                    do {
+                        if let feed = try await newsModel.databaseActor.fetchFeed(by: id)  {
+                            folderNames = [noFolderName]
+                            folderNames.append(contentsOf: feed.folderSettings.map( { $0.name } ))
+                            folderSelection = feed.folderSettings.first(where: { $0.id == feed.folderId })?.name ?? noFolderName
+                            initialFolderSelection = folderSelection
+                            initialTitle = feed.title ?? "Untitled"
+                            title = initialTitle
+                            preferWeb = feed.preferWeb
+                            pinned = feed.pinned
+                            updateErrorCount = "\(feed.updateErrorCount)"
+                            lastUpdateError = feed.lastUpdateError ?? "No error"
+                            url = feed.url ?? ""
+                            let dateAdded = feed.added
+                            let dateFormatter = DateFormatter()
+                            dateFormatter.dateStyle = .long
+                            added = dateFormatter.string(from: dateAdded)
                         }
-                        initialTitle = feed.title ?? "Untitled"
-                        title = initialTitle
-                        preferWeb = feed.preferWeb
-                        pinned = feed.pinned
-                        updateErrorCount = "\(feed.updateErrorCount)"
-                        lastUpdateError = feed.lastUpdateError ?? "No error"
-                        url = feed.url ?? ""
-                        let dateAdded = feed.added
-                        let dateFormatter = DateFormatter()
-                        dateFormatter.dateStyle = .long
-                        added = dateFormatter.string(from: dateAdded)
+                    } catch {
+                        // TODO handle
                     }
                 default:
                     break
