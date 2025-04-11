@@ -137,7 +137,8 @@ struct ContentView: View {
             }
         } detail: {
             if let selectedItem {
-                MacArticleView(item: selectedItem, pageViewReader: PageViewProxy())
+                MacArticleView(content: ArticleWebContent(item: selectedItem))
+                    .environment(newsModel)
             } else {
                 ContentUnavailableView("No Article Selected",
                                        systemImage: "doc.richtext",
@@ -191,6 +192,9 @@ struct ContentView: View {
                     try? await newsModel.updateUnreadItemIds()
                 }
             }
+        }
+        .onChange(of: selectedItem, initial: true) { oldValue, newValue in
+            newsModel.currentItem = newValue
         }
         .onChange(of: hideRead, initial: true) { _, _ in
             if let nodeType = NodeType.fromData(selectedNode ?? Data()) {

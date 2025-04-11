@@ -54,9 +54,19 @@ struct ItemsListView: View {
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
+            let cellSize = CGSize(width: cellWidth, height: cellHeight)
+            List(items, selection: $selectedItem) { item in
+                NavigationLink(value: item) {
+                    ItemView(item: item, size: cellSize)
+                        .id(item.id)
+                        .frame(height: cellHeight, alignment: .center)
+                        .contextMenu {
+                            contextMenu(item: item)
+                        }
+                }
+            }
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
-#endif
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             ListGroup(path: $path) {
                 ScrollViewReader { proxy in
@@ -67,12 +77,6 @@ struct ItemsListView: View {
                                 NavigationLink(value: item) {
                                     ItemView(item: item, size: cellSize)
                                         .id(item.id)
-#if os(macOS)
-                                        .frame(height: cellHeight, alignment: .center)
-                                        .onTapGesture {
-                                            selectedItem = item
-                                        }
-#endif
                                         .contextMenu {
                                             contextMenu(item: item)
                                         }
@@ -115,6 +119,7 @@ struct ItemsListView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+#endif
         }
     }
 
@@ -149,7 +154,7 @@ struct ItemsListView: View {
             }
         }
     }
-    
+
     private func markRead(_ offset: CGFloat) throws {
         guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return

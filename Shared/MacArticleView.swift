@@ -12,61 +12,71 @@ import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
+    @Environment(NewsModel.self) private var newsModel
+
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
-
-    var item: Item
 
     @State private var title = ""
     @State private var canGoBack = false
     @State private var canGoForward = false
     @State private var isLoading = false
 
-    @State private var content: ArticleWebContent
-    @Bindable var pageViewReader: PageViewProxy
+    var content: ArticleWebContent
 
-    init(item: Item, pageViewReader: PageViewProxy) {
-        self.item = item
-        self.pageViewReader = pageViewReader
-        _content = State(initialValue: ArticleWebContent(item: item))
+    let pageViewReader = PageViewProxy()
+
+    init(content: ArticleWebContent) {
+        self.content = content
     }
 
     var body: some View {
         WebViewReader { reader in
             WebView { webView in
                 reader.setup(webView: webView)
+                pageViewReader.title = reader.title
+                if let url = content.url {
+                    pageViewReader.url = url
+                    webView.load(URLRequest(url: url))
+                }
             }
-            .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
+            .id(content.item.id) //forces the web view to be recreated to get a unique WKWebView for each article
             .navigationTitle(title)
             .background {
                 Color.phWhiteBackground.ignoresSafeArea(edges: .vertical)
             }
-            .task {
-                pageViewReader.title = reader.title
-                if let feed = item.feed {
-                    if feed.preferWeb == true,
-                       let urlString = item.url,
-                       let url = URL(string: urlString) {
-                        pageViewReader.url = url
-                        reader.webView?.load(URLRequest(url: url))
-                    } else {
-                        if let url = content.url {
-                            pageViewReader.url = url
-                            reader.webView?.load(URLRequest(url: url))
-                        }
-                    }
+            .onChange(of: content.url, initial: true) { _, _ in
+                if let url = content.url {
+                    pageViewReader.url = url
+                    reader.webView?.load(URLRequest(url: url))
                 }
             }
-            .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
-                print("got scroll id: \(newValue ?? -1)")
-                if newValue == item.id {
-                    pageViewReader.title = reader.title
-                    pageViewReader.canGoBack = reader.canGoBack
-                    pageViewReader.canGoForward = reader.canGoForward
-                    pageViewReader.isLoading = reader.isLoading
-                }
-            }
+//            .onChange(of: newsModel.currentItem) { oldValue, newValue in
+//                content = ArticleWebContent(item: newValue)
+//                if let feed = newValue.feed {
+//                    if feed.preferWeb == true,
+//                       let urlString = newValue.url,
+//                       let url = URL(string: urlString) {
+//                        pageViewReader.url = url
+//                        reader.webView?.load(URLRequest(url: url))
+//                    } else {
+//                        if let url = content.url {
+//                            pageViewReader.url = url
+//                            reader.webView?.load(URLRequest(url: url))
+//                        }
+//                    }
+//                }
+//            }
+//            .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
+//                print("got scroll id: \(newValue ?? -1)")
+//                if newValue == item.id {
+//                    pageViewReader.title = reader.title
+//                    pageViewReader.canGoBack = reader.canGoBack
+//                    pageViewReader.canGoForward = reader.canGoForward
+//                    pageViewReader.isLoading = reader.isLoading
+//                }
+//            }
             .onChange(of: reader.canGoBack) { _, newValue in
                 pageViewReader.canGoBack = newValue
             }
@@ -142,8 +152,8 @@ struct MacArticleView: View {
                 }
             }
             Spacer()
-            ShareLinkButton(item: item)
-                .disabled(reader.isLoading)
+//            ShareLinkButton(item: item)
+//                .disabled(reader.isLoading)
         }
     }
 

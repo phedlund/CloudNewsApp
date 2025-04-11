@@ -14,6 +14,7 @@ import SwiftUI
 @Observable
 class ArticleWebContent {
     var url: URL?
+    var item: Item
 
     private let author: String
     private let title: String
@@ -37,28 +38,17 @@ class ArticleWebContent {
         }
     }
 
-    init(item: Item?) {
+    init(item: Item) {
+        self.item = item
         isInInit = true
-        if let item = item {
-            title = item.displayTitle
-            summary = Self.output(item: item)
-            baseString = Self.baseString(item: item)
-            urlString = Self.itemUrl(item: item)
-            dateText = Self.dateText(item: item)
-            author = Self.itemAuthor(item: item)
-            feedTitle = item.feed?.title ?? "Untitled"
-            fileName = "summary_\(item.id)"
-        } else {
-            title = "Untitled"
-            summary = "No Summary"
-            baseString = ""
-            urlString = ""
-            dateText = ""
-            author = ""
-            feedTitle = "Untitled"
-            fileName = "summary_000"
-        }
-
+        title = item.displayTitle
+        summary = Self.output(item: item)
+        baseString = Self.baseString(item: item)
+        urlString = Self.itemUrl(item: item)
+        dateText = Self.dateText(item: item)
+        author = Self.itemAuthor(item: item)
+        feedTitle = item.feed?.title ?? "Untitled"
+        fileName = "summary_\(item.id)"
         reloadItemSummary()
         isInInit = false
     }
