@@ -13,14 +13,13 @@ struct ArticleView: View {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    @State private var content: ArticleWebContent
-    var item: Item
+    var content: ArticleWebContent
+
     @Bindable var pageViewReader: PageViewProxy
 
-    init(item: Item, pageViewReader: PageViewProxy) {
-        self.item = item
+    init(content: ArticleWebContent, pageViewReader: PageViewProxy) {
+        self.content = content
         self.pageViewReader = pageViewReader
-        _content = State(initialValue: ArticleWebContent(item: item))
     }
 
     var body: some View {
@@ -28,16 +27,16 @@ struct ArticleView: View {
             WebView { webView in
                 reader.setup(webView: webView)
             }
-            .id(item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
+            .id(content.item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
             .safeAreaPadding([.top], 40)
             .task {
                 pageViewReader.title = reader.title
-                if let feed = item.feed {
+                if let feed = content.item.feed {
                     if feed.preferWeb == true,
-                       let urlString = item.url,
+                       let urlString = content.item.url,
                        let url = URL(string: urlString) {
                         pageViewReader.url = url
                         reader.webView?.load(URLRequest(url: url))
@@ -55,7 +54,7 @@ struct ArticleView: View {
             }
             .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
                 print("got scroll id: \(newValue ?? -1)")
-                if newValue == item.id {
+                if newValue == content.item.id {
                     pageViewReader.title = reader.title
                     pageViewReader.canGoBack = reader.canGoBack
                     pageViewReader.canGoForward = reader.canGoForward

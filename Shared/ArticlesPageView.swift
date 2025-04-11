@@ -29,7 +29,7 @@ struct ArticlesPageView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(item: item, pageViewReader: pageViewProxy)
+                    ArticleView(content: ArticleWebContent(item: item), pageViewReader: pageViewProxy)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
