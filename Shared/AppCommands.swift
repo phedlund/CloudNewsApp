@@ -93,16 +93,16 @@ struct AppCommands: Commands {
             .disabled(isCurrentItemDisabled())
             Divider()
             Button(newsModel.currentItem?.unread ?? false ? "Read" : "Unread") {
-// TODO               Task {
-//                    try? await newsModel.markRead(items: [newsModel.currentItem!], unread: !newsModel.currentItem!.unread)
-//                }
+                Task {
+                    newsModel.toggleCurrentItemRead()
+                }
             }
             .keyboardShortcut("u", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star") {
-// TODO               Task {
-//                    try? await newsModel.markStarred(item: newsModel.currentItem!, starred: !newsModel.currentItem!.starred)
-//                }
+                Task {
+                    try? await newsModel.markCurrentItemStarred()
+                }
             }
             .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
@@ -208,10 +208,7 @@ struct AppCommands: Commands {
     }
 
     private func isFolderRenameDisabled() -> Bool {
-        guard let node = newsModel.currentNode else {
-            return true
-        }
-        switch node.type {
+        switch newsModel.currentNodeType {
         case .empty, .all, .starred, .feed(id: _):
             return true
         case .folder(id: _):
@@ -220,32 +217,12 @@ struct AppCommands: Commands {
     }
 
     private func isFeedSettingsDisabled() -> Bool {
-        guard let node = newsModel.currentNode else {
-            return true
-        }
-        switch node.type {
+        switch newsModel.currentNodeType {
         case .empty, .all, .starred, .folder(id: _):
             return true
         case .feed(id: _):
             return false
         }
-    }
-
-    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
-        var result = FetchDescriptor<Item>()
-        switch node.type {
-        case .empty, .starred:
-            result.predicate = #Predicate<Item>{ _ in false }
-        case .all:
-            result.predicate = #Predicate<Item>{ $0.unread }
-        case .folder(id: let id):
-// TODO           let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-//            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            result.predicate = #Predicate<Item>{ $0.unread }
-        case .feed(id: let id):
-            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-        }
-        return result
     }
 
     var supportURL: URL {

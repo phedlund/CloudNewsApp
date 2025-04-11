@@ -105,34 +105,6 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    @MainActor
-    func markItemsRead(items: [Item]) {
-        guard !items.isEmpty else {
-            return
-        }
-        for item in items {
-            item.unread = false
-        }
-        Task {
-            try await self.markRead(items: items, unread: false)
-        }
-    }
-
-    @MainActor
-    func toggleItemRead(item: Item) {
-        Task {
-            do {
-                item.unread.toggle()
-                try await databaseActor.save()
-                Task {
-                    try await self.markRead(items: [item], unread: !item.unread)
-                }
-            } catch {
-                //
-            }
-        }
-    }
-
     func version() async throws -> String {
         let router = Router.version
         do {
@@ -244,6 +216,41 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    @MainActor
+    func markItemsRead(items: [Item]) {
+        guard !items.isEmpty else {
+            return
+        }
+        for item in items {
+            item.unread = false
+        }
+        Task {
+            try await self.markRead(items: items, unread: false)
+        }
+    }
+
+    @MainActor
+    func toggleCurrentItemRead() {
+        if let currentItem = currentItem {
+            toggleItemRead(item: currentItem)
+        }
+    }
+
+    @MainActor
+    func toggleItemRead(item: Item) {
+        Task {
+            do {
+                item.unread.toggle()
+                try await databaseActor.save()
+                Task {
+                    try await self.markRead(items: [item], unread: !item.unread)
+                }
+            } catch {
+                //
+            }
+        }
+    }
+
     func markRead(items: [Item], unread: Bool) async throws {
         guard !items.isEmpty else {
             return
@@ -285,6 +292,12 @@ class NewsModel: @unchecked Sendable {
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
+        }
+    }
+
+    func markCurrentItemStarred() async throws {
+        if let currentItem = currentItem {
+            try await markStarred(item: currentItem, starred: !currentItem.starred)
         }
     }
 
