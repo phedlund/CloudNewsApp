@@ -52,6 +52,7 @@ struct MacArticleView: View {
                     reader.webView?.load(URLRequest(url: url))
                 }
             }
+//            TODO handle prefer web
 //            .onChange(of: newsModel.currentItem) { oldValue, newValue in
 //                content = ArticleWebContent(item: newValue)
 //                if let feed = newValue.feed {
