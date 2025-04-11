@@ -199,6 +199,19 @@ extension NewsDataModelActor {
         return nil
     }
 
+    func feedsIdsInFolder(folder: Int64) -> [Int64]? {
+        let predicate = #Predicate<Feed>{ $0.folderId == folder }
+
+        let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
+        let descriptor = FetchDescriptor<Feed>(predicate: predicate, sortBy: [idSortDescriptor])
+        do {
+            return try modelContext.fetch(descriptor).map( { $0.id })
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+
     func feedsInFolder(folder: Int64) -> [Feed]? {
         let predicate = #Predicate<Feed>{ $0.folderId == folder }
 

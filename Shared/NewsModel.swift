@@ -45,9 +45,9 @@ class NewsModel: @unchecked Sendable {
         case .starred:
             unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
         case .folder(id:  let id):
-            //                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-            //                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+            if let feedIds = await databaseActor.feedsIdsInFolder(folder: id) {
+                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+            }
         case .feed(id: let id):
             unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
         }
