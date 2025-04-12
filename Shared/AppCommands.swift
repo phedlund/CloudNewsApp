@@ -12,7 +12,6 @@ import SwiftUI
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
     let newsModel: NewsModel
-    let syncManager: SyncManager
 
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
@@ -30,9 +29,7 @@ struct AppCommands: Commands {
                 .environment(newsModel)
             Divider()
             Button("Refresh") {
-                Task {
-                    try await syncManager.sync()
-                }
+                NotificationCenter.default.post(name: .syncNews, object: nil)
             }
             .keyboardShortcut("r")
             Divider()

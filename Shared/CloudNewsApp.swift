@@ -65,7 +65,7 @@ struct CloudNewsApp: App {
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(newsModel: newsModel, syncManager: syncManager)
+            AppCommands(newsModel: newsModel)
         }
 #endif
         

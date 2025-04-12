@@ -227,6 +227,9 @@ struct SidebarView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .syncNews)) { _ in
+            sync()
+        }
     }
 
     private func folderRenameAction(folderId: Int64, newName: String) async {
