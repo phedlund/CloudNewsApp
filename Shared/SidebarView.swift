@@ -205,6 +205,28 @@ struct SidebarView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .feed( _):
+                break
+            case .folder(let id):
+                if let node = nodes.first(where: { $0.type == .folder(id: id) }) {
+                    confirmationNode = node
+                    isShowingConfirmation = true
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .folder( _):
+                break
+            case .feed(let id):
+                if let node = nodes.first(where: { $0.type == .feed(id: id) }) {
+                    confirmationNode = node
+                    isShowingConfirmation = true
+                }
+            }
+        }
     }
 
     private func folderRenameAction(folderId: Int64, newName: String) async {
