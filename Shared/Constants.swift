@@ -23,6 +23,8 @@ struct Constants {
     static let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
     static let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
+    static let untitledFolderName = NSLocalizedString("Untitled Folder", comment: "Untitled folder name")
+
     struct ArticleSettings {
     #if os(macOS)
         static let minFontSize = 11

@@ -95,7 +95,7 @@ struct ContentView: View {
                     navigationTitle = "Starred Articles"
                 case .folder(let id):
                     let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? "Untitled Folder"
+                    navigationTitle = folder?.name ?? Constants.untitledFolderName
                 case .feed(let id):
                     let feed = feeds.first(where: { $0.id == id })
                     navigationTitle = feed?.title ?? "Untitled Feed"
@@ -181,7 +181,7 @@ struct ContentView: View {
                     navigationTitle = "Starred Articles"
                 case .folder(let id):
                     let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? "Untitled Folder"
+                    navigationTitle = folder?.name ?? Constants.untitledFolderName
                 case .feed(let id):
                     let feed = feeds.first(where: { $0.id == id })
                     navigationTitle = feed?.title ?? "Untitled Feed"

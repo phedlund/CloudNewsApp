@@ -138,14 +138,14 @@ extension NewsDataModelActor {
 //        return nil
     }
 
-    func folder(id: Int64) -> Folder? {
+    func folderName(id: Int64) async -> String? {
         let predicate = #Predicate<Folder>{ $0.id == id }
 
         var descriptor = FetchDescriptor<Folder>(predicate: predicate)
         descriptor.fetchLimit = 1
         do {
-            let results  = try modelContext.fetch(descriptor)
-            return results.first
+            let results = try modelContext.fetch(descriptor)
+            return results.first?.name
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
         }

@@ -173,10 +173,10 @@ struct SidebarView: View {
                 EmptyView()
             }
         })
-        .alert(Text(newsModel.currentNode?.title ?? "Untitled"), isPresented: $isShowingRename, actions: {
+        .alert(Text($alertInput.wrappedValue), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
-                switch newsModel.currentNode!.type {
+                switch newsModel.currentNodeType {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
@@ -193,6 +193,18 @@ struct SidebarView: View {
         }, message: {
             Text("Rename the folder")
         })
+        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .feed( _):
+                break
+            case .folder(let id):
+                Task {
+                    nodeSelection = newsModel.currentNodeType.asData
+                    alertInput = await newsModel.folderName(id: id)
+                    isShowingRename = true
+                }
+            }
+        }
     }
 
     private func folderRenameAction(folderId: Int64, newName: String) async {

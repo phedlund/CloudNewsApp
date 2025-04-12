@@ -364,6 +364,10 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    func folderName(id: Int64) async -> String {
+        return await databaseActor.folderName(id: id) ?? Constants.untitledFolderName
+    }
+    
     func renameFolder(folderId: Int64, to name: String) async throws {
         let renameRouter = Router.renameFolder(id: Int(folderId), newName: name)
         do {
