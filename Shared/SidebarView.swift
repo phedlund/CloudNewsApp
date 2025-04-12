@@ -267,7 +267,7 @@ struct SidebarView: View {
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
-                newsModel.currentNode = node
+                newsModel.currentNodeType = node.type
                 alertInput = node.title
                 isShowingRename = true
             } label: {
@@ -284,7 +284,7 @@ struct SidebarView: View {
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
-                newsModel.currentNode = node
+                newsModel.currentNodeType = node.type
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue)
 #else
