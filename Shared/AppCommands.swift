@@ -58,13 +58,11 @@ struct AppCommands: Commands {
             .keyboardShortcut("n")
             Divider()
             Button("Settings...") {
-                if let node = newsModel.currentNode {
-                    switch node.type {
-                    case .empty, .all, .starred, .folder(id: _):
-                        break
-                    case .feed(id: let scrollId):
-                        openWindow(id: ModalSheet.feedSettings.rawValue, value: scrollId)
-                    }
+                switch newsModel.currentNodeType {
+                case .empty, .all, .starred, .folder(id: _):
+                    break
+                case .feed(id: _):
+                    openWindow(id: ModalSheet.feedSettings.rawValue)
                 }
             }
             .disabled(isFeedSettingsDisabled())

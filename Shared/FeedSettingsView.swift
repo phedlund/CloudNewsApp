@@ -112,8 +112,7 @@ struct FeedSettingsView: View {
             }
 #endif
             .task {
-                sleep(1)
-                switch newsModel.currentNode?.type {
+                switch newsModel.currentNodeType {
                 case .feed(id: let id):
                     if let feed = feeds.first(where: { $0.id == id }) {
                         var fNames = [noFolderName]
