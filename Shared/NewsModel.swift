@@ -14,7 +14,6 @@ class NewsModel: @unchecked Sendable {
     let databaseActor: NewsDataModelActor
     let session = ServerStatus.shared.session
 
-    var currentNode: Node? = nil // TODO remove
     var currentNodeType: NodeType = .empty
     var currentItem: Item? = nil
     var unreadItemIds = Set<Int64>()

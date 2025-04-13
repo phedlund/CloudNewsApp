@@ -233,12 +233,11 @@ struct SidebarView: View {
     }
 
     private func folderRenameAction(folderId: Int64, newName: String) async {
-        if let folder = folders.first(where: { $0.id == folderId }), newsModel.currentNode?.title != newName {
+        let nodeType: NodeType = .folder(id: folderId)
+        if let node = nodes.first(where: { $0.type == nodeType } ), node.title != newName, let folder = folderForNodeType(nodeType) {
             do {
                 try await newsModel.renameFolder(folderId: folderId, to: newName)
-                if let node = newsModel.currentNode {
-                    node.title = newName
-                }
+                node.title = newName
                 folder.name = newName
                 try await newsModel.databaseActor.save()
             } catch let error as NetworkError {
@@ -251,6 +250,15 @@ struct SidebarView: View {
                 errorMessage = error.localizedDescription
                 isShowingError = true
             }
+        }
+    }
+
+    private func folderForNodeType(_ nodeType: NodeType) -> Folder? {
+        switch nodeType {
+        case .empty, .all, .starred, .feed(_):
+            return nil
+        case .folder(let id):
+            return folders.first(where: { $0.id == id })
         }
     }
 

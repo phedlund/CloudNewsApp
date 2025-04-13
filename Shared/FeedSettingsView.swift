@@ -148,7 +148,7 @@ struct FeedSettingsView: View {
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
-                if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
+                if let feed = feedForNodeType(newsModel.currentNodeType) {
                     feed.preferWeb = newValue
                     Task {
                         do {
@@ -175,7 +175,8 @@ struct FeedSettingsView: View {
     }
 
     private func onTitleCommit() async {
-        if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
+        if let feed = feedForNodeType(newsModel.currentNodeType),
+            let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
             if !title.isEmpty, title != feed.title {
                 do {
                     try await newsModel.renameFeed(feedId: feed.id, to: title)
@@ -200,7 +201,7 @@ struct FeedSettingsView: View {
     }
 
     private func onFolderSelection(_ newFolderName: String) async {
-        if let node = newsModel.currentNode, let feed = feedForNodeType(node.type) {
+        if let feed = feedForNodeType(newsModel.currentNodeType), let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
             var newFolderId: Int64 = 0
             if let newFolder = folders.first(where: { $0.name == newFolderName }) {
                 newFolderId = newFolder.id
