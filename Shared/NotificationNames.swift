@@ -15,5 +15,7 @@ extension NSNotification.Name {
     public static let renameFolder = NSNotification.Name("RenameFolder")
     public static let deleteFeed = NSNotification.Name("DeleteFeed")
     public static let syncNews = NSNotification.Name("SyncNews")
+    public static let nextArticle = NSNotification.Name("NextArticle")
+    public static let previousArticle = NSNotification.Name("PreviousArticle")
 
 }

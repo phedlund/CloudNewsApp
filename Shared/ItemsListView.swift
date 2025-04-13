@@ -65,6 +65,22 @@ struct ItemsListView: View {
                         }
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
+                var nextIndex = items.startIndex
+                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: -1)
+                }
+                nextIndex = nextIndex > items.startIndex ? nextIndex: items.startIndex
+                $selectedItem.wrappedValue = items[nextIndex]
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { _ in
+                var nextIndex = items.startIndex
+                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: 1)
+                }
+                nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
+                $selectedItem.wrappedValue = items[nextIndex]
+            }
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             let cellSize = CGSize(width: cellWidth, height: cellHeight)

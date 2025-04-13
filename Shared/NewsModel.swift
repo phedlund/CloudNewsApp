@@ -23,18 +23,6 @@ class NewsModel: @unchecked Sendable {
         self.databaseActor = databaseActor
     }
 
-    func selectPreviousItem() {
-//        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
-//            currentItemID = currentItems.element(before: currentIndex)?.persistentModelID
-//        }
-    }
-
-    func selectNextItem() {
-//        if let currentIndex = currentItems.first(where: { $0.persistentModelID == currentItemID }) {
-//            currentItemID = currentItems.element(after: currentIndex)?.persistentModelID
-//        }
-    }
-
     func updateUnreadItemIds() async throws {
         var unreadFetchDescriptor = FetchDescriptor<Item>()
         switch currentNodeType {
