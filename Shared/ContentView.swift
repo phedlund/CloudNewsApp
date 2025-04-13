@@ -204,9 +204,6 @@ struct ContentView: View {
         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
-// TODO Needed?       .task {
-//            selectedNodeID = selectedNode
-//        }
 #endif
     }
 
