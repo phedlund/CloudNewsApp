@@ -42,32 +42,33 @@ class NewsModel: @unchecked Sendable {
         unreadItemIds = Set(ids)
     }
 
-    func delete(_ node: Node, feeds: [Feed]? = nil) async throws {
+    func delete(_ node: Node) async throws {
         switch node.type {
         case .empty, .all, .starred:
             break
         case .folder(let id):
-            let feedIds = feeds?.compactMap(\.id) ?? []
-            let deleteRouter = Router.deleteFolder(id: Int(id))
-            do {
-                let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
-                if let httpResponse = deleteResponse as? HTTPURLResponse {
-                    print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                    switch httpResponse.statusCode {
-                    case 200, 404: // 404 = Folder does not exist but the app thinks it does, so delete locally
-                        for feedId in feedIds {
-                            try await databaseActor.deleteItems(with: feedId)
+            if let feedIds = await databaseActor.feedsIdsInFolder(folder: id) {
+                let deleteRouter = Router.deleteFolder(id: Int(id))
+                do {
+                    let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
+                    if let httpResponse = deleteResponse as? HTTPURLResponse {
+                        print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                        switch httpResponse.statusCode {
+                        case 200, 404: // 404 = Folder does not exist but the app thinks it does, so delete locally
+                            for feedId in feedIds {
+                                try await databaseActor.deleteItems(with: feedId)
+                            }
+                            try await databaseActor.deleteNode(id: node.id)
+                            try await databaseActor.deleteFolder(id: id)
+                        default:
+                            throw NetworkError.folderErrorDeleting
                         }
-                        try await databaseActor.deleteNode(id: node.id)
-                        try await databaseActor.deleteFolder(id: id)
-                    default:
-                        throw NetworkError.folderErrorDeleting
                     }
+                } catch let error as NetworkError {
+                    throw error
+                } catch(let error) {
+                    throw NetworkError.generic(message: error.localizedDescription)
                 }
-            } catch let error as NetworkError {
-                throw error
-            } catch(let error) {
-                throw NetworkError.generic(message: error.localizedDescription)
             }
         case .feed(let id):
             let deleteRouter = Router.deleteFeed(id: Int(id))

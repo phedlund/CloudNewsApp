@@ -95,26 +95,10 @@ struct SidebarView: View {
                         switch detail.type {
                         case .all, .empty, .starred:
                             break
-                        case .feed(id: _):
+                        case .feed(id: _),  .folder(id: _):
                             Task {
                                 do {
                                     try await newsModel.delete(detail)
-                                } catch let error as NetworkError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error as DatabaseError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                }
-                            }
-                        case .folder(id: let folderId):
-                            let folderFeeds = feeds.filter( { $0.folderId == folderId })
-                            Task {
-                                do {
-                                    try await newsModel.delete(detail, feeds: folderFeeds)
                                 } catch let error as NetworkError {
                                     errorMessage = error.localizedDescription
                                     isShowingError = true
