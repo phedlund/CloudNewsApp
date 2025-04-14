@@ -163,12 +163,6 @@ struct ContentView: View {
                 openSettings()
             }
         }
-//        .onChange(of: folders, initial: true) { _, newValue in
-//            newsModel.folders = newValue
-//        }
-//        .onChange(of: feeds, initial: true) { _, newValue in
-//            newsModel.feeds = newValue
-//        }
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
@@ -194,7 +188,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedItem, initial: true) { oldValue, newValue in
-            newsModel.currentItem = newValue
+            newsModel.currentItem = newValue // TODO mark read
         }
         .onChange(of: hideRead, initial: true) { _, _ in
             if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
