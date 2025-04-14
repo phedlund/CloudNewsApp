@@ -226,6 +226,20 @@ extension NewsDataModelActor {
         return nil
     }
 
+    func feedPrefersWeb(id: Int64) async -> Bool {
+        let predicate = #Predicate<Feed>{ $0.id == id }
+
+        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
+        descriptor.fetchLimit = 1
+        do {
+            let results = try modelContext.fetch(descriptor)
+            return results.first?.preferWeb ?? false
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+            return false
+        }
+    }
+
     func deleteNode(id: String) async throws {
         do {
             try await delete(Node.self, where: #Predicate { $0.id == id } )

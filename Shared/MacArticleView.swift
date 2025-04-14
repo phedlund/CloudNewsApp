@@ -36,9 +36,18 @@ struct MacArticleView: View {
             WebView { webView in
                 reader.setup(webView: webView)
                 pageViewReader.title = reader.title
-                if let url = content.url {
-                    pageViewReader.url = url
-                    webView.load(URLRequest(url: url))
+                Task {
+                    if await newsModel.feedPrefersWeb(id: content.item.feedId),
+                        let urlString = content.item.url,
+                        let url = URL(string: urlString) {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                    } else {
+                        if let url = content.url {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                        }
+                    }
                 }
             }
             .id(content.item.id) //forces the web view to be recreated to get a unique WKWebView for each article
@@ -47,37 +56,21 @@ struct MacArticleView: View {
                 Color.phWhiteBackground.ignoresSafeArea(edges: .vertical)
             }
             .onChange(of: content.url, initial: true) { _, _ in
-                if let url = content.url {
-                    pageViewReader.url = url
-                    reader.webView?.load(URLRequest(url: url))
+                pageViewReader.title = reader.title
+                Task {
+                    if await newsModel.feedPrefersWeb(id: content.item.feedId),
+                        let urlString = content.item.url,
+                        let url = URL(string: urlString) {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                    } else {
+                        if let url = content.url {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                        }
+                    }
                 }
             }
-//            TODO handle prefer web
-//            .onChange(of: newsModel.currentItem) { oldValue, newValue in
-//                content = ArticleWebContent(item: newValue)
-//                if let feed = newValue.feed {
-//                    if feed.preferWeb == true,
-//                       let urlString = newValue.url,
-//                       let url = URL(string: urlString) {
-//                        pageViewReader.url = url
-//                        reader.webView?.load(URLRequest(url: url))
-//                    } else {
-//                        if let url = content.url {
-//                            pageViewReader.url = url
-//                            reader.webView?.load(URLRequest(url: url))
-//                        }
-//                    }
-//                }
-//            }
-//            .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
-//                print("got scroll id: \(newValue ?? -1)")
-//                if newValue == item.id {
-//                    pageViewReader.title = reader.title
-//                    pageViewReader.canGoBack = reader.canGoBack
-//                    pageViewReader.canGoForward = reader.canGoForward
-//                    pageViewReader.isLoading = reader.isLoading
-//                }
-//            }
             .onChange(of: reader.canGoBack) { _, newValue in
                 pageViewReader.canGoBack = newValue
             }

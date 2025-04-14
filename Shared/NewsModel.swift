@@ -403,6 +403,10 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    func feedPrefersWeb(id: Int64) async -> Bool {
+        return await databaseActor.feedPrefersWeb(id: id)
+    }
+
     func resetDataBase() async throws {
         do {
             try await databaseActor.delete(model: Node.self)
