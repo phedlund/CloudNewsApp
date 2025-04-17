@@ -335,9 +335,9 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
-            let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles")
+            let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
             await databaseActor.insert(allNode)
-            let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles")
+            let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
             await databaseActor.insert(starredNode)
             for folderDTO in foldersDTO.folders {
                 var feeds = [Node]()
@@ -345,12 +345,12 @@ final class SyncManager: @unchecked Sendable {
                 for feedDTO in feedDTOs  {
                     let feedToStore = Feed(item: feedDTO)
                     let type = NodeType.feed(id: feedDTO.id)
-                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0)
+                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
                     feeds.append(feedNode)
                     await databaseActor.insert(feedToStore)
                 }
                 let type = NodeType.folder(id: folderDTO.id)
-                folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds)
+                folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, pinned: 1)
                 let feedsWithUpdateErrorCount = feeds.filter { $0.errorCount > 0 }
                 if !feedsWithUpdateErrorCount.isEmpty {
                     folderNode.errorCount = 1
@@ -363,7 +363,7 @@ final class SyncManager: @unchecked Sendable {
             for feedDTO in feedDTOs {
                 let feedToStore = Feed(item: feedDTO)
                 let type = NodeType.feed(id: feedDTO.id)
-                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0)
+                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
                 await databaseActor.insert(feedToStore)
                 await databaseActor.insert(feedNode)
             }

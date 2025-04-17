@@ -18,6 +18,7 @@ final public class Node {
     var type: NodeType
     var title: String
     var favIconURL: URL? = nil
+    var pinned: UInt8 = 0
 
     // Parental relationship
     public var parent: Node?
@@ -27,7 +28,7 @@ final public class Node {
     @Relationship(deleteRule: .noAction) var folder: Folder?
     @Relationship(deleteRule: .noAction) var feed: Feed?
 
-    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, favIconURL: URL? = nil, children: [Node]? = nil, errorCount: Int64 = 0) {
+    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, favIconURL: URL? = nil, children: [Node]? = nil, errorCount: Int64 = 0, pinned: UInt8 = 0) {
         self.id = id
         self.type = type
         self.title = title
@@ -35,6 +36,7 @@ final public class Node {
         self.favIconURL = favIconURL
         self.children = children
         self.errorCount = errorCount
+        self.pinned = pinned
     }
 
 }
@@ -51,4 +53,5 @@ extension Node {
             return Array(self.children!)
         }
     }
+
 }

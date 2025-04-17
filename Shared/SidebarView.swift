@@ -50,7 +50,10 @@ struct SidebarView: View {
 
     @Query private var folders: [Folder]
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed] // TODO handle pinned feeds
-    @Query(filter: #Predicate<Node>{ $0.parent == nil }, sort: \.id) private var nodes: [Node]
+    @Query(
+        FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
+                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
+    ) private var nodes: [Node]
 
     init(nodeSelection: Binding<Data?>) {
         self._nodeSelection = nodeSelection
