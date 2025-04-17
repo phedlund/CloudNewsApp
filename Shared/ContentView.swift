@@ -187,8 +187,11 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: selectedItem, initial: true) { oldValue, newValue in
-            newsModel.currentItem = newValue // TODO mark read
+        .onChange(of: selectedItem, initial: true) { _, newValue in
+            newsModel.currentItem = newValue
+            if let newValue {
+                newsModel.markItemsRead(items: [newValue])
+            }
         }
         .onChange(of: hideRead, initial: true) { _, _ in
             if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
