@@ -155,7 +155,7 @@ struct SettingsView: View {
                 }
                 Toggle(isOn: $adBlock) {
                     Text("Block Ads")
-                    Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-ios/blob/development/Client/WebFilters/ContentBlocker/Lists/block-ads.json)")
+                    Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-core/blob/master/ios/brave-ios/Sources/Brave/WebFilters/ContentBlocker/Lists/block-ads.json)")
                 }
             } header: {
                 Text("Reading")
