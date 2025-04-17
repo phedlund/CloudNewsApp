@@ -49,7 +49,7 @@ struct SidebarView: View {
     @Binding var nodeSelection: Data?
 
     @Query private var folders: [Folder]
-    @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed] // TODO handle pinned feeds
+    @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
     @Query(
         FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
                         sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
