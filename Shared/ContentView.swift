@@ -29,11 +29,11 @@ struct ContentView: View {
     @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
     @State private var fetchDescriptor = FetchDescriptor<Item>()
-    @State private var unreadFetchDescriptor = FetchDescriptor<Item>()
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
+    @Query private var nodes: [Node]
 
     var body: some View {
         let _ = Self._printChanges()
@@ -86,6 +86,7 @@ struct ContentView: View {
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {
+                newsModel.currentNodeType = nodeType
                 switch nodeType {
                 case .empty:
                     navigationTitle = ""
@@ -182,9 +183,6 @@ struct ContentView: View {
                 }
                 preferredColumn = .detail
                 updateFetchDescriptor(nodeType: nodeType)
-                Task {
-                    try? await newsModel.updateUnreadItemIds()
-                }
             }
         }
         .onChange(of: selectedItem, initial: true) { _, newValue in
@@ -208,7 +206,6 @@ struct ContentView: View {
         switch nodeType {
         case .empty:
             fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
         case .all:
             fetchDescriptor.predicate = #Predicate<Item>{
                 if hideRead {
@@ -217,10 +214,8 @@ struct ContentView: View {
                     return true
                 }
             }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
         case .starred:
             fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
         case .folder(id:  let id):
             let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
             fetchDescriptor.predicate = #Predicate<Item>{
@@ -230,7 +225,6 @@ struct ContentView: View {
                     return feedIds.contains($0.feedId)
                 }
             }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
         case .feed(id: let id):
             fetchDescriptor.predicate = #Predicate<Item>{
                 if hideRead {
@@ -239,18 +233,22 @@ struct ContentView: View {
                     return $0.feedId == id
                 }
             }
-            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
         }
     }
 
     @ToolbarContentBuilder
     func contentViewToolBarContent() -> some ToolbarContent {
         ToolbarItem(placement: .automatic) {
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor)
+            MarkReadButton()
                 .environment(newsModel)
         }
     }
 
+//    private func currentNode() -> Node? {
+//        guard let nodeType = NodeType.fromData(selectedNode ?? Data()) else { return nil }
+//        return nodes.first(where: { $0.type == nodeType } )
+//    }
+//
 //    private func updateNodes() async {
 //        return
 //        let allNodeModel = Node(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all, isTopLevel: true)

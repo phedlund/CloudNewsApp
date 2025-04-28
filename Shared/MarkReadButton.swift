@@ -12,17 +12,13 @@ struct MarkReadButton: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
 
-    @Query private var items: [Item]
-
     @State private var isDisabled = true
-
-    init(fetchDescriptor: FetchDescriptor<Item>) {
-        _items = Query(fetchDescriptor)
-    }
 
     var body: some View {
         Button {
-            newsModel.markItemsRead(items: items)
+            Task {
+                await newsModel.markCurrentItemsRead()
+            }
         } label: {
             Label {
                 Text("Mark Read")
@@ -32,8 +28,10 @@ struct MarkReadButton: View {
         }
         .keyboardShortcut("a", modifiers: [.control])
         .disabled(isDisabled)
-        .onChange(of: newsModel.unreadItemIds) { oldValue, newValue in
-            isDisabled = newValue.count == 0
+        .onChange(of: newsModel.currentNodeType) { _, _ in
+            Task {
+                isDisabled = (try? await newsModel.unreadItemIds.count == 0) ?? true
+            }
         }
     }
 

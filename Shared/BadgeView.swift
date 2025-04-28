@@ -9,16 +9,11 @@ import SwiftData
 import SwiftUI
 
 struct BadgeView: View {
-    var node: Node
     @Environment(\.modelContext) private var modelContext
 
     @Query private var items: [Item]
-    @Query private var feeds: [Feed]
-    @Query private var folders: [Folder]
 
-    private let errorCount = 0
-    @State private var feed: Feed?
-    private var feedId: Int64 = -1
+    let node: Node
 
     init(node: Node) {
         self.node = node
@@ -31,7 +26,6 @@ struct BadgeView: View {
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
         case .feed(let id):
-            feedId = id
             predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
         case .folder( _):
             if let children = node.children {
@@ -66,9 +60,6 @@ struct BadgeView: View {
                     .background(Capsule()
                         .fill(.gray))
             }
-        }
-        .task {
-            feed = feeds.first(where: { $0.id == feedId })
         }
         .onChange(of: items.count, initial: true) { _, newValue in
             if node.type == .all {

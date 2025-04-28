@@ -105,10 +105,10 @@ public actor NewsDataModelActor: NewsDatabase {
         return nil
     }
 
-    func fetchUnreadIds(descriptor: FetchDescriptor<Item>) async throws -> [Int64] {
-        var result = [Int64]()
+    func fetchUnreadIds(descriptor: FetchDescriptor<Item>) async throws -> [PersistentIdentifier] {
+        var result = [PersistentIdentifier]()
         let items = try modelContext.fetch(descriptor)
-        let ids: [Int64] = items.map(\.id)
+        let ids: [PersistentIdentifier] = items.map(\.persistentModelID)
         result.append(contentsOf: ids)
         return result
     }
@@ -123,6 +123,15 @@ extension NewsDataModelActor {
             result = Int64(items.map( { $0.lastModified }).max()?.timeIntervalSince1970 ?? 0)
         } catch { }
         return result
+    }
+
+    func pruneFolders(currentFolderIds: [Int64]) async throws {
+        let folders: [Folder] = try allFolders() ?? []
+        for folder in folders {
+            if currentFolderIds.contains(folder.id) {
+                await delete(folder)
+            }
+        }
     }
 
     func allFolders() throws -> [Folder]? {
@@ -276,13 +285,25 @@ extension NewsDataModelActor {
         return nil
     }
 
-    func update<T>(_ persistentIdentifier: PersistentIdentifier, keypath: ReferenceWritableKeyPath<Item, T>, to value: T) async throws {
+    func markItemsAsRead(ids: [Int64]) async throws {
+        let allItems: [Item] = try await allModels()
+        for item in allItems {
+            if !ids.contains(item.id) {
+                continue
+            }
+            item.unread = false
+        }
+        try? await save()
+    }
+
+    func update<T>(_ persistentIdentifier: PersistentIdentifier, keypath: ReferenceWritableKeyPath<Item, T>, to value: T) async throws -> Int64? {
         guard let model = try? await model(by: persistentIdentifier) as? Item else {
             // Error handling
-            return
+            return nil
         }
         model[keyPath: keypath] = value
         try? await save()
+        return model.id
     }
 
 }

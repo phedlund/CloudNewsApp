@@ -269,10 +269,10 @@ struct SidebarView: View {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
+            MarkReadButton()
                 .environment(newsModel)
         case .folder( _):
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
+            MarkReadButton()
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
@@ -289,7 +289,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed( _):
-            MarkReadButton(fetchDescriptor: unreadFetchDescriptor(node: node))
+            MarkReadButton()
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData

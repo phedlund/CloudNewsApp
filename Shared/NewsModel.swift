@@ -16,30 +16,32 @@ class NewsModel: @unchecked Sendable {
 
     var currentNodeType: NodeType = .empty
     var currentItem: Item? = nil
-    var unreadItemIds = Set<Int64>()
+
+    var unreadItemIds: [PersistentIdentifier] {
+        get async throws {
+            var result = [PersistentIdentifier]()
+
+            var unreadFetchDescriptor = FetchDescriptor<Item>()
+            switch currentNodeType {
+            case .empty:
+                unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+            case .all:
+                unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+            case .starred:
+                unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+            case .folder(id:  let id):
+                let feedIds = await databaseActor.feedsIdsInFolder(folder: id) ?? []
+                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+            case .feed(id: let id):
+                unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+            }
+            result = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
+            return result
+        }
+    }
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
-    }
-
-    func updateUnreadItemIds() async throws {
-        var unreadFetchDescriptor = FetchDescriptor<Item>()
-        switch currentNodeType {
-        case .empty:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .all:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
-        case .starred:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .folder(id:  let id):
-            if let feedIds = await databaseActor.feedsIdsInFolder(folder: id) {
-                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            }
-        case .feed(id: let id):
-            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-        }
-        let ids = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
-        unreadItemIds = Set(ids)
     }
 
     func delete(_ node: Node) async throws {
@@ -205,6 +207,21 @@ class NewsModel: @unchecked Sendable {
     }
 
     @MainActor
+    func markCurrentItemsRead() async {
+        var internalUnreadItemIds = [Int64]()
+        do {
+            for unreadItemId in try await unreadItemIds {
+                if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
+                    internalUnreadItemIds.append(itemId)
+                }
+            }
+            try await markRead(itemIds: internalUnreadItemIds, unread: false)
+        } catch {
+
+        }
+    }
+
+    @MainActor
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return
@@ -213,6 +230,7 @@ class NewsModel: @unchecked Sendable {
             item.unread = false
         }
         Task {
+            try await databaseActor.save()
             try await self.markRead(items: items, unread: false)
         }
     }
@@ -243,8 +261,15 @@ class NewsModel: @unchecked Sendable {
         guard !items.isEmpty else {
             return
         }
+        let itemIds = items.map( { $0.id } )
+        try await markRead(itemIds: itemIds, unread: unread)
+    }
+
+    func markRead(itemIds: [Int64], unread: Bool) async throws {
+        guard !itemIds.isEmpty else {
+            return
+        }
         do {
-            let itemIds = items.map( { $0.id } )
             let parameters: ParameterDict = ["items": itemIds]
             var router: Router
             if unread {
@@ -258,25 +283,21 @@ class NewsModel: @unchecked Sendable {
                 case 200:
                     if unread {
                         try await databaseActor.delete(model: Unread.self)
-                        try await databaseActor.save()
                     } else {
                         try await databaseActor.delete(model: Read.self)
-                        try await databaseActor.save()
                     }
-                    try await updateUnreadItemIds()
                 default:
                     if unread {
                         for itemId in itemIds {
                             await databaseActor.insert(Read(itemId: itemId))
                         }
-                        try await databaseActor.save()
                     } else {
                         for itemId in itemIds {
                             await databaseActor.insert(Unread(itemId: itemId))
                         }
-                        try await databaseActor.save()
                     }
                 }
+                try await databaseActor.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)

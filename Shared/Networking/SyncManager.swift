@@ -325,6 +325,14 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         self.foldersDTO = decodedResponse
+        let folderIds = decodedResponse.folders.map( { $0.id } )
+        Task {
+            do {
+                try await databaseActor.pruneFolders(currentFolderIds: folderIds)
+            } catch {
+                //
+            }
+        }
     }
 
     private func parseFeeds(data: Data) {

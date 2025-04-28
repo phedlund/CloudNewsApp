@@ -25,7 +25,7 @@ struct AppCommands: Commands {
         }
         CommandGroup(after: .sidebar) {
             Divider()
-            MarkReadButton(fetchDescriptor: FetchDescriptor<Item>())
+            MarkReadButton()
                 .environment(newsModel)
             Divider()
             Button("Refresh") {
