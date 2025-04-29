@@ -14,13 +14,25 @@ class NewsModel: @unchecked Sendable {
     let databaseActor: NewsDataModelActor
     let session = ServerStatus.shared.session
 
-    var currentNodeType: NodeType = .empty
+    var currentNodeType: NodeType = .empty {
+        didSet {
+            if oldValue != currentNodeType {
+                Task {
+                    await updateUnreadItemIds()
+                }
+            }
+        }
+    }
     var currentItem: Item? = nil
 
-    var unreadItemIds: [PersistentIdentifier] {
-        get async throws {
-            var result = [PersistentIdentifier]()
+    var unreadItemIds = [PersistentIdentifier]()
 
+    init(databaseActor: NewsDataModelActor) {
+        self.databaseActor = databaseActor
+    }
+
+    private func updateUnreadItemIds() async  {
+        Task {
             var unreadFetchDescriptor = FetchDescriptor<Item>()
             switch currentNodeType {
             case .empty:
@@ -35,13 +47,8 @@ class NewsModel: @unchecked Sendable {
             case .feed(id: let id):
                 unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
             }
-            result = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
-            return result
+            unreadItemIds = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
         }
-    }
-
-    init(databaseActor: NewsDataModelActor) {
-        self.databaseActor = databaseActor
     }
 
     func delete(_ node: Node) async throws {
@@ -210,7 +217,7 @@ class NewsModel: @unchecked Sendable {
     func markCurrentItemsRead() async {
         var internalUnreadItemIds = [Int64]()
         do {
-            for unreadItemId in try await unreadItemIds {
+            for unreadItemId in unreadItemIds {
                 if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
@@ -299,6 +306,7 @@ class NewsModel: @unchecked Sendable {
                 }
                 try await databaseActor.save()
             }
+            await updateUnreadItemIds()
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }

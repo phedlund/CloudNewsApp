@@ -26,13 +26,9 @@ struct MarkReadButton: View {
                 Image(systemName: "checkmark")
             }
         }
+        .id(newsModel.currentNodeType)
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(isDisabled)
-        .onChange(of: newsModel.currentNodeType) { _, _ in
-            Task {
-                isDisabled = (try? await newsModel.unreadItemIds.count == 0) ?? true
-            }
-        }
+        .disabled(newsModel.unreadItemIds.count == 0)
     }
 
 }
