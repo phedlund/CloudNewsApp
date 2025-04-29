@@ -42,7 +42,7 @@ class NewsModel: @unchecked Sendable {
             case .starred:
                 unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
             case .folder(id:  let id):
-                let feedIds = await databaseActor.feedsIdsInFolder(folder: id) ?? []
+                let feedIds = await databaseActor.feedIdsInFolder(folder: id) ?? []
                 unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
             case .feed(id: let id):
                 unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
@@ -56,7 +56,7 @@ class NewsModel: @unchecked Sendable {
         case .empty, .all, .starred:
             break
         case .folder(let id):
-            if let feedIds = await databaseActor.feedsIdsInFolder(folder: id) {
+            if let feedIds = await databaseActor.feedIdsInFolder(folder: id) {
                 let deleteRouter = Router.deleteFolder(id: Int(id))
                 do {
                     let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)

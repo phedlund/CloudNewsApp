@@ -134,6 +134,18 @@ extension NewsDataModelActor {
         }
     }
 
+    func pruneFeeds(serverFeedIds: [Int64]) async throws {
+        let feeds: [Feed] = try await allModels()
+        for feed in feeds {
+            if !serverFeedIds.contains(feed.id) {
+                try await deleteItems(with: feed.id)
+                let type = NodeType.feed(id: feed.id)
+                try await deleteNode(id: type.description)
+                await delete(feed)
+            }
+        }
+    }
+
     func folderName(id: Int64) async -> String? {
         let predicate = #Predicate<Folder>{ $0.id == id }
 
@@ -148,19 +160,6 @@ extension NewsDataModelActor {
         return nil
     }
 
-    func folder(name: String) -> Folder? {
-        let predicate = #Predicate<Folder>{ $0.name == name }
-        var descriptor = FetchDescriptor<Folder>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        do {
-            let results  = try modelContext.fetch(descriptor)
-            return results.first
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
     func deleteFolder(id: Int64) async throws {
         do {
             try await delete(Folder.self, where: #Predicate { $0.id == id })
@@ -169,53 +168,13 @@ extension NewsDataModelActor {
         }
     }
 
-    func allFeeds() -> [Feed]? {
-        let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
-        //        let pinnedSortDescriptor = SortDescriptor<Feed>(\.pinned)
-        let descriptor = FetchDescriptor<Feed>(sortBy: [idSortDescriptor])
-        do {
-            return try modelContext.fetch(descriptor)
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
-    func feed(id: Int64) -> Feed? {
-        let predicate = #Predicate<Feed>{ $0.id == id }
-
-        var descriptor = FetchDescriptor<Feed>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        do {
-            let results  = try modelContext.fetch(descriptor)
-            return results.first
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
-    func feedsIdsInFolder(folder: Int64) -> [Int64]? {
+    func feedIdsInFolder(folder: Int64) -> [Int64]? {
         let predicate = #Predicate<Feed>{ $0.folderId == folder }
 
         let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
         let descriptor = FetchDescriptor<Feed>(predicate: predicate, sortBy: [idSortDescriptor])
         do {
             return try modelContext.fetch(descriptor).map( { $0.id })
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        return nil
-    }
-
-    func feedsInFolder(folder: Int64) -> [Feed]? {
-        let predicate = #Predicate<Feed>{ $0.folderId == folder }
-
-        let idSortDescriptor = SortDescriptor<Feed>(\.id, order: .forward)
-        //let pinnedSortDescriptor = SortDescriptor<Feed>(\.pinned, order: .forward)
-        let descriptor = FetchDescriptor<Feed>(predicate: predicate, sortBy: [idSortDescriptor])
-        do {
-            return try modelContext.fetch(descriptor)
         } catch let error as NSError {
             print("Could not fetch \(error), \(error.userInfo)")
         }
@@ -270,17 +229,6 @@ extension NewsDataModelActor {
             print("Could not fetch \(error), \(error.userInfo)")
         }
         return nil
-    }
-
-    func markItemsAsRead(ids: [Int64]) async throws {
-        let allItems: [Item] = try await allModels()
-        for item in allItems {
-            if !ids.contains(item.id) {
-                continue
-            }
-            item.unread = false
-        }
-        try? await save()
     }
 
     func update<T>(_ persistentIdentifier: PersistentIdentifier, keypath: ReferenceWritableKeyPath<Item, T>, to value: T) async throws -> Int64? {

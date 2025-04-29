@@ -375,6 +375,14 @@ final class SyncManager: @unchecked Sendable {
                 await databaseActor.insert(feedToStore)
                 await databaseActor.insert(feedNode)
             }
+            let feedIds = decodedResponse.feeds.map( { $0.id } )
+            Task {
+                do {
+                    try await databaseActor.pruneFeeds(serverFeedIds: feedIds)
+                } catch {
+                    //
+                }
+            }
             try? await databaseActor.save()
         }
     }
