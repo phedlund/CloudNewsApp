@@ -328,7 +328,7 @@ final class SyncManager: @unchecked Sendable {
         let folderIds = decodedResponse.folders.map( { $0.id } )
         Task {
             do {
-                try await databaseActor.pruneFolders(currentFolderIds: folderIds)
+                try await databaseActor.pruneFolders(serverFolderIds: folderIds)
             } catch {
                 //
             }

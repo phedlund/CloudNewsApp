@@ -125,26 +125,13 @@ extension NewsDataModelActor {
         return result
     }
 
-    func pruneFolders(currentFolderIds: [Int64]) async throws {
-        let folders: [Folder] = try allFolders() ?? []
+    func pruneFolders(serverFolderIds: [Int64]) async throws {
+        let folders: [Folder] = try await allModels()
         for folder in folders {
-            if currentFolderIds.contains(folder.id) {
+            if !serverFolderIds.contains(folder.id) {
                 await delete(folder)
             }
         }
-    }
-
-    func allFolders() throws -> [Folder]? {
-        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
-//        let descriptor = FetchDescriptor<Folder>(sortBy: [sortDescriptor])
-        let folders: [Folder] = try fetchData(sortBy: [sortDescriptor])
-        return folders
-//        do {
-//            return try modelContext.fetch(descriptor)
-//        } catch let error as NSError {
-//            print("Could not fetch \(error), \(error.userInfo)")
-//        }
-//        return nil
     }
 
     func folderName(id: Int64) async -> String? {
