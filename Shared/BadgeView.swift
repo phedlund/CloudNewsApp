@@ -14,9 +14,11 @@ struct BadgeView: View {
     @Query private var items: [Item]
 
     let node: Node
+    @Binding var unreadCount: Int
 
-    init(node: Node) {
+    init(node: Node, unreadCount: Binding<Int>) {
         self.node = node
+        self._unreadCount = unreadCount
         var predicate = #Predicate<Item> { _ in return false }
         switch node.type {
         case .empty:
@@ -62,6 +64,7 @@ struct BadgeView: View {
             }
         }
         .onChange(of: items.count, initial: true) { _, newValue in
+            unreadCount = newValue
             if node.type == .all {
 #if os(macOS)
                 NSApp.dockTile.badgeLabel = newValue > 0 ? "\(newValue)" : ""

@@ -17,6 +17,7 @@ struct NodeView: View {
     @State private var isShowingConfirmation = false
     @State private var favIcon: SystemImage?
     @State private var title = "Untitled"
+    @State private var unreadCount = 0
 
 #if os(iOS)
     let noChildrenPadding = 10.0
@@ -33,7 +34,7 @@ struct NodeView: View {
                     Text(node.title)
                         .lineLimit(1)
                     Spacer()
-                    BadgeView(node: node)
+                    BadgeView(node: node, unreadCount: $unreadCount)
                         .padding(.trailing, node.id.hasPrefix("cccc_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
@@ -64,6 +65,9 @@ struct NodeView: View {
             case .feed(_):
                 Text("All articles in \"\(node.title)\" will also be deleted")
             }
+        }
+        .onChange(of: unreadCount, initial: true) { _, newValue in
+            newsModel.unreadCounts[node.type] = newValue
         }
     }
 

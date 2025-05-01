@@ -28,7 +28,13 @@ struct MarkReadButton: View {
         }
         .id(newsModel.currentNodeType)
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(newsModel.unreadItemIds.count == 0)
+        .disabled(isDisabled)
+        .onChange(of: newsModel.currentNodeType, initial: true) { _, newValue in
+            isDisabled = newsModel.unreadCounts[newsModel.currentNodeType] == 0
+        }
+        .onChange(of: newsModel.unreadCounts, initial: true) { _, newValue in
+            isDisabled = newValue[newsModel.currentNodeType] == 0
+        }
     }
 
 }

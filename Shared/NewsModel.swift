@@ -27,6 +27,8 @@ class NewsModel: @unchecked Sendable {
 
     var unreadItemIds = [PersistentIdentifier]()
 
+    var unreadCounts = [NodeType: Int]()
+
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor
     }
@@ -255,9 +257,7 @@ class NewsModel: @unchecked Sendable {
             do {
                 item.unread.toggle()
                 try await databaseActor.save()
-                Task {
-                    try await self.markRead(items: [item], unread: !item.unread)
-                }
+                try await self.markRead(items: [item], unread: !item.unread)
             } catch {
                 //
             }
