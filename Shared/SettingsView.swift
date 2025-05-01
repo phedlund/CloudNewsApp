@@ -211,7 +211,7 @@ struct SettingsView: View {
             } header: {
                 Text("Support")
             }
-            .accentColor(.pbh.whiteIcon)
+            .accentColor(.phWhiteIcon)
 #endif
         }
         .formStyle(.grouped)

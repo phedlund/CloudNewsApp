@@ -129,7 +129,7 @@ struct ArticleSettingsView: View {
         }
         .accentColor(.accent)
         .buttonStyle(.bordered)
-        .accentColor(.pbh.whiteIcon)
+        .accentColor(.phWhiteIcon)
         .padding()
     }
 }
