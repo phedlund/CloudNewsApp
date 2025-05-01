@@ -43,14 +43,14 @@ extension NodeChange: Hashable {
 
 class ItemStorage: NSObject, ObservableObject {
     var changes = CurrentValueSubject<[NodeChange], Never>([])
-    var folders = CurrentValueSubject<[CDFolder], Never>([])
-    var feeds = CurrentValueSubject<[CDFeed], Never>([])
+    var folders = CurrentValueSubject<[Folder], Never>([])
+    var feeds = CurrentValueSubject<[Feed], Never>([])
     static let shared = ItemStorage()
 
     private let willSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextWillSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
     private let didSavePublisher = NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: NewsData.shared.container.viewContext).eraseToAnyPublisher()
-    private let foldersFetchRequest = CDFolder.fetchRequest()
-    private let feedsFetchRequest = CDFeed.fetchRequest()
+    private let foldersFetchRequest = Folder.fetchRequest()
+    private let feedsFetchRequest = Feed.fetchRequest()
 
     private var updatedObjects: Set<NSManagedObject>?
     private var deletedObjects: Set<NSManagedObject>?
@@ -59,10 +59,10 @@ class ItemStorage: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     private override init() {
-        foldersFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
+        foldersFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Item.id, ascending: false)]
         foldersFetchRequest.predicate = NSPredicate(value: true)
 
-        feedsFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CDItem.id, ascending: false)]
+        feedsFetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Item.id, ascending: false)]
         feedsFetchRequest.predicate = NSPredicate(value: true)
 
         super.init()
@@ -80,26 +80,26 @@ class ItemStorage: NSObject, ObservableObject {
                 self.updatedObjects = NewsData.shared.container.viewContext.updatedObjects
                 self.insertedObjects = NewsData.shared.container.viewContext.insertedObjects
                 var localChanges = Set<NodeChange>()
-                if let updatedFolders = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDFolder.entity() }) as? Set<CDFolder> {
+                if let updatedFolders = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == Folder.entity() }) as? Set<Folder> {
                     for updatedFolder in updatedFolders {
                         for change in updatedFolder.changedValues() {
                             localChanges.insert(NodeChange(nodeType: .folder(id: updatedFolder.id), key: change.key))
                         }
                     }
                 }
-                if let updatedFeeds = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDFeed.entity() }) as? Set<CDFeed> {
+                if let updatedFeeds = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == Feed.entity() }) as? Set<Feed> {
                     for updatedFeed in updatedFeeds {
                         for change in updatedFeed.changedValues() {
                             localChanges.insert(NodeChange(nodeType: .feed(id: updatedFeed.id), key: change.key))
                         }
                     }
                 }
-                if let updatedItems = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == CDItem.entity() }) as? Set<CDItem> {
+                if let updatedItems = NewsData.shared.container.viewContext.updatedObjects.filter( { $0.entity == Item.entity() }) as? Set<Item> {
                     for updatedItem in updatedItems {
                         for change in updatedItem.changedValues() {
                             if ["unread", "starred"].contains(change.key) {
                                 localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
-                                if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
+                                if updatedItem.feedId > 0, let feed = Feed.feed(id: updatedItem.feedId), let folder = Folder.folder(id: feed.folderId) {
                                     localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
                                 }
                                 localChanges.insert(NodeChange(nodeType: .all, key: change.key))
@@ -121,13 +121,13 @@ class ItemStorage: NSObject, ObservableObject {
                     if let deletedObjects = self.deletedObjects {
                         for deletedObject in deletedObjects {
                             switch deletedObject.entity {
-                            case CDFolder.entity():
+                            case Folder.entity():
                                 print("Deleted Folder")
                                 self.folders.value = try NewsData.shared.container.viewContext.fetch(self.foldersFetchRequest)
-                            case CDFeed.entity():
+                            case Feed.entity():
                                 print("Deleted Feed")
                                 self.feeds.value = try NewsData.shared.container.viewContext.fetch(self.feedsFetchRequest)
-                            case CDItem.entity():
+                            case Item.entity():
                                 print("Deleted Item")
                                 self.changes.value = [NodeChange(nodeType: .all, key: "unread")]
                             default:
@@ -155,10 +155,10 @@ class ItemStorage: NSObject, ObservableObject {
                     if let updatedObjects = self.updatedObjects {
                         var localChanges = Set<NodeChange>()
                         for updatedObject in updatedObjects {
-                            if updatedObject.entity == CDItem.entity(), let updatedItem = updatedObject as? CDItem {
+                            if updatedObject.entity == Item.entity(), let updatedItem = updatedObject as? Item {
                                 for change in updatedItem.changedValues() {
                                     localChanges.insert(NodeChange(nodeType: .feed(id: updatedItem.feedId), key: change.key))
-                                    if updatedItem.feedId > 0, let feed = CDFeed.feed(id: updatedItem.feedId), let folder = CDFolder.folder(id: feed.folderId) {
+                                    if updatedItem.feedId > 0, let feed = Feed.feed(id: updatedItem.feedId), let folder = Folder.folder(id: feed.folderId) {
                                         localChanges.insert(NodeChange(nodeType: .folder(id: folder.id), key: change.key))
                                     }
                                     localChanges.insert(NodeChange(nodeType: .all, key: change.key))

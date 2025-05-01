@@ -5,94 +5,94 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
-import CoreData
+import SwiftData
 import SwiftUI
 
 #if os(iOS)
 struct ArticlesPageView: View {
-    @Environment(\.managedObjectContext) private var moc
-    @ObservedObject private var item: CDItem
-    @State private var selection: NSManagedObjectID
+    @Environment(NewsModel.self) private var newsModel
+
+    @State private var item: Item
+    @State private var itemsToMarkRead = [Item]()
+    @State private var isAppearing = false
     @State private var isShowingPopover = false
-    @State private var canGoBack = false
-    @State private var canGoForward = false
-    @State private var isLoading = false
-    @State private var title = ""
-    @State private var webViewHelper = ItemWebViewHelper()
+    @Bindable var pageViewProxy = PageViewProxy()
 
-    private let items: [CDItem]
+    private let items: [Item]
 
-    init(item: CDItem, items: [CDItem]) {
-        self.item = item
+    init(item: Item, items: [Item]) {
         self.items = items
-        self._selection = State(initialValue: item.objectID)
+        self._item = State(initialValue: item)
     }
 
     var body: some View {
-        TabView(selection: $selection) {
-            ForEach(items, id: \.objectID) { item in
-                ArticleView(item: item)
-                    .tag(item.objectID)
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 0) {
+                ForEach(items, id: \.id) { item in
+                    ArticleView(content: ArticleWebContent(item: item), pageViewReader: pageViewProxy)
+                        .containerRelativeFrame([.horizontal, .vertical])
+                }
             }
+            .scrollTargetLayout()
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .navigationTitle(title)
+        .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
+        .navigationTitle(pageViewProxy.title)
+        .scrollContentBackground(.hidden)
         .background {
-            Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+            Color.phWhiteBackground
+                .ignoresSafeArea(edges: .vertical)
         }
-        .onAppear {
-            markItemRead()
-            if let item = moc.object(with: item.objectID) as? CDItem {
-                webViewHelper = item.webViewHelper
-            }
+        .toolbar {
+            pageViewToolBarContent(pageViewProxy: pageViewProxy)
         }
-        .onChange(of: selection) {
-            markItemRead()
-            if let item = moc.object(with: $0) as? CDItem {
-                webViewHelper = item.webViewHelper
-            }
-        }
-        .onReceive(webViewHelper.$canGoBack) {
-            canGoBack = $0
-        }
-        .onReceive(webViewHelper.$canGoForward) {
-            canGoForward = $0
-        }
-        .onReceive(webViewHelper.$isLoading) {
-            isLoading = $0
-        }
-        .onReceive(webViewHelper.$title) {
-            if $0 != title {
-                title = $0
-            }
-        }
-        .toolbar(content: pageViewToolBarContent)
         .toolbarRole(.editor)
+        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        .onAppear {
+            pageViewProxy.scrollId = item.id
+            isAppearing = true
+        }
+        .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
+            if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
+                if isAppearing {
+                    newsModel.markItemsRead(items: [newItem])
+                    isAppearing = false
+                } else {
+                    itemsToMarkRead.append(newItem)
+                }
+            }
+        }
+        .onScrollPhaseChange { _, newPhase in
+            if  newPhase == .idle {
+                newsModel.markItemsRead(items: itemsToMarkRead)
+                itemsToMarkRead.removeAll()
+            }
+        }
+        .scrollPosition(id: $pageViewProxy.scrollId)
     }
 
     @ToolbarContentBuilder
-    func pageViewToolBarContent() -> some ToolbarContent {
-        ToolbarItemGroup(placement: .navigationBarLeading) {
+    func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
+        ToolbarItemGroup(placement: .topBarLeading) {
             Button {
-                webViewHelper.webView?.goBack()
+                pageViewProxy.goBack = true
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!canGoBack)
+            .disabled(!pageViewProxy.canGoBack)
             Button {
-                webViewHelper.webView?.goForward()
+                pageViewProxy.goForward = true
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!canGoForward)
+            .disabled(!pageViewProxy.canGoForward)
             Button {
-                if isLoading {
-                    webViewHelper.webView?.stopLoading()
+                if pageViewProxy.isLoading {
+                    pageViewProxy.reload = false
                 } else {
-                    webViewHelper.webView?.reload()
+                    pageViewProxy.reload = true
                 }
             } label: {
-                if isLoading {
+                if pageViewProxy.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -100,9 +100,9 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let item = NewsData.shared.container.viewContext.object(with: selection) as? CDItem {
-                ShareLinkButton(item: item)
-                    .disabled(isLoading)
+            if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
+                ShareLinkButton(item: currentItem, url: pageViewProxy.url)
+                    .disabled(pageViewProxy.isLoading)
             } else {
                 EmptyView()
             }
@@ -111,20 +111,12 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(isLoading)
+            .disabled(pageViewProxy.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let item = moc.object(with: selection) as? CDItem {
-                    ArticleSettingsView(item: item)
+                if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
+                    ArticleSettingsView(item: currentItem)
                         .presentationDetents([.height(300.0)])
                 }
-            }
-        }
-    }
-
-    private func markItemRead() {
-        if let item = moc.object(with: selection) as? CDItem, item.unread {
-            Task {
-                try? await NewsManager.shared.markRead(items: [item], unread: false)
             }
         }
     }

@@ -6,35 +6,49 @@
 //
 
 import BackgroundTasks
+import SwiftData
 import SwiftUI
 
 @main
 struct CloudNewsApp: App {
-    @StateObject private var feedModel = FeedModel()
+    private let container: ModelContainer
+    private let newsModel: NewsModel
+    private let modelActor: NewsDataModelActor
+    private let syncManager: SyncManager
 
 #if !os(macOS)
-    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @Environment(\.scenePhase) var scenePhase
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #endif
-
-    private let appRefreshTaskId = "dev.pbh.cloudnews.sync"
-
+    
+    init() {
+        container = SharedDatabase.shared.modelContainer
+        self.modelActor = NewsDataModelActor(modelContainer: container)
+        self.newsModel = NewsModel(databaseActor: modelActor)
+        self.syncManager = SyncManager(databaseActor: modelActor)
+        syncManager.configureSession()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, NewsData.shared.container.viewContext)
-                .environmentObject(feedModel)
+                .environment(newsModel)
+                .environment(syncManager)
         }
-#if os(macOS)
-        .defaultSize(width: 1000, height: 650)
-        .windowToolbarStyle(.unifiedCompact)
-        .commands {
-            AppCommands(model: feedModel)
+        .modelContainer(container)
+        .database(SharedDatabase.shared.database)
+#if !os(macOS)
+        .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
+            await scheduleAppRefresh()
+            await syncManager.backgroundSync()
         }
-#else
-        .onChange(of: scenePhase) { newPhase in
+#endif
+        .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
+            syncManager.processSessionData()
+        }
+#if !os(macOS)
+        .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
                 break
@@ -46,58 +60,73 @@ struct CloudNewsApp: App {
                 fatalError("Unknown scene phase")
             }
         }
-        .backgroundTask(.appRefresh(appRefreshTaskId)) {
-            do {
-                try await NewsManager().sync()
-                await scheduleAppRefresh()
-            } catch { }
+#endif
+#if os(macOS)
+        .defaultSize(width: 1000, height: 650)
+        .windowToolbarStyle(.unifiedCompact)
+        .commands {
+            AppCommands(newsModel: newsModel)
         }
 #endif
-
+        
 #if os(macOS)
         Settings {
             SettingsView()
+                .environment(newsModel)
+                .frame(width: 550, height: 500)
         }
+        .restorationBehavior(.disabled)
 
         WindowGroup(Text("Log In"), id: "login") {
             LoginWebViewView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
 
-        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue, for: Int32.self) { feedId in
-            if let value = feedId.wrappedValue {
-                FeedSettingsView(Int(value))
-                    .frame(width: 600, height: 500)
-            }
+        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
+            FeedSettingsView()
+                .environment(newsModel)
+                .frame(width: 600, height: 500)
+            
         }
         .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
+        .modelContainer(container)
 
         WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
-            AddView(.feed)
-                .frame(width: 500, height: 200)
+            AddView(selectedAdd: .feed)
+                .environment(newsModel)
+                .frame(width: 500, height: 220)
         }
         .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
+        .modelContainer(container)
 
         WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
-            AddView(.folder)
+            AddView(selectedAdd: .folder)
+                .environment(newsModel)
                 .frame(width: 500, height: 200)
         }
         .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
+        .modelContainer(container)
 
         WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }
         .windowResizability(.contentSize)
-
+        .restorationBehavior(.disabled)
 #endif
     }
 
 #if os(iOS)
     func scheduleAppRefresh() {
-        let request = BGAppRefreshTaskRequest(identifier: appRefreshTaskId)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: .fiveMinutes)
+        let request = BGProcessingTaskRequest(identifier: Constants.appRefreshTaskId)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: .fifteenMinutes)
+        request.requiresExternalPower = false
+        request.requiresNetworkConnectivity = true
         do {
             try BGTaskScheduler.shared.submit(request)
             print("Submit called")
@@ -106,4 +135,5 @@ struct CloudNewsApp: App {
         }
     }
 #endif
+
 }

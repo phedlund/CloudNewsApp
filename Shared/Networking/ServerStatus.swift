@@ -9,15 +9,20 @@
 import Foundation
 import OpenSSL
 
-class ServerStatus: NSObject {
-    static let shared = ServerStatus()
+struct ProductStatus {
+    var name: String
+    var version: String
+}
+
+final class ServerStatus: NSObject {
+    nonisolated(unsafe) static let shared = ServerStatus()
     private let preferences = Preferences()
 
-    var session = URLSession(configuration: .default)
+    let session: URLSession
 
     override init() {
+        session = URLSession(configuration: .default, delegate: ServerStatusDelegate(), delegateQueue: OperationQueue())
         super.init()
-        session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
     }
 
     func check() async throws -> ProductStatus? {
@@ -78,6 +83,40 @@ class ServerStatus: NSObject {
         return nil
     }
 
+    func writeCertificate(host: String) {
+        let directoryCertificate = ServerStatus.certificatesDirectory!
+        let certificateAtPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("tmp")
+        let certificateToPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("der")
+
+        do {
+            try FileManager.default.moveItem(at: certificateAtPath, to: certificateToPath)
+        } catch (let error) {
+            print(error.localizedDescription)
+        }
+    }
+
+    func certificateText(_ host: String) -> String {
+        let directoryCertificate = ServerStatus.certificatesDirectory!
+        let certificateTxtPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("txt")
+        do {
+            return try String(contentsOf: certificateTxtPath, encoding: .utf8)
+        } catch {
+            return ""
+        }
+    }
+
+}
+
+final class ServerStatusDelegate: NSObject, URLSessionDelegate {
+
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+        if checkTrustedChallenge(session, didReceive: challenge) {
+            return (URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
+        } else {
+            return (URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
+        }
+    }
+
     private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
         let protectionSpace = challenge.protectionSpace
         let directoryCertificate = ServerStatus.certificatesDirectory!
@@ -116,28 +155,6 @@ class ServerStatus: NSObject {
         return isTrusted
     }
 
-    func writeCertificate(host: String) {
-        let directoryCertificate = ServerStatus.certificatesDirectory!
-        let certificateAtPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("tmp")
-        let certificateToPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("der")
-
-        do {
-            try FileManager.default.moveItem(at: certificateAtPath, to: certificateToPath)
-        } catch (let error) {
-            print(error.localizedDescription)
-        }
-    }
-
-    func certificateText(_ host: String) -> String {
-        let directoryCertificate = ServerStatus.certificatesDirectory!
-        let certificateTxtPath = directoryCertificate.appendingPathComponent(host).appendingPathExtension("txt")
-        do {
-            return try String(contentsOf: certificateTxtPath)
-        } catch {
-            return ""
-        }
-    }
-
     private func saveX509Certificate(_ certificate: SecCertificate, host: String, directoryCertificate: String) {
         let certNamePathTXT = directoryCertificate + "/" + host + ".txt"
         let data: CFData = SecCertificateCopyData(certificate)
@@ -164,18 +181,6 @@ class ServerStatus: NSObject {
         }
 
         BIO_free(mem)
-    }
-
-}
-
-extension ServerStatus: URLSessionDelegate {
-
-    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        if checkTrustedChallenge(session, didReceive: challenge) {
-            completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
-        } else {
-            completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
-        }
     }
 
 }

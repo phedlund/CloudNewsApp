@@ -12,73 +12,131 @@ import SwiftUI
 import WebKit
 
 struct MacArticleView: View {
-    @Environment(\.managedObjectContext) private var moc
-    var item: CDItem?
+    @Environment(NewsModel.self) private var newsModel
+
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     @State private var title = ""
     @State private var canGoBack = false
     @State private var canGoForward = false
     @State private var isLoading = false
 
+    var content: ArticleWebContent
+
+    let pageViewReader = PageViewProxy()
+
+    init(content: ArticleWebContent) {
+        self.content = content
+    }
+
     var body: some View {
-        if let item {
+        WebViewReader { reader in
             WebView { webView in
-                item.webViewHelper.item = item
-                item.webViewHelper.webView = webView
-                if let urlRequest = item.webViewHelper.urlRequest {
-                    webView.load(urlRequest)
-                    item.webViewHelper.markItemRead()
+                reader.setup(webView: webView)
+                pageViewReader.title = reader.title
+                Task {
+                    if await newsModel.feedPrefersWeb(id: content.item.feedId),
+                        let urlString = content.item.url,
+                        let url = URL(string: urlString) {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                    } else {
+                        if let url = content.url {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                        }
+                    }
                 }
             }
-            .id(item.id) //forces the web view to be recreated to get a unique WKWebView for each article
+            .id(content.item.id) //forces the web view to be recreated to get a unique WKWebView for each article
             .navigationTitle(title)
             .background {
-                Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
+                Color.phWhiteBackground.ignoresSafeArea(edges: .vertical)
             }
-            .onReceive(item.webViewHelper.$canGoBack) {
-                canGoBack = $0
-            }
-            .onReceive(item.webViewHelper.$canGoForward) {
-                canGoForward = $0
-            }
-            .onReceive(item.webViewHelper.$isLoading) {
-                isLoading = $0
-            }
-            .onReceive(item.webViewHelper.$title) {
-                if $0 != title {
-                    title = $0
+            .onChange(of: content.url, initial: true) { _, _ in
+                pageViewReader.title = reader.title
+                Task {
+                    if await newsModel.feedPrefersWeb(id: content.item.feedId),
+                        let urlString = content.item.url,
+                        let url = URL(string: urlString) {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                    } else {
+                        if let url = content.url {
+                            pageViewReader.url = url
+                            reader.webView?.load(URLRequest(url: url))
+                        }
+                    }
                 }
             }
-            .toolbar {
-                articleToolBarContent(item: item)
+            .onChange(of: reader.canGoBack) { _, newValue in
+                pageViewReader.canGoBack = newValue
             }
-        } else {
-            Text("No Article Selected")
-                .font(.largeTitle).fontWeight(.light)
-                .foregroundColor(.secondary)
+            .onChange(of: pageViewReader.goBack) { _, newValue in
+                if newValue == true {
+                    reader.webView?.goBack()
+                }
+                pageViewReader.goBack = false
+            }
+            .onChange(of: reader.canGoForward) { _, newValue in
+                pageViewReader.canGoForward = newValue
+            }
+            .onChange(of: pageViewReader.goForward) { _, newValue in
+                if newValue == true {
+                    reader.webView?.goForward()
+                }
+                pageViewReader.goForward = false
+            }
+            .onChange(of: reader.isLoading) { _, newValue in
+                pageViewReader.isLoading = newValue
+            }
+            .onChange(of: pageViewReader.reload) { _, newValue in
+                if newValue == true {
+                    reader.webView?.reload()
+                } else {
+                    reader.webView?.stopLoading()
+                }
+            }
+            .onChange(of: fontSize) {
+                content.reloadItemSummary()
+                reader.webView?.reload()
+            }
+            .onChange(of: lineHeight) {
+                content.reloadItemSummary()
+                reader.webView?.reload()
+            }
+            .onChange(of: marginPortrait) {
+                content.reloadItemSummary()
+                reader.webView?.reload()
+            }
+            .toolbar {
+                articleToolBarContent(reader: reader)
+            }
         }
     }
 
     @ToolbarContentBuilder
-    func articleToolBarContent(item: CDItem) -> some ToolbarContent {
+    func articleToolBarContent(reader: WebViewProxy) -> some ToolbarContent {
         ToolbarItemGroup {
             Button {
-                item.webViewHelper.webView?.goBack()
+                reader.webView?.goBack()
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!canGoBack)
+            .disabled(!reader.canGoBack)
             Button {
-                item.webViewHelper.webView?.goForward()
+                reader.webView?.goForward()
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!canGoForward)
+            .disabled(!reader.canGoForward)
             Button {
                 if isLoading {
-                    item.webViewHelper.webView?.stopLoading()
+                    reader.webView?.stopLoading()
                 } else {
-                    item.webViewHelper.webView?.reload()
+                    reader.webView?.reload()
                 }
             } label: {
                 if isLoading {
@@ -88,8 +146,8 @@ struct MacArticleView: View {
                 }
             }
             Spacer()
-            ShareLinkButton(item: item)
-                .disabled(isLoading)
+//            ShareLinkButton(item: item)
+//                .disabled(reader.isLoading)
         }
     }
 

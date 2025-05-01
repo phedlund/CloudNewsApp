@@ -5,12 +5,13 @@
 //  Created by Peter Hedlund on 3/19/23.
 //
 
+import SwiftData
 import SwiftUI
 
 #if os(macOS)
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
-    @ObservedObject var model: FeedModel
+    let newsModel: NewsModel
 
     @AppStorage(SettingKeys.selectedFeed) private var selectedFeed: Int = 0
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
@@ -24,12 +25,11 @@ struct AppCommands: Commands {
         }
         CommandGroup(after: .sidebar) {
             Divider()
-            MarkReadButton(node: model.currentNode)
+            MarkReadButton()
+                .environment(newsModel)
             Divider()
             Button("Refresh") {
-                Task {
-                    try await NewsManager.shared.sync()
-                }
+                NotificationCenter.default.post(name: .syncNews, object: nil)
             }
             .keyboardShortcut("r")
             Divider()
@@ -58,11 +58,11 @@ struct AppCommands: Commands {
             .keyboardShortcut("n")
             Divider()
             Button("Settings...") {
-                switch model.currentNode.nodeType {
+                switch newsModel.currentNodeType {
                 case .empty, .all, .starred, .folder(id: _):
                     break
-                case .feed(id: let id):
-                    openWindow(id: ModalSheet.feedSettings.rawValue, value: id)
+                case .feed(id: _):
+                    openWindow(id: ModalSheet.feedSettings.rawValue)
                 }
             }
             .disabled(isFeedSettingsDisabled())
@@ -77,33 +77,33 @@ struct AppCommands: Commands {
         }
         CommandMenu("Article") {
             Button("Previous") {
-                model.selectPreviousItem()
+                NotificationCenter.default.post(name: .previousArticle, object: nil)
             }
             .keyboardShortcut("p", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Button("Next") {
-                model.selectNextItem()
+                NotificationCenter.default.post(name: .nextArticle, object: nil)
             }
             .keyboardShortcut("n", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
-            Button(model.currentItem?.unread ?? false ? "Read" : "Unread") {
+            Button(newsModel.currentItem?.unread ?? false ? "Read" : "Unread") {
                 Task {
-                    try? await NewsManager.shared.markRead(items: [model.currentItem!], unread: !model.currentItem!.unread)
+                    newsModel.toggleCurrentItemRead()
                 }
             }
             .keyboardShortcut("u", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
-            Button(model.currentItem?.starred ?? false ? "Unstar" : "Star") {
+            Button(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star") {
                 Task {
-                    try? await NewsManager.shared.markStarred(item: model.currentItem!, starred: !model.currentItem!.starred)
+                    try? await newsModel.markCurrentItemStarred()
                 }
             }
             .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
             Button("Copy Link") {
-                if let urlString = model.currentItem?.url, let url = URL(string: urlString) {
+                if let urlString = newsModel.currentItem?.url, let url = URL(string: urlString) {
                     MacClipboard.set(url: url)
                 }
             }
@@ -189,21 +189,21 @@ struct AppCommands: Commands {
     }
 
     private func isCurrentItemDisabled() -> Bool {
-        return model.currentItemID == nil
+        return newsModel.currentItem == nil
     }
 
     private func isCopyCurrentLinkDisabled() -> Bool {
-        if model.currentItemID == nil {
+        guard let item = newsModel.currentItem else {
             return true
         }
-        if let urlString = model.currentItem?.url, let _ = URL(string: urlString) {
+        if let urlString = item.url, let _ = URL(string: urlString) {
             return false
         }
         return true
     }
 
     private func isFolderRenameDisabled() -> Bool {
-        switch model.currentNode.nodeType {
+        switch newsModel.currentNodeType {
         case .empty, .all, .starred, .feed(id: _):
             return true
         case .folder(id: _):
@@ -212,7 +212,7 @@ struct AppCommands: Commands {
     }
 
     private func isFeedSettingsDisabled() -> Bool {
-        switch model.currentNode.nodeType {
+        switch newsModel.currentNodeType {
         case .empty, .all, .starred, .folder(id: _):
             return true
         case .feed(id: _):

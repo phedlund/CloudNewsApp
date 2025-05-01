@@ -7,11 +7,15 @@
 //
 
 import Combine
+import Observation
 import SwiftSoup
 import SwiftUI
 
-class ArticleWebContent: ObservableObject {
-    @Published public var url: URL?
+@Observable
+class ArticleWebContent {
+    var url: URL?
+    var item: Item
+
     private let author: String
     private let title: String
     private let feedTitle: String
@@ -19,9 +23,9 @@ class ArticleWebContent: ObservableObject {
     private let baseString: String
     private let urlString: String
     private let summary: String
-    let fileName: String
+    private let fileName: String
+
     private var preferences = Preferences()
-    private var cancellables = Set<AnyCancellable>()
     private var isInInit = false
 
     private var cssPath: String {
@@ -34,52 +38,22 @@ class ArticleWebContent: ObservableObject {
         }
     }
 
-    init(item: CDItem?) {
+    init(item: Item) {
+        self.item = item
         isInInit = true
-        if let item = item {
-            let feed = CDFeed.feed(id: item.feedId)
-            title = item.displayTitle
-            summary = Self.output(item: item)
-            baseString = Self.baseString(item: item)
-            urlString = Self.itemUrl(item: item)
-            dateText = Self.dateText(item: item)
-            author = Self.itemAuthor(item: item)
-            feedTitle = feed?.title ?? "Untitled"
-            fileName = "summary_\(item.id)"
-        } else {
-            title = "Untitled"
-            summary = "No Summary"
-            baseString = ""
-            urlString = ""
-            dateText = ""
-            author = ""
-            feedTitle = "Untitled"
-            fileName = "summary_000"
-        }
-
-        preferences.$marginPortrait.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        preferences.$fontSize.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        preferences.$lineHeight.sink { [weak self] _ in
-            guard let self, !self.isInInit else { return }
-            self.saveItemSummary()
-        }
-        .store(in: &cancellables)
-
-        saveItemSummary()
+        title = item.displayTitle
+        summary = Self.output(item: item)
+        baseString = Self.baseString(item: item)
+        urlString = Self.itemUrl(item: item)
+        dateText = Self.dateText(item: item)
+        author = Self.itemAuthor(item: item)
+        feedTitle = item.feed?.title ?? "Untitled"
+        fileName = "summary_\(item.id)"
+        reloadItemSummary()
         isInInit = false
     }
 
-    private func saveItemSummary() {
+    func reloadItemSummary() {
 
         let htmlTemplate = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -140,14 +114,13 @@ class ArticleWebContent: ObservableObject {
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
                 url = saveUrl
-                objectWillChange.send()
             }
         } catch(let error) {
             print(error.localizedDescription)
         }
     }
 
-    private static func baseString(item: CDItem) -> String {
+    private static func baseString(item: Item) -> String {
         var result = ""
 
         if let urlString = item.url,
@@ -159,7 +132,7 @@ class ArticleWebContent: ObservableObject {
         return result
     }
 
-    private static func output(item: CDItem) -> String {
+    private static func output(item: Item) -> String {
         var result = ""
 
         if let html = item.body,
@@ -206,11 +179,11 @@ class ArticleWebContent: ObservableObject {
             """
     }
 
-    private static func itemUrl(item: CDItem) -> String {
+    private static func itemUrl(item: Item) -> String {
         return item.url ?? ""
     }
 
-    private static func itemAuthor(item: CDItem) -> String {
+    private static func itemAuthor(item: Item) -> String {
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {
             author = "By \(itemAuthor)"
@@ -218,13 +191,11 @@ class ArticleWebContent: ObservableObject {
         return author
     }
 
-    private static func dateText(item: CDItem) -> String {
-        let dateNumber = TimeInterval(item.pubDate)
-        let date = Date(timeIntervalSince1970: dateNumber)
+    private static func dateText(item: Item) -> String {
         let dateFormat = DateFormatter()
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;
-        return dateFormat.string(from: date)
+        return dateFormat.string(from: item.pubDate)
     }
 
     private func updateCssVariables() -> String {
@@ -232,16 +203,24 @@ class ArticleWebContent: ObservableObject {
         return """
             :root {
                 font: -apple-system-body;
-                --bg-color: \(Color.pbh.whiteBackground.hexaRGB!);
-                --text-color: \(Color.pbh.whiteText.hexaRGB!);
+                --bg-color: \(Color.phWhiteBackground.hexaRGB!);
+                --text-color: \(Color.phWhiteText.hexaRGB!);
                 --font-size: \(fontSize);
                 --body-width-portrait: \(preferences.marginPortrait)vw;
                 --body-width-landscape: \(preferences.marginPortrait)vw;
                 --line-height: \(preferences.lineHeight)em;
-                --link-color: \(Color.pbh.whiteLink.hexaRGB!);
+                --link-color: \(Color.phWhiteLink.hexaRGB!);
             }
         """
     }
+
+}
+
+extension ArticleWebContent: Equatable {
+    static func == (lhs: ArticleWebContent, rhs: ArticleWebContent) -> Bool {
+        return lhs.url != nil && rhs.url != nil && lhs.url == rhs.url
+    }
+    
 
 }
 

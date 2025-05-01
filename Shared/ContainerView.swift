@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol ContainerView: View {
     associatedtype Content
     init(content: @escaping () -> Content)
@@ -18,21 +19,8 @@ extension ContainerView {
     }
 }
 
-struct ListGroup<Content: View>: ContainerView {
-    var content: () -> Content
-
-    var body: some View {
-        Group {
-#if os(macOS)
-            VStack(content: content)
-#else
-            NavigationStack(root: content)
-#endif
-        }
-    }
-}
-
-struct RowContainer<Content: View>: ContainerView {
+struct ListGroup<Content: View>: View {
+    @Binding var path: [Item]
     var content: () -> Content
 
     var body: some View {
@@ -40,18 +28,14 @@ struct RowContainer<Content: View>: ContainerView {
 #if os(macOS)
             Group(content: content)
 #else
-            HStack {
-                Spacer()
-                Group(content: content)
-                Spacer()
-            }
+            NavigationStack(path: $path, root: content)
 #endif
         }
     }
 }
 
 struct ZStackGroup<Content: View>: View {
-    var item: CDItem
+    var item: Item
     var content: () -> Content
 
     var body: some View {

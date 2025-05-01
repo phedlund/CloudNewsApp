@@ -5,13 +5,15 @@
 //  Created by Peter Hedlund on 7/13/21.
 //
 
+import SwiftData
 import SwiftUI
 
 let noFolderName = "(No Folder)"
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.managedObjectContext) private var moc
+    @Environment(NewsModel.self) private var newsModel
+    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
 
     @State private var title = ""
@@ -19,45 +21,19 @@ struct FeedSettingsView: View {
     @State private var preferWeb = false
     @State private var footerMessage = ""
     @State private var footerSuccess = true
-
     @State private var folderNames = [String]()
     @State private var folderSelection = noFolderName
     @State private var pinned = false
+    @State private var updateErrorCount = ""
+    @State private var lastUpdateError = ""
+    @State private var url = ""
+    @State private var added = ""
+    @State private var initialTitle = ""
+    @State private var initialFolderSelection = noFolderName
 
-    private var feed: CDFeed?
-    private var updateErrorCount = ""
-    private var lastUpdateError = ""
-    private var url = ""
-    private var added = ""
-    private var initialTitle = ""
-    private var initialFolderSelection = noFolderName
-
-    init(_ selectedFeed: Int) {
-        if let theFeed = CDFeed.feed(id: Int32(selectedFeed)),
-           let folders = CDFolder.all() {
-            self.feed = theFeed
-            var fNames = [noFolderName]
-            let names = folders.compactMap( { $0.name } )
-            fNames.append(contentsOf: names)
-            self._folderNames = State(initialValue: fNames)
-            if let folder = CDFolder.folder(id: theFeed.folderId),
-               let folderName = folder.name {
-                self._folderSelection = State(initialValue: folderName)
-                initialFolderSelection = folderName
-            }
-            initialTitle = theFeed.title ?? "Untitled"
-            self._title = State(initialValue: initialTitle)
-            self._preferWeb = State(initialValue: theFeed.preferWeb)
-            self._pinned = State(initialValue: theFeed.pinned)
-            updateErrorCount = "\(theFeed.updateErrorCount)"
-            lastUpdateError = theFeed.lastUpdateError ?? "No error"
-            url = theFeed.url ?? ""
-            let dateAdded = Date(timeIntervalSince1970: TimeInterval(theFeed.added))
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .long
-            added = dateFormatter.string(from: dateAdded)
-        }
-    }
+    @Query private var nodes: [Node]
+    @Query private var folders: [Folder]
+    @Query private var feeds: [Feed]
 
     var body: some View {
         VStack {
@@ -65,10 +41,14 @@ struct FeedSettingsView: View {
                 Section {
                     TextField("Title", text: $title) { isEditing in
                         if !isEditing {
-                            onTitleCommit()
+                            Task {
+                                await onTitleCommit()
+                            }
                         }
                     } onCommit: {
-                        onTitleCommit()
+                        Task {
+                            await onTitleCommit()
+                        }
                     }
                     .textFieldStyle(.roundedBorder)
                     Picker(selection: $folderSelection) {
@@ -121,6 +101,7 @@ struct FeedSettingsView: View {
             }
             .formStyle(.grouped)
             .navigationTitle("Feed Settings")
+#if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("") {
@@ -129,18 +110,52 @@ struct FeedSettingsView: View {
                     .buttonStyle(XButton())
                 }
             }
-            .onChange(of: folderSelection) { [folderSelection] newFolder in
-                if newFolder != folderSelection {
-                    onFolderSelection(newFolder == noFolderName ? "" : newFolder)
+#endif
+            .task {
+                switch newsModel.currentNodeType {
+                case .feed(id: let id):
+                    if let feed = feeds.first(where: { $0.id == id }) {
+                        var fNames = [noFolderName]
+                        let names = folders.compactMap( { $0.name } ).sorted()
+                        fNames.append(contentsOf: names)
+                        folderNames = fNames
+                        if let folder = feed.folder,
+                           let folderName = folder.name {
+                            folderSelection = folderName
+                            initialFolderSelection = folderName
+                        }
+                        initialTitle = feed.title ?? "Untitled"
+                        title = initialTitle
+                        preferWeb = feed.preferWeb
+                        pinned = feed.pinned
+                        updateErrorCount = "\(feed.updateErrorCount)"
+                        lastUpdateError = feed.lastUpdateError ?? "No error"
+                        url = feed.url ?? ""
+                        let dateAdded = feed.added
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateStyle = .long
+                        added = dateFormatter.string(from: dateAdded)
+                    }
+                default:
+                    break
                 }
             }
-            .onChange(of: preferWeb) { newValue in
-                if let feed = self.feed {
-                    feed.preferWeb = preferWeb
-                    do {
-                        try moc.save()
-                    } catch {
-                        //
+            .onChange(of: folderSelection) { oldValue, newValue in
+                if newValue != oldValue {
+                    Task {
+                        await onFolderSelection(newValue == noFolderName ? "" : newValue)
+                    }
+                }
+            }
+            .onChange(of: preferWeb) { _, newValue in
+                if let feed = feedForNodeType(newsModel.currentNodeType) {
+                    feed.preferWeb = newValue
+                    Task {
+                        do {
+                            try await self.newsModel.databaseActor.save()
+                        } catch {
+                            //
+                        }
                     }
                 }
             }
@@ -159,57 +174,71 @@ struct FeedSettingsView: View {
         }
     }
 
-    private func onTitleCommit() {
-        if let feed = self.feed {
+    private func onTitleCommit() async {
+        if let feed = feedForNodeType(newsModel.currentNodeType),
+            let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
             if !title.isEmpty, title != feed.title {
-                Task {
-                    do {
-                        try await NewsManager.shared.renameFeed(feed: feed, to: title)
-                        feed.title = title
-                        try moc.save()
-                    } catch let error as NetworkError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error as DatabaseError {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    } catch let error {
-                        title = initialTitle
-                        footerMessage = error.localizedDescription
-                        footerSuccess = false
-                    }
+                do {
+                    try await newsModel.renameFeed(feedId: feed.id, to: title)
+                    node.title = title
+                    feed.title = title
+                    try await self.newsModel.databaseActor.save()
+                } catch let error as NetworkError {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error as DatabaseError {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
+                } catch let error {
+                    title = initialTitle
+                    footerMessage = error.localizedDescription
+                    footerSuccess = false
                 }
             }
         }
     }
 
-    private func onFolderSelection(_ newFolderName: String) {
-        if let feed = self.feed {
-            Task {
-                var newFolderId: Int32 = 0
-                if let newFolder = CDFolder.folder(name: newFolderName) {
-                    newFolderId = newFolder.id
-                }
-                do {
-                    try await NewsManager.shared.moveFeed(feed: feed, to: newFolderId)
-                    feed.folderId = newFolderId
-                    try moc.save()
-                } catch let error as NetworkError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error as DatabaseError {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                } catch let error {
-                    folderSelection = initialFolderSelection
-                    footerMessage = error.localizedDescription
-                    footerSuccess = false
-                }
+    private func onFolderSelection(_ newFolderName: String) async {
+        if let feed = feedForNodeType(newsModel.currentNodeType), let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
+            var newFolderId: Int64 = 0
+            if let newFolder = folders.first(where: { $0.name == newFolderName }) {
+                newFolderId = newFolder.id
             }
+            do {
+                try await newsModel.moveFeed(feedId: feed.id, to: newFolderId)
+                if newFolderId == 0 {
+                    node.parent = nil
+                } else {
+                    if let newParentNode = nodes.first(where: { $0.type == NodeType.folder(id: newFolderId) }) {
+                        newParentNode.children?.append(node)
+                    }
+                }
+                feed.folderId = newFolderId
+                try await newsModel.databaseActor.save()
+            } catch let error as NetworkError {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
+            } catch let error as DatabaseError {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
+            } catch let error {
+                folderSelection = initialFolderSelection
+                footerMessage = error.localizedDescription
+                footerSuccess = false
+            }
+        }
+    }
+
+    private func feedForNodeType(_ nodeType: NodeType) -> Feed? {
+        switch nodeType {
+        case .empty, .all, .starred, .folder:
+            return nil
+        case .feed(let id):
+            return feeds.first(where: { $0.id == id })
         }
     }
 
@@ -217,6 +246,6 @@ struct FeedSettingsView: View {
 
 struct FeedSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        FeedSettingsView(-2)
+        FeedSettingsView()
     }
 }

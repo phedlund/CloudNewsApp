@@ -17,6 +17,7 @@ enum DatabaseError {
     case itemErrorDeleting
     case feedErrorDeleting
     case folderErrorDeleting
+    case nodeErrorDeleting
     case folderErrorMarkingExpanded
 }
 
@@ -42,6 +43,8 @@ extension DatabaseError: LocalizedError {
             return NSLocalizedString("Failed to delete article from database", comment: "")
         case .folderErrorDeleting:
             return NSLocalizedString("Failed to delete folder from database", comment: "")
+        case .nodeErrorDeleting:
+            return NSLocalizedString("Failed to delete node from database", comment: "")
         case .folderErrorMarkingExpanded:
             return NSLocalizedString("Failed to mark folder expanded in database", comment: "")
         }

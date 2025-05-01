@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 7/22/21.
 //
 
+import SwiftData
 import SwiftUI
 
 enum AddType: Int, Identifiable {
@@ -16,7 +17,11 @@ enum AddType: Int, Identifiable {
 
 struct AddView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var selectedAdd: AddType = .feed
+    @Environment(NewsModel.self) private var newsModel
+    @Environment(\.modelContext) private var modelContext
+
+    var selectedAdd: AddType
+    
     @State private var input = ""
     @State private var isAdding = false
     @State private var footerMessage = ""
@@ -25,25 +30,12 @@ struct AddView: View {
     @State private var folderNames = [String]()
     @State private var folderId = 0
 
-    init(_ selectedAddType: AddType) {
-        self._selectedAdd = State(initialValue: selectedAddType)
-    }
+    @Query private var folders: [Folder]
 
     var body: some View {
         VStack {
             Form {
                 Section {
-#if !os(macOS)
-                    Picker(selection: $selectedAdd) {
-                        Text("Feed")
-                            .tag(AddType.feed)
-                        Text("Folder")
-                            .tag(AddType.folder)
-                    } label: {
-                        Text("Add")
-                    }
-                    .pickerStyle(.segmented)
-#endif
                     AddViewSegment(input: $input, addType: selectedAdd)
                     if selectedAdd == .feed {
                         Picker(selection: $folderSelection) {
@@ -57,13 +49,17 @@ struct AddView: View {
                         .disabled(input.isEmpty)
                     }
                     HStack {
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .opacity(isAdding ? 1.0 : 0.0)
                         Button {
                             switch selectedAdd {
                             case .feed:
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFeed(url: input, folderId: folderId)
+                                        try await newsModel.addFeed(url: input, folderId: folderId)
                                         footerMessage = "Feed '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -82,7 +78,7 @@ struct AddView: View {
                                 Task {
                                     isAdding = true
                                     do {
-                                        try await NewsManager.shared.addFolder(name: input)
+                                        try await newsModel.addFolder(name: input)
                                         footerMessage = "Folder '\(input)' added"
                                         footerSuccess = true
                                     } catch let error as NetworkError {
@@ -100,13 +96,12 @@ struct AddView: View {
                             }
                         } label: {
                             Text("Add")
+                                .padding(.horizontal)
                         }
+                        .foregroundStyle(.phWhiteIcon)
                         .buttonStyle(.bordered)
+                        .buttonBorderShape(.roundedRectangle)
                         .disabled(input.isEmpty)
-                        Spacer()
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .opacity(isAdding ? 1.0 : 0.0)
 #if os(macOS)
                             .controlSize(.small)
 #endif
@@ -116,6 +111,7 @@ struct AddView: View {
                 }
             }
             .formStyle(.grouped)
+            .scrollDisabled(true)
 #if os(macOS)
             HStack {
                 Spacer()
@@ -130,29 +126,28 @@ struct AddView: View {
 #endif
         }
 #if os(iOS)
-        .navigationTitle("Add Feed or Folder")
+        .navigationTitle( selectedAdd == .feed ? "Add Feed" : "Add Folder")
 #endif
         .onAppear {
-            if let folders = CDFolder.all() {
-                var fNames = [noFolderName]
-                let names = folders.compactMap( { $0.name } )
-                fNames.append(contentsOf: names)
-                folderNames = fNames
-            }
+            var fNames = [noFolderName]
+            let names = folders.compactMap( { $0.name } ).sorted()
+            fNames.append(contentsOf: names)
+            folderNames = fNames
         }
-        .onChange(of: folderSelection) { [folderSelection] newFolder in
-            if newFolder != folderSelection {
-                if let newFolder = CDFolder.folder(name: newFolder) {
+        .onChange(of: folderSelection, { oldValue, newValue in
+            if newValue != oldValue {
+                if let newFolder = folders.first(where: { $0.name == newValue }) {
                     folderId = Int(newFolder.id)
                 }
             }
-        }
+
+        })
     }
 }
 
 struct AddView_Previews: PreviewProvider {
     static var previews: some View {
-        AddView(.feed)
+        AddView(selectedAdd: .feed)
     }
 }
 
@@ -164,7 +159,7 @@ struct AddViewSegment: View {
     var body: some View {
         switch addType {
         case .feed:
-            TextField("URL", text: $input, prompt: Text("https://example.com/feed"))
+            TextField("URL", text: $input, prompt: Text(verbatim: "https://example.com/feed"))
 #if !os(macOS)
                 .autocapitalization(.none)
                 .textContentType(.URL)

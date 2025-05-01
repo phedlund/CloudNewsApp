@@ -21,7 +21,7 @@ class ItemReadManager {
         readContext.transactionAuthor = "readContext"
     }
 
-    func markRead(items: [CDItem], unread: Bool) async throws {
+    func markRead(items: [Item], unread: Bool) async throws {
         guard !items.isEmpty else {
             return
         }
@@ -51,14 +51,14 @@ class ItemReadManager {
                 case 200:
                     if unread {
                         try await readContext.perform {
-                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDUnread.entity())
+                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: Unread.entity())
                             if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
                                 print(result)
                             }
                         }
                     } else {
                         try await readContext.perform {
-                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: CDRead.entity())
+                            let batchDeleteRequest = self.newBatchDeleteRequest(with: itemIds, entity: Read.entity())
                             if let result = try self.readContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
                                 print(result)
                             }
@@ -67,14 +67,14 @@ class ItemReadManager {
                 default:
                     if unread {
                         try await readContext.perform {
-                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDRead.entity())
+                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: Read.entity())
                             if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
                                 print(result)
                             }
                         }
                     } else {
                         try await readContext.perform {
-                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: CDUnread.entity())
+                            let batchInsertRequest = self.newBatchInsertRequest(with: itemIds, entity: Unread.entity())
                             if let result = try self.readContext.execute(batchInsertRequest) as? NSBatchDeleteResult {
                                 print(result)
                             }
@@ -87,15 +87,15 @@ class ItemReadManager {
         }
     }
 
-    private func newBatchUpdateRequest(with itemIds: [Int32], unread: Bool) -> NSBatchUpdateRequest {
-        let batchUpdateRequest = NSBatchUpdateRequest(entity: CDItem.entity())
+    private func newBatchUpdateRequest(with itemIds: [Int64], unread: Bool) -> NSBatchUpdateRequest {
+        let batchUpdateRequest = NSBatchUpdateRequest(entity: Item.entity())
         batchUpdateRequest.predicate = NSPredicate(format:"id IN %@", itemIds)
         batchUpdateRequest.propertiesToUpdate = ["unread": NSNumber(booleanLiteral: unread)]
         batchUpdateRequest.resultType = .updatedObjectIDsResultType
         return batchUpdateRequest
     }
 
-    private func newBatchDeleteRequest(with itemIds: [Int32], entity: NSEntityDescription) -> NSBatchDeleteRequest {
+    private func newBatchDeleteRequest(with itemIds: [Int64], entity: NSEntityDescription) -> NSBatchDeleteRequest {
         let request = NSFetchRequest<NSFetchRequestResult>()
         request.entity = entity
         let predicate = NSPredicate(format: "itemId IN %@", itemIds)
@@ -105,7 +105,7 @@ class ItemReadManager {
         return deleteRequest
     }
 
-    private func newBatchInsertRequest(with itemIds: [Int32], entity: NSEntityDescription) -> NSBatchInsertRequest {
+    private func newBatchInsertRequest(with itemIds: [Int64], entity: NSEntityDescription) -> NSBatchInsertRequest {
         var index = 0
         let total = itemIds.count
         let propertyList = itemIds.map( { ["itemId": $0] })

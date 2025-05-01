@@ -8,20 +8,20 @@
 
 import Foundation
 
-struct Avatar : Codable {
+struct Avatar: Codable {
 
-        let data : String?
-        let mime : String?
+    let data: String?
+    let mime: String?
 
-        enum CodingKeys: String, CodingKey {
-                case data = "data"
-                case mime = "mime"
-        }
-    
-        init(from decoder: Decoder) throws {
-                let values = try decoder.container(keyedBy: CodingKeys.self)
-                data = try values.decodeIfPresent(String.self, forKey: .data)
-                mime = try values.decodeIfPresent(String.self, forKey: .mime)
-        }
+    enum CodingKeys: String, CodingKey {
+        case data = "data"
+        case mime = "mime"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        data = try values.decodeIfPresent(String.self, forKey: .data)
+        mime = try values.decodeIfPresent(String.self, forKey: .mime)
+    }
 
 }

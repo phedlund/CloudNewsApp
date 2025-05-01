@@ -5,17 +5,16 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+import SwiftData
 import SwiftUI
-import Combine
 
 enum ModalSheet: String {
-    case login
-    case folderRename
-    case settings
-    case feedSettings
+    case acknowledgement
     case addFeed
     case addFolder
-    case acknowledgement
+    case login
+    case settings
+    case feedSettings
 }
 
 extension ModalSheet: Identifiable {
@@ -23,19 +22,20 @@ extension ModalSheet: Identifiable {
 }
 
 struct SidebarView: View {
+    @Environment(NewsModel.self) private var newsModel
+    @Environment(SyncManager.self) private var syncManager
+    @Environment(\.modelContext) private var modelContext
+
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
     @AppStorage(SettingKeys.syncInterval) var syncInterval: SyncInterval = .fifteen
     @State private var timerStart = Date.now
     private let syncTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 #endif
-    @Environment(\.managedObjectContext) private var moc
-    @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var favIconRepository: FavIconRepository
-    @AppStorage(SettingKeys.selectedFeed) private var selectedFeed = 0
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
+    @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
+
     @State private var modalSheet: ModalSheet?
-    @State private var isSyncing = false
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
     @State private var isShowingRename = false
@@ -43,13 +43,19 @@ struct SidebarView: View {
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
+    @State private var selectedFeed: Int64 = 0
+    @State private var unreadPredicate = #Predicate<Item>{ _ in false }
 
-    @Binding var nodeSelection: Node.ID?
+    @Binding var nodeSelection: Data?
 
-    private var syncPublisher = NewsManager.shared.syncSubject
-        .receive(on: DispatchQueue.main)
+    @Query private var folders: [Folder]
+    @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
+    @Query(
+        FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
+                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
+    ) private var nodes: [Node]
 
-    init(nodeSelection: Binding<Node.ID?>) {
+    init(nodeSelection: Binding<Data?>) {
         self._nodeSelection = nodeSelection
     }
 
@@ -76,16 +82,38 @@ struct SidebarView: View {
                 Spacer(minLength: 10.0)
             }
         }
-        List(model.nodes, id: \.id, children: \.children, selection: $nodeSelection) { node in
+        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
             NodeView(node: node)
-                .environmentObject(favIconRepository)
-                .tag(node.id)
+                .environment(newsModel)
+                .tag(node.type.asData)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    nodeSelection = node.type.asData
+                }
                 .contextMenu {
                     contextMenu(node: node)
                 }
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
                     Button(role: .destructive) {
-                        model.delete(detail)
+                        switch detail.type {
+                        case .all, .empty, .starred:
+                            break
+                        case .feed(id: _),  .folder(id: _):
+                            Task {
+                                do {
+                                    try await newsModel.delete(detail)
+                                } catch let error as NetworkError {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
+                                } catch let error as DatabaseError {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
+                                } catch let error {
+                                    errorMessage = error.localizedDescription
+                                    isShowingError = true
+                                }
+                            }
+                        }
                     } label: {
                         Text("Delete \(detail.title)")
                     }
@@ -93,7 +121,7 @@ struct SidebarView: View {
                         confirmationNode = nil
                     }
                 } message: { detail in
-                    switch detail.nodeType {
+                    switch detail.type {
                     case .all, .empty, .starred:
                         EmptyView()
                     case .feed(id: _):
@@ -104,7 +132,6 @@ struct SidebarView: View {
                 }
         }
         .listStyle(.automatic)
-        .accentColor(.pbh.whiteIcon)
         .refreshable {
             sync()
         }
@@ -112,22 +139,6 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar(content: sidebarToolBarContent)
-        .onReceive(syncPublisher) { _ in
-            isSyncing = false
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
-            confirmationNode = model.currentNode
-            isShowingConfirmation = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
-            confirmationNode = model.currentNode
-            alertInput = model.currentNode.title
-            isShowingRename = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
-            confirmationNode = model.currentNode
-            isShowingConfirmation = true
-        }
 #if os(macOS)
         .onReceive(syncTimer) { _ in
             if syncInterval.rawValue > .zero {
@@ -146,45 +157,32 @@ struct SidebarView: View {
             case .settings:
                 NavigationView {
                     SettingsView()
+                        .environment(newsModel)
                 }
+                .tint(.accent)
             case .feedSettings:
                 NavigationView {
-                    FeedSettingsView(selectedFeed)
+                    FeedSettingsView()
+                        .environment(newsModel)
                 }
             case .login:
                 NavigationView {
                     SettingsView()
+                        .environment(newsModel)
                 }
-            case .addFeed, .addFolder, .folderRename, .acknowledgement:
+            case .acknowledgement, .addFeed, .addFolder:
                 EmptyView()
             }
         })
-        .alert(Text(model.currentNode.title), isPresented: $isShowingRename, actions: {
+        .alert(Text($alertInput.wrappedValue), isPresented: $isShowingRename, actions: {
             TextField("Title", text: $alertInput)
             Button("Rename") {
-                switch model.currentNode.nodeType {
+                switch newsModel.currentNodeType {
                 case .empty, .all, .starred, .feed( _):
                     break
                 case .folder(let id):
-                    if let folder = CDFolder.folder(id: id) {
-                        if folder.name != alertInput {
-                            Task {
-                                do {
-                                    try await NewsManager.shared.renameFolder(folder: folder, to: alertInput)
-                                    folder.name = alertInput
-                                    try moc.save()
-                                } catch let error as NetworkError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error as DatabaseError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                }
-                            }
-                        }
+                    Task {
+                        await folderRenameAction(folderId: id, newName: alertInput)
                     }
                 }
                 isShowingRename = false
@@ -196,20 +194,90 @@ struct SidebarView: View {
         }, message: {
             Text("Rename the folder")
         })
+        .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .feed( _):
+                break
+            case .folder(let id):
+                Task {
+                    nodeSelection = newsModel.currentNodeType.asData
+                    alertInput = await newsModel.folderName(id: id)
+                    isShowingRename = true
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .feed( _):
+                break
+            case .folder(let id):
+                if let node = nodes.first(where: { $0.type == .folder(id: id) }) {
+                    confirmationNode = node
+                    isShowingConfirmation = true
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
+            switch newsModel.currentNodeType {
+            case .empty, .all, .starred, .folder( _):
+                break
+            case .feed(let id):
+                if let node = nodes.first(where: { $0.type == .feed(id: id) }) {
+                    confirmationNode = node
+                    isShowingConfirmation = true
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .syncNews)) { _ in
+            sync()
+        }
+    }
+
+    private func folderRenameAction(folderId: Int64, newName: String) async {
+        let nodeType: NodeType = .folder(id: folderId)
+        if let node = nodes.first(where: { $0.type == nodeType } ), node.title != newName, let folder = folderForNodeType(nodeType) {
+            do {
+                try await newsModel.renameFolder(folderId: folderId, to: newName)
+                node.title = newName
+                folder.name = newName
+                try await newsModel.databaseActor.save()
+            } catch let error as NetworkError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            } catch let error as DatabaseError {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            } catch let error {
+                errorMessage = error.localizedDescription
+                isShowingError = true
+            }
+        }
+    }
+
+    private func folderForNodeType(_ nodeType: NodeType) -> Folder? {
+        switch nodeType {
+        case .empty, .all, .starred, .feed(_):
+            return nil
+        case .folder(let id):
+            return folders.first(where: { $0.id == id })
+        }
     }
 
     @ViewBuilder
     private func contextMenu(node: Node) -> some View {
-        switch node.nodeType {
+        switch node.type {
         case .empty, .starred:
             EmptyView()
         case .all:
-            MarkReadButton(node: node)
-        case .folder(let folderId):
-            MarkReadButton(node: node)
+            MarkReadButton()
+                .environment(newsModel)
+        case .folder( _):
+            MarkReadButton()
+                .environment(newsModel)
             Button {
-                selectedFeed = Int(folderId)
-                alertInput = model.currentNode.title
+                nodeSelection = node.type.asData
+                newsModel.currentNodeType = node.type
+                alertInput = node.title
                 isShowingRename = true
             } label: {
                 Label("Rename...", systemImage: "square.and.pencil")
@@ -220,13 +288,15 @@ struct SidebarView: View {
             } label: {
                 Label("Delete...", systemImage: "trash")
             }
-        case .feed(let feedId):
-            MarkReadButton(node: node)
+        case .feed( _):
+            MarkReadButton()
+                .environment(newsModel)
             Button {
+                nodeSelection = node.type.asData
+                newsModel.currentNodeType = node.type
 #if os(macOS)
-                openWindow(id: ModalSheet.feedSettings.rawValue, value: feedId)
+                openWindow(id: ModalSheet.feedSettings.rawValue)
 #else
-                selectedFeed = Int(feedId)
                 modalSheet = .feedSettings
 #endif
             } label: {
@@ -248,24 +318,24 @@ struct SidebarView: View {
             Spacer()
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(isSyncing ? 1.0 : 0.0)
+                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
                 .controlSize(.small)
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing || isNewInstall)
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
 #else
             ProgressView()
                 .progressViewStyle(.circular)
-                .opacity(isSyncing ? 1.0 : 0.0)
+                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(isSyncing || isNewInstall)
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
             Button {
                 modalSheet = .settings
             } label: {
@@ -275,25 +345,40 @@ struct SidebarView: View {
         }
     }
 
+    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
+        var result = FetchDescriptor<Item>()
+        switch node.type {
+        case .empty, .starred:
+            result.predicate = #Predicate<Item>{ _ in false }
+        case .all:
+            result.predicate = #Predicate<Item>{ $0.unread }
+        case .folder(id: let id):
+            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+        case .feed(id: let id):
+            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+        }
+        return result
+    }
+
     private func sync() {
-        isSyncing = true
-        Task(priority: .userInitiated) {
+        Task {
             do {
-                try await NewsManager().sync()
-                isShowingError = false
-                errorMessage = ""
-            } catch let error as NetworkError {
+                if let newsStatus = try await syncManager.sync() {
+                    newsVersion = newsStatus.version
+                    isShowingError = false
+                    if newsStatus.warnings.incorrectDbCharset {
+                        errorMessage = NSLocalizedString("The Nextcloud server database charset is not configured properly", comment: "Message that the database on the Nextcloud server is not configured properly")
+                        isShowingError = true
+                    }
+                    if newsStatus.warnings.improperlyConfiguredCron {
+                        errorMessage = NSLocalizedString("The cron job on the Nextcloud server is not configured properly", comment: "Message that the Nextcloud server cron job is not configured properly")
+                        isShowingError = true
+                    }
+                }
+            } catch {
                 errorMessage = error.localizedDescription
                 isShowingError = true
-                isSyncing = false
-            } catch let error as DatabaseError {
-                errorMessage = error.localizedDescription
-                isShowingError = true
-                isSyncing = false
-            } catch let error {
-                errorMessage = error.localizedDescription
-                isShowingError = true
-                isSyncing = false
             }
         }
     }

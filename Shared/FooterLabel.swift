@@ -16,19 +16,22 @@ struct FooterLabel: View {
         if message.isEmpty {
             EmptyView()
         } else {
-            Label {
-                Text(message)
+            HStack {
+                Label {
+                    Text(message)
 #if os(macOS)
-                    .font(.footnote)
+                        .font(.footnote)
 #endif
-            } icon: {
-                if success {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundStyle(.green, .green)
-                } else {
-                    Image(systemName: "exclamationmark.triangle")
-                        .foregroundStyle(.black, .red)
+                } icon: {
+                    if success {
+                        Image(systemName: "checkmark.circle")
+                            .foregroundStyle(.green, .green)
+                    } else {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.black, .red)
+                    }
                 }
+                Spacer()
             }
         }
     }

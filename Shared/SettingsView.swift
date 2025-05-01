@@ -40,6 +40,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(NewsModel.self) private var newsModel
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
 #else
@@ -71,27 +72,35 @@ struct SettingsView: View {
     @State private var settingsSheet: SettingsSheet?
     @State private var currentSettingsSheet: SettingsSheet = .login
     @State private var isShowingCertificateAlert = false
+    @State private var isShowingConnectionError = false
 
     var body: some View {
         Form {
             Section {
-                TextField(text: $server, prompt: Text("https://example.com/cloud")) {
-                    Text("URL")
-                }
+                    TextField(text: $server, prompt: Text(verbatim: "https://example.com/cloud")) {
+                        Text("URL")
+                    }
+                    .textContentType(.URL)
+                    .listRowSeparator(.hidden)
 #if !os(macOS)
-                .textContentType(.URL)
-                .autocapitalization(.none)
-                .listRowSeparator(.hidden)
+                    .autocapitalization(.none)
 #endif
-                .disableAutocorrection(true)
-                .textFieldStyle(.roundedBorder)
-                Button {
-                    onLogin()
-                } label: {
-                    Text("Log In...")
+                    .disableAutocorrection(true)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+                HStack {
+                    Spacer()
+                    Button {
+                        onLogin()
+                    } label: {
+                        Text("Log In...")
+                            .padding(.horizontal)
+                    }
+                    .foregroundStyle(.phWhiteIcon)
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.roundedRectangle)
+                    .disabled(server.isEmpty)
                 }
-                .buttonStyle(.plain)
-                .disabled(server.isEmpty)
             } header: {
                 Text("Server")
             } footer: {
@@ -119,6 +128,7 @@ struct SettingsView: View {
             } header: {
                 Text("Syncing")
             }
+            .tint(nil)
             Section {
                 Toggle(isOn: $showFavIcons) {
                     Text("Show Favicons")
@@ -129,6 +139,7 @@ struct SettingsView: View {
             } header: {
                 Text("Images")
             }
+            .tint(nil)
             Section {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
@@ -144,11 +155,12 @@ struct SettingsView: View {
                 }
                 Toggle(isOn: $adBlock) {
                     Text("Block Ads")
-                    Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-ios/blob/development/Client/WebFilters/ContentBlocker/Lists/block-ads.json)")
+                    Text("CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-core/blob/master/ios/brave-ios/Sources/Brave/WebFilters/ContentBlocker/Lists/block-ads.json)")
                 }
             } header: {
                 Text("Reading")
             }
+            .tint(nil)
             Section {
                 Picker(selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
@@ -161,9 +173,14 @@ struct SettingsView: View {
                 }
 #if !os(macOS)
                 NavigationLink {
-                    AddView(.feed)
+                    AddView(selectedAdd: .feed)
                 } label: {
-                    Text("Add Feed or Folder...")
+                    Text("Add Feed...")
+                }
+                NavigationLink {
+                    AddView(selectedAdd: .folder)
+                } label: {
+                    Text("Add Folder...")
                 }
 #endif
                 Button(role: .destructive) {
@@ -208,7 +225,7 @@ struct SettingsView: View {
             switch sheet {
             case .add:
                 NavigationView {
-                    AddView(.feed)
+                    AddView(selectedAdd: .feed)
                 }
             case .login:
                 LoginWebViewView()
@@ -232,7 +249,7 @@ struct SettingsView: View {
 #endif
             }
         })
-        .alert(Text("The certificate for this server is invalid"), isPresented: $isShowingCertificateAlert, actions: {
+        .alert("The certificate for this server is invalid", isPresented: $isShowingCertificateAlert, actions: {
             Button {
                 if let host = URL(string: server)?.host {
                     ServerStatus.shared.writeCertificate(host: host)
@@ -263,15 +280,27 @@ struct SettingsView: View {
         }, message: {
             Text("Do you want to connect to the server anyway?")
         })
+        .alert("Connection Error", isPresented: $isShowingConnectionError, actions: {
+            Button {
+                isShowingConnectionError = false
+            } label: {
+                Text("OK")
+            }
+        })
         .confirmationDialog("Clear local data", isPresented: $isShowingConfirmation, actions: {
             Button("Reset Data", role: .destructive) {
-                NewsData.shared.resetDatabase()
-                NewsManager.shared.syncSubject.send(SyncTimes(previous: 0, current: 0))
-                server = ""
-                productName = ""
-                productVersion = ""
-                isNewInstall = true
-                updateFooter()
+                Task {
+                    do {
+                        try await newsModel.resetDataBase()
+                        server = ""
+                        productName = ""
+                        productVersion = ""
+                        isNewInstall = true
+                        updateFooter()
+                    } catch {
+                        //
+                    }
+                }
             }
             Button("Cancel", role: .cancel) {
                 isShowingConfirmation = false
@@ -307,7 +336,7 @@ struct SettingsView: View {
                     let status = try await ServerStatus.shared.check()
                     productName = status?.name ?? ""
                     productVersion = status?.version ?? ""
-                    newsVersion = try await NewsManager.shared.version()
+                    newsVersion = try await newsModel.version()
                     updateFooter()
                     isNewInstall = false
                 } catch {
@@ -342,9 +371,7 @@ struct SettingsView: View {
                 if error.code == NSURLErrorServerCertificateUntrusted {
                     isShowingCertificateAlert = true
                 } else {
-                    //                let alertController = UIAlertController(title: NSLocalizedString("Connection error", comment: ""), message: error.localizedDescription, preferredStyle: .alert)
-                    //                alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default, handler: { _ in }))
-                    //                self.present(alertController, animated: true, completion: { })
+                    isShowingConnectionError = true
                 }
             }
         }
@@ -363,7 +390,7 @@ struct SettingsView: View {
         footerMessage = String.localizedStringWithFormat(format, newsVersionString, productName, productVersion)
         footerSuccess = true
     }
-    
+
 #if !os(macOS)
     private func sendMail() {
         if MFMailComposeViewController.canSendMail() {

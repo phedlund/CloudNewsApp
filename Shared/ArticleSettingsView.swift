@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct ArticleSettingsView: View {
+    @Environment(NewsModel.self) private var newsModel
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    var item: CDItem
+    let item: Item
 
     private let buttonHeight = 25.0
     private let buttonWidth = 100.0
@@ -20,11 +21,14 @@ struct ArticleSettingsView: View {
     var body: some View {
         Grid(alignment: .center, horizontalSpacing: 15, verticalSpacing: 20) {
             GridRow {
-                let isUnRead = item.unread
-                let isStarred = item.starred
+                let itemCopy = item
+                let isUnRead = itemCopy.unread
+                let isStarred = itemCopy.starred
                 Button {
                     Task {
-                        try? await NewsManager.shared.markRead(items: [item], unread: !isUnRead)
+                        item.unread.toggle()
+                        try await newsModel.databaseActor.save()
+                        try? await newsModel.markRead(items: [itemCopy], unread: !isUnRead)
                     }
                 } label: {
                     Label {
@@ -39,7 +43,7 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        try? await NewsManager.shared.markStarred(item: item, starred: !isStarred)
+                        try? await newsModel.markStarred(item: itemCopy, starred: !isStarred)
                     }
                 } label: {
                     Label {
@@ -53,6 +57,7 @@ struct ArticleSettingsView: View {
                     .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if fontSize > Constants.ArticleSettings.minFontSize {
@@ -75,6 +80,7 @@ struct ArticleSettingsView: View {
                         .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if lineHeight > Constants.ArticleSettings.minLineHeight {
@@ -91,12 +97,13 @@ struct ArticleSettingsView: View {
                         lineHeight += 0.2
                     }
                 } label: {
-                    Image("custom.line.3.horizontal")
+                    Image(.customLine3Horizontal)
                         .imageScale(.large)
                         .frame(minWidth: buttonWidth, maxWidth: .infinity, minHeight: buttonHeight, maxHeight: buttonHeight, alignment: .center)
                         .contentShape(Rectangle())
                 }
             }
+            Divider()
             GridRow {
                 Button {
                     if marginPortrait > Constants.ArticleSettings.minMarginWidth {
@@ -120,14 +127,15 @@ struct ArticleSettingsView: View {
                 }
             }
         }
+        .accentColor(.accent)
         .buttonStyle(.bordered)
         .accentColor(.pbh.whiteIcon)
         .padding()
     }
 }
 
-struct ArticleSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ArticleSettingsView(item: CDItem())
-    }
-}
+//struct ArticleSettingsView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ArticleSettingsView(item: Item())
+//    }
+//}

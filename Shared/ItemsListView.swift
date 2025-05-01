@@ -6,12 +6,11 @@
 //
 
 import Combine
-import Kingfisher
+import SwiftData
 import SwiftUI
 
 struct ItemsListView: View {
 #if os(macOS)
-    @State private var isHorizontalCompact = false
     let cellSpacing: CGFloat = 15.0
     let listRowSeparatorVisibility: Visibility = .visible
     let listRowBackground = EmptyView()
@@ -20,153 +19,188 @@ struct ItemsListView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let cellSpacing: CGFloat = 21.0
     let listRowSeparatorVisibility: Visibility = .hidden
-    let listRowBackground = Color.pbh.whiteBackground
+    let listRowBackground = Color.phWhiteBackground
 #endif
+    @Environment(NewsModel.self) private var newsModel
+    @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.selectedNode) private var selectedNode = ""
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
-    @EnvironmentObject private var model: FeedModel
-    @EnvironmentObject private var favIconRepository: FavIconRepository
+    @Query private var items: [Item]
 
+    @State private var path = [Item]()
+    @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
+    @State private var lastOffset: CGFloat = .zero
+    @State private var isScrollingToTop = false
+    @State private var sortDescriptors: [SortDescriptor<Item>]
 
-    private let offsetItemsDetector = CurrentValueSubject<CGFloat, Never>(0)
-    private let offsetItemsPublisher: AnyPublisher<CGFloat, Never>
+    @Binding var selectedItem: Item?
 
-    init() {
-        self.offsetItemsPublisher = offsetItemsDetector
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
-            .dropFirst()
-            .eraseToAnyPublisher()
+    let fetchDescriptor: FetchDescriptor<Item>
+
+    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
+        self._selectedItem = selectedItem
+        sortDescriptors = fetchDescriptor.sortBy
+        self.fetchDescriptor = fetchDescriptor
+        _items = Query(fetchDescriptor)
     }
-    
+
     var body: some View {
         let _ = Self._printChanges()
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
+            let cellSize = CGSize(width: cellWidth, height: cellHeight)
+            List(items, selection: $selectedItem) { item in
+                NavigationLink(value: item) {
+                    ItemView(item: item, size: cellSize)
+                        .id(item.id)
+                        .frame(height: cellHeight, alignment: .center)
+                        .contextMenu {
+                            contextMenu(item: item)
+                        }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
+                var nextIndex = items.startIndex
+                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: -1)
+                }
+                nextIndex = nextIndex > items.startIndex ? nextIndex: items.startIndex
+                $selectedItem.wrappedValue = items[nextIndex]
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { _ in
+                var nextIndex = items.startIndex
+                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: 1)
+                }
+                nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
+                $selectedItem.wrappedValue = items[nextIndex]
+            }
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
-#endif
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            ListGroup {
+            ListGroup(path: $path) {
                 ScrollViewReader { proxy in
-                    List(model.currentItems.indices, id: \.self, selection: $model.currentItemID) { index in
-                        let item = model.currentItems[index]
-                        ZStackGroup(item: item) {
-                            RowContainer {
-                                ItemRow(item: item, itemImageManager: ItemImageManager(item: item), isHorizontalCompact: isHorizontalCompact, isCompact: compactView, size: cellSize)
-                                    .id(index)
-                                    .tag(item.objectID)
-                                    .environmentObject(favIconRepository)
-#if os(macOS)
-                                    .frame(height: cellHeight, alignment: .center)
+                    ScrollView(.vertical) {
+                        ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
+                        LazyVStack(alignment: .center, spacing: 16.0) {
+                            ForEach(items, id: \.id) { item in
+                                NavigationLink(value: item) {
+                                    ItemView(item: item, size: cellSize)
+                                        .id(item.id)
+                                        .contextMenu {
+                                            contextMenu(item: item)
+                                        }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .newsNavigationDestination(type: Item.self, items: items)
+                        .onChange(of: selectedNode) { _, _ in
+                            path.removeAll()
+                            doScrollToTop()
+                        }
+                        .onChange(of: scenePhase) { _, newPhase in
+                            if newPhase == .active {
+                                doScrollToTop()
+                            }
+                        }
+                        .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
+                            if newValue == false {
+                                doScrollToTop()
+                            }
+                        }
+                        .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
+                            cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                        }
+                    }
+                    .onScrollPhaseChange { _, newPhase, context in
+                        if newPhase == .idle {
+                            Task {
+                                try? markRead(context.geometry.contentOffset.y)
+                            }
+                        }
+                    }
+                    .defaultScrollAnchor(.top)
+                    .accentColor(.phDarkIcon)
+                    .background {
+                        Color.phWhiteBackground
+                            .ignoresSafeArea(edges: .vertical)
+                    }
+                    .scrollContentBackground(.hidden)
+                }
+            }
 #endif
+        }
+    }
 
-                                    .contextMenu {
-                                        ContextMenuContent(item: item)
-                                    }
-                                    .alignmentGuide(.listRowSeparatorLeading) { _ in
-                                        return 0
-                                    }
-                            }
-                            .transformAnchorPreference(key: ViewOffsetKey.self, value: .top) { prefKey, _ in
-                                prefKey = CGFloat(index)
-                            }
-                            .onPreferenceChange(ViewOffsetKey.self) {
-                                let offset = ($0 * (cellHeight + cellSpacing)) - geometry.size.height
-                                offsetItemsDetector.send(offset)
-                            }
-                        }
-                        .listRowSeparator(listRowSeparatorVisibility)
-                        .listRowBackground(listRowBackground)
-                    }
-                    .onChange(of: $selectedNode.wrappedValue) { [oldValue = selectedNode] newValue in
-                        if newValue != oldValue {
-                            proxy.scrollTo(0, anchor: .top)
-                            offsetItemsDetector.send(0.0)
-                        }
-                    }
-                }
-                .newsNavigationDestination(type: CDItem.self, model: model)
-                .listStyle(.plain)
-                .accentColor(.pbh.whiteIcon)
-                .background {
-                    Color.pbh.whiteBackground.ignoresSafeArea(edges: .vertical)
-                }
-                .scrollContentBackground(.hidden)
-                .onAppear {
-#if !os(macOS)
-                    isHorizontalCompact = horizontalSizeClass == .compact
-#endif
-                    cellHeight = compactView ? .compactCellHeight : .defaultCellHeight
-                }
-                .onChange(of: $compactView.wrappedValue) {
-                    cellHeight = $0 ? .compactCellHeight : .defaultCellHeight
-                }
-                .onChange(of: hideRead) { _ in
-                    model.updateVisibleItems()
-                }
-                .onChange(of: sortOldestFirst) { _ in
-                    model.updateItemSorting()
-                }
-                .onReceive(offsetItemsPublisher) { newOffset in
-                    Task.detached {
-                        await markRead(newOffset)
-                    }
-                }
-                .onChange(of: scenePhase) { phase in
-                    switch phase {
-                    case .active:
-                        model.currentNodeID = selectedNode
-                    default:
-                        break
-                    }
-                }
-#if !os(macOS)
-                .onChange(of: horizontalSizeClass) {
-                    isHorizontalCompact = $0 == .compact
-                }
-#endif
+    @MainActor
+    func doScrollToTop() {
+        isScrollingToTop = true
+        scrollToTop.toggle()
+        lastOffset = .zero
+        isScrollingToTop = false
+    }
+
+    @ViewBuilder
+    private func contextMenu(item: Item) -> some View {
+        Button {
+            newsModel.toggleItemRead(item: item)
+        } label: {
+            Label {
+                Text(item.unread ? "Read" : "Unread")
+            } icon: {
+                Image(systemName: item.unread ? "eye" : "eye.slash")
+            }
+        }
+        Button {
+            Task {
+                try? await newsModel.markStarred(item: item, starred: !item.starred)
+            }
+        } label: {
+            Label {
+                Text(item.starred ? "Unstar" : "Star")
+            } icon: {
+                Image(systemName: item.starred ? "star" : "star.fill")
             }
         }
     }
 
-    private func markRead(_ offset: CGFloat) {
+    private func markRead(_ offset: CGFloat) throws {
+        guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
+            return
+        }
         if markReadWhileScrolling {
-            print(offset)
-            let numberOfItems = max((offset / (cellHeight + cellSpacing)) - 1, 0)
-            print("Number of items \(numberOfItems)")
+            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
             if numberOfItems > 0 {
-                let itemsToMarkRead = model.currentItems.prefix(through: Int(numberOfItems)).filter( { $0.unread })
-                print("Number of unread items \(itemsToMarkRead.count)")
-                if !itemsToMarkRead.isEmpty {
-                    Task(priority: .userInitiated) {
-                        let myItems = itemsToMarkRead.map( { $0 })
-                        try? await NewsManager.shared.markRead(items: myItems, unread: false)
-                    }
-                }
+                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
+                    .prefix(numberOfItems)
+                    .filter( { $0.unread == true } )
+                newsModel.markItemsRead(items: Array(itemsToMarkRead))
             }
         }
+        lastOffset = offset
     }
 
 }
 
 struct NavigationDestinationModifier: ViewModifier {
-    let type: CDItem.Type
-    let model: FeedModel
+    @Environment(NewsModel.self) private var newsModel
+    let type: Item.Type
+    let items: [Item]
 
     @ViewBuilder func body(content: Content) -> some View {
 #if os(iOS)
         content
             .navigationDestination(for: type) { item in
-                ArticlesPageView(item: item, items: model.currentItems)
+                ArticlesPageView(item: item, items: items)
+                    .environment(newsModel)
             }
-
 #else
         content
 #endif
@@ -174,7 +208,21 @@ struct NavigationDestinationModifier: ViewModifier {
 }
 
 extension View {
-    func newsNavigationDestination(type: CDItem.Type, model: FeedModel) -> some View {
-        modifier(NavigationDestinationModifier(type: CDItem.self, model: model))
+    func newsNavigationDestination(type: Item.Type, items: [Item]) -> some View {
+        modifier(NavigationDestinationModifier(type: Item.self, items: items))
+    }
+}
+
+struct ScrollToTopView: View {
+    private let topScrollPoint = "topScrollPoint"
+    let reader: ScrollViewProxy
+    @Binding var scrollOnChange: Bool
+
+    var body: some View {
+        EmptyView()
+            .id(topScrollPoint)
+            .onChange(of: scrollOnChange) { _, _ in
+                reader.scrollTo(topScrollPoint, anchor: .top)
+            }
     }
 }

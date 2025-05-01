@@ -8,6 +8,7 @@
 import Foundation
 import WebKit
 
+@MainActor
 class ContentBlocker {
 
     static let shared = ContentBlocker()

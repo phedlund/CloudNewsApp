@@ -8,12 +8,12 @@
 
 import Foundation
 
-struct User : Codable {
+struct User: Codable {
     
-    let avatar : Avatar?
-    let displayName : String?
-    let lastLoginTimestamp : Int?
-    let userId : String?
+    let avatar: Avatar?
+    let displayName: String?
+    let lastLoginTimestamp: Int?
+    let userId: String?
     
     enum CodingKeys: String, CodingKey {
         case avatar = "avatar"

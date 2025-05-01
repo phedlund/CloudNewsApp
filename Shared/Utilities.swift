@@ -29,7 +29,7 @@ extension DateFormatter {
 }
 
 extension TimeInterval {
-    static let fiveMinutes: TimeInterval = 300
+    static let fifteenMinutes: TimeInterval = 900
 }
 
 extension CGFloat {
@@ -43,6 +43,7 @@ extension CGFloat {
 
 extension URL {
 
+    @MainActor
     init?(withCheck string: String?) {
         let regEx = "((https|http)://)((\\w|-)+)(([.]|[/])((\\w|-)+))+"
 #if os(macOS)

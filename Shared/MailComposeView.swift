@@ -9,6 +9,7 @@
 import MessageUI
 import SwiftUI
 
+@MainActor
 struct MailComposeView: UIViewControllerRepresentable {
     typealias UIViewControllerType = MFMailComposeViewController
     
@@ -18,8 +19,8 @@ struct MailComposeView: UIViewControllerRepresentable {
     
     var didFinish: ()->()
     
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(self)
+    func makeCoordinator() -> MailComposeCoordinator {
+        return MailComposeCoordinator(self)
     }
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<MailComposeView>) -> MFMailComposeViewController {
@@ -30,22 +31,24 @@ struct MailComposeView: UIViewControllerRepresentable {
         mail.setMessageBody(message, isHTML: false)
         return mail
     }
-    
-    final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        var parent: MailComposeView
         
-        init(_ mailController: MailComposeView) {
-            self.parent = mailController
-        }
-        
-        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            parent.didFinish()
-            controller.dismiss(animated: true)
-        }
-    }
-    
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailComposeView>) {
         
     }
 }
+
+class MailComposeCoordinator: NSObject, @preconcurrency MFMailComposeViewControllerDelegate {
+    var parent: MailComposeView
+
+    init(_ mailController: MailComposeView) {
+        self.parent = mailController
+    }
+
+    @MainActor func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        parent.didFinish()
+        controller.dismiss(animated: true)
+    }
+
+}
+
 #endif
