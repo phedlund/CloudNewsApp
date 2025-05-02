@@ -102,7 +102,7 @@ platform :ios do
     )
 
     gym(
-      {{ workspace_parameter }} # workspace: "/path/to/workspace",
+      # {{ workspace_parameter }} # workspace: "/path/to/workspace",
       scheme: "CloudNews",
       configuration: "Release",
       export_method: "app-store", # options are app-store, ad-hoc, package, enterprise, development, validation, developer-id and mac-application
