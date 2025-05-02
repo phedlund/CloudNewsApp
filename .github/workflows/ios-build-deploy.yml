@@ -25,9 +25,6 @@ jobs:
               with:
                   xcode-version: latest-stable
 
-            - name: Install package dependencies via cocoapods
-              run: pod install
-
             - name: Decode signing certificate into a file
               env:
                   CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
