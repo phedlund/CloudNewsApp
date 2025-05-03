@@ -6,7 +6,6 @@
 //
 
 import Kingfisher
-import SwiftData
 import SwiftUI
 
 struct NodeView: View {
@@ -14,8 +13,6 @@ struct NodeView: View {
 
     let node: Node
 
-    @State private var favIcon: SystemImage?
-    @State private var title = "Untitled"
     @State private var unreadCount = 0
 
 #if os(iOS)
