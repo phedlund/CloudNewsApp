@@ -14,7 +14,6 @@ struct NodeView: View {
 
     let node: Node
 
-    @State private var isShowingConfirmation = false
     @State private var favIcon: SystemImage?
     @State private var title = "Untitled"
     @State private var unreadCount = 0
@@ -43,28 +42,6 @@ struct NodeView: View {
             }
             .labelStyle(.titleAndIcon)
             Spacer()
-        }
-        .confirmationDialog(
-            "Are you sure you want to delete \"\(node.title)\"?",
-            isPresented: $isShowingConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Yes", role: .destructive) {
-                withAnimation {
-// TODO                  newsModel.delete(node)
-                }
-            }
-            .keyboardShortcut(.defaultAction)
-            Button("No", role: .cancel) { }
-        } message: {
-            switch node.type {
-            case .empty, .all, .starred:
-                EmptyView()
-            case .folder(_):
-                Text("All feeds and articles in \"\(node.title)\" will also be deleted")
-            case .feed(_):
-                Text("All articles in \"\(node.title)\" will also be deleted")
-            }
         }
         .onChange(of: unreadCount, initial: true) { _, newValue in
             newsModel.unreadCounts[node.type] = newValue
