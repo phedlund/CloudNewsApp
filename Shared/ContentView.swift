@@ -244,60 +244,6 @@ struct ContentView: View {
         }
     }
 
-//    private func currentNode() -> Node? {
-//        guard let nodeType = NodeType.fromData(selectedNode ?? Data()) else { return nil }
-//        return nodes.first(where: { $0.type == nodeType } )
-//    }
-//
-//    private func updateNodes() async {
-//        return
-//        let allNodeModel = Node(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all, isTopLevel: true)
-//        let starredNodeModel = Node(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred, isTopLevel: true)
-//        await newsModel.backgroundModelActor.insert(allNodeModel)
-//        await newsModel.backgroundModelActor.insert(starredNodeModel)
-//        try? await newsModel.backgroundModelActor.save()
-////        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
-//
-//        do {
-//            for folder in folders {
-//                let folderNodeModel = Node(title: folder.name ?? "Untitled Folder", errorCount: 0, nodeName: "cccc_\(String(format: "%03d", folder.id))", isExpanded: folder.opened, nodeType: .folder(id: folder.id), isTopLevel: true)
-//
-//                var children = [Node]()
-//                let folderFeeds = feeds.filter( { $0.folderId == folder.id })
-//                for feed in folderFeeds {
-//                    let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: false)
-//                    feedNodeModel.feed = feed
-//                    Task {
-//                        await newsModel.backgroundModelActor.insert(feedNodeModel)
-//                    }
-//                    children.append(feedNodeModel)
-//                    feed.node = feedNodeModel
-//                }
-//
-//                Task {
-//                    await newsModel.backgroundModelActor.insert(folderNodeModel)
-//                }
-//                folderNodeModel.folder = folder
-//                folderNodeModel.children = children
-//                folder.node = folderNodeModel
-//                try await newsModel.backgroundModelActor.save()
-//            }
-//
-//            let folderFreeFeeds = feeds.filter( { $0.folderId == 0 } )
-//            for feed in folderFreeFeeds {
-//                let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: true)
-//                feedNodeModel.feed = feed
-//                Task {
-//                    await newsModel.backgroundModelActor.insert(feedNodeModel)
-//                }
-//                feed.node = feedNodeModel
-//            }
-//            try await newsModel.backgroundModelActor.save()
-//        } catch {
-//
-//        }
-//
-//    }
 }
 
 //struct ContentView_Previews: PreviewProvider {
