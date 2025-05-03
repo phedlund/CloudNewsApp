@@ -27,7 +27,7 @@ struct LoginWebViewView: View {
                     var request = URLRequest(url: url)
 
                     let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-                    let appName = "CloudNews" // Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                    let appName = "CloudNews"
                     let userAgent = "Mozilla/5.0 (iOS) \(appName)/\(appVersion ?? "")"
                     let language = Locale.preferredLanguages[0] as String
 

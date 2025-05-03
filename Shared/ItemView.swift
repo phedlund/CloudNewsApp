@@ -181,7 +181,6 @@ private extension ItemView {
         .if(isHorizontalCompact) {
             $0.frame(height: thumbnailSize.height - 4)
         }
-//        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
     @MainActor

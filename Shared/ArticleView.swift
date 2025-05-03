@@ -104,34 +104,4 @@ struct ArticleView: View {
         }
     }
 
-//    @ToolbarContentBuilder
-//    func viewToolBarContent(reader: WebViewProxy) -> some ToolbarContent {
-//        ToolbarItemGroup(placement: .navigation) {
-//            Button {
-//                reader.webView?.goBack()
-//            } label: {
-//                Image(systemName: "chevron.backward")
-//            }
-//            .disabled(!reader.canGoBack)
-//            Button {
-//                reader.webView?.goForward()
-//            } label: {
-//                Image(systemName: "chevron.forward")
-//            }
-//            .disabled(!reader.canGoForward)
-//            Button {
-//                if reader.isLoading {
-//                    reader.webView?.stopLoading()
-//                } else {
-//                    reader.webView?.reload()
-//                }
-//            } label: {
-//                if reader.isLoading {
-//                    Image(systemName: "xmark")
-//                } else {
-//                    Image(systemName: "arrow.clockwise")
-//                }
-//            }
-//        }
-//    }
 }
