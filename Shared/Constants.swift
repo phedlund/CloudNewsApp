@@ -13,6 +13,7 @@ import UIKit
 struct Constants {
     static let appRefreshTaskId = "dev.pbh.cloudnews.sync"
     static let appUrlSessionId = "dev.pbh.cloudnews.background"
+    static let appGroup = "group.dev.pbh.cloudnews"
 
     static let emptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
     static let allNodeGuid = "aaaa"
