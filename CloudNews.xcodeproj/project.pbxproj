@@ -57,8 +57,10 @@
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EC2DC836A6005415E5 /* WidgetKit.framework */; };
 		D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EE2DC836A6005415E5 /* SwiftUI.framework */; };
-		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D02F44A2265C86BF00A3505B /* Assets.xcassets */; };
+		D0C926062DC96CE7005415E5 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C926052DC96CDF005415E5 /* Snapshot.swift */; };
+		D0C926072DC96DA9005415E5 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C926052DC96CDF005415E5 /* Snapshot.swift */; };
 		D0CABFC62C8CBEF2004D9B8D /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0CABFC52C8CBEF2004D9B8D /* Kingfisher */; };
 		D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* WebViewReader.swift */; };
 		D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B72C562857002694BC /* Publisher+Extension.swift */; };
@@ -158,6 +160,7 @@
 		D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CloudNewsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0C925EC2DC836A6005415E5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D0C925EE2DC836A6005415E5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D0C926052DC96CDF005415E5 /* Snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snapshot.swift; sourceTree = "<group>"; };
 		D0D853B52C557E4E002694BC /* WebViewReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewReader.swift; sourceTree = "<group>"; };
 		D0D853B72C562857002694BC /* Publisher+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extension.swift"; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
@@ -278,6 +281,7 @@
 				D0B399EB292DC5D600406DF1 /* XButtonStyle.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
+				D0C926052DC96CDF005415E5 /* Snapshot.swift */,
 				D050B31327B0BE0200442584 /* block-ads.json */,
 				D0E60F29277A81C9009CF78F /* Web.bundle */,
 				D02F44A2265C86BF00A3505B /* Assets.xcassets */,
@@ -506,6 +510,7 @@
 				D035E344287A5C1D00E1FE5E /* ShareLinkButton.swift in Sources */,
 				D08ED86F2870FA4200A8F585 /* ItemWebView.swift in Sources */,
 				D0FEBD6F268D529600AC0618 /* ArticleSettingsView.swift in Sources */,
+				D0C926062DC96CE7005415E5 /* Snapshot.swift in Sources */,
 				D02F4515265C8CB500A3505B /* User.swift in Sources */,
 				D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */,
 				D02CFFE529C7E8A900F956CF /* AppCommands.swift in Sources */,
@@ -544,6 +549,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0C926072DC96DA9005415E5 /* Snapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -552,6 +558,7 @@
 /* Begin PBXTargetDependency section */
 		D0C925F92DC836A7005415E5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = D0C925EA2DC836A6005415E5 /* CloudNewsWidgetExtension */;
 			targetProxy = D0C925F82DC836A7005415E5 /* PBXContainerItemProxy */;
 		};

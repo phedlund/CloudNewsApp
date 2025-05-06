@@ -9,25 +9,33 @@ import WidgetKit
 import SwiftUI
 
 struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
+    func placeholder(in context: Context) -> ArticleEntry {
+        let placeholderData = [
+            SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)]
+        return ArticleEntry(date: Date(), snapshot: placeholderData)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
+    func getSnapshot(in context: Context, completion: @escaping (ArticleEntry) -> ()) {
+        let placeholderData = [
+            SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)]
+        let entry = ArticleEntry(date: Date(), snapshot: placeholderData)
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
+        var entries: [ArticleEntry] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
-        }
+        do {
+            let snapshotData = try Snapshot.readSnapshot()
+            entries.append(ArticleEntry(date: Date(), snapshot: snapshotData))
+        } catch { }
+//        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
+//        let currentDate = Date()
+//        for hourOffset in 0 ..< 5 {
+//            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
+//            let entry = ArticleEntry(date: entryDate, emoji: "😀")
+//            entries.append(entry)
+//        }
 
         let timeline = Timeline(entries: entries, policy: .atEnd)
         completion(timeline)
@@ -38,23 +46,53 @@ struct Provider: TimelineProvider {
 //    }
 }
 
-struct SimpleEntry: TimelineEntry {
+struct ArticleEntry: TimelineEntry {
     let date: Date
-    let emoji: String
+    let snapshot: [SnapshotData]
 }
 
 struct CloudNewsWidgetEntryView : View {
+    @Environment(\.widgetFamily) var family: WidgetFamily
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize: DynamicTypeSize
+
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Emoji:")
-            Text(entry.emoji)
+        let maxCount = family == .systemLarge ? 7 : 3
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(entry.snapshot.prefix(maxCount), id: \.self) { article in
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(article.title)
+                        .font(.footnote)
+                        .bold()
+                        .lineLimit(1)
+                        .foregroundColor(.primary)
+                    HStack(spacing: 0) {
+                        Text(article.feed)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(formattedDate(article.pubDate))
+                            .font(.caption)
+                            .lineLimit(1)
+                            .foregroundColor(.secondary)
+                    }
+                    Divider()
+                }
+            }
         }
+        .padding(10)
     }
+
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+
+        return formatter.string(from: date)
+    }
+
 }
 
 struct CloudNewsWidget: Widget {
@@ -65,8 +103,8 @@ struct CloudNewsWidget: Widget {
             CloudNewsWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Unread Articles")
-        .description("A list of the most recent unread articles from your feeds.")
+        .configurationDisplayName("Recent Articles")
+        .description("A list of the most recent articles from your feeds.")
         .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
@@ -74,6 +112,6 @@ struct CloudNewsWidget: Widget {
 #Preview(as: .systemSmall) {
     CloudNewsWidget()
 } timeline: {
-    SimpleEntry(date: .now, emoji: "😀")
-    SimpleEntry(date: .now, emoji: "🤩")
+    ArticleEntry(date: .now, snapshot: [
+        SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)])
 }

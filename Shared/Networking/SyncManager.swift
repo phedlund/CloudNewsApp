@@ -21,6 +21,7 @@ final class SyncManager: @unchecked Sendable {
     var syncManagerReader = SyncManagerReader()
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
+    private var feedDTOs = [FeedDTO]()
     private var folderNode = Node(id: "", type: .empty, title: "")
     private var feedNode = Node(id: "", type: .empty, title: "")
 
@@ -343,6 +344,7 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
+            self.feedDTOs = decodedResponse.feeds
             let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
             await databaseActor.insert(allNode)
             let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
@@ -394,10 +396,15 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
+            var snapshotData = [SnapshotData]()
             for eachItem in decodedResponse.items {
                 let itemToStore = await Item(item: eachItem)
                 await databaseActor.insert(itemToStore)
+                snapshotData.append(SnapshotData(title: eachItem.title,
+                                                 feed: feedDTOs.first(where: { $0.id == eachItem.feedId })?.title ?? "Untitled Feed",
+                                                 pubDate: eachItem.pubDate))
             }
+            try? Snapshot.writeSnapshot(with: snapshotData)
             try? await databaseActor.save()
         }
     }
