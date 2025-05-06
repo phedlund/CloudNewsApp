@@ -61,6 +61,7 @@
 		D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D02F44A2265C86BF00A3505B /* Assets.xcassets */; };
 		D0C926062DC96CE7005415E5 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C926052DC96CDF005415E5 /* Snapshot.swift */; };
 		D0C926072DC96DA9005415E5 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C926052DC96CDF005415E5 /* Snapshot.swift */; };
+		D0C9261B2DC9B311005415E5 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0C9261A2DC9B311005415E5 /* Kingfisher */; };
 		D0CABFC62C8CBEF2004D9B8D /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0CABFC52C8CBEF2004D9B8D /* Kingfisher */; };
 		D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* WebViewReader.swift */; };
 		D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B72C562857002694BC /* Publisher+Extension.swift */; };
@@ -215,6 +216,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0C9261B2DC9B311005415E5 /* Kingfisher in Frameworks */,
 				D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */,
 				D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */,
 			);
@@ -404,6 +406,7 @@
 			);
 			name = CloudNewsWidgetExtension;
 			packageProductDependencies = (
+				D0C9261A2DC9B311005415E5 /* Kingfisher */,
 			);
 			productName = CloudNewsWidgetExtension;
 			productReference = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */;
@@ -913,6 +916,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		D0C9261A2DC9B311005415E5 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0CABFC42C8CBEF2004D9B8D /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		D0CABFC52C8CBEF2004D9B8D /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

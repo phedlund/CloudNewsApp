@@ -24,10 +24,11 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         var entries: [ArticleEntry] = []
+        let now = Date()
 
         do {
             let snapshotData = try Snapshot.readSnapshot()
-            entries.append(ArticleEntry(date: Date(), snapshot: snapshotData))
+            entries.append(ArticleEntry(date: now, snapshot: snapshotData))
         } catch { }
 //        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
 //        let currentDate = Date()
@@ -37,7 +38,9 @@ struct Provider: TimelineProvider {
 //            entries.append(entry)
 //        }
 
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: now)
+
+        let timeline = Timeline(entries: entries, policy: .after(nextUpdateDate ?? Date()))
         completion(timeline)
     }
 
@@ -59,38 +62,28 @@ struct CloudNewsWidgetEntryView : View {
 
     var body: some View {
         let maxCount = family == .systemLarge ? 7 : 3
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(entry.snapshot.prefix(maxCount), id: \.self) { article in
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(article.title)
-                        .font(.footnote)
-                        .bold()
-                        .lineLimit(1)
-                        .foregroundColor(.primary)
-                    HStack(spacing: 0) {
-                        Text(article.feed)
-                            .font(.caption)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text(formattedDate(article.pubDate))
-                            .font(.caption)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
-                    }
+        let articles = entry.snapshot.prefix(maxCount)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .center) {
+                Text("Recent Articles")
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundStyle(Color(red: 0.8511758447, green: 0.3667599559, blue: 0.1705040038, opacity: 1.0))
+                Spacer()
+                Image("widget.icon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
+            }
+            ForEach(Array(articles.enumerated()), id: \.offset) { index, article in
+                ItemViewWidget(article: article)
+                if index < articles.count - 1 {
                     Divider()
                 }
             }
+            Spacer()
         }
         .padding(10)
-    }
-
-    func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-
-        return formatter.string(from: date)
     }
 
 }

@@ -399,10 +399,12 @@ final class SyncManager: @unchecked Sendable {
             var snapshotData = [SnapshotData]()
             for eachItem in decodedResponse.items {
                 let itemToStore = await Item(item: eachItem)
+                let thumbnailURL = itemToStore.thumbnailURL
                 await databaseActor.insert(itemToStore)
                 snapshotData.append(SnapshotData(title: eachItem.title,
                                                  feed: feedDTOs.first(where: { $0.id == eachItem.feedId })?.title ?? "Untitled Feed",
-                                                 pubDate: eachItem.pubDate))
+                                                 pubDate: eachItem.pubDate,
+                                                 thumbnailUrl: thumbnailURL))
             }
             try? Snapshot.writeSnapshot(with: snapshotData)
             try? await databaseActor.save()

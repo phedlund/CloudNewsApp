@@ -12,6 +12,7 @@ struct SnapshotData: Codable, Hashable {
     var title: String
     var feed: String
     var pubDate: Date
+    var thumbnailUrl: URL?
 }
 
 struct Snapshot {
