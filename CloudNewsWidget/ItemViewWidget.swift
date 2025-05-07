@@ -10,16 +10,17 @@ import SwiftUI
 
 struct ItemViewWidget: View {
 
-    let article: SnapshotData
+    let article: Item
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            if article.thumbnailUrl != nil {
-                KFImage(article.thumbnailUrl)
+            if article.thumbnailURL != nil {
+                KFImage(article.thumbnailURL)
                     .placeholder {
                         Image(.rss)
                             .font(.system(size: 18, weight: .light))
                     }
+                    .setProcessor(ResizingImageProcessor(referenceSize: CGSize(width: 24, height: 24)))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 24, height: 24)
@@ -27,13 +28,13 @@ struct ItemViewWidget: View {
                 Spacer(minLength: 6)
             }
             VStack(alignment: .leading, spacing: 0) {
-                Text(article.title)
+                Text(article.title ?? "Untitled")
                     .font(.footnote)
                     .bold()
                     .lineLimit(1)
                     .foregroundColor(.primary)
                 HStack(spacing: 0) {
-                    Text(article.feed)
+                    Text(article.feed?.title ?? "Untitled Feed")
                         .font(.caption)
                         .lineLimit(1)
                         .foregroundColor(.secondary)

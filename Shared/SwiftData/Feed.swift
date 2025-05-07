@@ -31,11 +31,11 @@ final class Feed {
 
     @Relationship var items: [Item]
 
-    nonisolated var folder: Folder? {
-        let context = self.modelContext
-        return context?.folder(id: folderId)
-    }
-
+//    nonisolated var folder: Folder? {
+//        let context = self.modelContext
+//        return context?.folder(id: folderId)
+//    }
+//
     init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, favIconURL: URL? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink

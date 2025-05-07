@@ -5,31 +5,32 @@
 //  Created by Peter Hedlund on 5/4/25.
 //
 
-import WidgetKit
+import SwiftData
 import SwiftUI
+import WidgetKit
 
 struct Provider: TimelineProvider {
+
+    private let placeholderData = [
+        SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now),
+        SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now),
+        SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now),
+        SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now),
+        SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)]
+
     func placeholder(in context: Context) -> ArticleEntry {
-        let placeholderData = [
-            SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)]
         return ArticleEntry(date: Date(), snapshot: placeholderData)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (ArticleEntry) -> ()) {
-        let placeholderData = [
-            SnapshotData(title: "Article 1", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 2", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 3", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 4", feed: "Breaking News", pubDate: .now), SnapshotData(title: "Article 5", feed: "Breaking News", pubDate: .now)]
         let entry = ArticleEntry(date: Date(), snapshot: placeholderData)
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [ArticleEntry] = []
         let now = Date()
+        let entries = [ArticleEntry(date: now, snapshot: placeholderData)]
 
-        do {
-            let snapshotData = try Snapshot.readSnapshot()
-            entries.append(ArticleEntry(date: now, snapshot: snapshotData))
-        } catch { }
 //        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
 //        let currentDate = Date()
 //        for hourOffset in 0 ..< 5 {
@@ -60,9 +61,11 @@ struct CloudNewsWidgetEntryView : View {
 
     var entry: Provider.Entry
 
+    @Query(sort: [SortDescriptor<Item>(\.id, order: .reverse)]) var items: [Item]
+
     var body: some View {
         let maxCount = family == .systemLarge ? 7 : 3
-        let articles = entry.snapshot.prefix(maxCount)
+        let articles = items.prefix(maxCount)
         VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .center) {
                 Text("Recent Articles")
@@ -95,6 +98,7 @@ struct CloudNewsWidget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             CloudNewsWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
+                .modelContainer(SharedDatabase.shared.modelContainer)
         }
         .configurationDisplayName("Recent Articles")
         .description("A list of the most recent articles from your feeds.")

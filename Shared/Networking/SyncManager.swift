@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftData
+import WidgetKit
 
 @Observable
 final class SyncManagerReader {
@@ -125,6 +126,7 @@ final class SyncManager: @unchecked Sendable {
         } else {
             try await repeatSync()
         }
+        WidgetCenter.shared.reloadAllTimelines()
         syncManagerReader.isSyncing = false
         return currentStatus
     }
@@ -396,17 +398,10 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
-            var snapshotData = [SnapshotData]()
             for eachItem in decodedResponse.items {
                 let itemToStore = await Item(item: eachItem)
-                let thumbnailURL = itemToStore.thumbnailURL
                 await databaseActor.insert(itemToStore)
-                snapshotData.append(SnapshotData(title: eachItem.title,
-                                                 feed: feedDTOs.first(where: { $0.id == eachItem.feedId })?.title ?? "Untitled Feed",
-                                                 pubDate: eachItem.pubDate,
-                                                 thumbnailUrl: thumbnailURL))
             }
-            try? Snapshot.writeSnapshot(with: snapshotData)
             try? await databaseActor.save()
         }
     }

@@ -119,7 +119,7 @@ struct FeedSettingsView: View {
                         let names = folders.compactMap( { $0.name } ).sorted()
                         fNames.append(contentsOf: names)
                         folderNames = fNames
-                        if let folder = feed.folder,
+                        if let folder = folders.first(where: { $0.id == feed.folderId }),
                            let folderName = folder.name {
                             folderSelection = folderName
                             initialFolderSelection = folderName
