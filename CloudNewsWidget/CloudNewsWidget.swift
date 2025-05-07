@@ -64,29 +64,53 @@ struct CloudNewsWidgetEntryView : View {
     @Query(sort: [SortDescriptor<Item>(\.id, order: .reverse)]) var items: [Item]
 
     var body: some View {
-        let maxCount = family == .systemLarge ? 7 : 3
-        let articles = items.prefix(maxCount)
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(alignment: .center) {
-                Text("Recent Articles")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundStyle(Color(red: 0.8511758447, green: 0.3667599559, blue: 0.1705040038, opacity: 1.0))
-                Spacer()
-                Image("widget.icon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
+        if items.count == 0 {
+            ContentUnavailableView {
+                Label("CloudNews", image: .widgetIcon)
+            } description: {
+                Text("No articles found")
             }
-            ForEach(Array(articles.enumerated()), id: \.offset) { index, article in
-                ItemViewWidget(article: article)
-                if index < articles.count - 1 {
-                    Divider()
+        } else {
+            let maxCount = family == .systemLarge ? 7 : 3
+            let articles = items.prefix(maxCount)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .center) {
+                    Text("Recent Articles")
+                        .font(.subheadline)
+                        .bold()
+                        .foregroundStyle(Color(red: 0.8511758447, green: 0.3667599559, blue: 0.1705040038, opacity: 1.0))
+                    Spacer()
+                    Image(.widgetIcon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
                 }
+                ForEach(Array(articles.enumerated()), id: \.offset) { index, article in
+                    ItemViewWidget(article: article)
+                    if index < articles.count - 1 {
+                        Divider()
+                    }
+                }
+                Spacer()
             }
-            Spacer()
+            .padding(10)
+            .overlay(
+                VStack(spacing: 0) {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        if items.filter( { $0.unread == true }).count - maxCount > 0 {
+                            Text("+ \(items.filter( { $0.unread == true }).count - maxCount) more unread articles")
+                                .font(.caption2)
+                                .bold()
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.bottom, 6)
+            )
         }
-        .padding(10)
     }
 
 }
