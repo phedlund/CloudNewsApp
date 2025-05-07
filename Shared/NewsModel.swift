@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import SwiftData
+import WidgetKit
 
 @Observable
 class NewsModel: @unchecked Sendable {
@@ -23,10 +24,9 @@ class NewsModel: @unchecked Sendable {
             }
         }
     }
+
     var currentItem: Item? = nil
-
     var unreadItemIds = [PersistentIdentifier]()
-
     var unreadCounts = [NodeType: Int]()
 
     init(databaseActor: NewsDataModelActor) {
@@ -102,6 +102,7 @@ class NewsModel: @unchecked Sendable {
                 throw NetworkError.generic(message: error.localizedDescription)
             }
         }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func version() async throws -> String {
@@ -138,6 +139,7 @@ class NewsModel: @unchecked Sendable {
                         await databaseActor.insert(itemToStore)
                         try await addItems(feed: feedDTO.id)
                     }
+                    WidgetCenter.shared.reloadAllTimelines()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -175,6 +177,7 @@ class NewsModel: @unchecked Sendable {
                     let itemToStore = Folder(item: folderDTO)
                     await databaseActor.insert(itemToStore)
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             case 405:
                 throw NetworkError.methodNotAllowed
             case 409:
@@ -209,6 +212,7 @@ class NewsModel: @unchecked Sendable {
                     let itemToStore = await Item(item: eachItem)
                     await databaseActor.insert(itemToStore)
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             default:
                 break
             }
