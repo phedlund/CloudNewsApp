@@ -316,10 +316,11 @@ struct SidebarView: View {
         ToolbarItemGroup(placement: .primaryAction) {
 #if os(macOS)
             Spacer()
-            ProgressView()
-                .progressViewStyle(.circular)
-                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
-                .controlSize(.small)
+            if syncManager.syncManagerReader.isSyncing {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+            }
             Button {
                 sync()
             } label: {
@@ -327,9 +328,10 @@ struct SidebarView: View {
             }
             .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
 #else
-            ProgressView()
-                .progressViewStyle(.circular)
-                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
+            if syncManager.syncManagerReader.isSyncing {
+                ProgressView()
+                    .progressViewStyle(.circular)
+            }
             Button {
                 sync()
             } label: {
