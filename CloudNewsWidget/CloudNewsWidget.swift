@@ -61,7 +61,18 @@ struct CloudNewsWidgetEntryView : View {
 
     var entry: Provider.Entry
 
-    @Query(sort: [SortDescriptor<Item>(\.id, order: .reverse)]) var items: [Item]
+    static var fetchDescriptor: FetchDescriptor<Item> {
+        var descriptor = FetchDescriptor<Item>(
+            predicate: #Predicate { $0.unread == true },
+            sortBy: [
+                .init(\.id, order: .reverse)
+            ]
+        )
+        descriptor.fetchLimit = 10
+        return descriptor
+    }
+
+    @Query(CloudNewsWidgetEntryView.fetchDescriptor) private var items: [Item]
 
     var body: some View {
         if items.count == 0 {
@@ -73,7 +84,7 @@ struct CloudNewsWidgetEntryView : View {
         } else {
             let maxCount = family == .systemLarge ? 7 : 3
             let articles = items.prefix(maxCount)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .center) {
                     Text("Recent Articles")
                         .font(.subheadline)
@@ -94,22 +105,6 @@ struct CloudNewsWidgetEntryView : View {
                 Spacer()
             }
             .padding(10)
-            .overlay(
-                VStack(spacing: 0) {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        if items.filter( { $0.unread == true }).count - maxCount > 0 {
-                            Text("+ \(items.filter( { $0.unread == true }).count - maxCount) more unread articles")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.bottom, 6)
-            )
         }
     }
 

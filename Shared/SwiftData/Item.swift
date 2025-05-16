@@ -39,13 +39,15 @@ final class Item {
     var updatedDate: Date?
     var url: String?
     var thumbnailURL: URL?
+    @Attribute(.externalStorage) var image: Data?
+    @Attribute(.externalStorage) var thumbnail: Data?
 
     nonisolated var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)
     }
 
-    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil, thumbnailURL: URL? = nil) {
+    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil, thumbnailURL: URL? = nil, image: Data? = nil, thumbnail: Data? = nil) {
         self.author = author
         self.body = body
         self.contentHash = contentHash
@@ -70,6 +72,8 @@ final class Item {
         self.updatedDate = updatedDate
         self.url = url
         self.thumbnailURL = thumbnailURL
+        self.image = image
+        self.thumbnail = thumbnail
     }
 
     convenience init(item: ItemDTO) async {
@@ -161,6 +165,21 @@ final class Item {
             itemImageUrl = await internalUrl(item.url)
         }
 
+        var imageData: Data?
+        var thumbnailData: Data?
+        if let itemImageUrl {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                imageData = data
+                if let uiImage = UIImage(data: data) {
+                    let thumbnailSize = await CGSize(width: 48 * UIScreen.main.scale, height:  48 * UIScreen.main.scale)
+                    thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                }
+            } catch {
+                print("Error fetching data: \(error)")
+            }
+        }
+
         self.init(author: item.author,
                   body: item.body,
                   contentHash: item.contentHash,
@@ -184,7 +203,9 @@ final class Item {
                   unread: item.unread,
                   updatedDate: item.updatedDate,
                   url: item.url,
-                  thumbnailURL: itemImageUrl)
+                  thumbnailURL: itemImageUrl,
+                  image: imageData,
+                  thumbnail: thumbnailData)
     }
 
 }

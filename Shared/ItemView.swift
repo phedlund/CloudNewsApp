@@ -186,11 +186,13 @@ private extension ItemView {
     @MainActor
     var thumbnailView: some View {
         VStack {
-            KFImage(item.thumbnailURL)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                .clipped()
+            if let imageData = item.image, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                    .clipped()
+            }
         }
     }
 

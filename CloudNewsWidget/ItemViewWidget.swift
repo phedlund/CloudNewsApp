@@ -14,13 +14,8 @@ struct ItemViewWidget: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            if article.thumbnailURL != nil {
-                KFImage(article.thumbnailURL)
-                    .placeholder {
-                        Image(.rss)
-                            .font(.system(size: 18, weight: .light))
-                    }
-                    .setProcessor(ResizingImageProcessor(referenceSize: CGSize(width: 24, height: 24)))
+            if let thumbnail = article.thumbnail, let uiImage = UIImage(data: thumbnail) {
+                Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 24, height: 24)
