@@ -59,7 +59,6 @@
 		D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EE2DC836A6005415E5 /* SwiftUI.framework */; };
 		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D02F44A2265C86BF00A3505B /* Assets.xcassets */; };
-		D0C9261B2DC9B311005415E5 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0C9261A2DC9B311005415E5 /* Kingfisher */; };
 		D0C9262D2DCAD59A005415E5 /* UtilitiesShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */; };
 		D0C9262E2DCAD877005415E5 /* NewsDataModelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0968DCF2C951528000A0B23 /* NewsDataModelActor.swift */; };
 		D0C9262F2DCAD8B0005415E5 /* NewsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F41D6C2A76CA4C00EEAC78 /* NewsData.swift */; };
@@ -76,7 +75,6 @@
 		D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
 		D0C9263D2DCAD945005415E5 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D0C9263C2DCAD945005415E5 /* SwiftSoup */; };
-		D0CABFC62C8CBEF2004D9B8D /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D0CABFC52C8CBEF2004D9B8D /* Kingfisher */; };
 		D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* WebViewReader.swift */; };
 		D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B72C562857002694BC /* Publisher+Extension.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
@@ -219,7 +217,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0CABFC62C8CBEF2004D9B8D /* Kingfisher in Frameworks */,
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
 				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
 				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
@@ -230,7 +227,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0C9261B2DC9B311005415E5 /* Kingfisher in Frameworks */,
 				D0C9263D2DCAD945005415E5 /* SwiftSoup in Frameworks */,
 				D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */,
 				D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */,
@@ -398,7 +394,6 @@
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
 				D02F4501265C8C1900A3505B /* SwiftSoup */,
 				D0E88402290C9E1E001ACB25 /* OpenSSL */,
-				D0CABFC52C8CBEF2004D9B8D /* Kingfisher */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -421,7 +416,6 @@
 			);
 			name = CloudNewsWidgetExtension;
 			packageProductDependencies = (
-				D0C9261A2DC9B311005415E5 /* Kingfisher */,
 				D0C9263C2DCAD945005415E5 /* SwiftSoup */,
 			);
 			productName = CloudNewsWidgetExtension;
@@ -459,7 +453,6 @@
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
-				D0CABFC42C8CBEF2004D9B8D /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -916,14 +909,6 @@
 				minimumVersion = 2.6.1;
 			};
 		};
-		D0CABFC42C8CBEF2004D9B8D /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
@@ -946,20 +931,10 @@
 			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
 		};
-		D0C9261A2DC9B311005415E5 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0CABFC42C8CBEF2004D9B8D /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
-		};
 		D0C9263C2DCAD945005415E5 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
-		};
-		D0CABFC52C8CBEF2004D9B8D /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0CABFC42C8CBEF2004D9B8D /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
 		};
 		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
 			isa = XCSwiftPackageProductDependency;

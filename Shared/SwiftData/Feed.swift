@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
 final class Feed {
@@ -28,6 +29,7 @@ final class Feed {
     var url: String?
     var useReader: Bool
     var favIconURL: URL?
+    @Attribute(.externalStorage) var favIcon: Data?
 
     @Relationship var items: [Item]
 
@@ -36,7 +38,7 @@ final class Feed {
 //        return context?.folder(id: folderId)
 //    }
 //
-    init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, favIconURL: URL? = nil, items: [Item]) {
+    init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, favIconURL: URL? = nil, favicon: Data? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
         self.folderId = folderId ?? 0
@@ -54,10 +56,11 @@ final class Feed {
         self.useReader = false
         self.lastModified = Date()
         self.favIconURL = favIconURL
+        self.favIcon = favicon
         self.items = items
     }
 
-    convenience init(item: FeedDTO) {
+    convenience init(item: FeedDTO) async {
         let validSchemas = ["http", "https", "file"]
         var itemImageUrl: URL?
         if let faviconLink = item.faviconLink,
@@ -70,6 +73,16 @@ final class Feed {
                let host = feedUrl.host,
                let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                 itemImageUrl = url
+            }
+        }
+
+        var imageData: Data?
+        if let itemImageUrl {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                imageData = data
+            } catch {
+                print("Error fetching data: \(error)")
             }
         }
 
@@ -86,6 +99,7 @@ final class Feed {
                   updateErrorCount: item.updateErrorCount,
                   url: item.url,
                   favIconURL: itemImageUrl,
+                  favicon: imageData,
                   items: [Item]())
     }
 

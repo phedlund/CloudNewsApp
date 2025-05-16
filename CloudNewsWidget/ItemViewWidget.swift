@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 5/5/25.
 //
 
-import Kingfisher
 import SwiftUI
 
 struct ItemViewWidget: View {

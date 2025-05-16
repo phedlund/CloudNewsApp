@@ -355,9 +355,9 @@ final class SyncManager: @unchecked Sendable {
                 var feeds = [Node]()
                 let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
                 for feedDTO in feedDTOs  {
-                    let feedToStore = Feed(item: feedDTO)
+                    let feedToStore = await Feed(item: feedDTO)
                     let type = NodeType.feed(id: feedDTO.id)
-                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
+                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
                     feeds.append(feedNode)
                     await databaseActor.insert(feedToStore)
                 }
@@ -373,9 +373,9 @@ final class SyncManager: @unchecked Sendable {
             }
             let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
             for feedDTO in feedDTOs {
-                let feedToStore = Feed(item: feedDTO)
+                let feedToStore = await Feed(item: feedDTO)
                 let type = NodeType.feed(id: feedDTO.id)
-                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
+                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
                 await databaseActor.insert(feedToStore)
                 await databaseActor.insert(feedNode)
             }

@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
-import Kingfisher
 import SwiftData
 import SwiftUI
 
@@ -148,13 +147,14 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            KFImage(item.feed?.favIconURL)
-                .placeholder {
-                    Image(.rss)
-                        .font(.system(size: 18, weight: .light))
-                }
-                .resizable()
-                .frame(width: 22, height: 22)
+            if let favicon = item.feed?.favIcon, let uiImage = UIImage(data: favicon) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .frame(width: 22, height: 22)
+            } else {
+                Image(.rss)
+                    .font(.system(size: 18, weight: .light))
+            }
         }
         .labelStyle(includeFavIcon: showFavIcons ?? true)
     }

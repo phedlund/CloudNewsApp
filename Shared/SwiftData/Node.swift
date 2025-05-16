@@ -19,6 +19,7 @@ final public class Node {
     var title: String
     var favIconURL: URL? = nil
     var pinned: UInt8 = 0
+    @Attribute(.externalStorage) var favIcon: Data?
 
     // Parental relationship
     public var parent: Node?
@@ -28,7 +29,7 @@ final public class Node {
     @Relationship(deleteRule: .noAction) var folder: Folder?
     @Relationship(deleteRule: .noAction) var feed: Feed?
 
-    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, favIconURL: URL? = nil, children: [Node]? = nil, errorCount: Int64 = 0, pinned: UInt8 = 0) {
+    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, favIconURL: URL? = nil, children: [Node]? = nil, errorCount: Int64 = 0, pinned: UInt8 = 0, favIcon: Data? = nil) {
         self.id = id
         self.type = type
         self.title = title
@@ -37,6 +38,7 @@ final public class Node {
         self.children = children
         self.errorCount = errorCount
         self.pinned = pinned
+        self.favIcon = favIcon
     }
 
 }

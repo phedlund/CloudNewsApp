@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
-import Kingfisher
 import SwiftUI
 
 struct NodeView: View {
@@ -60,13 +59,14 @@ private extension NodeView {
             case .folder( _):
                 Image(systemName: "folder")
             case .feed( _):
-                KFImage(node.favIconURL)
-                    .placeholder {
-                        Image(.rss)
-                            .font(.system(size: 18, weight: .light))
-                    }
-                    .resizable()
-                    .frame(width: 22, height: 22)
+                if let favicon = node.favIcon, let uiImage = UIImage(data: favicon) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+                } else {
+                    Image(.rss)
+                        .font(.system(size: 18, weight: .light))
+                }
             }
         }
         .frame(width: 22, height: 22)

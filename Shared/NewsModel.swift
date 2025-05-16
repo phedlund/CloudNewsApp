@@ -135,7 +135,7 @@ class NewsModel: @unchecked Sendable {
                         let type = NodeType.feed(id: feedDTO.id)
                         let feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, children: [], errorCount: 0)
                         await databaseActor.insert(feedNode)
-                        let itemToStore = Feed(item: feedDTO)
+                        let itemToStore = await Feed(item: feedDTO)
                         await databaseActor.insert(itemToStore)
                         try await addItems(feed: feedDTO.id)
                     }
