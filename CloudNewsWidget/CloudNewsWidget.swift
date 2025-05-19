@@ -9,6 +9,26 @@ import SwiftData
 import SwiftUI
 import WidgetKit
 
+enum DeepLink {
+
+    case all
+    case item(item: Item)
+
+    var url: URL {
+        var components = URLComponents()
+        components.scheme = "cloudnews"
+
+        switch self {
+        case .all:
+            components.path = "/widget/all"
+        case .item(item: let item):
+            components.path = "/widget/"
+            components.queryItems = [URLQueryItem(name: "id", value: String(item.id)), URLQueryItem(name: "feedId", value: String(item.feedId))]
+        }
+        return components.url ?? URL(string: "cloudnews://")!
+    }
+}
+
 struct Provider: TimelineProvider {
 
     private let placeholderData = [
@@ -79,7 +99,7 @@ struct CloudNewsWidgetEntryView : View {
             ContentUnavailableView {
                 Label("CloudNews", image: .widgetIcon)
             } description: {
-                Text("No articles found")
+                Text("No unread articles")
             }
         } else {
             let maxCount = family == .systemLarge ? 7 : 3
@@ -97,7 +117,9 @@ struct CloudNewsWidgetEntryView : View {
                         .frame(width: 24, height: 24)
                 }
                 ForEach(Array(articles.enumerated()), id: \.offset) { index, article in
-                    ItemViewWidget(article: article)
+                    Link(destination: DeepLink.item(item: article).url) {
+                        ItemViewWidget(article: article)
+                    }
                     if index < articles.count - 1 {
                         Divider()
                     }
@@ -105,6 +127,7 @@ struct CloudNewsWidgetEntryView : View {
                 Spacer()
             }
             .padding(10)
+            .widgetURL(DeepLink.all.url)
         }
     }
 
