@@ -45,24 +45,7 @@ struct ContentView: View {
                 .environment(syncManager)
                 .onOpenURL { url in
                     print("Open URL: \(url)")
-                    if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-                        if let queryItems = components.queryItems {
-                            let queryDictionary = queryItems.reduce(into: [String: String]()) { result, item in
-                                result[item.name] = item.value
-                            }
-                            if let feedIdString = queryDictionary["feedId"],
-                               let feedId = Int64(feedIdString) {
-                                selectedNode = NodeType.feed(id: feedId).asData
-                                if let itemIdString = queryDictionary["id"],
-                                   let itemId = Int64(itemIdString) {
-                                    selectedItem = items.first(where: { $0.id == itemId })
-                                }
-                            }
-                            print("Query items: \(queryDictionary)")
-                        } else {
-                            selectedNode = NodeType.all.asData
-                        }
-                    }
+                    processUrl(url)
                 }
         } detail: {
             ZStack {
@@ -140,6 +123,11 @@ struct ContentView: View {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
                 .environment(syncManager)
+                .onOpenURL { url in
+                    print("Open URL: \(url)")
+                    processUrl(url)
+                }
+
         } content: {
             if selectedNode != nil {
                 let _ = Self._printChanges()
@@ -254,6 +242,27 @@ struct ContentView: View {
                 } else {
                     return $0.feedId == id
                 }
+            }
+        }
+    }
+
+    private func processUrl(_ url: URL) {
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            if let queryItems = components.queryItems {
+                let queryDictionary = queryItems.reduce(into: [String: String]()) { result, item in
+                    result[item.name] = item.value
+                }
+                if let feedIdString = queryDictionary["feedId"],
+                   let feedId = Int64(feedIdString) {
+                    selectedNode = NodeType.feed(id: feedId).asData
+                    if let itemIdString = queryDictionary["id"],
+                       let itemId = Int64(itemIdString) {
+                        selectedItem = items.first(where: { $0.id == itemId })
+                    }
+                }
+                print("Query items: \(queryDictionary)")
+            } else {
+                selectedNode = NodeType.all.asData
             }
         }
     }
