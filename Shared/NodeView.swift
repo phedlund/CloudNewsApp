@@ -59,10 +59,16 @@ private extension NodeView {
             case .folder( _):
                 Image(systemName: "folder")
             case .feed( _):
-                if let favicon = node.favIcon, let uiImage = UIImage(data: favicon) {
+                if let favicon = node.favIcon, let uiImage = SystemImage(data: favicon) {
+#if os(macOS)
+                    Image(nsImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#else
                     Image(uiImage: uiImage)
                         .resizable()
                         .frame(width: 22, height: 22)
+#endif
                 } else {
                     Image(.rss)
                         .font(.system(size: 18, weight: .light))

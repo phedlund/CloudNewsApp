@@ -171,10 +171,18 @@ final class Item {
             do {
                 let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
                 imageData = data
+                #if os(macOS)
+                if let uiImage = NSImage(data: data) {
+//                    let thumbnailSize = await CGSize(width: 48 * (NSScreen.main?.backingScaleFactor ?? 2.0), height:  48 * (NSScreen.main?.backingScaleFactor ?? 2.0))
+                    thumbnailData = uiImage.tiffRepresentation
+                }
+
+                #else
                 if let uiImage = UIImage(data: data) {
                     let thumbnailSize = await CGSize(width: 48 * UIScreen.main.scale, height:  48 * UIScreen.main.scale)
                     thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
                 }
+                #endif
             } catch {
                 print("Error fetching data: \(error)")
             }

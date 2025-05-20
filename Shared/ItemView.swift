@@ -147,10 +147,16 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            if let favicon = item.feed?.favIcon, let uiImage = UIImage(data: favicon) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .frame(width: 22, height: 22)
+            if let favicon = item.feed?.favIcon, let uiImage = SystemImage(data: favicon) {
+#if os(macOS)
+                    Image(nsImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#else
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#endif
             } else {
                 Image(.rss)
                     .font(.system(size: 18, weight: .light))
@@ -186,12 +192,20 @@ private extension ItemView {
     @MainActor
     var thumbnailView: some View {
         VStack {
-            if let imageData = item.image, let uiImage = UIImage(data: imageData) {
+            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+                #if os(macOS)
+                Image(nsImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                    .clipped()
+#else
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: thumbnailSize.width, height: thumbnailSize.height)
                     .clipped()
+                #endif
             }
         }
     }
