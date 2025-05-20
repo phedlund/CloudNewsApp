@@ -9,11 +9,9 @@ import SwiftSoup
 
 #if os(macOS)
 import AppKit
-public typealias SystemImage = NSImage
 public typealias SystemColor = NSColor
 #else
 import UIKit
-public typealias SystemImage = UIImage
 public typealias SystemColor = UIColor
 #endif
 

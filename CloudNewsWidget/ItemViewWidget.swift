@@ -13,12 +13,20 @@ struct ItemViewWidget: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
-            if let thumbnail = article.thumbnail, let uiImage = UIImage(data: thumbnail) {
+            if let thumbnail = article.thumbnail, let uiImage = SystemImage(data: thumbnail) {
+                #if os(macOS)
+                Image(nsImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 24, height: 24)
+                    .clipped()
+                #else
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 24, height: 24)
                     .clipped()
+                #endif
                 Spacer(minLength: 6)
             }
             VStack(alignment: .leading, spacing: 0) {

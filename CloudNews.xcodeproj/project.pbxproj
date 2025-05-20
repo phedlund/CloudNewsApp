@@ -57,7 +57,7 @@
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
 		D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EC2DC836A6005415E5 /* WidgetKit.framework */; };
 		D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EE2DC836A6005415E5 /* SwiftUI.framework */; };
-		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D02F44A2265C86BF00A3505B /* Assets.xcassets */; };
 		D0C9262D2DCAD59A005415E5 /* UtilitiesShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */; };
 		D0C9262E2DCAD877005415E5 /* NewsDataModelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0968DCF2C951528000A0B23 /* NewsDataModelActor.swift */; };
@@ -583,7 +583,6 @@
 /* Begin PBXTargetDependency section */
 		D0C925F92DC836A7005415E5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = ios;
 			target = D0C925EA2DC836A6005415E5 /* CloudNewsWidgetExtension */;
 			targetProxy = D0C925F82DC836A7005415E5 /* PBXContainerItemProxy */;
 		};
@@ -814,11 +813,17 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -848,11 +853,17 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

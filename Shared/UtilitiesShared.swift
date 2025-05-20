@@ -8,6 +8,14 @@
 import Foundation
 import SwiftSoup
 
+#if os(macOS)
+import AppKit
+public typealias SystemImage = NSImage
+#else
+import UIKit
+public typealias SystemImage = UIImage
+#endif
+
 extension DateFormatter {
     static var dateAuthorFormatter: DateFormatter {
         let currentLocale = Locale.current
