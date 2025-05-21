@@ -84,7 +84,7 @@ struct ItemsListView: View {
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            NavigationStack(path: path) {
+            NavigationStack(path: $path) {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
