@@ -84,7 +84,7 @@ struct ItemsListView: View {
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            ListGroup(path: $path) {
+            NavigationStack(path: path) {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
@@ -100,7 +100,10 @@ struct ItemsListView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .newsNavigationDestination(type: Item.self, items: items)
+                        .navigationDestination(for: Item.self) { item in
+                            ArticlesPageView(item: item, items: items)
+                                .environment(newsModel)
+                        }
                         .onChange(of: selectedNode) { _, _ in
                             path.removeAll()
                             doScrollToTop()
@@ -187,30 +190,6 @@ struct ItemsListView: View {
         lastOffset = offset
     }
 
-}
-
-struct NavigationDestinationModifier: ViewModifier {
-    @Environment(NewsModel.self) private var newsModel
-    let type: Item.Type
-    let items: [Item]
-
-    @ViewBuilder func body(content: Content) -> some View {
-#if os(iOS)
-        content
-            .navigationDestination(for: type) { item in
-                ArticlesPageView(item: item, items: items)
-                    .environment(newsModel)
-            }
-#else
-        content
-#endif
-    }
-}
-
-extension View {
-    func newsNavigationDestination(type: Item.Type, items: [Item]) -> some View {
-        modifier(NavigationDestinationModifier(type: Item.self, items: items))
-    }
 }
 
 struct ScrollToTopView: View {
