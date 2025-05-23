@@ -36,7 +36,6 @@ struct ItemsListView: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
-    @State private var sortDescriptors: [SortDescriptor<Item>]
 
     @Binding var selectedItem: Item?
 
@@ -44,7 +43,6 @@ struct ItemsListView: View {
 
     init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
         self._selectedItem = selectedItem
-        sortDescriptors = fetchDescriptor.sortBy
         self.fetchDescriptor = fetchDescriptor
         _items = Query(fetchDescriptor)
     }

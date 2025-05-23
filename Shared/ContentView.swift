@@ -13,7 +13,6 @@ import UserNotifications
 struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
-    @Environment(\.scenePhase) private var scenePhase
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
 #endif
