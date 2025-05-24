@@ -33,7 +33,6 @@ struct ContentView: View {
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
     @Query private var nodes: [Node]
-    @Query private var items: [Item]
 
     var body: some View {
         let _ = Self._printChanges()
@@ -42,16 +41,16 @@ struct ContentView: View {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
                 .environment(syncManager)
-                .onOpenURL { url in
-                    print("Open URL: \(url)")
-                    processUrl(url)
-                }
         } detail: {
             ZStack {
                 if selectedNode != nil {
                     ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
                         .environment(newsModel)
                         .environment(syncManager)
+                        .onOpenURL { url in
+                            print("Open URL: \(url)")
+                            processUrl(url)
+                        }
                         .toolbar {
                             contentViewToolBarContent()
                         }
@@ -256,7 +255,7 @@ struct ContentView: View {
                     selectedNode = NodeType.feed(id: feedId).asData
                     if let itemIdString = queryDictionary["id"],
                        let itemId = Int64(itemIdString) {
-                        selectedItem = items.first(where: { $0.id == itemId })
+                        newsModel.navigationItemId = itemId
                     }
                 }
                 print("Query items: \(queryDictionary)")

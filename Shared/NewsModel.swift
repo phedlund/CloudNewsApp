@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import SwiftData
+import SwiftUI
 import WidgetKit
 
 @Observable
@@ -26,8 +27,11 @@ class NewsModel: @unchecked Sendable {
     }
 
     var currentItem: Item? = nil
+    var navigationItemId: Int64 = 0
     var unreadItemIds = [PersistentIdentifier]()
     var unreadCounts = [NodeType: Int]()
+
+    var itemNavigationPath = NavigationPath()
 
     init(databaseActor: NewsDataModelActor) {
         self.databaseActor = databaseActor

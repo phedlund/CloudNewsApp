@@ -31,7 +31,6 @@ struct ItemsListView: View {
 
     @Query private var items: [Item]
 
-    @State private var path = [Item]()
     @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
@@ -49,6 +48,7 @@ struct ItemsListView: View {
 
     var body: some View {
         let _ = Self._printChanges()
+        @Bindable var bindable = newsModel
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
@@ -82,7 +82,7 @@ struct ItemsListView: View {
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            NavigationStack(path: $path) {
+            NavigationStack(path: $bindable.itemNavigationPath) {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
@@ -102,13 +102,19 @@ struct ItemsListView: View {
                             ArticlesPageView(item: item, items: items)
                                 .environment(newsModel)
                         }
-                        .onChange(of: selectedNode) { _, _ in
-                            path.removeAll()
+                        .onChange(of: selectedNode) { _, newNode in
+                            bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
                             doScrollToTop()
                         }
                         .onChange(of: scenePhase) { _, newPhase in
                             if newPhase == .active {
-                                doScrollToTop()
+                                if bindable.navigationItemId > 0,
+                                    let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                                    bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                                    bindable.itemNavigationPath.append(item)
+                                    bindable.navigationItemId = 0
+                                    doScrollToTop()
+                                }
                             }
                         }
                         .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
