@@ -77,14 +77,14 @@ struct CloudNewsApp: App {
         }
         .restorationBehavior(.disabled)
 
-        WindowGroup(Text("Log In"), id: "login") {
+        Window(Text("Log In"), id: "login") {
             LoginWebViewView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
 
-        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
+        Window(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
             FeedSettingsView()
                 .environment(newsModel)
                 .frame(width: 600, height: 500)
@@ -94,7 +94,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
+        Window(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(selectedAdd: .feed)
                 .environment(newsModel)
                 .frame(width: 500, height: 220)
@@ -103,7 +103,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
+        Window(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
             AddView(selectedAdd: .folder)
                 .environment(newsModel)
                 .frame(width: 500, height: 200)
@@ -112,7 +112,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
+        Window(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }
