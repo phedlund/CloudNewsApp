@@ -6,6 +6,7 @@
 //
 
 import BackgroundTasks
+import OSLog
 import SwiftData
 import SwiftUI
 import UserNotifications
@@ -35,6 +36,7 @@ struct ContentView: View {
     @Query private var nodes: [Node]
 
     var body: some View {
+        let _ = Logger.app.debug("ContentView body")
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
@@ -122,7 +124,7 @@ struct ContentView: View {
                 .environment(newsModel)
                 .environment(syncManager)
                 .onOpenURL { url in
-                    print("Open URL: \(url)")
+                    let _ = Logger.app.debug("Opening URL \(url)")
                     processUrl(url)
                 }
 
@@ -173,6 +175,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+            Logger.app.debug("Got new node selection: \(newValue)")
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
                 switch nodeType {
@@ -245,6 +248,7 @@ struct ContentView: View {
     }
 
     private func processUrl(_ url: URL) {
+        Logger.app.debug(">>> processUrl \(url)")
         if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
             if let queryItems = components.queryItems {
                 let queryDictionary = queryItems.reduce(into: [String: String]()) { result, item in

@@ -5,7 +5,7 @@
 //  Created by Peter Hedlund on 12/3/22.
 //
 
-import Combine
+import OSLog
 import SwiftData
 import SwiftUI
 
@@ -61,6 +61,14 @@ struct ItemsListView: View {
                         .contextMenu {
                             contextMenu(item: item)
                         }
+                }
+            }
+            .onChange(of: bindable.navigationItemId) { _, newId in
+                Logger.app.debug("Getting new item: \(newId)")
+                if newId > 0,
+                   let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                    selectedItem = item
+                    bindable.navigationItemId = 0
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in

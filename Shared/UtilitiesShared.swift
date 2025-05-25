@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 import SwiftSoup
 
 #if os(macOS)
@@ -35,4 +36,10 @@ func plainSummary(raw: String) -> String {
         return raw
     }
     return txt
+}
+
+extension Logger {
+    nonisolated(unsafe) private static var subsystem = Bundle.main.bundleIdentifier!
+
+    static let app = Logger(subsystem: subsystem, category: "app")
 }
