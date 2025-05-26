@@ -146,8 +146,8 @@ struct MacArticleView: View {
                 }
             }
             Spacer()
-//            ShareLinkButton(item: item)
-//                .disabled(reader.isLoading)
+            ShareLinkButton(item: content.item, url: content.url)
+                .disabled(isLoading)
         }
     }
 
