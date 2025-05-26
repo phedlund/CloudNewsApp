@@ -31,6 +31,20 @@ struct CloudNewsApp: App {
     }
     
     var body: some Scene {
+        #if os(macOS)
+        Window(Text("CloudNews"), id: "mainWindow") {
+            ContentView()
+                .environment(newsModel)
+                .environment(syncManager)
+        }
+        .modelContainer(container)
+        .database(SharedDatabase.shared.database)
+        .defaultSize(width: 1000, height: 650)
+        .windowToolbarStyle(.unifiedCompact)
+        .commands {
+            AppCommands(newsModel: newsModel)
+        }
+        #else
         WindowGroup {
             ContentView()
                 .environment(newsModel)
@@ -38,16 +52,13 @@ struct CloudNewsApp: App {
         }
         .modelContainer(container)
         .database(SharedDatabase.shared.database)
-#if !os(macOS)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
             await syncManager.backgroundSync()
         }
-#endif
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
             syncManager.processSessionData()
         }
-#if !os(macOS)
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
@@ -59,13 +70,6 @@ struct CloudNewsApp: App {
             @unknown default:
                 fatalError("Unknown scene phase")
             }
-        }
-#endif
-#if os(macOS)
-        .defaultSize(width: 1000, height: 650)
-        .windowToolbarStyle(.unifiedCompact)
-        .commands {
-            AppCommands(newsModel: newsModel)
         }
 #endif
         

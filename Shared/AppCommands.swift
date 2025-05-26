@@ -20,9 +20,6 @@ struct AppCommands: Commands {
 
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
-        CommandGroup(replacing: CommandGroupPlacement.newItem) {
-            EmptyView()
-        }
         CommandGroup(after: .sidebar) {
             Divider()
             MarkReadButton()
