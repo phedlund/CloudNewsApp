@@ -137,7 +137,7 @@ struct ItemsListView: View {
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .idle {
                             Task {
-                                try? markRead(context.geometry.contentOffset.y)
+                                try? markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
                             }
                         }
                     }
@@ -191,7 +191,7 @@ struct ItemsListView: View {
             return
         }
         if markReadWhileScrolling {
-            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
+            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
             if numberOfItems > 0 {
                 let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
                     .prefix(numberOfItems)
