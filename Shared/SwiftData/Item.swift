@@ -32,7 +32,6 @@ final class Item {
     var mediaDescription: String?
     var pubDate: Date
     var rtl: Bool
-    //    var readable: String?
     var starred: Bool
     var title: String?
     var unread: Bool
@@ -171,18 +170,16 @@ final class Item {
             do {
                 let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
                 imageData = data
-                #if os(macOS)
+#if os(macOS)
                 if let uiImage = NSImage(data: data) {
-//                    let thumbnailSize = await CGSize(width: 48 * (NSScreen.main?.backingScaleFactor ?? 2.0), height:  48 * (NSScreen.main?.backingScaleFactor ?? 2.0))
                     thumbnailData = uiImage.tiffRepresentation
                 }
-
-                #else
+#else
                 if let uiImage = UIImage(data: data) {
                     let thumbnailSize = await CGSize(width: 48 * UIScreen.main.scale, height:  48 * UIScreen.main.scale)
                     thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
                 }
-                #endif
+#endif
             } catch {
                 print("Error fetching data: \(error)")
             }
