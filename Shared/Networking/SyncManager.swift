@@ -158,22 +158,48 @@ final class SyncManager: @unchecked Sendable {
         let unreadParameters: ParameterDict = ["type": 3,
                                                "getRead": false,
                                                "batchSize": -1]
-        let unreadRouter = Router.items(parameters: unreadParameters)
+        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
 
         let starredParameters: ParameterDict = ["type": 2,
                                                 "getRead": true,
                                                 "batchSize": -1]
-        let starredRouter = Router.items(parameters: starredParameters)
+        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
 
-        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-        let unreadItemsData = try await URLSession.shared.data (for: unreadRouter.urlRequest()).0
-        let starredItemsData = try await URLSession.shared.data (for: starredRouter.urlRequest()).0
+        let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
+            var results = [Int: Data]()
 
-        parseFolders(data: foldersData)
-        parseFeeds(data: feedsData)
-        parseItems(data: unreadItemsData)
-        parseItems(data: starredItemsData)
+            group.addTask {
+                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+            }
+            group.addTask {
+                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+            }
+            group.addTask {
+                return (3, try await URLSession.shared.data (for: unreadRequest).0)
+            }
+            group.addTask {
+                return (4, try await URLSession.shared.data (for: starredRequest).0)
+            }
+
+            for try await (index, result) in group {
+                results[index] = result
+            }
+
+            return results
+        }
+
+        if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            parseFolders(data: foldersData)
+        }
+        if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            parseFeeds(data: feedsData)
+        }
+        if let unreadData = results[3] as Data?, !unreadData.isEmpty {
+            parseItems(data: unreadData)
+        }
+        if let starredData = results[4] as Data?, !starredData.isEmpty {
+            parseItems(data: starredData)
+        }
     }
 
     /*
@@ -312,12 +338,35 @@ final class SyncManager: @unchecked Sendable {
 
         let itemsRequest = try updatedItemRouter.urlRequest()
 
-        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-        let itemsData = try await URLSession.shared.data (for: itemsRequest).0
-        parseFolders(data: foldersData)
-        parseFeeds(data: feedsData)
-        parseItems(data: itemsData)
+        let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
+            var results = [Int: Data]()
+
+            group.addTask {
+                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+            }
+            group.addTask {
+                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+            }
+            group.addTask {
+                return (3, try await URLSession.shared.data (for: itemsRequest).0)
+            }
+
+            for try await (index, result) in group {
+                results[index] = result
+            }
+
+            return results
+        }
+
+        if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            parseFolders(data: foldersData)
+        }
+        if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            parseFeeds(data: feedsData)
+        }
+        if let itemsData = results[3] as Data?, !itemsData.isEmpty {
+            parseItems(data: itemsData)
+        }
     }
 
     private func parseFolders(data: Data) {
