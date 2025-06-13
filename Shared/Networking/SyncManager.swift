@@ -218,8 +218,6 @@ final class SyncManager: @unchecked Sendable {
      */
 
     private func repeatSync() async throws {
-        try await pruneItems()
-
         var localReadIds = [Int64]()
         let identifiers = try await databaseActor.allModelIds(FetchDescriptor<Read>())
         for identifier in identifiers {
@@ -341,6 +339,10 @@ final class SyncManager: @unchecked Sendable {
         let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
             var results = [Int: Data]()
 
+            group.addTask { [self] in
+                try await pruneItems()
+                return (0, Data())
+            }
             group.addTask {
                 return (1, try await URLSession.shared.data (for: foldersRequest).0)
             }
