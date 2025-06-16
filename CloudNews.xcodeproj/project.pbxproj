@@ -32,6 +32,7 @@
 		D0367B922A8C5D960099D34D /* Meta.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0367B912A8C5D960099D34D /* Meta.swift */; };
 		D0367B942A8C5E1D0099D34D /* Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0367B932A8C5E1D0099D34D /* Version.swift */; };
 		D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0367B972A8C5F2D0099D34D /* CloudStatus.swift */; };
+		D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */; };
 		D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
 		D04A7A712C62FC2F00C24568 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
 		D050B31427B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
@@ -146,6 +147,7 @@
 		D0367B912A8C5D960099D34D /* Meta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Meta.swift; sourceTree = "<group>"; };
 		D0367B932A8C5E1D0099D34D /* Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
 		D0367B972A8C5F2D0099D34D /* CloudStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudStatus.swift; sourceTree = "<group>"; };
+		D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewMac.swift; sourceTree = "<group>"; };
 		D045A15F26C5F6D4002E553F /* LoginWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginWebView.swift; sourceTree = "<group>"; };
 		D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContextExtension.swift; sourceTree = "<group>"; };
 		D050B31327B0BE0200442584 /* block-ads.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "block-ads.json"; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 				D07EFCD22B0B011300032103 /* MarkReadButton.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
 				D0728A512816009600B85F72 /* MacArticleView.swift */,
+				D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
 				D08ED86E2870FA4200A8F585 /* ItemWebView.swift */,
 				D0D853B72C562857002694BC /* Publisher+Extension.swift */,
@@ -500,6 +503,7 @@
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
 				D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */,
+				D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
 				D0A551AC2C7D6E0A00118C99 /* SyncManager.swift in Sources */,

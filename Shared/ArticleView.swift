@@ -24,7 +24,7 @@ struct ArticleView: View {
 
     var body: some View {
         WebViewReader { reader in
-            WebView { webView in
+            WebViewOld { webView in
                 reader.setup(webView: webView)
             }
             .id(content.item.persistentModelID) //forces the web view to be recreated to get a unique WKWebView for each article

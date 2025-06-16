@@ -33,7 +33,7 @@ struct MacArticleView: View {
 
     var body: some View {
         WebViewReader { reader in
-            WebView { webView in
+            WebViewOld { webView in
                 reader.setup(webView: webView)
                 pageViewReader.title = reader.title
                 Task {

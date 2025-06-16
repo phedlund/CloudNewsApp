@@ -147,9 +147,11 @@ struct ContentView: View {
                 }
             }
         } detail: {
-            if let selectedItem {
-                MacArticleView(content: ArticleWebContent(item: selectedItem))
+            if let item = newsModel.currentItem {
+                ArticleViewMac(content: ArticleWebContent(item: item))
                     .environment(newsModel)
+//                MacArticleView(content: ArticleWebContent(item: selectedItem))
+//                    .environment(newsModel)
             } else {
                 ContentUnavailableView("No Article Selected",
                                        systemImage: "doc.richtext",

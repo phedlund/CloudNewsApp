@@ -16,7 +16,7 @@ typealias WebViewRepresentable = NSViewRepresentable
 import SwiftUI
 import WebKit
 
-public struct WebView: WebViewRepresentable {
+public struct WebViewOld: WebViewRepresentable {
     @Environment(\.openURL) var openURL
     @AppStorage(SettingKeys.adBlock) var adBlock = true
 
@@ -50,7 +50,7 @@ public struct WebView: WebViewRepresentable {
 }
 
 @MainActor
-private extension WebView {
+private extension WebViewOld {
 
     func makeView(context: Context) -> WKWebView {
         let webConfig = WKWebViewConfiguration()
