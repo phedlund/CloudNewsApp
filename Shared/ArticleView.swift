@@ -27,8 +27,16 @@ struct ArticleView: View, @MainActor Equatable {
         self.pageViewReader = pageViewReader
         let webConfig = WebPage.Configuration()
         page = WebPage(configuration: webConfig)
-        if let url = content.url {
-            page.load(URLRequest(url: url))
+        if let feed = content.item.feed {
+            if feed.preferWeb == true,
+               let urlString = content.item.url,
+               let url = URL(string: urlString) {
+                page.load(URLRequest(url: url))
+            } else {
+                if let url = content.url {
+                    page.load(URLRequest(url: url))
+                }
+            }
         }
     }
 
@@ -36,19 +44,6 @@ struct ArticleView: View, @MainActor Equatable {
         WebView(page)
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaPadding([.top], 40)
-            .task {
-                if let feed = content.item.feed {
-                    if feed.preferWeb == true,
-                       let urlString = content.item.url,
-                       let url = URL(string: urlString) {
-                        page.load(URLRequest(url: url))
-                    } else {
-                        if let url = content.url {
-                            page.load(URLRequest(url: url))
-                        }
-                    }
-                }
-            }
             .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
                 print("got scroll id: \(newValue ?? -1)")
                 if newValue == content.item.id {
