@@ -12,14 +12,12 @@ import WebKit
 @Observable
 class PageViewProxy {
     var scrollId: Int64?
-    var canGoBack = false
-    var goBack = false
-    var canGoForward = false
-    var goForward = false
-    var isLoading = false
-    var reload = false
-    var title = ""
-    var url: URL?
+    var page: WebPage
+    
+    init(page: WebPage, scrollId: Int64? = nil) {
+        self.page = page
+        self.scrollId = scrollId
+    }
 }
 
 @MainActor

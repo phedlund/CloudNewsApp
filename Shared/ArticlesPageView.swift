@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import WebKit
 
 #if os(iOS)
 struct ArticlesPageView: View {
@@ -16,7 +17,7 @@ struct ArticlesPageView: View {
     @State private var itemsToMarkRead = [Item]()
     @State private var isAppearing = false
     @State private var isShowingPopover = false
-    @Bindable var pageViewProxy = PageViewProxy()
+    @Bindable var pageViewProxy = PageViewProxy(page: WebPage())
 
     private let items: [Item]
 
@@ -36,7 +37,7 @@ struct ArticlesPageView: View {
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
-        .navigationTitle(pageViewProxy.title)
+        .navigationTitle(pageViewProxy.page.title)
         .scrollContentBackground(.hidden)
         .background {
             Color.phWhiteBackground
@@ -74,25 +75,27 @@ struct ArticlesPageView: View {
     func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
         ToolbarItemGroup(placement: .topBarLeading) {
             Button {
-                pageViewProxy.goBack = true
+                print("Tapping Back for \(pageViewProxy.page.title)")
+//                pageViewProxy.page.goBack = true
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!pageViewProxy.canGoBack)
+            .disabled(pageViewProxy.page.backForwardList.backList.isEmpty)
             Button {
-                pageViewProxy.goForward = true
+                print("Tapping Forward for \(pageViewProxy.page.title)")
+//                pageViewProxy.page.goForward = true
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!pageViewProxy.canGoForward)
+            .disabled(pageViewProxy.page.backForwardList.forwardList.isEmpty)
             Button {
-                if pageViewProxy.isLoading {
-                    pageViewProxy.reload = false
+                if pageViewProxy.page.isLoading {
+                    pageViewProxy.page.stopLoading()
                 } else {
-                    pageViewProxy.reload = true
+                    pageViewProxy.page.reload()
                 }
             } label: {
-                if pageViewProxy.isLoading {
+                if pageViewProxy.page.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -101,8 +104,8 @@ struct ArticlesPageView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                ShareLinkButton(item: currentItem, url: pageViewProxy.url)
-                    .disabled(pageViewProxy.isLoading)
+                ShareLinkButton(item: currentItem, url: pageViewProxy.page.url)
+                    .disabled(pageViewProxy.page.isLoading)
             } else {
                 EmptyView()
             }
@@ -111,7 +114,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(pageViewProxy.isLoading)
+            .disabled(pageViewProxy.page.isLoading)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
                     ArticleSettingsView(item: currentItem)
