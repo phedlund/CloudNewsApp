@@ -70,7 +70,7 @@ private extension WebViewOld {
         if adBlock {
             Task {
                 do {
-                    if let rules = try await ContentBlocker.shared.ruleList() {
+                    if let rules = try await ContentBlocker.ruleList() {
                         DispatchQueue.main.async {
                             view.configuration.userContentController.add(rules)
                         }

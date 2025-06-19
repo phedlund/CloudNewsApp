@@ -47,7 +47,7 @@ struct ArticlesPageView: View {
             pageViewToolBarContent(pageViewProxy: pageViewProxy)
         }
         .toolbarRole(.editor)
-        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+//        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
         .onAppear {
             pageViewProxy.scrollId = item.id
             isAppearing = true
@@ -76,14 +76,14 @@ struct ArticlesPageView: View {
         ToolbarItemGroup(placement: .topBarLeading) {
             Button {
                 print("Tapping Back for \(pageViewProxy.page.title)")
-//                pageViewProxy.page.goBack = true
+                pageViewProxy.page.load(URLRequest(url: pageViewProxy.page.backForwardList.backList.last!.url))
             } label: {
                 Image(systemName: "chevron.backward")
             }
             .disabled(pageViewProxy.page.backForwardList.backList.isEmpty)
             Button {
                 print("Tapping Forward for \(pageViewProxy.page.title)")
-//                pageViewProxy.page.goForward = true
+                pageViewProxy.page.load(URLRequest(url: pageViewProxy.page.backForwardList.forwardList.last!.url))
             } label: {
                 Image(systemName: "chevron.forward")
             }
@@ -114,7 +114,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(pageViewProxy.page.isLoading)
+            .disabled(pageViewProxy.page.isLoading || pageViewProxy.page.url?.scheme != "file")
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
                     ArticleSettingsView(item: currentItem)

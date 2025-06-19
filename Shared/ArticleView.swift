@@ -42,6 +42,8 @@ struct ArticleView: View, @MainActor Equatable {
 
     var body: some View {
         WebView(page)
+            .scrollIndicators(.visible, axes: .vertical)
+            .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaPadding([.top], 40)
             .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
