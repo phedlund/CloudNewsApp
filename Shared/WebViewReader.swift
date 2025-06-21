@@ -13,10 +13,12 @@ import WebKit
 class PageViewProxy {
     var scrollId: Int64?
     var page: WebPage
-    
-    init(page: WebPage, scrollId: Int64? = nil) {
+    var itemId: Int64?
+
+    init(page: WebPage, scrollId: Int64? = nil, itemId: Int64? = nil) {
         self.page = page
         self.scrollId = scrollId
+        self.itemId = itemId
     }
 }
 

@@ -33,6 +33,7 @@
 		D0367B942A8C5E1D0099D34D /* Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0367B932A8C5E1D0099D34D /* Version.swift */; };
 		D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0367B972A8C5F2D0099D34D /* CloudStatus.swift */; };
 		D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */; };
+		D04565122E070270001CD015 /* NavigationDecider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04565112E070270001CD015 /* NavigationDecider.swift */; };
 		D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D045A15F26C5F6D4002E553F /* LoginWebView.swift */; };
 		D04A7A712C62FC2F00C24568 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
 		D050B31427B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
@@ -148,6 +149,7 @@
 		D0367B932A8C5E1D0099D34D /* Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
 		D0367B972A8C5F2D0099D34D /* CloudStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudStatus.swift; sourceTree = "<group>"; };
 		D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewMac.swift; sourceTree = "<group>"; };
+		D04565112E070270001CD015 /* NavigationDecider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDecider.swift; sourceTree = "<group>"; };
 		D045A15F26C5F6D4002E553F /* LoginWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginWebView.swift; sourceTree = "<group>"; };
 		D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContextExtension.swift; sourceTree = "<group>"; };
 		D050B31327B0BE0200442584 /* block-ads.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "block-ads.json"; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 				D0728A512816009600B85F72 /* MacArticleView.swift */,
 				D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
+				D04565112E070270001CD015 /* NavigationDecider.swift */,
 				D08ED86E2870FA4200A8F585 /* ItemWebView.swift */,
 				D0D853B72C562857002694BC /* Publisher+Extension.swift */,
 				D0D853B52C557E4E002694BC /* WebViewReader.swift */,
@@ -541,6 +544,7 @@
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,
 				D0110DB32B86E3E900CFD0E5 /* NewsData.swift in Sources */,
+				D04565122E070270001CD015 /* NavigationDecider.swift in Sources */,
 				D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */,
 				D045A16026C5F6D4002E553F /* LoginWebView.swift in Sources */,
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,

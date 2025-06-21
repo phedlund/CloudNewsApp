@@ -26,7 +26,7 @@ struct ArticleView: View, @MainActor Equatable {
         self.content = content
         self.pageViewReader = pageViewReader
         let webConfig = WebPage.Configuration()
-        page = WebPage(configuration: webConfig)
+        page = WebPage(configuration: webConfig, navigationDecider: NavigationDecider())
         if let feed = content.item.feed {
             if feed.preferWeb == true,
                let urlString = content.item.url,
@@ -42,6 +42,7 @@ struct ArticleView: View, @MainActor Equatable {
 
     var body: some View {
         WebView(page)
+            .webViewBackForwardNavigationGestures(.disabled)
             .scrollIndicators(.visible, axes: .vertical)
             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
             .navigationBarTitleDisplayMode(.inline)
@@ -50,6 +51,7 @@ struct ArticleView: View, @MainActor Equatable {
                 print("got scroll id: \(newValue ?? -1)")
                 if newValue == content.item.id {
                     pageViewReader.page = page
+                    pageViewReader.itemId = newValue
                 }
             }
             .onChange(of: fontSize) {

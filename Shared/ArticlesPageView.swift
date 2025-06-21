@@ -17,6 +17,7 @@ struct ArticlesPageView: View {
     @State private var itemsToMarkRead = [Item]()
     @State private var isAppearing = false
     @State private var isShowingPopover = false
+    @State private var currentPage = WebPage()
     @Bindable var pageViewProxy = PageViewProxy(page: WebPage())
 
     private let items: [Item]
@@ -37,7 +38,7 @@ struct ArticlesPageView: View {
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
-        .navigationTitle(pageViewProxy.page.title)
+        .navigationTitle(currentPage.title)
         .scrollContentBackground(.hidden)
         .background {
             Color.phWhiteBackground
@@ -62,6 +63,9 @@ struct ArticlesPageView: View {
                 }
             }
         }
+        .onChange(of: pageViewProxy.itemId ?? 0, initial: true) { _, _ in
+            currentPage = pageViewProxy.page
+        }
         .onScrollPhaseChange { _, newPhase in
             if  newPhase == .idle {
                 newsModel.markItemsRead(items: itemsToMarkRead)
@@ -75,27 +79,27 @@ struct ArticlesPageView: View {
     func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
         ToolbarItemGroup(placement: .topBarLeading) {
             Button {
-                print("Tapping Back for \(pageViewProxy.page.title)")
-                pageViewProxy.page.load(URLRequest(url: pageViewProxy.page.backForwardList.backList.last!.url))
+                print("Tapping Back for \(currentPage.title)")
+                currentPage.load(currentPage.backForwardList.backList.last!)
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(pageViewProxy.page.backForwardList.backList.isEmpty)
+            .disabled(currentPage.backForwardList.backList.isEmpty)
             Button {
-                print("Tapping Forward for \(pageViewProxy.page.title)")
-                pageViewProxy.page.load(URLRequest(url: pageViewProxy.page.backForwardList.forwardList.last!.url))
+                print("Tapping Forward for \(currentPage.title)")
+                currentPage.load(currentPage.backForwardList.forwardList.last!)
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(pageViewProxy.page.backForwardList.forwardList.isEmpty)
+            .disabled(currentPage.backForwardList.forwardList.isEmpty)
             Button {
-                if pageViewProxy.page.isLoading {
-                    pageViewProxy.page.stopLoading()
+                if currentPage.isLoading {
+                    currentPage.stopLoading()
                 } else {
-                    pageViewProxy.page.reload()
+                    currentPage.reload()
                 }
             } label: {
-                if pageViewProxy.page.isLoading {
+                if currentPage.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -104,8 +108,8 @@ struct ArticlesPageView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                ShareLinkButton(item: currentItem, url: pageViewProxy.page.url)
-                    .disabled(pageViewProxy.page.isLoading)
+                ShareLinkButton(item: currentItem, url: currentPage.url)
+                    .disabled(currentPage.isLoading)
             } else {
                 EmptyView()
             }
@@ -114,7 +118,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(pageViewProxy.page.isLoading || pageViewProxy.page.url?.scheme != "file")
+            .disabled(currentPage.isLoading || currentPage.url?.scheme != "file")
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
                     ArticleSettingsView(item: currentItem)
