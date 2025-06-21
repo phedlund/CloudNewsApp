@@ -158,6 +158,12 @@ class ArticleWebContent {
                         }
                     }
                 }
+                // Select all anchor tags with target="_blank"
+                let links = try document.select("a[target=_blank]")
+                // Iterate through the selected links and remove the "target" attribute
+                for link in links {
+                    try link.removeAttr("target") //
+                }
                 if let html = try document.body()?.html() {
                     result = html
                 }

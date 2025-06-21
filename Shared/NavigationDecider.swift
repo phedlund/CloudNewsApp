@@ -19,18 +19,6 @@ struct NavigationDecider: WebPage.NavigationDeciding {
     }
 
     func decidePolicy(for action: WebPage.NavigationAction, preferences: inout WebPage.NavigationPreferences) async -> WKNavigationActionPolicy {
-        print(action.request.url?.absoluteString ?? "")
-        print(action.request.url?.fragment() ?? "No Fragment")
-        print(action.request.url?.query() ?? "No Query")
-
-        if !(action.target?.isMainFrame ?? false) {
-//            webView.load(action.request)
-            print("I'm here")
-            return .allow
-        }
-
-
-
         if let scheme = action.request.url?.scheme {
             if scheme == "file" || scheme.hasPrefix("itms") {
                 if let url = action.request.url {
@@ -42,7 +30,6 @@ struct NavigationDecider: WebPage.NavigationDeciding {
             }
         }
         return .allow
-//        .allow
     }
 
 //    func decideAuthenticationChallengeDisposition(for challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
