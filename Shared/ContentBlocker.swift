@@ -20,6 +20,16 @@ struct ContentBlocker {
         return source
     }
 
+    static func rules(completion: @escaping (WKContentRuleList?) -> Void) {
+        guard let blockRules = ContentBlocker.loadJson() else {
+            completion(nil)
+            return
+        }
+        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRules, completionHandler:  { rules, error in
+            completion(rules)
+        })
+    }
+
     static func ruleList() async throws -> WKContentRuleList? {
         guard let blockRules = ContentBlocker.loadJson() else {
             return nil

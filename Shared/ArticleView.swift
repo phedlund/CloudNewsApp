@@ -26,6 +26,11 @@ struct ArticleView: View, @MainActor Equatable {
         self.content = content
         self.pageViewReader = pageViewReader
         let webConfig = WebPage.Configuration()
+        ContentBlocker.rules { rules in
+            if let rules {
+                webConfig.userContentController.add(rules)
+            }
+        }
         page = WebPage(configuration: webConfig, navigationDecider: NavigationDecider())
         if let feed = content.item.feed {
             if feed.preferWeb == true,
