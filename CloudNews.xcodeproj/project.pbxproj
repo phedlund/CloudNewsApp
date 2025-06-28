@@ -44,7 +44,6 @@
 		D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
 		D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07EFCD22B0B011300032103 /* MarkReadButton.swift */; };
-		D0818A802863FC81002264D6 /* MacArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0728A512816009600B85F72 /* MacArticleView.swift */; };
 		D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0873FAA29737CE70076DCB1 /* ItemView.swift */; };
 		D08ED86F2870FA4200A8F585 /* ItemWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08ED86E2870FA4200A8F585 /* ItemWebView.swift */; };
 		D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2FB267ED1E800A997DB /* ArticleView.swift */; };
@@ -157,7 +156,6 @@
 		D061B1632C0A433C00E5D993 /* NewsObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsObjects.swift; sourceTree = "<group>"; };
 		D061EB932D5C3EBE003A9914 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
-		D0728A512816009600B85F72 /* MacArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacArticleView.swift; sourceTree = "<group>"; };
 		D07A043626E2F61F00178EEE /* UserDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
 		D07EFCD22B0B011300032103 /* MarkReadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkReadButton.swift; sourceTree = "<group>"; };
@@ -277,7 +275,6 @@
 				D035E343287A5C1D00E1FE5E /* ShareLinkButton.swift */,
 				D07EFCD22B0B011300032103 /* MarkReadButton.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
-				D0728A512816009600B85F72 /* MacArticleView.swift */,
 				D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
 				D04565112E070270001CD015 /* NavigationDecider.swift */,
@@ -536,7 +533,6 @@
 				D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */,
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
-				D0818A802863FC81002264D6 /* MacArticleView.swift in Sources */,
 				D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */,
 				D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,

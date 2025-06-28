@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+#if !os(macOS)
 import SwiftUI
 import WebKit
 
@@ -74,3 +75,4 @@ struct ArticleView: View, @MainActor Equatable {
     }
 
 }
+#endif
