@@ -11,8 +11,5 @@ struct XButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         Image(systemName: "xmark")
             .font(.title2)
-            .symbolVariant(.circle.fill)
-            .symbolRenderingMode(.palette)
-            .foregroundStyle(.secondary, .quaternary)
     }
 }

@@ -81,19 +81,20 @@ struct ItemView: View {
 #if os(iOS)
         .frame(width: cellSize.width, height: cellSize.height)
         .padding([.trailing], .paddingSix)
-        .background(in: RoundedRectangle(cornerRadius: 1.0))
-        .backgroundStyle(
-            Color.phWhiteCellBackground
-                .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
-        )
+        .if(!item.unread && !item.starred) {
+            $0.opacity(0.4)
+        }
+        .background(Color.phWhiteCellBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay() {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(.black.opacity(0.15), lineWidth: 1)
+        }
         .overlay(alignment: .topTrailing) {
             if item.starred {
                 Image(systemName: "star.fill")
                     .padding([.top, .trailing],  .paddingSix)
             }
-        }
-        .if(!item.unread && !item.starred) {
-            $0.opacity(0.4)
         }
         .task {
             Task { @MainActor in

@@ -144,7 +144,8 @@ struct ItemsListView: View {
                     .defaultScrollAnchor(.top)
                     .accentColor(.phDarkIcon)
                     .background {
-                        Color.phWhiteBackground
+                        Color.gray
+                            .opacity(0.10)
                             .ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
