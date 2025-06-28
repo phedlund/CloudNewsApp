@@ -65,19 +65,6 @@ struct BadgeView: View {
         }
         .onChange(of: items.count, initial: true) { _, newValue in
             unreadCount = newValue
-            if node.type == .all {
-#if os(macOS)
-                NSApp.dockTile.badgeLabel = newValue > 0 ? "\(newValue)" : ""
-#else
-                Task {
-                    do {
-                        try await UNUserNotificationCenter.current().setBadgeCount(newValue)
-                    } catch {
-                        //
-                    }
-                }
-#endif
-            }
         }
     }
 

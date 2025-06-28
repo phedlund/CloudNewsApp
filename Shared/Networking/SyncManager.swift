@@ -5,9 +5,12 @@
 //  Created by Peter Hedlund on 8/26/24.
 //
 
-
+#if os(macOS)
+import AppKit
+#endif
 import Foundation
 import SwiftData
+import UserNotifications
 import WidgetKit
 
 @Observable
@@ -454,6 +457,10 @@ final class SyncManager: @unchecked Sendable {
                 await databaseActor.insert(itemToStore)
             }
             try? await databaseActor.save()
+            let unreadCount = try await databaseActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+            await MainActor.run {
+                UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+            }
         }
     }
 

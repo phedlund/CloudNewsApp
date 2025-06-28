@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import SwiftData
 import SwiftUI
+import UserNotifications
 import WidgetKit
 
 @Observable
@@ -315,6 +316,10 @@ class NewsModel: @unchecked Sendable {
                 try await databaseActor.save()
             }
             await updateUnreadItemIds()
+            let unreadCount = try await databaseActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true } )
+            await MainActor.run {
+                UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+            }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
