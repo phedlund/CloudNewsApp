@@ -17,9 +17,9 @@ final class Feed {
     var faviconLink: String?
     var folderId: Int64
     @Attribute(.unique) var id: Int64
-    var lastModified: Date
     var lastUpdateError: String?
     var link: String?
+    var nextUpdateTime: Date?
     var ordering: Int64
     var pinned: Bool
     var preferWeb: Bool
@@ -33,13 +33,14 @@ final class Feed {
 
     @Relationship var items: [Item]
 
-    init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, favIconURL: URL? = nil, favicon: Data? = nil, items: [Item]) {
+    init(added: Date, faviconLink: String? = nil, folderId: Int64?, id: Int64, lastUpdateError: String? = nil, link: String? = nil, nextUpdateTime: Date? = nil, ordering: Int64, pinned: Bool, title: String? = nil, unreadCount: Int64, updateErrorCount: Int64, url: String? = nil, favIconURL: URL? = nil, favicon: Data? = nil, items: [Item]) {
         self.added = added
         self.faviconLink = faviconLink
         self.folderId = folderId ?? 0
         self.id = id
         self.lastUpdateError = lastUpdateError
         self.link = link
+        self.nextUpdateTime = nextUpdateTime
         self.ordering = ordering
         self.pinned = pinned
         self.title = title
@@ -49,7 +50,6 @@ final class Feed {
 
         self.preferWeb = false
         self.useReader = false
-        self.lastModified = Date()
         self.favIconURL = favIconURL
         self.favIcon = favicon
         self.items = items
@@ -87,6 +87,7 @@ final class Feed {
                   id: item.id,
                   lastUpdateError: item.lastUpdateError,
                   link: item.link,
+                  nextUpdateTime: item.nextUpdateTime,
                   ordering: item.ordering,
                   pinned: item.pinned,
                   title: item.title,
