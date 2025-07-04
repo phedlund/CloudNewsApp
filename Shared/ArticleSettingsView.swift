@@ -26,9 +26,7 @@ struct ArticleSettingsView: View {
                 let isStarred = itemCopy.starred
                 Button {
                     Task {
-                        item.unread.toggle()
-                        try await newsModel.databaseActor.save()
-                        try? await newsModel.markRead(items: [itemCopy], unread: !isUnRead)
+                        newsModel.toggleItemRead(item: item)
                     }
                 } label: {
                     Label {

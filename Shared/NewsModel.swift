@@ -245,12 +245,15 @@ class NewsModel: @unchecked Sendable {
         guard !items.isEmpty else {
             return
         }
-        for item in items {
-            item.unread = false
-        }
         Task {
+            var internalUnreadItemIds = [Int64]()
+            for unreadItemId in items.compactMap(\.persistentModelID) {
+                if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
+                    internalUnreadItemIds.append(itemId)
+                }
+            }
             try await databaseActor.save()
-            try await self.markRead(items: items, unread: false)
+            try await self.markRead(itemIds: internalUnreadItemIds, unread: false)
         }
     }
 
@@ -264,22 +267,14 @@ class NewsModel: @unchecked Sendable {
     @MainActor
     func toggleItemRead(item: Item) {
         Task {
-            do {
-                item.unread.toggle()
-                try await databaseActor.save()
-                try await self.markRead(items: [item], unread: !item.unread)
-            } catch {
-                //
-            }
+            let currentState = item.unread
+            var internalUnreadItemIds = [Int64]()
+            if let itemId = try await databaseActor.update(item.persistentModelID, keypath: \.unread, to: !currentState) {
+                    internalUnreadItemIds.append(itemId)
+                }
+            try await databaseActor.save()
+            try await self.markRead(itemIds: internalUnreadItemIds, unread: !currentState)
         }
-    }
-
-    func markRead(items: [Item], unread: Bool) async throws {
-        guard !items.isEmpty else {
-            return
-        }
-        let itemIds = items.map( { $0.id } )
-        try await markRead(itemIds: itemIds, unread: unread)
     }
 
     func markRead(itemIds: [Int64], unread: Bool) async throws {
