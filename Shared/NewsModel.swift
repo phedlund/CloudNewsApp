@@ -233,6 +233,7 @@ class NewsModel: @unchecked Sendable {
                     internalUnreadItemIds.append(itemId)
                 }
             }
+            try await databaseActor.save()
             try await markRead(itemIds: internalUnreadItemIds, unread: false)
         } catch {
 

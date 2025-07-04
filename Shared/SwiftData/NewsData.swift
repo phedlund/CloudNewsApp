@@ -237,7 +237,6 @@ extension NewsDataModelActor {
             return nil
         }
         model[keyPath: keypath] = value
-        try? await save()
         return model.id
     }
 
