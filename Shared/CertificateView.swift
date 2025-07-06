@@ -24,10 +24,9 @@ struct CertificateView: View {
         .navigationTitle("Certificate")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("") {
+                Button(role: .close) {
                     dismiss()
                 }
-                .buttonStyle(XButton())
             }
         }
         .onAppear {
