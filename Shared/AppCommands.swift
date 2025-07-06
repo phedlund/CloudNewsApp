@@ -93,7 +93,7 @@ struct AppCommands: Commands {
             .disabled(isCurrentItemDisabled())
             Button(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star") {
                 Task {
-                    try? await newsModel.markCurrentItemStarred()
+                    try? await newsModel.toggleCurrentItemStarred()
                 }
             }
             .keyboardShortcut("s", modifiers: [.control])

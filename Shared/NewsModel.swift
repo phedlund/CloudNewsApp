@@ -322,7 +322,7 @@ class NewsModel: @unchecked Sendable {
     }
 
     @MainActor
-    func markCurrentItemStarred() async throws {
+    func toggleCurrentItemStarred() async throws {
         if let currentItem = currentItem {
             toggleItemStarred(item: currentItem)
         }
