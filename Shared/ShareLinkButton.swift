@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct ShareLinkButton: View {
-    var item: Item
+    var item: Item?
     var url: URL?
 
     var body: some View {
-        let subject = item.title ?? "Untitled"
-        let message = item.displayBody
+        let subject = item?.title ?? "Untitled"
+        let message = item?.displayBody ?? ""
         if let url {
             if url.scheme?.hasPrefix("file") ?? false {
-                if let urlString = item.url, let itemUrl = URL(string: urlString) {
+                if let urlString = item?.url, let itemUrl = URL(string: urlString) {
                     ShareLink(item: itemUrl, subject: Text(subject), message: Text(message))
                 }
             } else {

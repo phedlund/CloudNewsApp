@@ -91,7 +91,7 @@ struct ArticleViewMac: View {
                 }
             }
             Spacer()
-            ShareLinkButton(item: content.item, url: content.url)
+            ShareLinkButton(item: newsModel.currentItem, url: content.url)
                 .disabled(page.isLoading)
         }
     }

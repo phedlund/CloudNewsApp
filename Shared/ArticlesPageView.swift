@@ -49,16 +49,26 @@ struct ArticlesPageView: View {
         }
         .toolbarRole(.editor)
 //        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
-        .onAppear {
+        .task {
             pageViewProxy.scrollId = item.id
-            isAppearing = true
+            if let newItem = items.first(where: { $0.id == item.id } ) {
+                newsModel.currentItem = newItem
+                if newItem.unread {
+                    newsModel.markItemsRead(items: [newItem])
+//                    isAppearing = false
+//                } else {
+//                    itemsToMarkRead.append(newItem)
+                }
+            }
+//            isAppearing = true
         }
         .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
-            if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
-                if isAppearing {
-                    newsModel.markItemsRead(items: [newItem])
-                    isAppearing = false
-                } else {
+            if let newItem = items.first(where: { $0.id == newValue } ) {
+                newsModel.currentItem = newItem
+                if newItem.unread {
+//                    newsModel.markItemsRead(items: [newItem])
+//                    isAppearing = false
+//                } else {
                     itemsToMarkRead.append(newItem)
                 }
             }
@@ -107,12 +117,8 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                ShareLinkButton(item: currentItem, url: currentPage.url)
-                    .disabled(currentPage.isLoading)
-            } else {
-                EmptyView()
-            }
+            ShareLinkButton(item: newsModel.currentItem, url: currentPage.url)
+                .disabled(currentPage.isLoading)
             Button {
                 isShowingPopover = true
             } label: {
@@ -120,10 +126,9 @@ struct ArticlesPageView: View {
             }
             .disabled(currentPage.isLoading || currentPage.url?.scheme != "file")
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                    ArticleSettingsView(item: currentItem)
-                        .presentationDetents([.height(300.0)])
-                }
+                ArticleSettingsView()
+                    .presentationDetents([.height(300.0)])
+                    .environment(newsModel)
             }
         }
     }

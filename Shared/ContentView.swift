@@ -110,6 +110,9 @@ struct ContentView: View {
                 updateFetchDescriptor(nodeType: nodeType)
             }
         }
+        .onChange(of: selectedItem, initial: true) { _, newValue in
+            newsModel.currentItem = newValue
+        }
         .onChange(of: hideRead, initial: true) { _, _ in
             if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
                 updateFetchDescriptor(nodeType: nodeType)
