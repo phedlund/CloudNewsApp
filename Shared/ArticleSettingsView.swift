@@ -41,7 +41,7 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         if let item {
-//                            try? await newsModel.markStarred(item: item, starred: !item.starred)
+                            newsModel.toggleItemStarred(item: item)
                         }
                     }
                 } label: {

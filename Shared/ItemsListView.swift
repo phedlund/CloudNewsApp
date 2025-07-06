@@ -175,9 +175,7 @@ struct ItemsListView: View {
             }
         }
         Button {
-            Task {
-                try? await newsModel.markStarred(item: item, starred: !item.starred)
-            }
+            newsModel.toggleItemStarred(item: item)
         } label: {
             Label {
                 Text(item.starred ? "Unstar" : "Star")

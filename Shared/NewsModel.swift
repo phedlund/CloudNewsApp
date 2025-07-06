@@ -277,7 +277,7 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    func markRead(itemIds: [Int64], unread: Bool) async throws {
+    private func markRead(itemIds: [Int64], unread: Bool) async throws {
         guard !itemIds.isEmpty else {
             return
         }
@@ -321,13 +321,24 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    @MainActor
     func markCurrentItemStarred() async throws {
         if let currentItem = currentItem {
-            try await markStarred(item: currentItem, starred: !currentItem.starred)
+            toggleItemStarred(item: currentItem)
         }
     }
 
-    func markStarred(item: Item, starred: Bool) async throws {
+    @MainActor
+    func toggleItemStarred(item: Item) {
+        Task {
+            let currentState = item.starred
+            let _ = try await databaseActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
+            try await databaseActor.save()
+            try await self.markStarred(item: item, starred: !currentState)
+        }
+    }
+
+    private func markStarred(item: Item, starred: Bool) async throws {
         do {
             item.starred = starred
             try await databaseActor.save()
