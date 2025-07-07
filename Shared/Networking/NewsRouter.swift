@@ -266,13 +266,13 @@ enum Router {
                 urlRequest.url = components?.url
             }
 
-        case .itemsRead(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
+        case .itemsRead(let parameters), .itemsUnread(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
                 urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
             }
 
-        case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemsUnread, .itemStarred, .itemUnstarred, .allItemsRead:
+        case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemStarred, .itemUnstarred, .allItemsRead:
             break
         }
 
