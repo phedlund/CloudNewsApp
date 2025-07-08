@@ -122,7 +122,7 @@ struct ContentView: View {
         } content: {
             if selectedNode != nil {
                 let _ = Self._printChanges()
-                ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
+                ItemsListView(selectedItem: $selectedItem)
                     .environment(newsModel)
                     .environment(syncManager)
                     .toolbar {
@@ -184,7 +184,6 @@ struct ContentView: View {
                     navigationTitle = feed?.title ?? "Untitled Feed"
                 }
                 preferredColumn = .detail
-                updateFetchDescriptor(nodeType: nodeType)
             }
         }
         .onChange(of: selectedItem, initial: true) { _, newValue in
@@ -192,14 +191,6 @@ struct ContentView: View {
             if let newValue {
                 newsModel.markItemsRead(items: [newValue])
             }
-        }
-        .onChange(of: hideRead, initial: true) { _, _ in
-            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
-                updateFetchDescriptor(nodeType: nodeType)
-            }
-        }
-        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
 #endif
     }

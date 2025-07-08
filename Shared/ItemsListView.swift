@@ -71,6 +71,33 @@ struct ItemsListView: View {
                     bindable.navigationItemId = 0
                 }
             }
+            .onChange(of: selectedNode, initial: true) { _, newNode in
+                updateFetchDescriptor()
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
+            .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
+                cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+            }
+            .onChange(of: hideRead, initial: true) { _, _ in
+                updateFetchDescriptor()
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
+            .onChange(of: sortOldestFirst, initial: true) { _, newValue in
+                fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
                 var nextIndex = items.startIndex
                 if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
