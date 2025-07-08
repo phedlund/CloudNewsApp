@@ -22,13 +22,10 @@ struct ContentView: View {
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
     @State private var isShowingLogin = false
     @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
-    @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     @Query private var feeds: [Feed]
@@ -46,7 +43,7 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNode != nil {
-                    ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
+                    ItemsListView(selectedItem: $selectedItem)
                         .environment(newsModel)
                         .environment(syncManager)
                         .onOpenURL { url in
@@ -107,19 +104,10 @@ struct ContentView: View {
                     navigationTitle = feed?.title ?? "Untitled Feed"
                 }
                 preferredColumn = .detail
-                updateFetchDescriptor(nodeType: nodeType)
             }
         }
         .onChange(of: selectedItem, initial: true) { _, newValue in
             newsModel.currentItem = newValue
-        }
-        .onChange(of: hideRead, initial: true) { _, _ in
-            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
-                updateFetchDescriptor(nodeType: nodeType)
-            }
-        }
-        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -214,40 +202,6 @@ struct ContentView: View {
             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
 #endif
-    }
-
-    private func updateFetchDescriptor(nodeType: NodeType) {
-        switch nodeType {
-        case .empty:
-            fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .all:
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.unread
-                } else {
-                    return true
-                }
-            }
-        case .starred:
-            fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
-        case .folder(id:  let id):
-            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return feedIds.contains($0.feedId) && $0.unread
-                } else {
-                    return feedIds.contains($0.feedId)
-                }
-            }
-        case .feed(id: let id):
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.feedId == id && $0.unread
-                } else {
-                    return $0.feedId == id
-                }
-            }
-        }
     }
 
     private func processUrl(_ url: URL) {

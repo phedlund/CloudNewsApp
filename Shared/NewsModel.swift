@@ -225,22 +225,6 @@ class NewsModel: @unchecked Sendable {
     }
 
     @MainActor
-    func markCurrentItemsRead() async {
-        var internalUnreadItemIds = [Int64]()
-        do {
-            for unreadItemId in unreadItemIds {
-                if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
-                    internalUnreadItemIds.append(itemId)
-                }
-            }
-            try await databaseActor.save()
-            try await markRead(itemIds: internalUnreadItemIds, unread: false)
-        } catch {
-
-        }
-    }
-
-    @MainActor
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return
@@ -251,6 +235,9 @@ class NewsModel: @unchecked Sendable {
                 if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
+            }
+            for item in items {
+                item.unread.toggle()
             }
             try await databaseActor.save()
             try await self.markRead(itemIds: internalUnreadItemIds, unread: false)
@@ -272,12 +259,13 @@ class NewsModel: @unchecked Sendable {
             if let itemId = try await databaseActor.update(item.persistentModelID, keypath: \.unread, to: !currentState) {
                     internalUnreadItemIds.append(itemId)
                 }
+            item.unread.toggle()
             try await databaseActor.save()
             try await self.markRead(itemIds: internalUnreadItemIds, unread: !currentState)
         }
     }
 
-    private func markRead(itemIds: [Int64], unread: Bool) async throws {
+    func markRead(itemIds: [Int64], unread: Bool) async throws {
         guard !itemIds.isEmpty else {
             return
         }
@@ -333,6 +321,7 @@ class NewsModel: @unchecked Sendable {
         Task {
             let currentState = item.starred
             let _ = try await databaseActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
+            item.starred.toggle()
             try await databaseActor.save()
             try await self.markStarred(item: item, starred: !currentState)
         }
@@ -340,9 +329,6 @@ class NewsModel: @unchecked Sendable {
 
     private func markStarred(item: Item, starred: Bool) async throws {
         do {
-            item.starred = starred
-            try await databaseActor.save()
-
             let parameters: ParameterDict = ["items": [["feedId": item.feedId,
                                                         "guidHash": item.guidHash as Any]]]
             var router: Router

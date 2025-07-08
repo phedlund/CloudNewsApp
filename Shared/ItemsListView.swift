@@ -28,9 +28,11 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
-    @Query private var items: [Item]
-
+    @State private var fetchDescriptor = FetchDescriptor<Item>()
+    @State private var items = [Item]()
     @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
@@ -38,12 +40,10 @@ struct ItemsListView: View {
 
     @Binding var selectedItem: Item?
 
-    let fetchDescriptor: FetchDescriptor<Item>
+    @Query private var feeds: [Feed]
 
-    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
+    init(selectedItem: Binding<Item?>) {
         self._selectedItem = selectedItem
-        self.fetchDescriptor = fetchDescriptor
-        _items = Query(fetchDescriptor)
     }
 
     var body: some View {
@@ -110,8 +110,14 @@ struct ItemsListView: View {
                             ArticlesPageView(item: item, items: items)
                                 .environment(newsModel)
                         }
-                        .onChange(of: selectedNode) { _, newNode in
+                        .onChange(of: selectedNode, initial: true) { _, newNode in
                             bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                            updateFetchDescriptor()
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
                             doScrollToTop()
                         }
                         .onChange(of: scenePhase) { _, newPhase in
@@ -132,6 +138,22 @@ struct ItemsListView: View {
                         }
                         .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
                             cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                        }
+                        .onChange(of: hideRead, initial: true) { _, _ in
+                            updateFetchDescriptor()
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
+                        }
+                        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
+                            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
                         }
                     }
                     .onScrollPhaseChange { _, newPhase, context in
@@ -199,6 +221,42 @@ struct ItemsListView: View {
             }
         }
         lastOffset = offset
+    }
+
+    private func updateFetchDescriptor() {
+        if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+            switch nodeType {
+            case .empty:
+                fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+            case .all:
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return $0.unread
+                    } else {
+                        return true
+                    }
+                }
+            case .starred:
+                fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
+            case .folder(id:  let id):
+                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return feedIds.contains($0.feedId) && $0.unread
+                    } else {
+                        return feedIds.contains($0.feedId)
+                    }
+                }
+            case .feed(id: let id):
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return $0.feedId == id && $0.unread
+                    } else {
+                        return $0.feedId == id
+                    }
+                }
+            }
+        }
     }
 
 }
