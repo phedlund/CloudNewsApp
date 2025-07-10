@@ -156,6 +156,11 @@ struct ItemsListView: View {
                                     bindable.navigationItemId = 0
                                     doScrollToTop()
                                 }
+                                do {
+                                    items = try modelContext.fetch(fetchDescriptor)
+                                } catch {
+                                    //
+                                }
                             }
                         }
                         .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in

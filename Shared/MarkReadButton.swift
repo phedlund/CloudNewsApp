@@ -24,7 +24,7 @@ struct MarkReadButton: View {
                         internalIds.append(item.id)
                     }
                 }
-                try? await newsModel.markRead(itemIds: internalIds, unread: false)
+                await newsModel.markCurrentItemsRead()
             }
         } label: {
             Label {

@@ -225,6 +225,22 @@ class NewsModel: @unchecked Sendable {
     }
 
     @MainActor
+    func markCurrentItemsRead() async {
+        var internalUnreadItemIds = [Int64]()
+        do {
+            for unreadItemId in unreadItemIds {
+                if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
+                    internalUnreadItemIds.append(itemId)
+                }
+            }
+            try await databaseActor.save()
+            try await markRead(itemIds: internalUnreadItemIds, unread: false)
+        } catch {
+
+        }
+    }
+
+    @MainActor
     func markItemsRead(items: [Item]) {
         guard !items.isEmpty else {
             return
