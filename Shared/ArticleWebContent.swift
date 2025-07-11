@@ -10,7 +10,6 @@ import Observation
 import SwiftSoup
 import SwiftUI
 
-@Observable
 class ArticleWebContent {
     var url: URL?
     var item: Item

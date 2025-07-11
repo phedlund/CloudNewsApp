@@ -33,7 +33,6 @@ struct ArticleView: View, @MainActor Equatable {
             }
         }
         page = WebPage(configuration: webConfig, navigationDecider: NavigationDecider())
-        pageViewReader.page = page
         if let feed = content.item.feed {
             if feed.preferWeb == true,
                let urlString = content.item.url,
@@ -55,7 +54,6 @@ struct ArticleView: View, @MainActor Equatable {
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaPadding([.top], 40)
             .onChange(of: pageViewReader.scrollId) { oldValue, newValue in
-                print("got scroll id: \(newValue ?? -1)")
                 if newValue == content.item.id {
                     pageViewReader.page = page
                     pageViewReader.itemId = newValue

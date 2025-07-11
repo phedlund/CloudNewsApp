@@ -48,7 +48,6 @@ struct ArticlesPageView: View {
             pageViewToolBarContent(pageViewProxy: pageViewProxy)
         }
         .toolbarRole(.editor)
-//        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
         .task {
             pageViewProxy.scrollId = item.id
             if let newItem = items.first(where: { $0.id == item.id } ) {
