@@ -13,17 +13,17 @@ import WebKit
 struct ArticlesPageView: View {
     @Environment(NewsModel.self) private var newsModel
 
-    @State private var item: Item
     @State private var itemsToMarkRead = [Item]()
     @State private var isShowingPopover = false
     @State private var currentPage = WebPage()
     @Bindable var pageViewProxy = PageViewProxy(page: WebPage())
 
+    private let item: Item
     private let items: [Item]
 
     init(item: Item, items: [Item]) {
         self.items = items
-        self._item = State(initialValue: item)
+        self.item = item
     }
 
     var body: some View {
