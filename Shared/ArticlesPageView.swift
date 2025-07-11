@@ -15,7 +15,6 @@ struct ArticlesPageView: View {
 
     @State private var item: Item
     @State private var itemsToMarkRead = [Item]()
-    @State private var isAppearing = false
     @State private var isShowingPopover = false
     @State private var currentPage = WebPage()
     @Bindable var pageViewProxy = PageViewProxy(page: WebPage())
@@ -54,20 +53,13 @@ struct ArticlesPageView: View {
                 newsModel.currentItem = newItem
                 if newItem.unread {
                     newsModel.markItemsRead(items: [newItem])
-//                    isAppearing = false
-//                } else {
-//                    itemsToMarkRead.append(newItem)
                 }
             }
-//            isAppearing = true
         }
         .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
             if let newItem = items.first(where: { $0.id == newValue } ) {
                 newsModel.currentItem = newItem
                 if newItem.unread {
-//                    newsModel.markItemsRead(items: [newItem])
-//                    isAppearing = false
-//                } else {
                     itemsToMarkRead.append(newItem)
                 }
             }
