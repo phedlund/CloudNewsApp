@@ -161,6 +161,10 @@ struct ItemsListView: View {
                                 } catch {
                                     //
                                 }
+                                if Preferences().didSyncInBackground {
+                                    Preferences().didSyncInBackground = false
+                                    doScrollToTop()
+                                }
                             }
                         }
                         .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in

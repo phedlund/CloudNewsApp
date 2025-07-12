@@ -117,6 +117,7 @@ final class SyncManager: @unchecked Sendable {
                     }
                 }
             }
+            Preferences().didSyncInBackground = true
         }
     }
 

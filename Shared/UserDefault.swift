@@ -78,4 +78,5 @@ class Preferences: ObservableObject {
     @UserDefault(SettingKeys.lastModified) var lastModified: Int32 = 0
     @UserDefault(SettingKeys.keepDuration) var keepDuration = 3
     @UserDefault(SettingKeys.selectedNode) var selectedNode = Constants.allNodeGuid
+    @UserDefault(SettingKeys.didSyncInBackground) var didSyncInBackground = false
 }
