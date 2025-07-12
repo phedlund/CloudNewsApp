@@ -22,8 +22,8 @@ class ArticleWebContent {
     private let urlString: String
     private let summary: String
     private let fileName: String
+    private let preferences = Preferences()
 
-    private var preferences = Preferences()
     private var isInInit = false
 
     private var cssPath: String {
