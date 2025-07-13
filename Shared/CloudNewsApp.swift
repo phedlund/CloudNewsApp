@@ -16,6 +16,8 @@ struct CloudNewsApp: App {
     private let modelActor: NewsDataModelActor
     private let syncManager: SyncManager
 
+    @State private var isShowingAcknowledgements = false
+
 #if !os(macOS)
     @Environment(\.scenePhase) var scenePhase
 #else
@@ -49,6 +51,11 @@ struct CloudNewsApp: App {
             ContentView()
                 .environment(newsModel)
                 .environment(syncManager)
+                .sheet(isPresented: $isShowingAcknowledgements) {
+                    NavigationView {
+                        AcknowledgementsView()
+                    }
+                }
         }
         .modelContainer(container)
         .database(SharedDatabase.shared.database)
@@ -70,6 +77,9 @@ struct CloudNewsApp: App {
             @unknown default:
                 fatalError("Unknown scene phase")
             }
+        }
+        .commands {
+            PadCommands(newsModel: newsModel, isShowingAcknowledgements: $isShowingAcknowledgements)
         }
 #endif
         
