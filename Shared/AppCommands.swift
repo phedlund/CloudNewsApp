@@ -56,7 +56,7 @@ struct AppCommands: Commands {
             Divider()
             Button("Settings...") {
                 switch newsModel.currentNodeType {
-                case .empty, .all, .starred, .folder(id: _):
+                case .empty, .all, .unread, .starred, .folder(id: _):
                     break
                 case .feed(id: _):
                     openWindow(id: ModalSheet.feedSettings.rawValue)
@@ -201,7 +201,7 @@ struct AppCommands: Commands {
 
     private func isFolderRenameDisabled() -> Bool {
         switch newsModel.currentNodeType {
-        case .empty, .all, .starred, .feed(id: _):
+        case .empty, .all, .unread, .starred, .feed(id: _):
             return true
         case .folder(id: _):
             return false
@@ -210,7 +210,7 @@ struct AppCommands: Commands {
 
     private func isFeedSettingsDisabled() -> Bool {
         switch newsModel.currentNodeType {
-        case .empty, .all, .starred, .folder(id: _):
+        case .empty, .all, .unread, .starred, .folder(id: _):
             return true
         case .feed(id: _):
             return false
