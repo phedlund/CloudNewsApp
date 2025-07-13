@@ -234,7 +234,7 @@ struct FeedSettingsView: View {
 
     private func feedForNodeType(_ nodeType: NodeType) -> Feed? {
         switch nodeType {
-        case .empty, .all, .starred, .folder:
+        case .empty, .all, .unread, .starred, .folder:
             return nil
         case .feed(let id):
             return feeds.first(where: { $0.id == id })

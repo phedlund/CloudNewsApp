@@ -23,7 +23,7 @@ struct BadgeView: View {
         switch node.type {
         case .empty:
             break
-        case .all:
+        case .all, .unread:
             predicate = #Predicate<Item> { $0.unread == true }
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
@@ -34,7 +34,7 @@ struct BadgeView: View {
                 var feedIds = [Int64]()
                 for child in children {
                     switch child.type {
-                    case .empty, .all, .starred, .folder:
+                    case .empty, .all, .unread, .starred, .folder:
                         break
                     case .feed(let id):
                         feedIds.append(id)

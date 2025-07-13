@@ -272,6 +272,8 @@ struct ItemsListView: View {
                         return true
                     }
                 }
+            case .unread:
+                fetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
             case .starred:
                 fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
             case .folder(id:  let id):

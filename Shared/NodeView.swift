@@ -30,7 +30,7 @@ struct NodeView: View {
                         .lineLimit(1)
                     Spacer()
                     BadgeView(node: node, unreadCount: $unreadCount)
-                        .padding(.trailing, node.id.hasPrefix("cccc_") ? childrenPadding : noChildrenPadding)
+                        .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
             } icon: {
@@ -54,6 +54,8 @@ private extension NodeView {
             case .all, .empty:
                 Image(.rss)
                     .font(.system(size: 18, weight: .light))
+            case .unread:
+                Image(systemName: "eye.slash")
             case .starred:
                 Image(systemName: "star.fill")
             case .folder( _):

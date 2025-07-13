@@ -94,6 +94,8 @@ struct ContentView: View {
                     navigationTitle = ""
                 case .all:
                     navigationTitle = "All Articles"
+                case .unread:
+                    navigationTitle = "Unread Articles"
                 case .starred:
                     navigationTitle = "Starred Articles"
                 case .folder(let id):

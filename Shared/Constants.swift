@@ -17,7 +17,8 @@ struct Constants {
 
     static let emptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
     static let allNodeGuid = "aaaa"
-    static let starNodeGuid = "bbbb"
+    static let unreadNodeGuid = "bbbb"
+    static let starNodeGuid = "cccc"
 
     static let email = "support@pbh.dev"
     static let website = "https://pbh.dev/cloudnews"

@@ -44,7 +44,7 @@ class NewsModel: @unchecked Sendable {
             switch currentNodeType {
             case .empty:
                 unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-            case .all:
+            case .all, .unread:
                 unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
             case .starred:
                 unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
@@ -60,7 +60,7 @@ class NewsModel: @unchecked Sendable {
 
     func delete(_ node: Node) async throws {
         switch node.type {
-        case .empty, .all, .starred:
+        case .empty, .all, .unread, .starred:
             break
         case .folder(let id):
             if let feedIds = await databaseActor.feedIdsInFolder(folder: id) {

@@ -96,7 +96,7 @@ struct SidebarView: View {
                 .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
                     Button(role: .destructive) {
                         switch detail.type {
-                        case .all, .empty, .starred:
+                        case .all, .empty, .unread, .starred:
                             break
                         case .feed(id: _),  .folder(id: _):
                             Task {
@@ -122,7 +122,7 @@ struct SidebarView: View {
                     }
                 } message: { detail in
                     switch detail.type {
-                    case .all, .empty, .starred:
+                    case .all, .empty, .unread, .starred:
                         EmptyView()
                     case .feed(id: _):
                         Text("This will delete the feed \(detail.title)")
@@ -178,7 +178,7 @@ struct SidebarView: View {
             TextField("Title", text: $alertInput)
             Button("Rename") {
                 switch newsModel.currentNodeType {
-                case .empty, .all, .starred, .feed( _):
+                case .empty, .all, .unread, .starred, .feed( _):
                     break
                 case .folder(let id):
                     Task {
@@ -196,7 +196,7 @@ struct SidebarView: View {
         })
         .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .feed( _):
+            case .empty, .all, .unread, .starred, .feed( _):
                 break
             case .folder(let id):
                 Task {
@@ -208,7 +208,7 @@ struct SidebarView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .feed( _):
+            case .empty, .all, .unread, .starred, .feed( _):
                 break
             case .folder(let id):
                 if let node = nodes.first(where: { $0.type == .folder(id: id) }) {
@@ -219,7 +219,7 @@ struct SidebarView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .folder( _):
+            case .empty, .all, .unread, .starred, .folder( _):
                 break
             case .feed(let id):
                 if let node = nodes.first(where: { $0.type == .feed(id: id) }) {
@@ -256,7 +256,7 @@ struct SidebarView: View {
 
     private func folderForNodeType(_ nodeType: NodeType) -> Folder? {
         switch nodeType {
-        case .empty, .all, .starred, .feed(_):
+        case .empty, .all, .unread, .starred, .feed(_):
             return nil
         case .folder(let id):
             return folders.first(where: { $0.id == id })
@@ -268,7 +268,7 @@ struct SidebarView: View {
         switch node.type {
         case .empty, .starred:
             EmptyView()
-        case .all:
+        case .all, .unread:
             MarkReadButton()
                 .environment(newsModel)
         case .folder( _):
@@ -352,7 +352,7 @@ struct SidebarView: View {
         switch node.type {
         case .empty, .starred:
             result.predicate = #Predicate<Item>{ _ in false }
-        case .all:
+        case .all, .unread:
             result.predicate = #Predicate<Item>{ $0.unread }
         case .folder(id: let id):
             let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )

@@ -404,6 +404,8 @@ final class SyncManager: @unchecked Sendable {
             self.feedDTOs = decodedResponse.feeds
             let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
             await databaseActor.insert(allNode)
+            let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 1)
+            await databaseActor.insert(unreadNode)
             let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
             await databaseActor.insert(starredNode)
             for folderDTO in foldersDTO.folders {
