@@ -250,7 +250,7 @@ struct ItemsListView: View {
         if markReadWhileScrolling {
             let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
             if numberOfItems > 0 {
-                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
+                let itemsToMarkRead = items
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
                 newsModel.markItemsRead(items: Array(itemsToMarkRead))
