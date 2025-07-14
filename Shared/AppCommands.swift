@@ -170,7 +170,7 @@ struct AppCommands: Commands {
                 }
             }
         }
-        CommandGroup(after: .help) {
+        CommandGroup(replacing: .help) {
             Divider()
             Link(destination: supportURL) {
                 Label("Contact", systemImage: "mail")
@@ -179,8 +179,14 @@ struct AppCommands: Commands {
                 Label("Web Site", systemImage: "link")
             }
             Divider()
-            Button("Acknowledgements...") {
+            Button {
                 openWindow(id: ModalSheet.acknowledgement.rawValue)
+            } label: {
+                Label {
+                    Text("Acknowledgements...")
+                } icon: {
+                    Image(systemName: "hand.thumbsup")
+                }
             }
         }
     }

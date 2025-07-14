@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
+import Foundation
 import SwiftData
 import SwiftUI
 import WebKit
@@ -35,8 +36,31 @@ struct ArticlesPageView: View {
                 }
             }
             .scrollTargetLayout()
+            .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { notification in
+                var nextIndex = items.startIndex
+                if let selectedItemId = pageViewProxy.scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: -1)
+                }
+                if nextIndex <= items.startIndex {
+                    nextIndex = items.startIndex
+                }
+                let previousItem = items[nextIndex]
+                pageViewProxy.scrollId = previousItem.id
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { notification in
+                var nextIndex = items.startIndex
+                if let selectedItemId = pageViewProxy.scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: 1)
+                }
+                if nextIndex > items.endIndex {
+                    nextIndex = items.startIndex
+                }
+                let nextItem = items[nextIndex]
+                pageViewProxy.scrollId = nextItem.id
+            }
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
+        .scrollPosition(id: $pageViewProxy.scrollId)
         .navigationTitle(currentPage.title)
         .scrollContentBackground(.hidden)
         .background {
@@ -73,7 +97,6 @@ struct ArticlesPageView: View {
                 itemsToMarkRead.removeAll()
             }
         }
-        .scrollPosition(id: $pageViewProxy.scrollId)
     }
 
     @ToolbarContentBuilder

@@ -16,6 +16,9 @@ struct CloudNewsApp: App {
     private let modelActor: NewsDataModelActor
     private let syncManager: SyncManager
 
+    @State private var isShowingAddFolder = false
+    @State private var isShowingAddFeed = false
+    @State private var isShowingFeedSettings = false
     @State private var isShowingAcknowledgements = false
 
 #if !os(macOS)
@@ -56,6 +59,27 @@ struct CloudNewsApp: App {
                         AcknowledgementsView()
                     }
                 }
+                .sheet(isPresented: $isShowingAddFolder) {
+                    NavigationView {
+                        AddView(selectedAdd: .folder)
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
+                .sheet(isPresented: $isShowingAddFeed) {
+                    NavigationView {
+                        AddView(selectedAdd: .feed)
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
+                .sheet(isPresented: $isShowingFeedSettings) {
+                    NavigationView {
+                        FeedSettingsView()
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
         }
         .modelContainer(container)
         .database(SharedDatabase.shared.database)
@@ -79,7 +103,7 @@ struct CloudNewsApp: App {
             }
         }
         .commands {
-            PadCommands(newsModel: newsModel, isShowingAcknowledgements: $isShowingAcknowledgements)
+            PadCommands(newsModel: newsModel, isShowingAddFeed: $isShowingAddFeed, isShowingFeedSettings: $isShowingFeedSettings, isShowingAddFolder: $isShowingAddFolder, isShowingAcknowledgements: $isShowingAcknowledgements)
         }
 #endif
         
