@@ -26,7 +26,7 @@ struct CloudNewsApp: App {
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #endif
-    
+
     init() {
         container = SharedDatabase.shared.modelContainer
         self.modelActor = NewsDataModelActor(modelContainer: container)
@@ -34,9 +34,9 @@ struct CloudNewsApp: App {
         self.syncManager = SyncManager(databaseActor: modelActor)
         syncManager.configureSession()
     }
-    
+
     var body: some Scene {
-        #if os(macOS)
+#if os(macOS)
         Window(Text("CloudNews"), id: "mainWindow") {
             ContentView()
                 .environment(newsModel)
@@ -53,7 +53,7 @@ struct CloudNewsApp: App {
                         isShowingAddFolder: $isShowingAddFolder,
                         isShowingAcknowledgements: $isShowingAcknowledgements)
         }
-        #else
+#else
         WindowGroup {
             ContentView()
                 .environment(newsModel)
@@ -114,7 +114,7 @@ struct CloudNewsApp: App {
                         isShowingAcknowledgements: $isShowingAcknowledgements)
         }
 #endif
-        
+
 #if os(macOS)
         Settings {
             SettingsView()
@@ -134,7 +134,7 @@ struct CloudNewsApp: App {
             FeedSettingsView()
                 .environment(newsModel)
                 .frame(width: 600, height: 500)
-            
+
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
