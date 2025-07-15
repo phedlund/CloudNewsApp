@@ -47,7 +47,11 @@ struct CloudNewsApp: App {
         .defaultSize(width: 1000, height: 650)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(newsModel: newsModel)
+            AppCommands(newsModel: newsModel,
+                        isShowingAddFeed: $isShowingAddFeed,
+                        isShowingFeedSettings: $isShowingFeedSettings,
+                        isShowingAddFolder: $isShowingAddFolder,
+                        isShowingAcknowledgements: $isShowingAcknowledgements)
         }
         #else
         WindowGroup {
@@ -103,7 +107,11 @@ struct CloudNewsApp: App {
             }
         }
         .commands {
-            PadCommands(newsModel: newsModel, isShowingAddFeed: $isShowingAddFeed, isShowingFeedSettings: $isShowingFeedSettings, isShowingAddFolder: $isShowingAddFolder, isShowingAcknowledgements: $isShowingAcknowledgements)
+            AppCommands(newsModel: newsModel,
+                        isShowingAddFeed: $isShowingAddFeed,
+                        isShowingFeedSettings: $isShowingFeedSettings,
+                        isShowingAddFolder: $isShowingAddFolder,
+                        isShowingAcknowledgements: $isShowingAcknowledgements)
         }
 #endif
         
