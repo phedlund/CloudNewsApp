@@ -138,10 +138,28 @@ class NewsModel: @unchecked Sendable {
                     }
                     if let feedDTO = decodedResponse.feeds.first {
                         let type = NodeType.feed(id: feedDTO.id)
-                        let feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, children: [], errorCount: 0)
+                        let feedNode = Node(id: type.description,
+                                            type: type,
+                                            title: feedDTO.title ?? "Untitled Feed",
+                                            favIconURL: nil,
+                                            children: [],
+                                            errorCount: 0)
                         await databaseActor.insert(feedNode)
-                        let itemToStore = await Feed(item: feedDTO)
-                        await databaseActor.insert(itemToStore)
+                        let feedToInsert = Feed(added: feedDTO.added,
+                                                faviconLink: feedDTO.faviconLink,
+                                                folderId: feedDTO.folderId,
+                                                id: feedDTO.id,
+                                                lastUpdateError: feedDTO.lastUpdateError,
+                                                link: feedDTO.link,
+                                                nextUpdateTime: feedDTO.nextUpdateTime,
+                                                ordering: feedDTO.ordering,
+                                                pinned: feedDTO.pinned,
+                                                title: feedDTO.title,
+                                                unreadCount: feedDTO.unreadCount ?? 0,
+                                                updateErrorCount: feedDTO.updateErrorCount,
+                                                url: feedDTO.url,
+                                                items: [])
+                        await databaseActor.insert(feedToInsert)
                         try await addItems(feed: feedDTO.id)
                     }
                     WidgetCenter.shared.reloadAllTimelines()
@@ -215,7 +233,33 @@ class NewsModel: @unchecked Sendable {
                 }
                 for eachItem in decodedResponse.items {
                     let itemToStore = await Item(item: eachItem)
-                    await databaseActor.insert(itemToStore)
+                    let itemToInsert = Item(author: itemToStore.author,
+                                            body: itemToStore.body,
+                                            contentHash: itemToStore.contentHash,
+                                            displayBody: itemToStore.displayBody,
+                                            displayTitle: itemToStore.displayTitle,
+                                            dateFeedAuthor: itemToStore.dateFeedAuthor,
+                                            enclosureLink: itemToStore.enclosureLink,
+                                            enclosureMime: itemToStore.enclosureMime,
+                                            feedId: itemToStore.feedId,
+                                            fingerprint: itemToStore.fingerprint,
+                                            guid: itemToStore.guid,
+                                            guidHash: itemToStore.guidHash,
+                                            id: itemToStore.id,
+                                            lastModified: itemToStore.lastModified,
+                                            mediaThumbnail: itemToStore.mediaThumbnail,
+                                            mediaDescription: itemToStore.mediaDescription,
+                                            pubDate: itemToStore.pubDate,
+                                            rtl: itemToStore.rtl,
+                                            starred: itemToStore.starred,
+                                            title: itemToStore.title,
+                                            unread: itemToStore.unread,
+                                            updatedDate: itemToStore.updatedDate,
+                                            url: itemToStore.url,
+                                            thumbnailURL: itemToStore.thumbnailURL,
+                                            image: itemToStore.image,
+                                            thumbnail: itemToStore.thumbnail)
+                    await databaseActor.insert(itemToInsert)
                 }
                 WidgetCenter.shared.reloadAllTimelines()
             default:
