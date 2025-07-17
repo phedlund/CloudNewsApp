@@ -38,7 +38,7 @@ class NewsModel: @unchecked Sendable {
         self.databaseActor = databaseActor
     }
 
-    private func updateUnreadItemIds() async  {
+    func updateUnreadItemIds() async  {
         Task {
             var unreadFetchDescriptor = FetchDescriptor<Item>()
             switch currentNodeType {

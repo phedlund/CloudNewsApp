@@ -158,6 +158,9 @@ struct ItemsListView: View {
                                 }
                                 do {
                                     items = try modelContext.fetch(fetchDescriptor)
+                                    if let firstItem = items.first, firstItem.unread {
+                                        doScrollToTop()
+                                    }
                                 } catch {
                                     //
                                 }

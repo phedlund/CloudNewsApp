@@ -17,11 +17,10 @@ struct MarkReadButton: View {
     var body: some View {
         Button {
             Task {
-                var internalIds = [Int64]()
+                await newsModel.updateUnreadItemIds()
                 for itemID in newsModel.unreadItemIds {
                     if let item = modelContext.model(for: itemID) as? Item {
                         item.unread = false
-                        internalIds.append(item.id)
                     }
                 }
                 await newsModel.markCurrentItemsRead()
