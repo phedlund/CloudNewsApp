@@ -74,8 +74,7 @@
 		D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
 		D0C9263D2DCAD945005415E5 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D0C9263C2DCAD945005415E5 /* SwiftSoup */; };
-		D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* WebViewReader.swift */; };
-		D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B72C562857002694BC /* Publisher+Extension.swift */; };
+		D0D853B62C557E4E002694BC /* PageViewProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* PageViewProxy.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
@@ -172,8 +171,7 @@
 		D0C925EC2DC836A6005415E5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D0C925EE2DC836A6005415E5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilitiesShared.swift; sourceTree = "<group>"; };
-		D0D853B52C557E4E002694BC /* WebViewReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewReader.swift; sourceTree = "<group>"; };
-		D0D853B72C562857002694BC /* Publisher+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Extension.swift"; sourceTree = "<group>"; };
+		D0D853B52C557E4E002694BC /* PageViewProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageViewProxy.swift; sourceTree = "<group>"; };
 		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
@@ -277,8 +275,7 @@
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
 				D04565112E070270001CD015 /* NavigationDecider.swift */,
 				D08ED86E2870FA4200A8F585 /* ItemWebView.swift */,
-				D0D853B72C562857002694BC /* Publisher+Extension.swift */,
-				D0D853B52C557E4E002694BC /* WebViewReader.swift */,
+				D0D853B52C557E4E002694BC /* PageViewProxy.swift */,
 				D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */,
 				D050B31627B0C0C100442584 /* ContentBlocker.swift */,
 				D02FA073269E2E7600A77875 /* FeedSettingsView.swift */,
@@ -499,7 +496,7 @@
 				D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */,
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
-				D0D853B62C557E4E002694BC /* WebViewReader.swift in Sources */,
+				D0D853B62C557E4E002694BC /* PageViewProxy.swift in Sources */,
 				D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
@@ -542,7 +539,6 @@
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D0F41D792A78186600EEAC78 /* Feed.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* NewsModel.swift in Sources */,
-				D0D853B82C562857002694BC /* Publisher+Extension.swift in Sources */,
 				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D0F41D752A78185900EEAC78 /* Item.swift in Sources */,
