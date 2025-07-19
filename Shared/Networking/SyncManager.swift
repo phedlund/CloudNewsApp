@@ -20,7 +20,7 @@ final class SyncManagerReader {
 
 @Observable
 final class SyncManager: @unchecked Sendable {
-    private let databaseActor: NewsDataModelActor
+//    private let databaseActor: NewsDataModelActor
     private var backgroundSession: URLSession?
     var syncManagerReader = SyncManagerReader()
 
@@ -29,8 +29,10 @@ final class SyncManager: @unchecked Sendable {
     private var folderNode = Node(id: "", type: .empty, title: "")
     private var feedNode = Node(id: "", type: .empty, title: "")
 
-    init(databaseActor: NewsDataModelActor) {
-        self.databaseActor = databaseActor
+    let modelContainer: ModelContainer
+
+    init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
     }
 
     func configureSession() {
@@ -69,8 +71,8 @@ final class SyncManager: @unchecked Sendable {
                 parseFeeds(data: data.0)
             }
 
-
-            let newestKnownLastModified = await databaseActor.maxLastModified()
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let newestKnownLastModified = await backgroundActor.maxLastModified()
             Preferences().lastModified = Int32(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
@@ -123,7 +125,8 @@ final class SyncManager: @unchecked Sendable {
 
     func sync() async throws -> NewsStatusDTO? {
         syncManagerReader.isSyncing = true
-        let itemCount = try await databaseActor.itemCount()
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
         let currentStatus = try await newsStatus()
         if itemCount == 0 {
             try await initialSync()
@@ -222,10 +225,11 @@ final class SyncManager: @unchecked Sendable {
      */
 
     private func repeatSync() async throws {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         var localReadIds = [Int64]()
-        let identifiers = try await databaseActor.allModelIds(FetchDescriptor<Read>())
+        let identifiers = try await backgroundActor.allModelIds(FetchDescriptor<Read>())
         for identifier in identifiers {
-            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
                 localReadIds.append(itemId)
             }
         }
@@ -238,7 +242,7 @@ final class SyncManager: @unchecked Sendable {
             if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
                 switch httpReadResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Read.self)
+                    try await backgroundActor.delete(model: Read.self)
                 default:
                     break
                 }
@@ -246,9 +250,9 @@ final class SyncManager: @unchecked Sendable {
         }
 
         var localUnreadIds = [Int64]()
-        let unreadIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unread>())
+        let unreadIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Unread>())
         for identifier in unreadIdentifiers {
-            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
                 localUnreadIds.append(itemId)
             }
         }
@@ -261,7 +265,7 @@ final class SyncManager: @unchecked Sendable {
             if let httpUnreadResponse = unreadItemsResponse as? HTTPURLResponse {
                 switch httpUnreadResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Unread.self)
+                    try await backgroundActor.delete(model: Unread.self)
                 default:
                     break
                 }
@@ -269,9 +273,9 @@ final class SyncManager: @unchecked Sendable {
         }
 
         var localStarredParameters = [StarredParameter]()
-        let starredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Starred>())
+        let starredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Starred>())
         for identifier in starredIdentifiers {
-            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+            if let parameters = try await backgroundActor.fetchStarredParameter(by: identifier) {
                 localStarredParameters.append(parameters)
             }
         }
@@ -291,7 +295,7 @@ final class SyncManager: @unchecked Sendable {
             if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
                 switch httpStarredResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Starred.self)
+                    try await backgroundActor.delete(model: Starred.self)
                 default:
                     break
                 }
@@ -299,9 +303,9 @@ final class SyncManager: @unchecked Sendable {
         }
 
         var localUnstarredParameters = [StarredParameter]()
-        let unStarredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unstarred>())
+        let unStarredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Unstarred>())
         for identifier in unStarredIdentifiers {
-            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
+            if let parameters = try await backgroundActor.fetchStarredParameter(by: identifier) {
                 localUnstarredParameters.append(parameters)
             }
         }
@@ -321,7 +325,7 @@ final class SyncManager: @unchecked Sendable {
             if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
                 switch httpStarredResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Unstarred.self)
+                    try await backgroundActor.delete(model: Unstarred.self)
                 default:
                     break
                 }
@@ -331,7 +335,7 @@ final class SyncManager: @unchecked Sendable {
         let foldersRequest = try Router.folders.urlRequest()
         let feedsRequest = try Router.feeds.urlRequest()
 
-        let newestKnownLastModified = await databaseActor.maxLastModified()
+        let newestKnownLastModified = await backgroundActor.maxLastModified()
         Preferences().lastModified = Int32(newestKnownLastModified)
         let updatedParameters: ParameterDict = ["type": 3,
                                                 "lastModified": newestKnownLastModified,
@@ -386,7 +390,8 @@ final class SyncManager: @unchecked Sendable {
         let folderIds = decodedResponse.folders.map( { $0.id } )
         Task {
             do {
-                try await databaseActor.pruneFolders(serverFolderIds: folderIds)
+                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+                try await backgroundActor.pruneFolders(serverFolderIds: folderIds)
             } catch {
                 //
             }
@@ -401,13 +406,14 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             self.feedDTOs = decodedResponse.feeds
             let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
-            await databaseActor.insert(allNode)
+            await backgroundActor.insert(allNode)
             let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 1)
-            await databaseActor.insert(unreadNode)
+            await backgroundActor.insert(unreadNode)
             let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
-            await databaseActor.insert(starredNode)
+            await backgroundActor.insert(starredNode)
             for folderDTO in foldersDTO.folders {
                 var feeds = [Node]()
                 let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
@@ -416,7 +422,7 @@ final class SyncManager: @unchecked Sendable {
                     let type = NodeType.feed(id: feedDTO.id)
                     feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
                     feeds.append(feedNode)
-                    await databaseActor.insert(feedToStore)
+                    await backgroundActor.insert(feedToStore)
                 }
                 let type = NodeType.folder(id: folderDTO.id)
                 folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, pinned: 1)
@@ -424,27 +430,27 @@ final class SyncManager: @unchecked Sendable {
                 if !feedsWithUpdateErrorCount.isEmpty {
                     folderNode.errorCount = 1
                 }
-                await databaseActor.insert(folderNode)
+                await backgroundActor.insert(folderNode)
                 let itemToStore = Folder(item: folderDTO)
-                await databaseActor.insert(itemToStore)
+                await backgroundActor.insert(itemToStore)
             }
             let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
             for feedDTO in feedDTOs {
                 let feedToStore = await Feed(item: feedDTO)
                 let type = NodeType.feed(id: feedDTO.id)
                 feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
-                await databaseActor.insert(feedToStore)
-                await databaseActor.insert(feedNode)
+                await backgroundActor.insert(feedToStore)
+                await backgroundActor.insert(feedNode)
             }
             let feedIds = decodedResponse.feeds.map( { $0.id } )
             Task {
                 do {
-                    try await databaseActor.pruneFeeds(serverFeedIds: feedIds)
+                    try await backgroundActor.pruneFeeds(serverFeedIds: feedIds)
                 } catch {
                     //
                 }
             }
-            try? await databaseActor.save()
+            try? await backgroundActor.save()
         }
     }
 
@@ -455,12 +461,13 @@ final class SyncManager: @unchecked Sendable {
             return
         }
         Task {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             for eachItem in decodedResponse.items {
                 let itemToStore = await Item(item: eachItem)
-                await databaseActor.insert(itemToStore)
+                await backgroundActor.insert(itemToStore)
             }
-            try? await databaseActor.save()
-            let unreadCount = try await databaseActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+            try? await backgroundActor.save()
+            let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
             await MainActor.run {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
@@ -471,7 +478,8 @@ final class SyncManager: @unchecked Sendable {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")
-                try await databaseActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+                try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
             throw DatabaseError.itemsFailedImport

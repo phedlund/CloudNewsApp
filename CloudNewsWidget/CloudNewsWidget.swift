@@ -136,11 +136,21 @@ struct CloudNewsWidgetEntryView : View {
 struct CloudNewsWidget: Widget {
     let kind: String = "CloudNewsWidget"
 
+    private let container: ModelContainer
+
+    init() {
+        do {
+            container = try ModelContainer(for: schema)
+        } catch {
+            fatalError("Failed to create container")
+        }
+    }
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             CloudNewsWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
-                .modelContainer(SharedDatabase.shared.modelContainer)
+                .modelContainer(container)
         }
         .configurationDisplayName("Recent Articles")
         .description("A list of the most recent articles from your feeds.")

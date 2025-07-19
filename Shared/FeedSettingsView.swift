@@ -151,7 +151,7 @@ struct FeedSettingsView: View {
                     feed.preferWeb = newValue
                     Task {
                         do {
-                            try await self.newsModel.databaseActor.save()
+// TODO           try await self.newsModel.databaseActor.save()
                         } catch {
                             //
                         }
@@ -181,7 +181,7 @@ struct FeedSettingsView: View {
                     try await newsModel.renameFeed(feedId: feed.id, to: title)
                     node.title = title
                     feed.title = title
-                    try await self.newsModel.databaseActor.save()
+// TODO             try await self.newsModel.databaseActor.save()
                 } catch let error as NetworkError {
                     title = initialTitle
                     footerMessage = error.localizedDescription
@@ -215,7 +215,7 @@ struct FeedSettingsView: View {
                     }
                 }
                 feed.folderId = newFolderId
-                try await newsModel.databaseActor.save()
+// TODO               try await newsModel.databaseActor.save()
             } catch let error as NetworkError {
                 folderSelection = initialFolderSelection
                 footerMessage = error.localizedDescription

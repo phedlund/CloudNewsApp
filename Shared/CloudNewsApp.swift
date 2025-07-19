@@ -13,7 +13,7 @@ import SwiftUI
 struct CloudNewsApp: App {
     private let container: ModelContainer
     private let newsModel: NewsModel
-    private let modelActor: NewsDataModelActor
+    private let modelActor: NewsModelActor
     private let syncManager: SyncManager
 
     @State private var isShowingAddFolder = false
@@ -28,11 +28,15 @@ struct CloudNewsApp: App {
 #endif
 
     init() {
-        container = SharedDatabase.shared.modelContainer
-        self.modelActor = NewsDataModelActor(modelContainer: container)
-        self.newsModel = NewsModel(databaseActor: modelActor)
-        self.syncManager = SyncManager(databaseActor: modelActor)
-        syncManager.configureSession()
+        do {
+            container = try ModelContainer(for: schema)
+            self.modelActor = NewsModelActor(modelContainer: container)
+            self.newsModel = NewsModel(modelContainer: container)
+            self.syncManager = SyncManager(modelContainer: container)
+            syncManager.configureSession()
+        } catch {
+            fatalError("Failed to create container")
+        }
     }
 
     var body: some Scene {
@@ -86,7 +90,6 @@ struct CloudNewsApp: App {
                 }
         }
         .modelContainer(container)
-        .database(SharedDatabase.shared.database)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
             await syncManager.backgroundSync()

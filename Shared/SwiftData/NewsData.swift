@@ -8,10 +8,10 @@
 import Foundation
 import SwiftData
 
-public struct StarredParameter: Sendable {
-    var feedId: Int64
-    var guidHash: String
-}
+//public struct StarredParameter: Sendable {
+//    var feedId: Int64
+//    var guidHash: String
+//}
 
 @ModelActor
 public actor NewsDataModelActor: NewsDatabase {

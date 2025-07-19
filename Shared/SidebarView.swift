@@ -240,7 +240,7 @@ struct SidebarView: View {
                 try await newsModel.renameFolder(folderId: folderId, to: newName)
                 node.title = newName
                 folder.name = newName
-                try await newsModel.databaseActor.save()
+// TODO               try await newsModel.databaseActor.save()
             } catch let error as NetworkError {
                 errorMessage = error.localizedDescription
                 isShowingError = true
