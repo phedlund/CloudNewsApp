@@ -198,7 +198,7 @@ struct ItemsListView: View {
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .idle {
                             Task {
-                                try? markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
+                                try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
                             }
                         }
                     }
@@ -227,7 +227,9 @@ struct ItemsListView: View {
     @ViewBuilder
     private func contextMenu(item: Item) -> some View {
         Button {
-            newsModel.toggleItemRead(item: item)
+            Task {
+                await newsModel.toggleItemRead(item: item)
+            }
         } label: {
             Label {
                 Text(item.unread ? "Read" : "Unread")
@@ -236,7 +238,9 @@ struct ItemsListView: View {
             }
         }
         Button {
-            newsModel.toggleItemStarred(item: item)
+            Task {
+                await newsModel.toggleItemStarred(item: item)
+            }
         } label: {
             Label {
                 Text(item.starred ? "Unstar" : "Star")
@@ -246,7 +250,7 @@ struct ItemsListView: View {
         }
     }
 
-    private func markRead(_ offset: CGFloat) throws {
+    private func markRead(_ offset: CGFloat) async throws {
         guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
@@ -256,7 +260,7 @@ struct ItemsListView: View {
                 let itemsToMarkRead = items
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
-                newsModel.markItemsRead(items: Array(itemsToMarkRead))
+                await newsModel.markItemsRead(items: Array(itemsToMarkRead))
             }
         }
         lastOffset = offset

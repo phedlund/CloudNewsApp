@@ -276,7 +276,6 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    @MainActor
     func markCurrentItemsRead() async {
         var internalUnreadItemIds = [Int64]()
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
@@ -293,12 +292,11 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    @MainActor
-    func markItemsRead(items: [Item]) {
+    func markItemsRead(items: [Item]) async {
         guard !items.isEmpty else {
             return
         }
-        Task {
+        do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             var internalUnreadItemIds = [Int64]()
             for unreadItemId in items.compactMap(\.persistentModelID) {
@@ -311,19 +309,19 @@ class NewsModel: @unchecked Sendable {
             }
             try await backgroundActor.save()
             try await self.markRead(itemIds: internalUnreadItemIds, unread: false)
+        } catch {
+            
         }
     }
 
-    @MainActor
-    func toggleCurrentItemRead() {
+    func toggleCurrentItemRead() async {
         if let currentItem = currentItem {
-            toggleItemRead(item: currentItem)
+            await toggleItemRead(item: currentItem)
         }
     }
 
-    @MainActor
-    func toggleItemRead(item: Item) {
-        Task {
+    func toggleItemRead(item: Item) async {
+        do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let currentState = item.unread
             var internalUnreadItemIds = [Int64]()
@@ -333,6 +331,8 @@ class NewsModel: @unchecked Sendable {
             item.unread.toggle()
             try await backgroundActor.save()
             try await self.markRead(itemIds: internalUnreadItemIds, unread: !currentState)
+        } catch {
+
         }
     }
 
@@ -381,22 +381,22 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    @MainActor
     func toggleCurrentItemStarred() async throws {
         if let currentItem = currentItem {
-            toggleItemStarred(item: currentItem)
+            await toggleItemStarred(item: currentItem)
         }
     }
 
-    @MainActor
-    func toggleItemStarred(item: Item) {
-        Task {
+    func toggleItemStarred(item: Item) async {
+        do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let currentState = item.starred
             let _ = try await backgroundActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
             item.starred.toggle()
             try await backgroundActor.save()
             try await self.markStarred(item: item, starred: !currentState)
+        } catch {
+            
         }
     }
 

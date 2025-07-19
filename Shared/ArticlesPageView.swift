@@ -76,7 +76,7 @@ struct ArticlesPageView: View {
             if let newItem = items.first(where: { $0.id == item.id } ) {
                 newsModel.currentItem = newItem
                 if newItem.unread {
-                    newsModel.markItemsRead(items: [newItem])
+                    await newsModel.markItemsRead(items: [newItem])
                 }
             }
         }
@@ -93,8 +93,10 @@ struct ArticlesPageView: View {
         }
         .onScrollPhaseChange { _, newPhase in
             if  newPhase == .idle {
-                newsModel.markItemsRead(items: itemsToMarkRead)
-                itemsToMarkRead.removeAll()
+                Task {
+                    await newsModel.markItemsRead(items: itemsToMarkRead)
+                    itemsToMarkRead.removeAll()
+                }
             }
         }
     }

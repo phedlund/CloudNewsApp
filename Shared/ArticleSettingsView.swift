@@ -24,7 +24,7 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         if let item {
-                            newsModel.toggleItemRead(item: item)
+                            await newsModel.toggleItemRead(item: item)
                         }
                     }
                 } label: {
@@ -41,7 +41,7 @@ struct ArticleSettingsView: View {
                 Button {
                     Task {
                         if let item {
-                            newsModel.toggleItemStarred(item: item)
+                            await newsModel.toggleItemStarred(item: item)
                         }
                     }
                 } label: {

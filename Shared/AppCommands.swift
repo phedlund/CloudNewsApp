@@ -152,7 +152,7 @@ struct AppCommands: Commands {
             Divider()
             Button {
                 Task {
-                    newsModel.toggleCurrentItemRead()
+                    await newsModel.toggleCurrentItemRead()
                 }
             } label: {
                 Label {
