@@ -10,6 +10,7 @@ import AppKit
 #endif
 import Foundation
 import SwiftData
+import SwiftUI
 import UserNotifications
 import WidgetKit
 
@@ -19,15 +20,16 @@ final class SyncManagerReader {
 }
 
 @Observable
-final class SyncManager: @unchecked Sendable {
-//    private let databaseActor: NewsDataModelActor
+final class SyncManager {
+    @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
+    @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
+    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
+
     private var backgroundSession: URLSession?
     var syncManagerReader = SyncManagerReader()
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
-    private var folderNode = Node(id: "", type: .empty, title: "")
-    private var feedNode = Node(id: "", type: .empty, title: "")
 
     let modelContainer: ModelContainer
 
@@ -54,7 +56,7 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = foldersResponse {
-                parseFolders(data: data.0)
+                await parseFolders(data: data.0)
             }
 
             let feedsRequest = try? Router.feeds.urlRequest()
@@ -68,12 +70,12 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = feedsResponse {
-                parseFeeds(data: data.0)
+                await parseFeeds(data: data.0)
             }
 
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let newestKnownLastModified = await backgroundActor.maxLastModified()
-            Preferences().lastModified = Int32(newestKnownLastModified)
+            lastModified = Int(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
                                                     "lastModified": newestKnownLastModified,
@@ -91,7 +93,7 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = itemsResponse {
-                parseItems(data: data.0)
+                await parseItems(data: data.0)
             }
         }
     }
@@ -107,11 +109,17 @@ final class SyncManager: @unchecked Sendable {
                         if let data = try? Data(contentsOf: url) {
                             switch dlTask.taskDescription {
                             case "folders":
-                                parseFolders(data: data)
+                                Task {
+                                    await parseFolders(data: data)
+                                }
                             case "feeds":
-                                parseFeeds(data: data)
+                                Task {
+                                    await parseFeeds(data: data)
+                                }
                             case "items":
-                                parseItems(data: data)
+                                Task {
+                                    await parseItems(data: data)
+                                }
                             default:
                                 break
                             }
@@ -119,7 +127,9 @@ final class SyncManager: @unchecked Sendable {
                     }
                 }
             }
-            Preferences().didSyncInBackground = true
+            Task { @MainActor in
+                didSyncInBackground = true
+            }
         }
     }
 
@@ -196,16 +206,16 @@ final class SyncManager: @unchecked Sendable {
         }
 
         if let foldersData = results[1] as Data?, !foldersData.isEmpty {
-            parseFolders(data: foldersData)
+            await parseFolders(data: foldersData)
         }
         if let feedsData = results[2] as Data?, !feedsData.isEmpty {
-            parseFeeds(data: feedsData)
+            await parseFeeds(data: feedsData)
         }
         if let unreadData = results[3] as Data?, !unreadData.isEmpty {
-            parseItems(data: unreadData)
+            await parseItems(data: unreadData)
         }
         if let starredData = results[4] as Data?, !starredData.isEmpty {
-            parseItems(data: starredData)
+            await parseItems(data: starredData)
         }
     }
 
@@ -336,7 +346,7 @@ final class SyncManager: @unchecked Sendable {
         let feedsRequest = try Router.feeds.urlRequest()
 
         let newestKnownLastModified = await backgroundActor.maxLastModified()
-        Preferences().lastModified = Int32(newestKnownLastModified)
+        lastModified = Int(newestKnownLastModified)
         let updatedParameters: ParameterDict = ["type": 3,
                                                 "lastModified": newestKnownLastModified,
                                                 "id": 0]
@@ -369,17 +379,17 @@ final class SyncManager: @unchecked Sendable {
         }
 
         if let foldersData = results[1] as Data?, !foldersData.isEmpty {
-            parseFolders(data: foldersData)
+            await parseFolders(data: foldersData)
         }
         if let feedsData = results[2] as Data?, !feedsData.isEmpty {
-            parseFeeds(data: feedsData)
+            await parseFeeds(data: feedsData)
         }
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
-            parseItems(data: itemsData)
+            await parseItems(data: itemsData)
         }
     }
 
-    private func parseFolders(data: Data) {
+    private func parseFolders(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
@@ -388,24 +398,24 @@ final class SyncManager: @unchecked Sendable {
         }
         self.foldersDTO = decodedResponse
         let folderIds = decodedResponse.folders.map( { $0.id } )
-        Task {
+//        Task {
             do {
                 let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 try await backgroundActor.pruneFolders(serverFolderIds: folderIds)
             } catch {
                 //
             }
-        }
+//        }
     }
 
-    private func parseFeeds(data: Data) {
+    private func parseFeeds(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
             //                    throw NetworkError.generic(message: "Unable to decode")
             return
         }
-        Task {
+//        Task {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             self.feedDTOs = decodedResponse.feeds
             let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
@@ -415,32 +425,33 @@ final class SyncManager: @unchecked Sendable {
             let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
             await backgroundActor.insert(starredNode)
             for folderDTO in foldersDTO.folders {
-                var feeds = [Node]()
+                var feeds = [NodeDTO]()
                 let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
                 for feedDTO in feedDTOs  {
-                    let feedToStore = await Feed(item: feedDTO)
+// TODO favicon and faviconurl                    let feedToStore = await Feed(item: feedDTO)
                     let type = NodeType.feed(id: feedDTO.id)
-                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
-                    feeds.append(feedNode)
-                    await backgroundActor.insert(feedToStore)
+                    let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+                    feeds.append(feedNodeDTO)
+                    await backgroundActor.insertFeed(feedDTO: feedDTO)
                 }
-                let type = NodeType.folder(id: folderDTO.id)
-                folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, pinned: 1)
+                var localErrorCount: Int64 = 0
                 let feedsWithUpdateErrorCount = feeds.filter { $0.errorCount > 0 }
                 if !feedsWithUpdateErrorCount.isEmpty {
-                    folderNode.errorCount = 1
+                    localErrorCount = 1
                 }
-                await backgroundActor.insert(folderNode)
+                let type = NodeType.folder(id: folderDTO.id)
+                let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 0, favIcon: nil, children: feeds)
+                await backgroundActor.insertNode(nodeDTO: folderNodeDTO)
                 let itemToStore = Folder(item: folderDTO)
                 await backgroundActor.insert(itemToStore)
             }
             let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
             for feedDTO in feedDTOs {
-                let feedToStore = await Feed(item: feedDTO)
+// TODO favicon and faviconurl                 let feedToStore = await Feed(item: feedDTO)
                 let type = NodeType.feed(id: feedDTO.id)
-                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0, favIcon: feedToStore.favIcon)
-                await backgroundActor.insert(feedToStore)
-                await backgroundActor.insert(feedNode)
+                let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+                await backgroundActor.insertFeed(feedDTO: feedDTO)
+                await backgroundActor.insertNode(nodeDTO: feedNodeDTO)
             }
             let feedIds = decodedResponse.feeds.map( { $0.id } )
             Task {
@@ -451,32 +462,31 @@ final class SyncManager: @unchecked Sendable {
                 }
             }
             try? await backgroundActor.save()
-        }
+//        }
     }
 
-    private func parseItems(data: Data) {
+    private func parseItems(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
             return
         }
-        Task {
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-            for eachItem in decodedResponse.items {
-                let itemToStore = await Item(item: eachItem)
-                await backgroundActor.insert(itemToStore)
-            }
-            try? await backgroundActor.save()
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        for eachItem in decodedResponse.items {
+            await backgroundActor.insertItem(itemDTO: eachItem)
+        }
+        do {
+            try await backgroundActor.save()
             let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
             await MainActor.run {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
-        }
+        } catch { }
     }
 
     private func pruneItems() async throws {
         do {
-            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")
                 let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )

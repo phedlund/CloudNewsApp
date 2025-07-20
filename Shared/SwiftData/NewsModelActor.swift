@@ -45,6 +45,21 @@ actor NewsModelActor: Sendable {
         try? await save()
     }
 
+    func insertNode(nodeDTO: NodeDTO) async {
+        let nodeToStore = Node(item: nodeDTO)
+        modelContext.insert(nodeToStore)
+    }
+
+    func insertFeed(feedDTO: FeedDTO) async {
+        let feedToStore = await Feed(item: feedDTO)
+        modelContext.insert(feedToStore)
+    }
+
+    func insertItem(itemDTO: ItemDTO) async {
+        let itemToStore = await Item(item: itemDTO)
+        modelContext.insert(itemToStore)
+    }
+
     func delete<T: PersistentModel>(model: T.Type, where predicate: Predicate<T>? = nil) async throws {
         try modelContext.delete(model: model, where: predicate)
     }

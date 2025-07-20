@@ -30,6 +30,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
 
     @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var items = [Item]()
@@ -164,8 +165,8 @@ struct ItemsListView: View {
                                 } catch {
                                     //
                                 }
-                                if Preferences().didSyncInBackground {
-                                    Preferences().didSyncInBackground = false
+                                if didSyncInBackground {
+                                    didSyncInBackground = false
                                     doScrollToTop()
                                 }
                             }

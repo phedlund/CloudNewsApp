@@ -95,7 +95,7 @@ struct CloudNewsApp: App {
             await syncManager.backgroundSync()
         }
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
-            syncManager.processSessionData()
+            await syncManager.processSessionData()
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {

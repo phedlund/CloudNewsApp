@@ -7,6 +7,18 @@
 
 import Foundation
 
+struct NodeDTO: Codable {
+    let id: String
+    let errorCount: Int64
+    let isExpanded: Bool
+    let type: NodeType
+    let title: String
+    let favIconURL: URL?
+    let pinned: UInt8
+    let favIcon: Data?
+    let children: [NodeDTO]?
+}
+
 struct FolderDTO: Codable {
     let id: Int64
     let name: String

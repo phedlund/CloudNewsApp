@@ -13,7 +13,7 @@ struct Warnings: Codable {
     let improperlyConfiguredCron: Bool? // if true the webapp will fail to update the feeds correctly
     let incorrectDbCharset: Bool?
 
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case improperlyConfiguredCron = "improperlyConfiguredCron"
         case incorrectDbCharset = "incorrectDbCharset"
     }
@@ -31,7 +31,7 @@ struct Status: Codable {
     let version: String?
     let warnings: Warnings?
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case version = "version"
         case warnings = "warnings"
     }

@@ -28,7 +28,7 @@ struct CloudStatus: Decodable {
     var edition: String
     var productname: String
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case installed
         case maintenance
         case needsDbUpgrade

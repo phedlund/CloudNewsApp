@@ -11,6 +11,10 @@ import SwiftSoup
 import SwiftUI
 
 class ArticleWebContent {
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
     var url: URL?
     var item: Item
 
@@ -22,7 +26,6 @@ class ArticleWebContent {
     private let urlString: String
     private let summary: String
     private let fileName: String
-    private let preferences = Preferences()
 
     private var isInInit = false
 
@@ -203,16 +206,16 @@ class ArticleWebContent {
     }
 
     private func updateCssVariables() -> String {
-        let fontSize: Double = Double(preferences.fontSize) / 14.0
+        let fontSize: Double = Double(fontSize) / 14.0
         return """
             :root {
                 font: -apple-system-body;
                 --bg-color: \(Color.phWhiteBackground.hexaRGB!);
                 --text-color: \(Color.phWhiteText.hexaRGB!);
                 --font-size: \(fontSize);
-                --body-width-portrait: \(preferences.marginPortrait)vw;
-                --body-width-landscape: \(preferences.marginPortrait)vw;
-                --line-height: \(preferences.lineHeight)em;
+                --body-width-portrait: \(marginPortrait)vw;
+                --body-width-landscape: \(marginPortrait)vw;
+                --line-height: \(lineHeight)em;
                 --link-color: \(Color.phWhiteLink.hexaRGB!);
             }
         """

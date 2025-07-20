@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final public class Node {
+nonisolated final public class Node {
     #Index<Node>([\.id])
 
     @Attribute(.unique) public var id: String
@@ -39,6 +39,17 @@ final public class Node {
         self.errorCount = errorCount
         self.pinned = pinned
         self.favIcon = favIcon
+    }
+
+    convenience init(item: NodeDTO) {
+        var childNodes = [Node]()
+        if let childDTOs = item.children {
+            for child in childDTOs {
+                childNodes.append(Node(item: child))
+            }
+        }
+
+        self.init(id: item.id, type: item.type, title: item.title, isExpanded: item.isExpanded, favIconURL: item.favIconURL, children: childNodes.isEmpty ? nil : childNodes , errorCount: item.errorCount, pinned: item.pinned, favIcon: item.favIcon)
     }
 
 }

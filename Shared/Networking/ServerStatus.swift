@@ -8,6 +8,7 @@
 
 import Foundation
 import OpenSSL
+import SwiftUI
 
 struct ProductStatus {
     var name: String
@@ -15,8 +16,10 @@ struct ProductStatus {
 }
 
 final class ServerStatus: NSObject {
-    nonisolated(unsafe) static let shared = ServerStatus()
-    private let preferences = Preferences()
+    @AppStorage(SettingKeys.server) private var server = ""
+    @AppStorage(SettingKeys.allowUntrustedCertificate) private var allowUntrustedCertificate = false
+
+    static let shared = ServerStatus()
 
     let session: URLSession
 
@@ -26,9 +29,9 @@ final class ServerStatus: NSObject {
     }
 
     func check() async throws -> ProductStatus? {
-        let serverAddress = preferences.server
+        let serverAddress = server
         if !serverAddress.isEmpty {
-            preferences.server = ""
+            server = ""
             @KeychainStorage(SettingKeys.username) var username = ""
             @KeychainStorage(SettingKeys.password) var password = ""
             var address = serverAddress.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
@@ -36,7 +39,7 @@ final class ServerStatus: NSObject {
                !address.hasPrefix("http") {
                 address = "https://\(address)"
             }
-            preferences.server = address
+            server = address
             let router = StatusRouter.status
             do {
                 let (data, _) = try await session.data(for: router.urlRequest(), delegate: nil)
@@ -52,7 +55,7 @@ final class ServerStatus: NSObject {
     }
 
     func reset() {
-        preferences.allowUntrustedCertificate = false
+        allowUntrustedCertificate = false
         if let directory = ServerStatus.certificatesDirectory {
             do {
                 try FileManager.default.removeItem(at: directory)

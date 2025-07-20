@@ -15,7 +15,7 @@ struct User: Codable {
     let lastLoginTimestamp: Int?
     let userId: String?
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case avatar = "avatar"
         case displayName = "displayName"
         case lastLoginTimestamp = "lastLoginTimestamp"

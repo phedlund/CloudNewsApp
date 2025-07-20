@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum NodeType: Equatable, Hashable, Codable {
+nonisolated enum NodeType: Equatable, Hashable, Codable {
     case empty
     case all
     case unread

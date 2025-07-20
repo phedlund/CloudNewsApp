@@ -12,12 +12,12 @@ struct OCS: Decodable {
     var meta: Meta
     var data: Data
     
-    enum OCSKeys: String, CodingKey {
+    nonisolated enum OCSKeys: String, CodingKey {
         case meta
         case data
     }
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case ocs
     }
 

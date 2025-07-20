@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class Feed {
+nonisolated final class Feed {
     #Index<Feed>([\.id], [\.folderId])
 
     var added: Date

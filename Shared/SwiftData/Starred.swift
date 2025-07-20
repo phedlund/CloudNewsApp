@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Unstarred {
+nonisolated final class Unstarred {
     @Attribute(.unique) var itemIdData: Data
 
     init(itemIdData: Data) {
@@ -18,7 +18,7 @@ final class Unstarred {
 }
 
 @Model
-final class Starred {
+nonisolated final class Starred {
     @Attribute(.unique) var itemIdData: Data
 
     init(itemIdData: Data) {

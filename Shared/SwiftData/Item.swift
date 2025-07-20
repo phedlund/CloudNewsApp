@@ -11,7 +11,7 @@ import SwiftSoup
 import SwiftUI
 
 @Model
-final class Item {
+nonisolated final class Item {
     #Index<Item>([\.id], [\.feedId])
 
     var author: String?
@@ -41,7 +41,8 @@ final class Item {
     @Attribute(.externalStorage) var image: Data?
     @Attribute(.externalStorage) var thumbnail: Data?
 
-    nonisolated var feed: Feed? {
+    @MainActor
+    var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)
     }
@@ -102,7 +103,7 @@ final class Item {
             return nil
         }
 
-        let displayTitle = plainSummary(raw: item.title)
+        let displayTitle = await plainSummary(raw: item.title)
 
         var summary = ""
         if let body = item.body {
@@ -121,11 +122,11 @@ final class Item {
                 }
             }
         }
-        let displayBody = plainSummary(raw: summary)
+        let displayBody = await plainSummary(raw: summary)
 
         let clipLength = 50
         var dateLabelText = ""
-        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
+        await dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
         if !dateLabelText.isEmpty {
             dateLabelText.append(" | ")
         }

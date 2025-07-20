@@ -27,7 +27,7 @@ struct Version: Codable {
     var edition: String
     var extendedSupport: Bool
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case major
         case minor
         case micro

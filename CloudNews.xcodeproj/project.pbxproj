@@ -42,7 +42,6 @@
 		D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061B1632C0A433C00E5D993 /* NewsObjects.swift */; };
 		D061EB942D5C3EC5003A9914 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061EB932D5C3EBE003A9914 /* Node.swift */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
-		D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043626E2F61F00178EEE /* UserDefault.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
 		D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07EFCD22B0B011300032103 /* MarkReadButton.swift */; };
 		D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0873FAA29737CE70076DCB1 /* ItemView.swift */; };
@@ -152,7 +151,6 @@
 		D061B1632C0A433C00E5D993 /* NewsObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsObjects.swift; sourceTree = "<group>"; };
 		D061EB932D5C3EBE003A9914 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
-		D07A043626E2F61F00178EEE /* UserDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefault.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
 		D07EFCD22B0B011300032103 /* MarkReadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkReadButton.swift; sourceTree = "<group>"; };
 		D0873FAA29737CE70076DCB1 /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
@@ -250,7 +248,6 @@
 				D0B0B2FE267FF86300A997DB /* NewsModel.swift */,
 				D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */,
 				D00AFA1D2693872800BAED44 /* KeychainStorage.swift */,
-				D07A043626E2F61F00178EEE /* UserDefault.swift */,
 				D02F44D3265C89F700A3505B /* NotificationNames.swift */,
 				D02F449F265C86BE00A3505B /* CloudNewsApp.swift */,
 				D0E60F11276E7988009CF78F /* AppDelegate.swift */,
@@ -519,7 +516,6 @@
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */,
-				D07A043726E2F61F00178EEE /* UserDefault.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,
 				D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */,
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
@@ -736,6 +732,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -774,6 +771,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
