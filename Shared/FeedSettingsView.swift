@@ -149,13 +149,6 @@ struct FeedSettingsView: View {
             .onChange(of: preferWeb) { _, newValue in
                 if let feed = feedForNodeType(newsModel.currentNodeType) {
                     feed.preferWeb = newValue
-                    Task {
-                        do {
-// TODO           try await self.newsModel.databaseActor.save()
-                        } catch {
-                            //
-                        }
-                    }
                 }
             }
 #if os(macOS)
