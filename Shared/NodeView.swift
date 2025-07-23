@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
+import SwiftData
 import SwiftUI
 
 struct NodeView: View {
@@ -21,6 +22,8 @@ struct NodeView: View {
     let noChildrenPadding = 0.0
     let childrenPadding = 0.0
 #endif
+
+    @Query private var favIcons: [FavIcon]
 
     var body: some View {
         HStack {
@@ -44,10 +47,6 @@ struct NodeView: View {
         }
     }
 
-}
-
-private extension NodeView {
-
     var favIconView: some View {
         HStack {
             switch node.type {
@@ -60,8 +59,10 @@ private extension NodeView {
                 Image(systemName: "star.fill")
             case .folder( _):
                 Image(systemName: "folder")
-            case .feed( _):
-                if let favicon = node.favIcon, let uiImage = SystemImage(data: favicon) {
+            case .feed(id: let id):
+                if let favicon = favIcons.first(where: { $0.id == id }),
+                   let data = favicon.icon,
+                   let uiImage = SystemImage(data: data) {
 #if os(macOS)
                     Image(nsImage: uiImage)
                         .resizable()
@@ -81,6 +82,7 @@ private extension NodeView {
     }
 
 }
+
 //struct NodeView_Previews: PreviewProvider {
 //    static var previews: some View {
 //        NodeView()

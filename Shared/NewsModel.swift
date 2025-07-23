@@ -147,7 +147,6 @@ class NewsModel: @unchecked Sendable {
                         let feedNode = Node(id: type.description,
                                             type: type,
                                             title: feedDTO.title ?? "Untitled Feed",
-                                            favIconURL: nil,
                                             children: [],
                                             errorCount: 0)
                         await backgroundActor.insert(feedNode)
@@ -202,7 +201,7 @@ class NewsModel: @unchecked Sendable {
                 if let folderDTO = decodedResponse.folders.first {
                     let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                     let type = NodeType.folder(id: folderDTO.id)
-                    let folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: [], errorCount: 0)
+                    let folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, children: [], errorCount: 0)
                     await backgroundActor.insert(folderNode)
                     let itemToStore = Folder(item: folderDTO)
                     await backgroundActor.insert(itemToStore)
@@ -336,7 +335,7 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    func markRead(itemIds: [Int64], unread: Bool) async throws {
+    private func markRead(itemIds: [Int64], unread: Bool) async throws {
         guard !itemIds.isEmpty else {
             return
         }
@@ -396,7 +395,7 @@ class NewsModel: @unchecked Sendable {
             try await backgroundActor.save()
             try await self.markStarred(item: item, starred: !currentState)
         } catch {
-            
+
         }
     }
 

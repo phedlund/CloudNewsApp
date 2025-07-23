@@ -31,6 +31,8 @@ struct ItemView: View {
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
 
+    @Query private var favIcons: [FavIcon]
+
     private let item: Item
     private let cellSize: CGSize
 
@@ -148,7 +150,9 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            if let favicon = item.feed?.favIcon, let uiImage = SystemImage(data: favicon) {
+            if let favicon = favIcons.first(where: { $0.id == item.feedId }),
+               let data = favicon.icon,
+               let uiImage = SystemImage(data: data) {
 #if os(macOS)
                     Image(nsImage: uiImage)
                         .resizable()

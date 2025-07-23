@@ -89,3 +89,9 @@ struct NewsStatusDTO: Codable {
     let version: String
     let warnings: NewsWarningsDTO
 }
+
+struct FavIconDTO: Codable {
+    let id: Int64 // This maps to a feed's id
+    let url: URL?
+    let icon: Data?
+}

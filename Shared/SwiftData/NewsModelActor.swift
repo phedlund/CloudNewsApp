@@ -17,7 +17,8 @@ public let schema = Schema([
     Read.self,
     Unread.self,
     Starred.self,
-    Unstarred.self
+    Unstarred.self,
+    FavIcon.self
 ])
 
 public struct StarredParameter: Sendable {
@@ -57,6 +58,11 @@ actor NewsModelActor: Sendable {
 
     func insertItem(itemDTO: ItemDTO) async {
         let itemToStore = await Item(item: itemDTO)
+        modelContext.insert(itemToStore)
+    }
+
+    func insertFavIcon(itemDTO: FavIconDTO) async {
+        let itemToStore = await FavIcon(item: itemDTO)
         modelContext.insert(itemToStore)
     }
 

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		D006343D2E29931300283CD7 /* NewsModelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D006343C2E29931300283CD7 /* NewsModelActor.swift */; };
 		D006343E2E29931300283CD7 /* NewsModelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D006343C2E29931300283CD7 /* NewsModelActor.swift */; };
+		D00634B12E2F25C400283CD7 /* FavIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00634B02E2F25C400283CD7 /* FavIcon.swift */; };
+		D00634B22E2F25C400283CD7 /* FavIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00634B02E2F25C400283CD7 /* FavIcon.swift */; };
 		D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1426937C9700BAED44 /* SettingsView.swift */; };
 		D00AFA1B269383CB00BAED44 /* OCS.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCS.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
@@ -118,6 +120,7 @@
 
 /* Begin PBXFileReference section */
 		D006343C2E29931300283CD7 /* NewsModelActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsModelActor.swift; sourceTree = "<group>"; };
+		D00634B02E2F25C400283CD7 /* FavIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavIcon.swift; sourceTree = "<group>"; };
 		D00AFA1426937C9700BAED44 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D00AFA1A269383CB00BAED44 /* OCS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCS.swift; sourceTree = "<group>"; };
 		D00AFA1D2693872800BAED44 /* KeychainStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainStorage.swift; sourceTree = "<group>"; };
@@ -344,6 +347,7 @@
 			isa = PBXGroup;
 			children = (
 				D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */,
+				D00634B02E2F25C400283CD7 /* FavIcon.swift */,
 				D0F41D6E2A76CA4C00EEAC78 /* Folder.swift */,
 				D006343C2E29931300283CD7 /* NewsModelActor.swift */,
 				D0F41D6F2A76CA4C00EEAC78 /* Feeds.swift */,
@@ -485,6 +489,7 @@
 				D02F44B5265C86BF00A3505B /* CloudNewsApp.swift in Sources */,
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
+				D00634B12E2F25C400283CD7 /* FavIcon.swift in Sources */,
 				D0D853B62C557E4E002694BC /* PageViewProxy.swift in Sources */,
 				D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
@@ -546,6 +551,7 @@
 				D0C926312DCAD8C8005415E5 /* Folder.swift in Sources */,
 				D0C926322DCAD8C8005415E5 /* Node.swift in Sources */,
 				D0C926332DCAD8C8005415E5 /* Starred.swift in Sources */,
+				D00634B22E2F25C400283CD7 /* FavIcon.swift in Sources */,
 				D0C926342DCAD8C8005415E5 /* Feeds.swift in Sources */,
 				D0C926382DCAD8FE005415E5 /* NewsObjects.swift in Sources */,
 				D0C926352DCAD8C8005415E5 /* Feed.swift in Sources */,
