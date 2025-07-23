@@ -318,7 +318,7 @@ struct SettingsView: View {
 #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button(role: .close) {
+                Button(role: .confirm) {
                     dismiss()
                 }
             }

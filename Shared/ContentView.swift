@@ -193,7 +193,9 @@ struct ContentView: View {
         .onChange(of: selectedItem, initial: true) { _, newValue in
             newsModel.currentItem = newValue
             if let newValue {
-                newsModel.markItemsRead(items: [newValue])
+                Task {
+                    await newsModel.markItemsRead(items: [newValue])
+                }
             }
         }
 #endif

@@ -47,9 +47,8 @@ struct CloudNewsApp: App {
                 .environment(syncManager)
         }
         .modelContainer(container)
-        .database(SharedDatabase.shared.database)
         .defaultSize(width: 1000, height: 650)
-        .windowToolbarStyle(.unifiedCompact)
+        .windowToolbarStyle(.unified)
         .commands {
             AppCommands(newsModel: newsModel,
                         isShowingAddFeed: $isShowingAddFeed,

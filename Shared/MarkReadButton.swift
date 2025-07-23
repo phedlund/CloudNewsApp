@@ -15,7 +15,7 @@ struct MarkReadButton: View {
     @State private var isDisabled = true
 
     var body: some View {
-        Button {
+        Button(role: .confirm) {
             Task {
                 await newsModel.updateUnreadItemIds()
                 for itemID in newsModel.unreadItemIds {
@@ -24,12 +24,6 @@ struct MarkReadButton: View {
                     }
                 }
                 await newsModel.markCurrentItemsRead()
-            }
-        } label: {
-            Label {
-                Text("Mark Read")
-            } icon: {
-                Image(systemName: "checkmark")
             }
         }
         .id(newsModel.currentNodeType)

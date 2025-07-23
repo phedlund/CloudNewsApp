@@ -17,6 +17,7 @@ import UIKit
 public typealias SystemImage = UIImage
 #endif
 
+@MainActor
 extension DateFormatter {
     static var dateAuthorFormatter: DateFormatter {
         let currentLocale = Locale.current
@@ -28,6 +29,7 @@ extension DateFormatter {
     }
 }
 
+@MainActor
 func plainSummary(raw: String) -> String {
     guard let doc: Document = try? SwiftSoup.parse(raw) else {
         return raw
