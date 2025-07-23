@@ -29,7 +29,9 @@ struct ArticleView: View, @MainActor Equatable {
         let webConfig = WebPage.Configuration()
         ContentBlocker.rules { rules in
             if let rules {
-                webConfig.userContentController.add(rules)
+                Task { @MainActor in
+                    webConfig.userContentController.add(rules)
+                }
             }
         }
         page = WebPage(configuration: webConfig, navigationDecider: NavigationDecider())
@@ -75,3 +77,4 @@ struct ArticleView: View, @MainActor Equatable {
 
 }
 #endif
+
