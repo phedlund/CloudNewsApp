@@ -139,38 +139,7 @@ struct SidebarView: View {
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
         .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-    #if os(macOS)
-                Spacer()
-                if syncManager.syncManagerReader.isSyncing {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .controlSize(.small)
-                }
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
-    #else
-                if syncManager.syncManagerReader.isSyncing {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                }
-                Button {
-                    sync()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
-                Button {
-                    modalSheet = .settings
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-    #endif
-            }
+            sidebarToolBarContent()
         }
 #if os(macOS)
         .onReceive(syncTimer) { _ in
@@ -341,6 +310,42 @@ struct SidebarView: View {
             } label: {
                 Label("Delete...", systemImage: "trash")
             }
+        }
+    }
+
+    @ToolbarContentBuilder
+    func sidebarToolBarContent() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+#if os(macOS)
+            Spacer()
+            if syncManager.syncManagerReader.isSyncing {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+            }
+            Button {
+                sync()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
+#else
+            if syncManager.syncManagerReader.isSyncing {
+                ProgressView()
+                    .progressViewStyle(.circular)
+            }
+            Button {
+                sync()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
+            Button {
+                modalSheet = .settings
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+#endif
         }
     }
 
