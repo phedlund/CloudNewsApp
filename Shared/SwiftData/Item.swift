@@ -177,7 +177,8 @@ nonisolated final class Item {
                 }
 #else
                 if let uiImage = UIImage(data: data) {
-                    let thumbnailSize = await CGSize(width: 48 * UIScreen.main.scale, height:  48 * UIScreen.main.scale)
+                    let displayScale = UITraitCollection.current.displayScale
+                    let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
                     thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
                 }
 #endif
