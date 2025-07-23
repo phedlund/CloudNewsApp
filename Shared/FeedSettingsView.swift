@@ -174,7 +174,7 @@ struct FeedSettingsView: View {
                     try await newsModel.renameFeed(feedId: feed.id, to: title)
                     node.title = title
                     feed.title = title
-// TODO             try await self.newsModel.databaseActor.save()
+                    try modelContext.save()
                 } catch let error as NetworkError {
                     title = initialTitle
                     footerMessage = error.localizedDescription
@@ -208,7 +208,7 @@ struct FeedSettingsView: View {
                     }
                 }
                 feed.folderId = newFolderId
-// TODO               try await newsModel.databaseActor.save()
+                try modelContext.save()
             } catch let error as NetworkError {
                 folderSelection = initialFolderSelection
                 footerMessage = error.localizedDescription
