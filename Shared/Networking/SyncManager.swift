@@ -143,6 +143,7 @@ final class SyncManager {
         } else {
             try await repeatSync()
         }
+        await getFavIcons()
         WidgetCenter.shared.reloadAllTimelines()
         syncManagerReader.isSyncing = false
         return currentStatus
@@ -387,7 +388,6 @@ final class SyncManager {
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
             await parseItems(data: itemsData)
         }
-        await getFavIcons()
     }
 
     private func parseFolders(data: Data) async {
