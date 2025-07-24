@@ -140,7 +140,8 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(currentPage.isLoading || currentPage.url?.scheme != "file")
+            .disabled(currentPage.isLoading)
+            .disabled(currentPage.url?.scheme != "file")
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 ArticleSettingsView()
                     .presentationDetents([.height(300.0)])
