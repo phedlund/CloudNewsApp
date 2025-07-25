@@ -22,7 +22,6 @@ final class SyncManagerReader {
 @Observable
 final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
-    @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
 
     private var backgroundSession: URLSession?
@@ -75,7 +74,6 @@ final class SyncManager {
 
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let newestKnownLastModified = await backgroundActor.maxLastModified()
-            lastModified = Int(newestKnownLastModified)
 
             let updatedParameters: ParameterDict = ["type": 3,
                                                     "lastModified": newestKnownLastModified,
@@ -347,7 +345,6 @@ final class SyncManager {
         let feedsRequest = try Router.feeds.urlRequest()
 
         let newestKnownLastModified = await backgroundActor.maxLastModified()
-        lastModified = Int(newestKnownLastModified)
         let updatedParameters: ParameterDict = ["type": 3,
                                                 "lastModified": newestKnownLastModified,
                                                 "id": 0]
