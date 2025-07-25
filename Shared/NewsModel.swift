@@ -530,6 +530,7 @@ class NewsModel: @unchecked Sendable {
             try await backgroundActor.delete(model: Unread.self)
             try await backgroundActor.delete(model: Starred.self)
             try await backgroundActor.delete(model: Unstarred.self)
+            try await backgroundActor.delete(model: FavIcon.self)
         } catch {
             throw DatabaseError.generic(message: "Failed to clear the local database")
         }
