@@ -34,7 +34,7 @@ struct ArticleView: View, @MainActor Equatable {
                 }
             }
         }
-        page = WebPage(configuration: webConfig, navigationDecider: NavigationDecider())
+        page = WebPage(configuration: webConfig, navigationDecider: ArticleNavigationDecider())
         if let feed = content.item.feed {
             if feed.preferWeb == true,
                let urlString = content.item.url,
