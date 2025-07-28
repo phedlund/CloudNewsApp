@@ -14,10 +14,38 @@ import SwiftUI
 import UserNotifications
 import WidgetKit
 
-@Observable
-final class SyncManagerReader {
-    var isSyncing = false
+enum SyncState: CustomStringConvertible {
+    case idle
+    case started
+    case folders
+    case feeds
+    case articles
+    case unread
+    case starred
+    case favicons
+
+    var description: String {
+        switch self {
+        case .idle:
+            return ""
+        case .started:
+            return "Getting started"
+        case .folders:
+            return "Updating folders"
+        case .feeds:
+            return "Updating feeds"
+        case .articles:
+            return "Updating articles"
+        case .unread:
+            return "Updating unread articles"
+        case .starred:
+            return "Updating starred articles"
+        case .favicons:
+            return "Updating favicons"
+        }
+    }
 }
+
 
 @Observable
 final class SyncManager {
@@ -25,7 +53,7 @@ final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
 
     private var backgroundSession: URLSession?
-    var syncManagerReader = SyncManagerReader()
+    var syncState: SyncState = .idle
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
@@ -132,7 +160,7 @@ final class SyncManager {
     }
 
     func sync() async throws -> NewsStatusDTO? {
-        syncManagerReader.isSyncing = true
+        syncState = .started
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
         let currentStatus = try await newsStatus()
@@ -141,9 +169,10 @@ final class SyncManager {
         } else {
             try await repeatSync()
         }
+        syncState = .favicons
         await getFavIcons()
         WidgetCenter.shared.reloadAllTimelines()
-        syncManagerReader.isSyncing = false
+        syncState = .idle
         return currentStatus
     }
 
@@ -205,15 +234,19 @@ final class SyncManager {
         }
 
         if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            syncState = .folders
             await parseFolders(data: foldersData)
         }
         if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            syncState = .feeds
             await parseFeeds(data: feedsData)
         }
         if let unreadData = results[3] as Data?, !unreadData.isEmpty {
+            syncState = .unread
             await parseItems(data: unreadData)
         }
         if let starredData = results[4] as Data?, !starredData.isEmpty {
+            syncState = .starred
             await parseItems(data: starredData)
         }
     }
@@ -377,12 +410,15 @@ final class SyncManager {
         }
 
         if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            syncState = .folders
             await parseFolders(data: foldersData)
         }
         if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            syncState = .feeds
             await parseFeeds(data: feedsData)
         }
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
+            syncState = .articles
             await parseItems(data: itemsData)
         }
     }

@@ -171,8 +171,8 @@ struct ItemsListView: View {
                                 }
                             }
                         }
-                        .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
-                            if newValue == false {
+                        .onChange(of: syncManager.syncState) { _, newValue in
+                            if newValue == .idle {
                                 doScrollToTop()
                             }
                         }

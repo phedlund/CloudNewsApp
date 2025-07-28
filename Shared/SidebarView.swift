@@ -152,6 +152,7 @@ struct SidebarView: View {
         }
 #endif
         .navigationTitle(Text("Feeds"))
+        .navigationSubtitle(syncManager.syncState.description)
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
         }, content: { sheet in
@@ -318,28 +319,19 @@ struct SidebarView: View {
         ToolbarItemGroup(placement: .primaryAction) {
 #if os(macOS)
             Spacer()
-            if syncManager.syncManagerReader.isSyncing {
+            if syncManager.syncState != .idle {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .controlSize(.small)
             }
+#endif
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
-#else
-            if syncManager.syncManagerReader.isSyncing {
-                ProgressView()
-                    .progressViewStyle(.circular)
-            }
-            Button {
-                sync()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
+            .disabled(syncManager.syncState != .idle || isNewInstall)
+#if !os(macOS)
             Button {
                 modalSheet = .settings
             } label: {
