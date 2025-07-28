@@ -31,6 +31,7 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
+    @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
 
     @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var items = [Item]()
@@ -189,6 +190,14 @@ struct ItemsListView: View {
                         }
                         .onChange(of: sortOldestFirst, initial: true) { _, newValue in
                             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
+                        }
+                        .onChange(of: isNewInstall) { _, _ in
+                            updateFetchDescriptor()
                             do {
                                 items = try modelContext.fetch(fetchDescriptor)
                             } catch {

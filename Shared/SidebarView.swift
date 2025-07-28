@@ -60,80 +60,90 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        if isShowingError {
-            HStack {
-                Spacer(minLength: 10.0)
+        Group {
+            if isShowingError {
                 HStack {
-                    Text(errorMessage)
-                        .colorInvert()
-                    Spacer()
-                    Button {
-                        isShowingError = false
-                    } label: {
-                        Text("Dismiss")
+                    Spacer(minLength: 10.0)
+                    HStack {
+                        Text(errorMessage)
+                            .colorInvert()
+                        Spacer()
+                        Button {
+                            isShowingError = false
+                        } label: {
+                            Text("Dismiss")
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.all, 10.0)
+                    .background(Color.red.opacity(0.95))
+                    .cornerRadius(6.0)
+                    .transition(.move(edge: .top))
+                    Spacer(minLength: 10.0)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.all, 10.0)
-                .background(Color.red.opacity(0.95))
-                .cornerRadius(6.0)
-                .transition(.move(edge: .top))
-                Spacer(minLength: 10.0)
             }
-        }
-        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
-            NodeView(node: node)
-                .environment(newsModel)
-                .tag(node.type.asData)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    nodeSelection = node.type.asData
+            if nodes.isEmpty {
+                ContentUnavailableView {
+                    Label("No Feeds Available", image: .rss)
+                } description: {
+                    Text("Tap the sync button \(Image(systemName: "arrow.clockwise")) to download your feeds. Then select a feed from the sidebar to show its articles.")
                 }
-                .contextMenu {
-                    contextMenu(node: node)
-                }
-                .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
-                    Button(role: .destructive) {
-                        switch detail.type {
-                        case .all, .empty, .unread, .starred:
-                            break
-                        case .feed(id: _),  .folder(id: _):
-                            Task {
-                                do {
-                                    try await newsModel.delete(detail)
-                                } catch let error as NetworkError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error as DatabaseError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
+            } else {
+                List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
+                    NodeView(node: node)
+                        .environment(newsModel)
+                        .tag(node.type.asData)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            nodeSelection = node.type.asData
+                        }
+                        .contextMenu {
+                            contextMenu(node: node)
+                        }
+                        .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
+                            Button(role: .destructive) {
+                                switch detail.type {
+                                case .all, .empty, .unread, .starred:
+                                    break
+                                case .feed(id: _),  .folder(id: _):
+                                    Task {
+                                        do {
+                                            try await newsModel.delete(detail)
+                                        } catch let error as NetworkError {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        } catch let error as DatabaseError {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        } catch let error {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        }
+                                    }
                                 }
+                            } label: {
+                                Text("Delete \(detail.title)")
+                            }
+                            Button("Cancel", role: .cancel) {
+                                confirmationNode = nil
+                            }
+                        } message: { detail in
+                            switch detail.type {
+                            case .all, .empty, .unread, .starred:
+                                EmptyView()
+                            case .feed(id: _):
+                                Text("This will delete the feed \(detail.title)")
+                            case .folder(id: _):
+                                Text("This will delete the folder \(detail.title) and all its feeds")
                             }
                         }
-                    } label: {
-                        Text("Delete \(detail.title)")
-                    }
-                    Button("Cancel", role: .cancel) {
-                        confirmationNode = nil
-                    }
-                } message: { detail in
-                    switch detail.type {
-                    case .all, .empty, .unread, .starred:
-                        EmptyView()
-                    case .feed(id: _):
-                        Text("This will delete the feed \(detail.title)")
-                    case .folder(id: _):
-                        Text("This will delete the folder \(detail.title) and all its feeds")
-                    }
                 }
-        }
-        .listStyle(.automatic)
-        .refreshable {
-            sync()
+                .listStyle(.automatic)
+                .refreshable {
+                    sync()
+                }
+            }
         }
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
