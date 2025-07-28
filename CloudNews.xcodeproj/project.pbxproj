@@ -15,6 +15,8 @@
 		D00AFA1B269383CB00BAED44 /* OCS.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCS.swift */; };
 		D00AFA1E2693872800BAED44 /* KeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1D2693872800BAED44 /* KeychainStorage.swift */; };
 		D01AEA1E2E34347B00731B6F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01AEA1D2E34347B00731B6F /* LoginView.swift */; };
+		D01AEA212E370EA600731B6F /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D01AEA202E370EA600731B6F /* SwiftSoup */; };
+		D01AEA232E370EDC00731B6F /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D01AEA222E370EDC00731B6F /* SwiftSoup */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D02CFFDF29C4E90300F956CF /* AcknowledgementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */; };
@@ -26,7 +28,6 @@
 		D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44D3265C89F700A3505B /* NotificationNames.swift */; };
 		D02F44F7265C89F700A3505B /* NewsRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44D2265C89F700A3505B /* NewsRouter.swift */; };
 		D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D02F44FE265C8BFD00A3505B /* KeychainAccess */; };
-		D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D02F4501265C8C1900A3505B /* SwiftSoup */; };
 		D02F4515265C8CB500A3505B /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44CA265C89F700A3505B /* User.swift */; };
 		D02F4519265C8CBE00A3505B /* NodeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44CC265C89F700A3505B /* NodeType.swift */; };
 		D02F451B265C8CC400A3505B /* Avatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02F44CD265C89F700A3505B /* Avatar.swift */; };
@@ -72,7 +73,6 @@
 		D0C926392DCAD90C005415E5 /* UtilitiesShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */; };
 		D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
-		D0C9263D2DCAD945005415E5 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D0C9263C2DCAD945005415E5 /* SwiftSoup */; };
 		D0D853B62C557E4E002694BC /* PageViewProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D853B52C557E4E002694BC /* PageViewProxy.swift */; };
 		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
@@ -212,8 +212,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D02F44FF265C8BFD00A3505B /* KeychainAccess in Frameworks */,
-				D02F4502265C8C1900A3505B /* SwiftSoup in Frameworks */,
 				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
+				D01AEA212E370EA600731B6F /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,9 +221,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0C9263D2DCAD945005415E5 /* SwiftSoup in Frameworks */,
 				D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */,
 				D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */,
+				D01AEA232E370EDC00731B6F /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -383,8 +383,8 @@
 			name = CloudNews;
 			packageProductDependencies = (
 				D02F44FE265C8BFD00A3505B /* KeychainAccess */,
-				D02F4501265C8C1900A3505B /* SwiftSoup */,
 				D0E88402290C9E1E001ACB25 /* OpenSSL */,
+				D01AEA202E370EA600731B6F /* SwiftSoup */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -407,7 +407,7 @@
 			);
 			name = CloudNewsWidgetExtension;
 			packageProductDependencies = (
-				D0C9263C2DCAD945005415E5 /* SwiftSoup */,
+				D01AEA222E370EDC00731B6F /* SwiftSoup */,
 			);
 			productName = CloudNewsWidgetExtension;
 			productReference = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */;
@@ -442,8 +442,8 @@
 			mainGroup = D02F4497265C86BE00A3505B;
 			packageReferences = (
 				D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
-				D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
+				D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -908,20 +908,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.6;
+			};
+		};
 		D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.2.2;
-			};
-		};
-		D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/scinfu/SwiftSoup";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.1;
 			};
 		};
 		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
@@ -936,20 +936,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D01AEA202E370EA600731B6F /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		D01AEA222E370EDC00731B6F /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
 		D02F44FE265C8BFD00A3505B /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D02F44FD265C8BFD00A3505B /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
-		};
-		D02F4501265C8C1900A3505B /* SwiftSoup */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
-			productName = SwiftSoup;
-		};
-		D0C9263C2DCAD945005415E5 /* SwiftSoup */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D02F4500265C8C1900A3505B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
-			productName = SwiftSoup;
 		};
 		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
 			isa = XCSwiftPackageProductDependency;
