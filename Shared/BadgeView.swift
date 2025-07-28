@@ -21,9 +21,9 @@ struct BadgeView: View {
         self._unreadCount = unreadCount
         var predicate = #Predicate<Item> { _ in return false }
         switch node.type {
-        case .empty:
+        case .empty, .all:
             break
-        case .all, .unread:
+        case .unread:
             predicate = #Predicate<Item> { $0.unread == true }
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
