@@ -100,6 +100,14 @@ struct ItemsListView: View {
                     //
                 }
             }
+            .onChange(of: isNewInstall) { _, _ in
+                updateFetchDescriptor()
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
                 var nextIndex = items.startIndex
                 if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {

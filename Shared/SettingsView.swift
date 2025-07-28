@@ -63,6 +63,7 @@ struct SettingsView: View {
     @AppStorage(SettingKeys.adBlock) var adBlock = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
@@ -296,6 +297,7 @@ struct SettingsView: View {
                         productName = ""
                         productVersion = ""
                         isNewInstall = true
+                        selectedNode = nil
                         updateFooter()
                     } catch {
                         //
