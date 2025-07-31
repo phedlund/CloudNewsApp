@@ -82,7 +82,7 @@ struct ItemsListView: View {
                 }
             }
             .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
-                cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
             }
             .onChange(of: hideRead, initial: true) { _, _ in
                 updateFetchDescriptor()
@@ -182,11 +182,16 @@ struct ItemsListView: View {
                         }
                         .onChange(of: syncManager.syncState) { _, newValue in
                             if newValue == .idle {
+                                do {
+                                    items = try modelContext.fetch(fetchDescriptor)
+                                } catch {
+                                    //
+                                }
                                 doScrollToTop()
                             }
                         }
-                        .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
-                            cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                        .onChange(of: compactView, initial: true) { _, newValue in
+                            cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
                         }
                         .onChange(of: hideRead, initial: true) { _, _ in
                             updateFetchDescriptor()
@@ -230,6 +235,7 @@ struct ItemsListView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+            .navigationSubtitle(Text("\(items.count) articles"))
 #endif
         }
     }
