@@ -14,6 +14,10 @@ import WebKit
 struct ArticlesPageView: View {
     @Environment(NewsModel.self) private var newsModel
 
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
     @State private var itemsToMarkRead = [Item]()
     @State private var isShowingPopover = false
     @State private var currentPage = WebPage()
@@ -32,7 +36,7 @@ struct ArticlesPageView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(content: item)
+                    ArticleView(page: item.page)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
@@ -98,6 +102,21 @@ struct ArticlesPageView: View {
                     await newsModel.markItemsRead(items: itemsToMarkRead)
                     itemsToMarkRead.removeAll()
                 }
+            }
+        }
+        .onChange(of: fontSize) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
+            }
+        }
+        .onChange(of: lineHeight) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
+            }
+        }
+        .onChange(of: marginPortrait) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
             }
         }
     }
