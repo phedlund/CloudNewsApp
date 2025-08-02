@@ -9,16 +9,12 @@
 import SwiftUI
 import WebKit
 
-struct ArticleView: View, @MainActor Equatable {
+struct ArticleView: View {
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     private let content: ArticleWebContent
-
-    static func == (lhs: ArticleView, rhs: ArticleView) -> Bool {
-        lhs.content.id == rhs.content.id
-    }
 
     init(content: ArticleWebContent) {
         self.content = content

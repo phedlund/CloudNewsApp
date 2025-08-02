@@ -11,7 +11,7 @@ import SwiftSoup
 import SwiftUI
 import WebKit
 
-class ArticleWebContent: Identifiable {
+struct ArticleWebContent: Identifiable {
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
@@ -22,7 +22,7 @@ class ArticleWebContent: Identifiable {
     var page: WebPage
     var item: Item
 
-    private var isLoaded = false
+    @State private var isLoaded = false
 
     private var cssPath: String {
         if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
