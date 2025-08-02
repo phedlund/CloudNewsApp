@@ -9,25 +9,20 @@
 import Observation
 import SwiftSoup
 import SwiftUI
+import WebKit
 
-class ArticleWebContent {
+class ArticleWebContent: Identifiable {
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    var url: URL?
+    var id: Int64 {
+        item.id
+    }
+    var page: WebPage
     var item: Item
 
-    private let author: String
-    private let title: String
-    private let feedTitle: String
-    private let dateText: String
-    private let baseString: String
-    private let urlString: String
-    private let summary: String
-    private let fileName: String
-
-    private var isInInit = false
+    private var isLoaded = false
 
     private var cssPath: String {
         if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
@@ -41,20 +36,32 @@ class ArticleWebContent {
 
     init(item: Item) {
         self.item = item
-        isInInit = true
-        title = item.displayTitle
-        summary = Self.output(item: item)
-        baseString = Self.baseString(item: item)
-        urlString = Self.itemUrl(item: item)
-        dateText = Self.dateText(item: item)
-        author = Self.itemAuthor(item: item)
-        feedTitle = item.feed?.title ?? "Untitled"
-        fileName = "summary_\(item.id)"
-        reloadItemSummary()
-        isInInit = false
+        let webConfig = WebPage.Configuration()
+        ContentBlocker.rules { rules in
+            if let rules {
+                Task { @MainActor in
+                    webConfig.userContentController.add(rules)
+                }
+            }
+        }
+        page = WebPage(configuration: webConfig, navigationDecider: ArticleNavigationDecider())
     }
 
-    func reloadItemSummary() {
+    func reloadItemSummary(_ fromSource: Bool = false) {
+        if fromSource == true {
+            isLoaded = false
+        }
+        if isLoaded {
+            return
+        }
+        let title = item.displayTitle
+        let summary = Self.output(item: item)
+        let baseString = Self.baseString(item: item)
+        let urlString = Self.itemUrl(item: item)
+        let dateText = Self.dateText(item: item)
+        let author = Self.itemAuthor(item: item)
+        let feedTitle = item.feed?.title ?? "Untitled"
+        let fileName = "summary_\(item.id)"
 
         let htmlTemplate = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -114,7 +121,16 @@ class ArticleWebContent {
                 .appendingPathComponent(fileName)
                 .appendingPathExtension("html") {
                 try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
-                url = saveUrl
+                if let feed = item.feed {
+                    if feed.preferWeb == true,
+                       let urlString = item.url,
+                       let url = URL(string: urlString) {
+                        page.load(URLRequest(url: url))
+                    } else {
+                        page.load(URLRequest(url: saveUrl))
+                    }
+                }
+                isLoaded = true
             }
         } catch(let error) {
             print(error.localizedDescription)
@@ -225,7 +241,7 @@ class ArticleWebContent {
 
 extension ArticleWebContent: Equatable {
     static func == (lhs: ArticleWebContent, rhs: ArticleWebContent) -> Bool {
-        return lhs.url != nil && rhs.url != nil && lhs.url == rhs.url
+        return lhs.item.id == rhs.item.id
     }
     
 

@@ -17,50 +17,51 @@ struct ArticlesPageView: View {
     @State private var itemsToMarkRead = [Item]()
     @State private var isShowingPopover = false
     @State private var currentPage = WebPage()
-    @Bindable var pageViewProxy = PageViewProxy(page: WebPage())
+    @State private var scrollId: Int64?
 
-    private let item: Item
-    private let items: [Item]
+    private let items: [ArticleWebContent]
 
-    init(item: Item, items: [Item]) {
-        self.items = items
-        self.item = item
+    init(itemId: Int64, items: [Item]) {
+        self.items = items.map({ item in
+            ArticleWebContent(item: item)
+        })
+        _scrollId = .init(initialValue: itemId)
     }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(content: ArticleWebContent(item: item), pageViewReader: pageViewProxy)
+                    ArticleView(content: item)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
             .scrollTargetLayout()
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { notification in
                 var nextIndex = items.startIndex
-                if let selectedItemId = pageViewProxy.scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                if let selectedItemId = scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
                     nextIndex = currentIndex.advanced(by: -1)
                 }
                 if nextIndex <= items.startIndex {
                     nextIndex = items.startIndex
                 }
                 let previousItem = items[nextIndex]
-                pageViewProxy.scrollId = previousItem.id
+                scrollId = previousItem.id
             }
             .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { notification in
                 var nextIndex = items.startIndex
-                if let selectedItemId = pageViewProxy.scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                if let selectedItemId = scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
                     nextIndex = currentIndex.advanced(by: 1)
                 }
                 if nextIndex > items.endIndex {
                     nextIndex = items.startIndex
                 }
                 let nextItem = items[nextIndex]
-                pageViewProxy.scrollId = nextItem.id
+                scrollId = nextItem.id
             }
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
-        .scrollPosition(id: $pageViewProxy.scrollId)
+        .scrollPosition(id: $scrollId)
         .navigationTitle(currentPage.title)
         .scrollContentBackground(.hidden)
         .background {
@@ -68,28 +69,28 @@ struct ArticlesPageView: View {
                 .ignoresSafeArea(edges: .vertical)
         }
         .toolbar {
-            pageViewToolBarContent(pageViewProxy: pageViewProxy)
+            pageViewToolBarContent()
         }
         .toolbarRole(.editor)
         .task {
-            pageViewProxy.scrollId = item.id
-            if let newItem = items.first(where: { $0.id == item.id } ) {
-                newsModel.currentItem = newItem
-                if newItem.unread {
-                    await newsModel.markItemsRead(items: [newItem])
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary()
+                currentPage = newItem.page
+                newsModel.currentItem = newItem.item
+                if newItem.item.unread {
+                    await newsModel.markItemsRead(items: [newItem.item])
                 }
             }
         }
-        .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
+        .onChange(of: scrollId ?? 0, initial: false) { _, newValue in
             if let newItem = items.first(where: { $0.id == newValue } ) {
-                newsModel.currentItem = newItem
-                if newItem.unread {
-                    itemsToMarkRead.append(newItem)
+                newItem.reloadItemSummary()
+                currentPage = newItem.page
+                newsModel.currentItem = newItem.item
+                if newItem.item.unread {
+                    itemsToMarkRead.append(newItem.item)
                 }
             }
-        }
-        .onChange(of: pageViewProxy.itemId ?? 0, initial: true) { _, _ in
-            currentPage = pageViewProxy.page
         }
         .onScrollPhaseChange { _, newPhase in
             if  newPhase == .idle {
@@ -102,7 +103,7 @@ struct ArticlesPageView: View {
     }
 
     @ToolbarContentBuilder
-    func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
+    func pageViewToolBarContent() -> some ToolbarContent {
         ToolbarItemGroup(placement: .topBarLeading) {
             Button {
                 print("Tapping Back for \(currentPage.title)")

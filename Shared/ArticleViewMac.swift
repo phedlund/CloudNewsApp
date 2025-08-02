@@ -8,6 +8,7 @@
 import SwiftUI
 import WebKit
 
+#if os(macOS)
 struct ArticleViewMac: View {
     @Environment(NewsModel.self) private var newsModel
 
@@ -97,7 +98,7 @@ struct ArticleViewMac: View {
     }
 
 }
-
+#endif
 //#Preview {
 //    ArticleViewMac()
 //}

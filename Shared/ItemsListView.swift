@@ -144,7 +144,7 @@ struct ItemsListView: View {
                             }
                         }
                         .navigationDestination(for: Item.self) { item in
-                            ArticlesPageView(item: item, items: items)
+                            ArticlesPageView(itemId: item.id, items: items)
                                 .environment(newsModel)
                         }
                         .onChange(of: selectedNode, initial: true) { _, newNode in
