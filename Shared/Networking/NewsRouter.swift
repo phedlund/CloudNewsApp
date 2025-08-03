@@ -27,8 +27,6 @@ enum UrlSessionMethod: String {
 enum StatusRouter {
     case status
 
-    static let applicationJson = "application/json"
-
     private var method: UrlSessionMethod {
         switch self {
         case .status:
@@ -78,8 +76,8 @@ enum StatusRouter {
 
                 var urlRequest = URLRequest(url: url ?? URL(fileURLWithPath: "/"))
                 urlRequest.httpMethod = method.rawValue
-                urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
+                urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: Constants.Headers.authorization)
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.accept)
                 return urlRequest
             } else {
                 throw NetworkError.missingUrl
@@ -117,8 +115,6 @@ enum Router {
 
     case version
     case status
-
-    static let applicationJson = "application/json"
 
     private var method: UrlSessionMethod {
         switch self {
@@ -210,8 +206,8 @@ enum Router {
         urlRequest.httpMethod = method.rawValue
         urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
         urlRequest.timeoutInterval = 20.0
-        urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
-        urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
+        urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: Constants.Headers.authorization)
+        urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.accept)
 
         switch self {
         case .folders, .feeds:
@@ -221,7 +217,7 @@ enum Router {
             let parameters = ["url": url, "folderId": folder == 0 ? NSNull() : folder] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
         case .deleteFeed(_):
             break
@@ -230,21 +226,21 @@ enum Router {
             let parameters = ["folderId": folder == 0 ? NSNull() : folder] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .renameFeed( _, let name):
             let parameters = ["feedTitle": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .addFolder(let name):
             let parameters = ["name": name]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
         case .deleteFolder( _):
             break
@@ -253,7 +249,7 @@ enum Router {
             let parameters = ["name": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .items(let parameters), .updatedItems(let parameters):
@@ -269,7 +265,7 @@ enum Router {
         case .itemsRead(let parameters), .itemsUnread(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemStarred, .itemUnstarred, .allItemsRead:

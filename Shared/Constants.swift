@@ -27,6 +27,13 @@ struct Constants {
 
     static let untitledFolderName = NSLocalizedString("Untitled Folder", comment: "Untitled folder name")
 
+    struct Headers {
+        static let contentTypeJson = "application/json"
+        static let authorization = "Authorization"
+        static let accept = "Accept"
+        static let contentType = "Content-Type"
+    }
+
     struct ArticleSettings {
     #if os(macOS)
         static let minFontSize = 11
