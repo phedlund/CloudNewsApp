@@ -150,10 +150,15 @@ struct ArticleWebContent: Identifiable {
                 let baseString = baseString()
                 let document = try SwiftSoup.parse(html, baseString)
 
-                if baseString.lowercased().contains("youtu"), urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
-                    let videoIdStartIndex = urlString.index(after: equalIndex)
-                    let videoId = String(urlString[videoIdStartIndex...])
-                    try document.body()?.html(embedYTString(videoId))
+                if baseString.lowercased().contains("youtu") {
+                    if urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
+                        let videoIdStartIndex = urlString.index(after: equalIndex)
+                        let videoId = String(urlString[videoIdStartIndex...])
+                        try document.body()?.html(embedYTString(videoId))
+                    } else  if let url = URL(string: urlString), url.pathComponents.firstIndex(of: "shorts") != nil {
+                        let videoId = url.lastPathComponent
+                        try document.body()?.html(embedYTString(videoId))
+                    }
                 } else {
                     let iframes = try document.select("iframe")
                     for iframe in iframes {
