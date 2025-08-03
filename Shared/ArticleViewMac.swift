@@ -17,47 +17,26 @@ struct ArticleViewMac: View {
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
     var content: ArticleWebContent
-    var page: WebPage
 
     init(content: ArticleWebContent) {
         self.content = content
-        let webConfig = WebPage.Configuration()
-        page = WebPage(configuration: webConfig)
-        if let url = content.url {
-            page.load(URLRequest(url: url))
-        }
+        content.reloadItemSummary()
     }
 
     var body: some View {
-        WebView(page)
-            .navigationTitle(Text(page.title))
+        WebView(content.page)
+            .navigationTitle(Text(content.page.title))
             .toolbar {
                 articleToolBarContent()
             }
-            .onChange(of: content.url, initial: true) { _, _ in
-                Task {
-                    if await newsModel.feedPrefersWeb(id: content.item.feedId),
-                       let urlString = content.item.url,
-                       let url = URL(string: urlString) {
-                        page.load(URLRequest(url: url))
-                    } else {
-                        if let url = content.url {
-                            page.load(URLRequest(url: url))
-                        }
-                    }
-                }
-            }
             .onChange(of: fontSize) {
                 content.reloadItemSummary()
-                page.reload()
             }
             .onChange(of: lineHeight) {
                 content.reloadItemSummary()
-                page.reload()
             }
             .onChange(of: marginPortrait) {
                 content.reloadItemSummary()
-                page.reload()
             }
     }
 
@@ -65,35 +44,35 @@ struct ArticleViewMac: View {
     func articleToolBarContent() -> some ToolbarContent {
         ToolbarItemGroup {
             Button {
-                if let url = page.backForwardList.backList.last?.url {
-                    page.load(URLRequest(url: url))
+                if let url = content.page.backForwardList.backList.last?.url {
+                    content.page.load(URLRequest(url: url))
                 }
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(page.backForwardList.backList.isEmpty)
+            .disabled(content.page.backForwardList.backList.isEmpty)
             Button {
                 //                page.goForward()
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(page.backForwardList.forwardList.isEmpty)
+            .disabled(content.page.backForwardList.forwardList.isEmpty)
             Button {
-                if page.isLoading {
-                    page.stopLoading()
+                if content.page.isLoading {
+                    content.page.stopLoading()
                 } else {
-                    page.reload()
+                    content.page.reload()
                 }
             } label: {
-                if page.isLoading {
+                if content.page.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
                 }
             }
             Spacer()
-            ShareLinkButton(item: newsModel.currentItem, url: content.url)
-                .disabled(page.isLoading)
+            ShareLinkButton(item: newsModel.currentItem, url: content.page.url)
+                .disabled(content.page.isLoading)
         }
     }
 
