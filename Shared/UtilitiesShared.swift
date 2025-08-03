@@ -27,6 +27,14 @@ extension DateFormatter {
         dateFormat.dateFormat = dateFormatString
         return dateFormat
     }
+
+    static var dateTextFormatter: DateFormatter {
+        let dateFormat = DateFormatter()
+        dateFormat.dateStyle = .medium;
+        dateFormat.timeStyle = .short;
+        return dateFormat
+    }
+
 }
 
 @MainActor
@@ -44,4 +52,16 @@ extension Logger {
     nonisolated(unsafe) private static var subsystem = Bundle.main.bundleIdentifier!
 
     static let app = Logger(subsystem: subsystem, category: "app")
+}
+
+extension String {
+    static var cssPath: String {
+        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
+           let bundle = Bundle(url: bundleUrl),
+           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
+            return path
+        } else {
+            return ""
+        }
+    }
 }

@@ -24,16 +24,6 @@ struct ArticleWebContent: Identifiable {
 
     @State private var isLoaded = false
 
-    private var cssPath: String {
-        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
-           let bundle = Bundle(url: bundleUrl),
-           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
-            return path
-        } else {
-            return ""
-        }
-    }
-
     init(item: Item) {
         self.item = item
         let webConfig = WebPage.Configuration()
@@ -54,86 +44,86 @@ struct ArticleWebContent: Identifiable {
         if isLoaded {
             return
         }
-        let title = item.displayTitle
-        let baseString = baseString()
-        let summary = output()
-        let urlString = item.url ?? ""
-        let dateText = dateText()
-        let author = itemAuthor()
-        let feedTitle = item.feed?.title ?? "Untitled"
-        let fileName = "summary_\(item.id)"
+        if let feed = item.feed {
+            if feed.preferWeb == true,
+               let urlString = item.url,
+               let url = URL(string: urlString) {
+                page.load(URLRequest(url: url))
+            } else {
+                do {
+                    let title = item.displayTitle
+                    let baseString = baseString()
+                    let summary = output()
+                    let urlString = item.url ?? ""
+                    let dateText = DateFormatter.dateTextFormatter.string(from: item.pubDate)
+                    let author = itemAuthor()
+                    let feedTitle = item.feed?.title ?? "Untitled"
+                    let fileName = "summary_\(item.id)"
 
-        let htmlTemplate = """
-        <?xml version="1.0" encoding="utf-8"?>
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-        <html xmlns="http://www.w3.org/1999/xhtml">
-            <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                <title>
-                    \(title)
-                </title>
-            <style>\(updateCssVariables())</style>
-            <link rel="stylesheet" href="\(cssPath)" media="all">
-            <base href="\(baseString)">
-            </head>
-            <body>
-                <article>
-                    <div class="titleHeader">
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                                <td>
-                                    <div class="feedTitle">
-                                        \(feedTitle)
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="articleDate">
-                                        \(dateText)
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="articleTitle">
-                        <a class="articleTitleLink" href="\(urlString)">\(title)</a>
-                    </div>
-                    <div class="articleAuthor">
-                        <p>
-                            \(author)
-                        </p>
-                    </div>
-                    <div class="articleBody">
-                        <p>
-                            \(summary)
-                        </p>
-                    </div>
-                    <div class="footer">
-                        <a href="\(urlString)"><br />\(urlString)</a>
-                    </div>
-                </article>
-            </body>
-        </html>
-        """
-        
-        do {
-            if let saveUrl = tempDirectory()?
-                .appendingPathComponent(fileName)
-                .appendingPathExtension("html") {
-                try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
-                if let feed = item.feed {
-                    if feed.preferWeb == true,
-                       let urlString = item.url,
-                       let url = URL(string: urlString) {
-                        page.load(URLRequest(url: url))
-                    } else {
+                    let htmlTemplate = """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+                    <html xmlns="http://www.w3.org/1999/xhtml">
+                        <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                            <title>
+                                \(title)
+                            </title>
+                        <style>\(updateCssVariables())</style>
+                        <link rel="stylesheet" href="\(String.cssPath)" media="all">
+                        <base href="\(baseString)">
+                        </head>
+                        <body>
+                            <article>
+                                <div class="titleHeader">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td>
+                                                <div class="feedTitle">
+                                                    \(feedTitle)
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="articleDate">
+                                                    \(dateText)
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="articleTitle">
+                                    <a class="articleTitleLink" href="\(urlString)">\(title)</a>
+                                </div>
+                                <div class="articleAuthor">
+                                    <p>
+                                        \(author)
+                                    </p>
+                                </div>
+                                <div class="articleBody">
+                                    <p>
+                                        \(summary)
+                                    </p>
+                                </div>
+                                <div class="footer">
+                                    <a href="\(urlString)"><br />\(urlString)</a>
+                                </div>
+                            </article>
+                        </body>
+                    </html>
+                    """
+                    if let saveUrl = tempDirectory()?
+                        .appendingPathComponent(fileName)
+                        .appendingPathExtension("html") {
+                        try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
                         page.load(URLRequest(url: saveUrl))
                     }
                 }
-                isLoaded = true
+                catch(let error) {
+                    print(error.localizedDescription)
+                }
             }
-        } catch(let error) {
-            print(error.localizedDescription)
+            isLoaded = true
         }
     }
 
@@ -207,13 +197,6 @@ struct ArticleWebContent: Identifiable {
         return author
     }
 
-    private func dateText() -> String {
-        let dateFormat = DateFormatter()
-        dateFormat.dateStyle = .medium;
-        dateFormat.timeStyle = .short;
-        return dateFormat.string(from: item.pubDate)
-    }
-
     private func updateCssVariables() -> String {
         let fontSize: Double = Double(fontSize) / 14.0
         return """
@@ -236,12 +219,10 @@ extension ArticleWebContent: Equatable {
     static func == (lhs: ArticleWebContent, rhs: ArticleWebContent) -> Bool {
         return lhs.item.id == rhs.item.id
     }
-    
-
 }
 
 extension String {
-    
+
     //based on https://gist.github.com/rais38/4683817
     /**
      @see https://devforums.apple.com/message/705665#705665
@@ -281,5 +262,5 @@ extension String {
             return nil
         }
     }
-    
+
 }
