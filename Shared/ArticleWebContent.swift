@@ -55,11 +55,11 @@ struct ArticleWebContent: Identifiable {
             return
         }
         let title = item.displayTitle
-        let summary = Self.output(item: item)
-        let baseString = Self.baseString(item: item)
-        let urlString = Self.itemUrl(item: item)
-        let dateText = Self.dateText(item: item)
-        let author = Self.itemAuthor(item: item)
+        let baseString = baseString()
+        let summary = output()
+        let urlString = item.url ?? ""
+        let dateText = dateText()
+        let author = itemAuthor()
         let feedTitle = item.feed?.title ?? "Untitled"
         let fileName = "summary_\(item.id)"
 
@@ -137,7 +137,7 @@ struct ArticleWebContent: Identifiable {
         }
     }
 
-    private static func baseString(item: Item) -> String {
+    private func baseString() -> String {
         var result = ""
 
         if let urlString = item.url,
@@ -149,18 +149,15 @@ struct ArticleWebContent: Identifiable {
         return result
     }
 
-    private static func output(item: Item) -> String {
+    private func output() -> String {
         var result = ""
 
         if let html = item.body,
-           let urlString = item.url,
-           let url = URL(string: urlString),
-           let scheme = url.scheme,
-           let host = url.host {
+           let urlString = item.url {
 
             result = html
             do {
-                let baseString = "\(scheme)://\(host)"
+                let baseString = baseString()
                 let document = try SwiftSoup.parse(html, baseString)
 
                 if baseString.lowercased().contains("youtu"), urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
@@ -194,7 +191,7 @@ struct ArticleWebContent: Identifiable {
         return result
     }
 
-    private static func embedYTString(_ videoId: String) -> String {
+    private func embedYTString(_ videoId: String) -> String {
         return """
             <div class="video-wrapper">
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/\(videoId)" frameborder="0" allowfullscreen></iframe>
@@ -202,11 +199,7 @@ struct ArticleWebContent: Identifiable {
             """
     }
 
-    private static func itemUrl(item: Item) -> String {
-        return item.url ?? ""
-    }
-
-    private static func itemAuthor(item: Item) -> String {
+    private func itemAuthor() -> String {
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {
             author = "By \(itemAuthor)"
@@ -214,7 +207,7 @@ struct ArticleWebContent: Identifiable {
         return author
     }
 
-    private static func dateText(item: Item) -> String {
+    private func dateText() -> String {
         let dateFormat = DateFormatter()
         dateFormat.dateStyle = .medium;
         dateFormat.timeStyle = .short;
