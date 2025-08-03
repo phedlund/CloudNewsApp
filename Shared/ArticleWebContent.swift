@@ -149,22 +149,29 @@ struct ArticleWebContent: Identifiable {
             do {
                 let baseString = baseString()
                 let document = try SwiftSoup.parse(html, baseString)
-
-                if baseString.lowercased().contains("youtu") {
-                    if urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
-                        let videoIdStartIndex = urlString.index(after: equalIndex)
-                        let videoId = String(urlString[videoIdStartIndex...])
-                        try document.body()?.html(embedYTString(videoId))
-                    } else  if let url = URL(string: urlString), url.pathComponents.firstIndex(of: "shorts") != nil {
-                        let videoId = url.lastPathComponent
-                        try document.body()?.html(embedYTString(videoId))
-                    }
-                } else {
-                    let iframes = try document.select("iframe")
-                    for iframe in iframes {
-                        let src = try iframe.attr("src")
-                        if src.contains("youtu") || src.contains("vimeo") {
-                            try iframe.wrap("<div class=\"video-wrapper\"></div>")
+                if let components = URLComponents(string: urlString.lowercased()), let host = components.host {
+                    if host.lowercased().contains("youtu") {
+                        if let queryItems = components.queryItems {
+                            for item in queryItems {
+                                if item.name == "v", let value = item.value {
+                                    try document.body()?.html(embedYTString(value))
+                                    continue
+                                }
+                            }
+                        } else {
+                            if components.path.contains("shorts") {
+                                if let url = URL(string: urlString.lowercased()) {
+                                    try document.body()?.html(embedYTString(url.lastPathComponent))
+                                }
+                            }
+                        }
+                    } else {
+                        let iframes = try document.select("iframe")
+                        for iframe in iframes {
+                            let src = try iframe.attr("src")
+                            if src.contains("youtu") || src.contains("vimeo") {
+                                try iframe.wrap("<div class=\"video-wrapper\"></div>")
+                            }
                         }
                     }
                 }
