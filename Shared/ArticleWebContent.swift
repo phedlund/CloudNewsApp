@@ -27,7 +27,7 @@ struct ArticleWebContent: Identifiable {
     init(item: Item) {
         self.item = item
         let webConfig = WebPage.Configuration()
-        ContentBlocker.rules { rules in
+        ContentBlocker.shared.rules { rules in
             if let rules {
                 Task { @MainActor in
                     webConfig.userContentController.add(rules)
