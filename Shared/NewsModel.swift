@@ -341,7 +341,7 @@ class NewsModel: @unchecked Sendable {
         }
         do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-            let parameters: ParameterDict = ["items": itemIds]
+            let parameters: ParameterDict = ["itemIds": itemIds]
             var router: Router
             if unread {
                 router = Router.itemsUnread(parameters: parameters)
@@ -401,8 +401,7 @@ class NewsModel: @unchecked Sendable {
 
     private func markStarred(item: Item, starred: Bool) async throws {
         do {
-            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
-                                                        "guidHash": item.guidHash as Any]]]
+            let parameters: ParameterDict = ["itemIds": [item.id]]
             var router: Router
             if starred {
                 router = Router.itemsStarred(parameters: parameters)

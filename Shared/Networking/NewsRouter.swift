@@ -120,11 +120,11 @@ enum Router {
         switch self {
         case .feeds, .folders, .items, .updatedItems, .version, .status:
             return .get
-        case .addFeed, .addFolder:
+        case .addFeed, .addFolder, .itemsRead, .itemsUnread, .itemStarred, .itemUnstarred, .itemsStarred, .itemsUnstarred:
             return .post
         case .deleteFeed, .deleteFolder:
             return .delete
-        case .moveFeed, .renameFeed, .markFeedRead, .renameFolder, .markFolderRead, .itemRead, .itemsRead, .itemUnread, .itemsUnread, .itemStarred,. itemsStarred, .itemUnstarred, .itemsUnstarred, .allItemsRead:
+        case .moveFeed, .renameFeed, .markFeedRead, .renameFolder, .markFolderRead, .itemRead, .itemUnread, .allItemsRead:
             return .put
         }
     }
@@ -199,7 +199,7 @@ enum Router {
     func urlRequest() throws -> URLRequest {
         @AppStorage(SettingKeys.server) var server: String = ""
 
-        let baseURLString = "\(server)/index.php/apps/news/api/v1-2"
+        let baseURLString = "\(server)/index.php/apps/news/api/v1-3"
         let url = URL(string: baseURLString)! //FIX
 
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
