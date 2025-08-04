@@ -107,9 +107,9 @@ enum Router {
     case itemsRead(parameters: ParameterDict)
     case itemUnread(id: Int)
     case itemsUnread(parameters: ParameterDict)
-    case itemStarred(id: Int, guid: String)
+    case itemStarred(id: Int)
     case itemsStarred(parameters: ParameterDict)
-    case itemUnstarred(id: Int, guid: String)
+    case itemUnstarred(id: Int)
     case itemsUnstarred(parameters: ParameterDict)
     case allItemsRead
 
@@ -167,12 +167,12 @@ enum Router {
             return "/item/\(id)/unread"
         case .itemsUnread(_):
             return "/items/unread/multiple"
-        case .itemStarred(let id, let guid):
-            return "/item/\(id)/\(guid)/star"
+        case .itemStarred(let id):
+            return "/item/\(id)/star"
         case .itemsStarred(_):
             return "/items/star/multiple"
-        case .itemUnstarred(let id, let guid):
-            return "/item/\(id)/\(guid)/unstar"
+        case .itemUnstarred(let id):
+            return "/item/\(id)/unstar"
         case .itemsUnstarred(_):
             return "/items/unstar/multiple"
         case .allItemsRead:

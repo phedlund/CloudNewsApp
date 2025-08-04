@@ -135,19 +135,6 @@ actor NewsModelActor: Sendable {
         return nil
     }
 
-//    func fetchStarredParameter(by id: PersistentIdentifier) async throws -> StarredParameter? {
-//        let model = modelContext.model(for: id)
-//        if let model = model as? Starred {
-//            let data = model.itemIdData
-//            let id: PersistentIdentifier = try JSONDecoder().decode(PersistentIdentifier.self, from: data)
-//            let model = modelContext.model(for: id)
-//            if let model = model as? Item {
-//                return StarredParameter(feedId: model.feedId, guidHash: model.guidHash ?? "")
-//            }
-//        }
-//        return nil
-//    }
-    
     func allModelIds<T: PersistentModel>(_ descriptor: FetchDescriptor<T>) async throws -> [PersistentIdentifier] {
         try modelContext.fetchIdentifiers(descriptor)
     }
