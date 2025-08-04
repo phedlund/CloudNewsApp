@@ -393,15 +393,15 @@ class NewsModel: @unchecked Sendable {
             let _ = try await backgroundActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
             item.starred.toggle()
             try await backgroundActor.save()
-            try await self.markStarred(item: item, starred: !currentState)
+            try await self.markStarred(itemIds: [item.id], starred: !currentState)
         } catch {
 
         }
     }
 
-    private func markStarred(item: Item, starred: Bool) async throws {
+    private func markStarred(itemIds: [Int64], starred: Bool) async throws {
         do {
-            let parameters: ParameterDict = ["itemIds": [item.id]]
+            let parameters: ParameterDict = ["itemIds": itemIds]
             var router: Router
             if starred {
                 router = Router.itemsStarred(parameters: parameters)
@@ -421,11 +421,14 @@ class NewsModel: @unchecked Sendable {
                         try await backgroundActor.delete(model: Starred.self)
                     }
                 default:
-                    let itemDataId = try JSONEncoder().encode(item.persistentModelID)
                     if starred {
-                        await backgroundActor.insert(Starred(itemIdData: itemDataId))
+                        for itemId in itemIds {
+                            await backgroundActor.insert(Unstarred(itemId: itemId))
+                        }
                     } else {
-                        await backgroundActor.insert(Unstarred(itemIdData: itemDataId))
+                        for itemId in itemIds {
+                            await backgroundActor.insert(Starred(itemId: itemId))
+                        }
                     }
                 }
                 try await backgroundActor.save()

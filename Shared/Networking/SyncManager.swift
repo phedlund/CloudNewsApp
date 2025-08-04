@@ -300,7 +300,7 @@ final class SyncManager {
         }
 
         if !localUnreadIds.isEmpty {
-            let unreadParameters = ["items": localUnreadIds]
+            let unreadParameters = ["itemIds": localUnreadIds]
             let unreadRouter = Router.itemsUnread(parameters: unreadParameters)
             async let (_, unreadResponse) = URLSession.shared.data(for: unreadRouter.urlRequest(), delegate: nil)
             let unreadItemsResponse = try await unreadResponse
@@ -314,23 +314,16 @@ final class SyncManager {
             }
         }
 
-        var localStarredParameters = [StarredParameter]()
+        var localStarredIds = [Int64]()
         let starredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Starred>())
         for identifier in starredIdentifiers {
-            if let parameters = try await backgroundActor.fetchStarredParameter(by: identifier) {
-                localStarredParameters.append(parameters)
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
+                localStarredIds.append(itemId)
             }
         }
 
-        if !localStarredParameters.isEmpty {
-            var params = [Any]()
-            for starredItem in localStarredParameters {
-                var param: [String: Any] = [:]
-                param["feedId"] = starredItem.feedId
-                param["guidHash"] = starredItem.guidHash
-                params.append(param)
-            }
-            let starredParameters = ["items": params]
+        if !localStarredIds.isEmpty {
+            let starredParameters = ["itemIds": localStarredIds]
             let starredRouter = Router.itemsStarred(parameters: starredParameters)
             async let (_, starredResponse) = URLSession.shared.data(for: starredRouter.urlRequest(), delegate: nil)
             let starredItemsResponse = try await starredResponse
@@ -344,28 +337,21 @@ final class SyncManager {
             }
         }
 
-        var localUnstarredParameters = [StarredParameter]()
+        var localUnstarredIds = [Int64]()
         let unStarredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Unstarred>())
         for identifier in unStarredIdentifiers {
-            if let parameters = try await backgroundActor.fetchStarredParameter(by: identifier) {
-                localUnstarredParameters.append(parameters)
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
+                localUnstarredIds.append(itemId)
             }
         }
 
-        if !localUnstarredParameters.isEmpty {
-            var params = [Any]()
-            for unstarredItem in localUnstarredParameters {
-                var param: [String: Any] = [:]
-                param["feedId"] = unstarredItem.feedId
-                param["guidHash"] = unstarredItem.guidHash
-                params.append(param)
-            }
-            let unstarredParameters = ["items": params]
+        if !localUnstarredIds.isEmpty {
+            let unstarredParameters = ["itemIds": localUnstarredIds]
             let unstarredRouter = Router.itemsStarred(parameters: unstarredParameters)
             async let (_, unstarredResponse) = URLSession.shared.data(for: unstarredRouter.urlRequest(), delegate: nil)
             let unstarredItemsResponse = try await unstarredResponse
-            if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
-                switch httpStarredResponse.statusCode {
+            if let httpUnstarredResponse = unstarredItemsResponse as? HTTPURLResponse {
+                switch httpUnstarredResponse.statusCode {
                 case 200:
                     try await backgroundActor.delete(model: Unstarred.self)
                 default:
