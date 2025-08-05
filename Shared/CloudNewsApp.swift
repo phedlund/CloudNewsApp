@@ -34,6 +34,8 @@ struct CloudNewsApp: App {
             self.newsModel = NewsModel(modelContainer: container)
             self.syncManager = SyncManager(modelContainer: container)
             syncManager.configureSession()
+            ContentBlocker.shared.rules(completion: { _ in })
+            let _ = CssProvider.shared.css()
         } catch {
             fatalError("Failed to create container")
         }
