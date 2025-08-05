@@ -147,7 +147,10 @@ struct ItemsListView: View {
                             ArticlesPageView(itemId: item.id, items: items)
                                 .environment(newsModel)
                         }
-                        .onChange(of: selectedNode, initial: true) { _, newNode in
+                        .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+                            guard newNode != oldNode else {
+                                return
+                            }
                             bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
                             updateFetchDescriptor()
                             do {
