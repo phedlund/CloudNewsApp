@@ -229,7 +229,7 @@ struct SettingsView: View {
                     AddView(selectedAdd: .feed)
                 }
             case .login:
-                LoginWebViewView()
+                LoginView()
             case .certificate:
                 if let host = URL(string: server)?.host {
                     NavigationView {

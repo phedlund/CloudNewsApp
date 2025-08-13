@@ -113,14 +113,14 @@ final class ServerStatus: NSObject {
 final class ServerStatusDelegate: NSObject, URLSessionDelegate {
 
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        if checkTrustedChallenge(session, didReceive: challenge) {
+        if await checkTrustedChallenge(session, didReceive: challenge) {
             return (URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
         } else {
             return (URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
         }
     }
 
-    private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
+    @MainActor private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
         let protectionSpace = challenge.protectionSpace
         let directoryCertificate = ServerStatus.certificatesDirectory!
         let host = challenge.protectionSpace.host
