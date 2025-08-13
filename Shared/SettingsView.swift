@@ -313,9 +313,6 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .loginComplete)) { _ in
             currentSettingsSheet = .login
             onDismiss()
-#if os(macOS)
-            NSApplication.shared.keyWindow?.close()
-#endif
         }
 #if !os(macOS)
         .toolbar {

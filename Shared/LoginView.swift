@@ -10,6 +10,7 @@ import WebKit
 
 struct LoginView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.dismissWindow) var dismissWindow
     @AppStorage(SettingKeys.server) var server = ""
 
     @State private var loginSchemeHandler: LoginSchemeHandler
@@ -35,6 +36,7 @@ struct LoginView: View {
                     dismiss()
 #else
                     NotificationCenter.default.post(name: .loginComplete, object: nil)
+                    dismissWindow(id: "login")
 #endif
                 }
             }

@@ -128,7 +128,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
 
         Window(Text("Log In"), id: "login") {
-            LoginWebViewView()
+            LoginView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
