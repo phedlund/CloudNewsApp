@@ -8,40 +8,42 @@
 import SwiftUI
 
 extension Color {
+#if os(macOS)
+    private typealias SystemColor = NSColor
+#else
+    private typealias SystemColor = UIColor
+#endif
 
-    var uiColor: SystemColor {
-        .init(self)
+    private var uiColor: SystemColor {
+        SystemColor(self)
     }
 
     typealias RGBA = (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)
 
     var rgba: RGBA? {
-        var (r, g, b, a): RGBA = (0, 0, 0, 0)
 #if os(macOS)
-        if let components = uiColor.cgColor.components {
-            return (components[0], components[1], components[2], components[3])
+        guard let components = uiColor.cgColor.components, components.count >= 4 else {
+            return nil
+        }
+        return (components[0], components[1], components[2], components[3])
+#else
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) else {
+            return nil
         }
         return (r, g, b, a)
-#else
-        return uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) ? (r, g, b, a) : nil
 #endif
     }
 
     var hexaRGB: String? {
         guard let rgba else { return nil }
-        return String(format: "#%02x%02x%02x",
-                      Int(rgba.red * 255),
-                      Int(rgba.green * 255),
-                      Int(rgba.blue * 255))
+        func clamp(_ v: CGFloat) -> Int { min(max(Int(round(v * 255)), 0), 255) }
+        return String(format: "#%02X%02X%02X", clamp(rgba.red), clamp(rgba.green), clamp(rgba.blue))
     }
 
     var hexaRGBA: String? {
         guard let rgba else { return nil }
-        return String(format: "#%02x%02x%02x%02x",
-                      Int(rgba.red * 255),
-                      Int(rgba.green * 255),
-                      Int(rgba.blue * 255),
-                      Int(rgba.alpha * 255))
+        func clamp(_ v: CGFloat) -> Int { min(max(Int(round(v * 255)), 0), 255) }
+        return String(format: "#%02X%02X%02X%02X", clamp(rgba.red), clamp(rgba.green), clamp(rgba.blue), clamp(rgba.alpha))
     }
-
 }
