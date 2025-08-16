@@ -10,14 +10,15 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    private let page: WebPage
+    private let webContent: ArticleWebContent
 
-    init(page: WebPage) {
-        self.page = page
+    init(webContent: ArticleWebContent) {
+        self.webContent = webContent
+        self.webContent.reloadItemSummary()
     }
 
     var body: some View {
-        WebView(page)
+        WebView(webContent.page)
             .webViewBackForwardNavigationGestures(.disabled)
             .scrollIndicators(.visible, axes: .vertical)
             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)

@@ -24,7 +24,7 @@ struct ArticleWebContent: Identifiable {
 
     @State private var isLoaded = false
 
-    init(item: Item) {
+    init(item: Item, openUrlAction: OpenURLAction) {
         self.item = item
         let webConfig = WebPage.Configuration()
         ContentBlocker.shared.rules { rules in
@@ -34,7 +34,7 @@ struct ArticleWebContent: Identifiable {
                 }
             }
         }
-        page = WebPage(configuration: webConfig, navigationDecider: ArticleNavigationDecider())
+        page = WebPage(configuration: webConfig, navigationDecider: ArticleNavigationDecider(openUrlAction: openUrlAction))
     }
 
     func reloadItemSummary(_ fromSource: Bool = false) {

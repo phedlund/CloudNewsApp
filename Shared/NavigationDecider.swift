@@ -9,7 +9,7 @@ import WebKit
 import SwiftUI
 
 struct ArticleNavigationDecider: WebPage.NavigationDeciding {
-//    let openUrlAction: OpenURLAction
+    let openUrlAction: OpenURLAction
 
     func decidePolicy(for response: WebPage.NavigationResponse) async -> WKNavigationResponsePolicy {
         return .allow
@@ -20,7 +20,7 @@ struct ArticleNavigationDecider: WebPage.NavigationDeciding {
             if scheme == "file" || scheme.hasPrefix("itms") {
                 if let url = action.request.url {
                     if url.absoluteString.contains("itunes.apple.com") || url.absoluteString.contains("apps.apple.com") {
-//                        openUrlAction.callAsFunction(url)
+                        openUrlAction.callAsFunction(url)
                         return .cancel
                     }
                 }

@@ -13,7 +13,7 @@ import WebKit
 #if os(iOS)
 struct ArticlesPageView: View {
     @Environment(NewsModel.self) private var newsModel
-
+    @Environment(\.openURL) private var openURL
     @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
@@ -23,12 +23,16 @@ struct ArticlesPageView: View {
     @State private var currentPage = WebPage()
     @State private var scrollId: Int64?
 
-    private let items: [ArticleWebContent]
+    private let itemModels: [Item]
+
+    private var items: [ArticleWebContent] {
+        itemModels.map { item in
+            ArticleWebContent(item: item, openUrlAction: openURL)
+        }
+    }
 
     init(itemId: Int64, items: [Item]) {
-        self.items = items.map({ item in
-            ArticleWebContent(item: item)
-        })
+        self.itemModels = items
         _scrollId = .init(initialValue: itemId)
     }
 
@@ -36,7 +40,7 @@ struct ArticlesPageView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(page: item.page)
+                    ArticleView(webContent: item)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
@@ -78,7 +82,6 @@ struct ArticlesPageView: View {
         .toolbarRole(.editor)
         .task {
             if let newItem = items.first(where: { $0.id == scrollId } ) {
-                newItem.reloadItemSummary()
                 currentPage = newItem.page
                 newsModel.currentItem = newItem.item
                 if newItem.item.unread {
@@ -88,7 +91,6 @@ struct ArticlesPageView: View {
         }
         .onChange(of: scrollId ?? 0, initial: false) { _, newValue in
             if let newItem = items.first(where: { $0.id == newValue } ) {
-                newItem.reloadItemSummary()
                 currentPage = newItem.page
                 newsModel.currentItem = newItem.item
                 if newItem.item.unread {
