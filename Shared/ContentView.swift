@@ -16,6 +16,7 @@ struct ContentView: View {
     @Environment(SyncManager.self) private var syncManager
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openURL) private var openUrl
 #endif
     @KeychainStorage(SettingKeys.username) var username = ""
     @KeychainStorage(SettingKeys.password) var password = ""
@@ -141,7 +142,7 @@ struct ContentView: View {
             }
         } detail: {
             if let item = newsModel.currentItem {
-                ArticleViewMac(content: ArticleWebContent(item: item))
+                ArticleViewMac(content: ArticleWebContent(item: item, openUrlAction: openUrl))
                     .environment(newsModel)
             } else {
                 ContentUnavailableView("No Article Selected",
