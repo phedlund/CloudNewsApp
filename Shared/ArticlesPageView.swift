@@ -37,7 +37,7 @@ struct ArticlesPageView: View {
     private var isButtonDisabled: Bool {
         currentPage.isLoading || (currentPage.url != nil && currentPage.url?.scheme != "file")
     }
-    
+
     init(itemId: Int64, items: [Item]) {
         self.itemModels = items
         _scrollId = .init(initialValue: itemId)
