@@ -92,14 +92,12 @@ struct ArticlesPageView: View {
         .task {
             if viewModel == nil {
                 viewModel = ArticlesPageViewModel(itemModels: itemModels, openUrlAction: openURL)
-            }
-        }
-        .task {
-            if let newItem = items.first(where: { $0.id == scrollId } ) {
-                currentPage = newItem.page
-                newsModel.currentItem = newItem.item
-                if newItem.item.unread {
-                    await newsModel.markItemsRead(items: [newItem.item])
+                if let newItem = viewModel?.items.first(where: { $0.id == scrollId } ) {
+                    currentPage = newItem.page
+                    newsModel.currentItem = newItem.item
+                    if newItem.item.unread {
+                        await newsModel.markItemsRead(items: [newItem.item])
+                    }
                 }
             }
         }
