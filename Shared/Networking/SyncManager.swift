@@ -29,19 +29,19 @@ enum SyncState: CustomStringConvertible {
         case .idle:
             return ""
         case .started:
-            return "Getting started"
+            return "Getting started…"
         case .folders:
-            return "Updating folders"
+            return "Updating folders…"
         case .feeds:
-            return "Updating feeds"
+            return "Updating feeds…"
         case .articles:
-            return "Updating articles"
+            return "Updating articles…"
         case .unread:
-            return "Updating unread articles"
+            return "Updating unread articles…"
         case .starred:
-            return "Updating starred articles"
+            return "Updating starred articles…"
         case .favicons:
-            return "Updating favicons"
+            return "Updating favicons…"
         }
     }
 }
