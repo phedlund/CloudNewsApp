@@ -11,6 +11,15 @@ import SwiftUI
 import WebKit
 
 #if os(iOS)
+struct ArticlesPageViewModel {
+    let items: [ArticleWebContent]
+    init(itemModels: [Item], openUrlAction: OpenURLAction) {
+        self.items = itemModels.map { item in
+            ArticleWebContent(item: item, openUrlAction: openUrlAction)
+        }
+    }
+}
+
 struct ArticlesPageView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(\.openURL) private var openURL
@@ -22,21 +31,21 @@ struct ArticlesPageView: View {
     @State private var isShowingPopover = false
     @State private var currentPage = WebPage()
     @State private var scrollId: Int64?
+    @State private var viewModel: ArticlesPageViewModel? = nil
 
     private let itemModels: [Item]
-
-    private var items: [ArticleWebContent] {
-        itemModels.map { item in
-            ArticleWebContent(item: item, openUrlAction: openURL)
-        }
+    private var isButtonDisabled: Bool {
+        currentPage.isLoading || (currentPage.url != nil && currentPage.url?.scheme != "file")
     }
-
+    
     init(itemId: Int64, items: [Item]) {
         self.itemModels = items
         _scrollId = .init(initialValue: itemId)
     }
 
     var body: some View {
+        let items = viewModel?.items ?? []
+
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
@@ -80,6 +89,11 @@ struct ArticlesPageView: View {
             pageViewToolBarContent()
         }
         .toolbarRole(.editor)
+        .task {
+            if viewModel == nil {
+                viewModel = ArticlesPageViewModel(itemModels: itemModels, openUrlAction: openURL)
+            }
+        }
         .task {
             if let newItem = items.first(where: { $0.id == scrollId } ) {
                 currentPage = newItem.page
@@ -162,8 +176,7 @@ struct ArticlesPageView: View {
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(currentPage.isLoading)
-            .disabled(currentPage.url?.scheme != "file")
+            .disabled(isButtonDisabled)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
                 ArticleSettingsView()
                     .presentationDetents([.height(300.0)])
@@ -180,3 +193,4 @@ struct ArticlesPageView: View {
 //    }
 //}
 #endif
+
