@@ -18,8 +18,6 @@ struct ContentView: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openUrl
 #endif
-    @KeychainStorage(SettingKeys.username) var username = ""
-    @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
