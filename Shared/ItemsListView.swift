@@ -211,7 +211,7 @@ struct ItemsListView: View {
                             guard oldValue != newValue else {
                                 return
                             }
-                            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+                            updateFetchDescriptor()
                             do {
                                 items = try modelContext.fetch(fetchDescriptor)
                             } catch {
@@ -245,6 +245,14 @@ struct ItemsListView: View {
                 }
             }
             .navigationSubtitle(Text("\(items.count) articles"))
+            .task {
+                updateFetchDescriptor()
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
 #endif
         }
     }
@@ -334,6 +342,7 @@ struct ItemsListView: View {
                     }
                 }
             }
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
     }
 
