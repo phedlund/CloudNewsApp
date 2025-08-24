@@ -196,7 +196,10 @@ struct ItemsListView: View {
                         .onChange(of: compactView, initial: true) { _, newValue in
                             cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
                         }
-                        .onChange(of: hideRead, initial: true) { _, _ in
+                        .onChange(of: hideRead, initial: true) { oldValue, newValue in
+                            guard oldValue != newValue else {
+                                return
+                            }
                             updateFetchDescriptor()
                             do {
                                 items = try modelContext.fetch(fetchDescriptor)
@@ -204,7 +207,10 @@ struct ItemsListView: View {
                                 //
                             }
                         }
-                        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
+                        .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+                            guard oldValue != newValue else {
+                                return
+                            }
                             fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
                             do {
                                 items = try modelContext.fetch(fetchDescriptor)
