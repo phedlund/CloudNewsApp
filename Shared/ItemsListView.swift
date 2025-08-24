@@ -73,40 +73,32 @@ struct ItemsListView: View {
                     bindable.navigationItemId = 0
                 }
             }
-            .onChange(of: selectedNode, initial: true) { _, newNode in
-                updateFetchDescriptor()
-                do {
-                    items = try modelContext.fetch(fetchDescriptor)
-                } catch {
-                    //
+            .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+                guard oldNode != newNode else {
+                    return
                 }
+                updateFetchDescriptor()
             }
             .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
                 cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
             }
-            .onChange(of: hideRead, initial: true) { _, _ in
+            .onChange(of: hideRead, initial: true) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
                 updateFetchDescriptor()
-                do {
-                    items = try modelContext.fetch(fetchDescriptor)
-                } catch {
-                    //
-                }
             }
-            .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-                fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
-                do {
-                    items = try modelContext.fetch(fetchDescriptor)
-                } catch {
-                    //
+            .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
                 }
-            }
-            .onChange(of: isNewInstall) { _, _ in
                 updateFetchDescriptor()
-                do {
-                    items = try modelContext.fetch(fetchDescriptor)
-                } catch {
-                    //
+            }
+            .onChange(of: isNewInstall) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
                 }
+                updateFetchDescriptor()
             }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
                 var nextIndex = items.startIndex
@@ -123,6 +115,9 @@ struct ItemsListView: View {
                 }
                 nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
                 $selectedItem.wrappedValue = items[nextIndex]
+            }
+            .task {
+                updateFetchDescriptor()
             }
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
