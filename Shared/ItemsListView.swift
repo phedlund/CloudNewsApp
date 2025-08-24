@@ -153,11 +153,6 @@ struct ItemsListView: View {
                             }
                             bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
                             updateFetchDescriptor()
-                            do {
-                                items = try modelContext.fetch(fetchDescriptor)
-                            } catch {
-                                //
-                            }
                             doScrollToTop()
                         }
                         .onChange(of: scenePhase) { _, newPhase in
@@ -201,30 +196,15 @@ struct ItemsListView: View {
                                 return
                             }
                             updateFetchDescriptor()
-                            do {
-                                items = try modelContext.fetch(fetchDescriptor)
-                            } catch {
-                                //
-                            }
                         }
                         .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
                             guard oldValue != newValue else {
                                 return
                             }
                             updateFetchDescriptor()
-                            do {
-                                items = try modelContext.fetch(fetchDescriptor)
-                            } catch {
-                                //
-                            }
                         }
                         .onChange(of: isNewInstall) { _, _ in
                             updateFetchDescriptor()
-                            do {
-                                items = try modelContext.fetch(fetchDescriptor)
-                            } catch {
-                                //
-                            }
                         }
                     }
                     .onScrollPhaseChange { _, newPhase, context in
@@ -247,11 +227,6 @@ struct ItemsListView: View {
             .navigationSubtitle(Text("\(items.count) articles"))
             .task {
                 updateFetchDescriptor()
-                do {
-                    items = try modelContext.fetch(fetchDescriptor)
-                } catch {
-                    //
-                }
             }
 #endif
         }
@@ -309,6 +284,7 @@ struct ItemsListView: View {
 
     private func updateFetchDescriptor() {
         if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
             switch nodeType {
             case .empty:
                 fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
@@ -342,7 +318,11 @@ struct ItemsListView: View {
                     }
                 }
             }
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+            do {
+                items = try modelContext.fetch(fetchDescriptor)
+            } catch {
+                //
+            }
         }
     }
 
