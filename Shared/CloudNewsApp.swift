@@ -8,6 +8,7 @@
 import BackgroundTasks
 import SwiftData
 import SwiftUI
+import Valet
 
 @main
 struct CloudNewsApp: App {
@@ -36,6 +37,7 @@ struct CloudNewsApp: App {
             syncManager.configureSession()
             ContentBlocker.shared.rules(completion: { _ in })
             let _ = CssProvider.shared.css()
+            migrateKeychain()
         } catch {
             fatalError("Failed to create container")
         }
@@ -185,5 +187,19 @@ struct CloudNewsApp: App {
         }
     }
 #endif
+
+    private func migrateKeychain() {
+        let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
+        let query: [String: AnyHashable] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.peterandlinda.iOCNews"
+        ]
+
+        do {
+            try valet.migrateObjects(matching: query, removeOnCompletion: true)
+        } catch {
+            print("Error migrating keychain data: \(error)")
+        }
+    }
 
 }

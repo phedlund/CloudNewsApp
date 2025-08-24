@@ -1,5 +1,5 @@
 import SwiftUI
-import KeychainAccess
+import Valet
 
 @propertyWrapper
 struct KeychainStorage: DynamicProperty {
@@ -8,8 +8,10 @@ struct KeychainStorage: DynamicProperty {
 
     init(wrappedValue: String = "", _ key: String) {
         self.key = key
-        let initialValue = (try? Keychain().get(key)) ?? wrappedValue
-        self._value = State<String>(initialValue: initialValue)
+        let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!,
+                                accessibility: .afterFirstUnlock)
+        let initialValue = try? valet.string(forKey: key)
+        self._value = State<String>(initialValue: initialValue ?? wrappedValue)
     }
 
     var wrappedValue: String {
@@ -18,7 +20,9 @@ struct KeychainStorage: DynamicProperty {
         nonmutating set {
             value = newValue
             do {
-                try Keychain().set(value, key: key)
+                let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!,
+                                        accessibility: .afterFirstUnlock)
+                try valet.setString(value, forKey: key)
             } catch let error {
                 fatalError("\(error)")
             }

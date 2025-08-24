@@ -1,15 +1,6 @@
 {
-  "originHash" : "9058aff43194dc36f369ed310c120ee87037017c2f84f9106ebee10e0d35fff6",
+  "originHash" : "e3c382c7d749a80ce0b176a0a35cce2c9bba4903aaf3c45c82aeccb9cdba0fe9",
   "pins" : [
-    {
-      "identity" : "keychainaccess",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kishikawakatsumi/KeychainAccess",
-      "state" : {
-        "revision" : "84e546727d66f1adc5439debad16270d0fdd04e7",
-        "version" : "4.2.2"
-      }
-    },
     {
       "identity" : "openssl",
       "kind" : "remoteSourceControl",
@@ -26,6 +17,15 @@
       "state" : {
         "revision" : "dee225a3da7b68d34936abc4dc8f34f2264db647",
         "version" : "2.9.6"
+      }
+    },
+    {
+      "identity" : "valet",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/square/Valet",
+      "state" : {
+        "revision" : "05c9e514fbd352a6866877ca31326b4e0b7d6d01",
+        "version" : "5.0.0"
       }
     }
   ],
