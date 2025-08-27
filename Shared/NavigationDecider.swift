@@ -5,9 +5,9 @@
 //  Created by Peter Hedlund on 6/21/25.
 //
 
-import KeychainAccess
-import WebKit
 import SwiftUI
+import Valet
+import WebKit
 
 struct ArticleNavigationDecider: WebPage.NavigationDeciding {
     let openUrlAction: OpenURLAction
@@ -85,8 +85,9 @@ class LoginSchemeHandler: URLSchemeHandler {
                let passwordItem = pathItems.first(where: { $0.hasPrefix(passwordPrefix) }) {
                 server = String(serverItem.dropFirst(serverPrefix.count))
                 do {
-                    try Keychain().set(String(userItem.dropFirst(userPrefix.count)), key: SettingKeys.username)
-                    try Keychain().set(String(passwordItem.dropFirst(passwordPrefix.count)), key: SettingKeys.password)
+                    let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
+                    try valet.setString(String(userItem.dropFirst(userPrefix.count)), forKey: SettingKeys.username)
+                    try valet.setString(String(passwordItem.dropFirst(passwordPrefix.count)), forKey: SettingKeys.password)
                 } catch {
                     print(error.localizedDescription)
                 }

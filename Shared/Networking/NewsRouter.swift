@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import KeychainAccess
 import SwiftUI
+import Valet
 
 public typealias ParameterDict = [String: Any]
 
@@ -35,9 +35,15 @@ enum StatusRouter {
     }
 
     private var credentials: String {
-        let username = try? Keychain().get(SettingKeys.username)
-        let password = try? Keychain().get(SettingKeys.password)
-        return Data("\(username ?? ""):\(password ?? "")".utf8).base64EncodedString()
+        do {
+            let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
+            let username = try valet.string(forKey: SettingKeys.username)
+            let password = try valet.string(forKey: SettingKeys.password)
+            return Data("\(username):\(password)".utf8).base64EncodedString()
+        } catch {
+            print(error.localizedDescription)
+        }
+        return ""
     }
 
     private var basicAuthHeader: String {
@@ -185,9 +191,15 @@ enum Router {
     }
 
     private var credentials: String {
-        let username = try? Keychain().get(SettingKeys.username)
-        let password = try? Keychain().get(SettingKeys.password)
-        return Data("\(username ?? ""):\(password ?? "")".utf8).base64EncodedString()
+        do {
+            let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
+            let username = try valet.string(forKey: SettingKeys.username)
+            let password = try valet.string(forKey: SettingKeys.password)
+            return Data("\(username):\(password)".utf8).base64EncodedString()
+        } catch {
+            print(error.localizedDescription)
+        }
+        return ""
     }
 
     private var basicAuthHeader: String {
