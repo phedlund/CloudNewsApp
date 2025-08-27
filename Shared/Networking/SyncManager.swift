@@ -49,6 +49,7 @@ enum SyncState: CustomStringConvertible {
 
 @Observable
 final class SyncManager {
+    @ObservationIgnored @AppStorage(SettingKeys.syncInBackground) private var syncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
 
@@ -71,6 +72,9 @@ final class SyncManager {
     }
 
     func backgroundSync() async {
+        guard syncInBackground == true else {
+            return
+        }
         try? await pruneItems()
         if let backgroundSession {
             let foldersRequest = try? Router.folders.urlRequest()
