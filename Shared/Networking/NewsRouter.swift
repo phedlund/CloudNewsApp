@@ -34,20 +34,8 @@ enum StatusRouter {
         }
     }
 
-    private var credentials: String {
-        do {
-            let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
-            let username = try valet.string(forKey: SettingKeys.username)
-            let password = try valet.string(forKey: SettingKeys.password)
-            return Data("\(username):\(password)".utf8).base64EncodedString()
-        } catch {
-            print(error.localizedDescription)
-        }
-        return ""
-    }
-
     private var basicAuthHeader: String {
-        return "Basic \(credentials)"
+        return ValetManager.shared.basicAuthHeader
     }
 
     // MARK: URLRequest
@@ -190,20 +178,8 @@ enum Router {
         }
     }
 
-    private var credentials: String {
-        do {
-            let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
-            let username = try valet.string(forKey: SettingKeys.username)
-            let password = try valet.string(forKey: SettingKeys.password)
-            return Data("\(username):\(password)".utf8).base64EncodedString()
-        } catch {
-            print(error.localizedDescription)
-        }
-        return ""
-    }
-
     private var basicAuthHeader: String {
-        return "Basic \(credentials)"
+        return ValetManager.shared.basicAuthHeader
     }
 
     // MARK: URLRequest

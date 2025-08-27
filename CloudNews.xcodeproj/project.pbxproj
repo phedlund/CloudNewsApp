@@ -13,6 +13,7 @@
 		D00634B22E2F25C400283CD7 /* FavIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00634B02E2F25C400283CD7 /* FavIcon.swift */; };
 		D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1426937C9700BAED44 /* SettingsView.swift */; };
 		D00AFA1B269383CB00BAED44 /* OCS.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00AFA1A269383CB00BAED44 /* OCS.swift */; };
+		D0115C462E5F63D500872354 /* ValetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0115C452E5F63D500872354 /* ValetManager.swift */; };
 		D01AEA1E2E34347B00731B6F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01AEA1D2E34347B00731B6F /* LoginView.swift */; };
 		D01AEA212E370EA600731B6F /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D01AEA202E370EA600731B6F /* SwiftSoup */; };
 		D01AEA232E370EDC00731B6F /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = D01AEA222E370EDC00731B6F /* SwiftSoup */; };
@@ -121,6 +122,7 @@
 		D00634B02E2F25C400283CD7 /* FavIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavIcon.swift; sourceTree = "<group>"; };
 		D00AFA1426937C9700BAED44 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D00AFA1A269383CB00BAED44 /* OCS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCS.swift; sourceTree = "<group>"; };
+		D0115C452E5F63D500872354 /* ValetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetManager.swift; sourceTree = "<group>"; };
 		D01AEA1D2E34347B00731B6F /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		D01AEA242E40097000731B6F /* CssProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CssProvider.swift; sourceTree = "<group>"; };
 		D027487826A9D2A10000FB47 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
@@ -277,6 +279,7 @@
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
 				D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */,
+				D0115C452E5F63D500872354 /* ValetManager.swift */,
 				D050B31327B0BE0200442584 /* block-ads.json */,
 				D0E60F29277A81C9009CF78F /* Web.bundle */,
 				D02F44A2265C86BF00A3505B /* Assets.xcassets */,
@@ -493,6 +496,7 @@
 				D01AEA1E2E34347B00731B6F /* LoginView.swift in Sources */,
 				D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */,
 				D0367B942A8C5E1D0099D34D /* Version.swift in Sources */,
+				D0115C462E5F63D500872354 /* ValetManager.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
 				D00AFA1626937C9700BAED44 /* SettingsView.swift in Sources */,

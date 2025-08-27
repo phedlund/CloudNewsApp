@@ -84,12 +84,13 @@ class LoginSchemeHandler: URLSchemeHandler {
                let userItem = pathItems.first(where: { $0.hasPrefix(userPrefix) }),
                let passwordItem = pathItems.first(where: { $0.hasPrefix(passwordPrefix) }) {
                 server = String(serverItem.dropFirst(serverPrefix.count))
-                do {
-                    let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
-                    try valet.setString(String(userItem.dropFirst(userPrefix.count)), forKey: SettingKeys.username)
-                    try valet.setString(String(passwordItem.dropFirst(passwordPrefix.count)), forKey: SettingKeys.password)
-                } catch {
-                    print(error.localizedDescription)
+                Task { @MainActor in
+                    do {
+                        try await ValetManager.shared.saveCredentials(username: String(userItem.dropFirst(userPrefix.count)),
+                                                                password: String(passwordItem.dropFirst(passwordPrefix.count)))
+                    } catch {
+                        print(error.localizedDescription)
+                    }
                 }
             } else {
                 productVersion = ""
