@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/21/25.
 //
 
+import KeychainAccess
 import WebKit
 import SwiftUI
 
@@ -56,8 +57,6 @@ class LoginSchemeHandler: URLSchemeHandler {
 
     @ObservationIgnored @AppStorage(SettingKeys.server) var server = ""
     @ObservationIgnored @AppStorage(SettingKeys.productVersion) var productVersion = ""
-    @ObservationIgnored @KeychainStorage(SettingKeys.username) var username = ""
-    @ObservationIgnored @KeychainStorage(SettingKeys.password) var password = ""
 
     var loginComplete = false
 
@@ -85,8 +84,12 @@ class LoginSchemeHandler: URLSchemeHandler {
                let userItem = pathItems.first(where: { $0.hasPrefix(userPrefix) }),
                let passwordItem = pathItems.first(where: { $0.hasPrefix(passwordPrefix) }) {
                 server = String(serverItem.dropFirst(serverPrefix.count))
-                username = String(userItem.dropFirst(userPrefix.count))
-                password = String(passwordItem.dropFirst(passwordPrefix.count))
+                do {
+                    try Keychain().set(String(userItem.dropFirst(userPrefix.count)), key: SettingKeys.username)
+                    try Keychain().set(String(passwordItem.dropFirst(passwordPrefix.count)), key: SettingKeys.password)
+                } catch {
+                    print(error.localizedDescription)
+                }
             } else {
                 productVersion = ""
             }

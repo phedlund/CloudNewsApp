@@ -35,9 +35,9 @@ enum StatusRouter {
     }
 
     private var credentials: String {
-        @KeychainStorage(SettingKeys.username) var username = ""
-        @KeychainStorage(SettingKeys.password) var password = ""
-        return Data("\(username):\(password)".utf8).base64EncodedString()
+        let username = try? Keychain().get(SettingKeys.username)
+        let password = try? Keychain().get(SettingKeys.password)
+        return Data("\(username ?? ""):\(password ?? "")".utf8).base64EncodedString()
     }
 
     private var basicAuthHeader: String {
@@ -185,9 +185,9 @@ enum Router {
     }
 
     private var credentials: String {
-        @KeychainStorage(SettingKeys.username) var username: String = ""
-        @KeychainStorage(SettingKeys.password) var password: String = ""
-        return Data("\(username):\(password)".utf8).base64EncodedString()
+        let username = try? Keychain().get(SettingKeys.username)
+        let password = try? Keychain().get(SettingKeys.password)
+        return Data("\(username ?? ""):\(password ?? "")".utf8).base64EncodedString()
     }
 
     private var basicAuthHeader: String {
