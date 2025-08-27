@@ -14,24 +14,24 @@ class ValetManager {
 
     init() { }
 
-    func saveCredentials(username: String, password: String) async throws {
+    func saveCredentials(username: String, password: String) throws {
         try valet.setString(username, forKey: SettingKeys.username)
         try valet.setString(password, forKey:  SettingKeys.password)
     }
 
-    private var credentials: String {
+    private var credentials: String? {
         do {
             let username = try valet.string(forKey: SettingKeys.username)
             let password = try valet.string(forKey: SettingKeys.password)
             return Data("\(username):\(password)".utf8).base64EncodedString()
         } catch {
             print(error.localizedDescription)
+            return nil
         }
-        return ""
     }
 
     var basicAuthHeader: String {
+        guard let credentials else { return "" }
         return "Basic \(credentials)"
     }
-
 }

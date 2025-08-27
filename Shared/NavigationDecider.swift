@@ -84,13 +84,11 @@ class LoginSchemeHandler: URLSchemeHandler {
                let userItem = pathItems.first(where: { $0.hasPrefix(userPrefix) }),
                let passwordItem = pathItems.first(where: { $0.hasPrefix(passwordPrefix) }) {
                 server = String(serverItem.dropFirst(serverPrefix.count))
-                Task { @MainActor in
-                    do {
-                        try await ValetManager.shared.saveCredentials(username: String(userItem.dropFirst(userPrefix.count)),
-                                                                password: String(passwordItem.dropFirst(passwordPrefix.count)))
-                    } catch {
-                        print(error.localizedDescription)
-                    }
+                do {
+                    try ValetManager.shared.saveCredentials(username: String(userItem.dropFirst(userPrefix.count)),
+                                                            password: String(passwordItem.dropFirst(passwordPrefix.count)))
+                } catch {
+                    print(error.localizedDescription)
                 }
             } else {
                 productVersion = ""
