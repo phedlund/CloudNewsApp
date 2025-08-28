@@ -21,11 +21,6 @@ public let schema = Schema([
     FavIcon.self
 ])
 
-public struct StarredParameter: Sendable {
-    var feedId: Int64
-    var guidHash: String
-}
-
 @ModelActor
 actor NewsModelActor: Sendable {
 
