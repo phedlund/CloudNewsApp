@@ -31,5 +31,3 @@ nonisolated final class Folder {
                   feeds: [Feed]())
     }
 }
-
-extension Folder: Identifiable { }

@@ -54,8 +54,6 @@ nonisolated final public class Node {
 
 }
 
-extension Node: Identifiable { }
-
 extension Node {
 
     var wrappedChildren: [Node]? {
