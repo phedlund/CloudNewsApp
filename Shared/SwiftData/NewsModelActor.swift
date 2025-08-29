@@ -185,6 +185,21 @@ actor NewsModelActor: Sendable {
         return model.id
     }
 
+    func itemMediaThumbnail(for itemId: PersistentIdentifier) async -> String? {
+        guard let item = modelContext.model(for: itemId) as? Item else { return nil }
+        return item.mediaThumbnail
+    }
+
+    func itemBody(for itemId: PersistentIdentifier) async -> String? {
+        guard let item = modelContext.model(for: itemId) as? Item else { return nil }
+        return item.body
+    }
+
+    func itemUrl(for itemId: PersistentIdentifier) async -> String? {
+        guard let item = modelContext.model(for: itemId) as? Item else { return nil }
+        return item.url
+    }
+
     func pruneFeeds(serverFeedIds: [Int64]) async throws {
         let fetchRequest = FetchDescriptor<Feed>()
         let feeds: [Feed] = try modelContext.fetch(fetchRequest)
@@ -209,3 +224,4 @@ actor NewsModelActor: Sendable {
     }
 
 }
+

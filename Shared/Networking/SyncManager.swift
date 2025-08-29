@@ -10,6 +10,7 @@ import AppKit
 #endif
 import Foundation
 import SwiftData
+import SwiftSoup
 import SwiftUI
 import UserNotifications
 import WidgetKit
@@ -58,6 +59,7 @@ final class SyncManager {
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
+    private var itemIds = [Int64]()
 
     let modelContainer: ModelContainer
 
@@ -492,6 +494,7 @@ final class SyncManager {
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         for eachItem in decodedResponse.items {
             await backgroundActor.insertItem(itemDTO: eachItem)
+            itemIds.append(eachItem.id)
         }
         do {
             try await backgroundActor.save()
@@ -500,6 +503,97 @@ final class SyncManager {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
         } catch { }
+    }
+
+    private func updateThumbnails() async {
+
+        func internalUrl(_ urlString: String?) async -> URL? {
+            if let urlString, let url = URL(string: urlString) {
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                    if let html = String(data: data, encoding: .utf8) {
+                        let doc: Document = try SwiftSoup.parse(html)
+                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                            let ogImage = try meta.attr("content")
+                            let ogUrl = URL(string: ogImage)
+                            return ogUrl
+                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                            let twImage = try meta.attr("content")
+                            let twUrl = URL(string: twImage)
+                            return twUrl
+                        } else {
+                            return nil
+                        }
+                    }
+                } catch(let error) {
+                    print(error.localizedDescription)
+                }
+            }
+            return nil
+        }
+
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let predicate = #Predicate<Item> { itemIds.contains($0.id) }
+        let descriptor = FetchDescriptor(predicate: predicate)
+        let modelIds = try! await backgroundActor.allModelIds(descriptor)
+        let validSchemas = ["http", "https", "file"]
+        for eachId in modelIds {
+            do {
+                var itemImageUrl: URL?
+                // Ask the actor for the favicon URL string safely
+                if let mediaThumbnail = await backgroundActor.itemMediaThumbnail(for: eachId) {
+                    itemImageUrl = URL(string: mediaThumbnail)
+                } else if let summary = await backgroundActor.itemBody(for: eachId) {
+                    do {
+                        let doc: Document = try SwiftSoup.parse(summary)
+                        let srcs: Elements = try doc.select("img[src]")
+                        let images = try srcs.array().map({ try $0.attr("src") })
+                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                            itemImageUrl = imgUrl
+                        } else {
+                            itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
+                        }
+                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                        print(message)
+                    } catch(let error) {
+                        print(error.localizedDescription)
+                    }
+                } else {
+                    itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
+                }
+
+                var imageData: Data?
+                var thumbnailData: Data?
+                if let itemImageUrl {
+                    do {
+                        let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                        imageData = data
+#if os(macOS)
+                        if let uiImage = NSImage(data: data) {
+                            thumbnailData = uiImage.tiffRepresentation
+                        }
+#else
+                        if let uiImage = UIImage(data: data) {
+                            let displayScale = UITraitCollection.current.displayScale
+                            let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                            thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                        }
+#endif
+                    } catch {
+                        print("Error fetching data: \(error)")
+                    }
+                }
+                do {
+                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnailURL, to: itemImageUrl)
+                    let _ = try await backgroundActor.update(eachId, keypath: \.image, to: imageData)
+                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnail, to: thumbnailData)
+                    try await backgroundActor.save()
+                } catch {
+                    //
+                }
+            }
+        }
     }
 
     private func pruneItems() async throws {
