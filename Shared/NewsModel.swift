@@ -166,6 +166,7 @@ class NewsModel: @unchecked Sendable {
                                                 items: [])
                         await backgroundActor.insert(feedToInsert)
                         try await addItems(feed: feedDTO.id)
+                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link)
                     }
                     WidgetCenter.shared.reloadAllTimelines()
                 case 405:
@@ -272,6 +273,36 @@ class NewsModel: @unchecked Sendable {
             default:
                 break
             }
+        }
+    }
+
+    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?) async throws {
+        let validSchemas = ["http", "https", "file"]
+        var itemImageUrl: URL?
+        if let faviconLink = faviconLink,
+           let url = URL(string: faviconLink),
+           let scheme = url.scheme,
+           validSchemas.contains(scheme) {
+            itemImageUrl = url
+        } else {
+            if let feedUrl = URL(string: link ?? "data:null"),
+               let host = feedUrl.host,
+               let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
+                itemImageUrl = url
+            }
+        }
+
+        var imageData: Data?
+        if let itemImageUrl {
+            let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+            imageData = data
+        }
+
+        if let imageData {
+            let favIconDTO = FavIconDTO(id: feedId, url: itemImageUrl, icon: imageData)
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
+            try await backgroundActor.save()
         }
     }
 

@@ -172,11 +172,11 @@ final class SyncManager {
         let currentStatus = try await newsStatus()
         if itemCount == 0 {
             try await initialSync()
+            syncState = .favicons
+            await getFavIcons()
         } else {
             try await repeatSync()
         }
-        syncState = .favicons
-        await getFavIcons()
         WidgetCenter.shared.reloadAllTimelines()
         syncState = .idle
         return currentStatus

@@ -34,11 +34,13 @@ struct FeedSettingsView: View {
     @Query private var nodes: [Node]
     @Query private var folders: [Folder]
     @Query private var feeds: [Feed]
+    @Query private var favIcons: [FavIcon]
 
     var body: some View {
         VStack {
             Form {
                 Section {
+                    favIconView
                     TextField("Title", text: $title) { isEditing in
                         if !isEditing {
                             Task {
@@ -231,6 +233,51 @@ struct FeedSettingsView: View {
             return nil
         case .feed(let id):
             return feeds.first(where: { $0.id == id })
+        }
+    }
+
+    private func refreshFavIcon() async {
+        if let feed = feedForNodeType(newsModel.currentNodeType) {
+            do {
+                try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link)
+            } catch {
+                //
+            }
+        }
+    }
+
+    var favIconView: some View {
+        HStack {
+            switch newsModel.currentNodeType {
+            case .feed(id: let id):
+                if let favicon = favIcons.first(where: { $0.id == id }),
+                   let data = favicon.icon,
+                   let uiImage = SystemImage(data: data) {
+#if os(macOS)
+                    Image(nsImage: uiImage)
+                        .resizable()
+                        .frame(width: 44, height: 44)
+#else
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 44, height: 44)
+#endif
+                } else {
+                    Image(.rss)
+                        .font(.system(size: 36, weight: .light))
+                }
+            default:
+                EmptyView()
+            }
+            Spacer()
+            Button {
+                Task {
+                    await refreshFavIcon()
+                }
+            } label: {
+                Text("Refresh")
+            }
+            .buttonStyle(.bordered)
         }
     }
 
