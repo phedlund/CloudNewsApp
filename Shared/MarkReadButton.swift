@@ -25,6 +25,12 @@ struct MarkReadButton: View {
                 }
                 await newsModel.markCurrentItemsRead()
             }
+        } label: {
+            Label {
+                Text("Mark Read")
+            } icon: {
+                Image(systemName: "checkmark")
+            }
         }
         .id(newsModel.currentNodeType)
         .keyboardShortcut("a", modifiers: [.control])
