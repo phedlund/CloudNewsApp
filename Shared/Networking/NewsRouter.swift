@@ -114,11 +114,11 @@ enum Router {
         switch self {
         case .feeds, .folders, .items, .updatedItems, .version, .status:
             return .get
-        case .addFeed, .addFolder, .itemsRead, .itemsUnread, .itemStarred, .itemUnstarred, .itemsStarred, .itemsUnstarred:
+        case .addFeed, .addFolder, .itemsRead, .itemsUnread, .itemStarred, .itemUnstarred, .itemsStarred, .itemsUnstarred, .markFeedRead, .renameFeed, .moveFeed, .markFolderRead, .itemRead, .itemUnread, .allItemsRead:
             return .post
         case .deleteFeed, .deleteFolder:
             return .delete
-        case .moveFeed, .renameFeed, .markFeedRead, .renameFolder, .markFolderRead, .itemRead, .itemUnread, .allItemsRead:
+        case .renameFolder:
             return .put
         }
     }
