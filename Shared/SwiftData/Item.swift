@@ -127,12 +127,12 @@ nonisolated final class Item {
         let clipLength = 50
         var dateLabelText = ""
         await dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
-        if !dateLabelText.isEmpty {
-            dateLabelText.append(" | ")
-        }
 
         if let itemAuthor = item.author,
            !itemAuthor.isEmpty {
+            if !dateLabelText.isEmpty {
+                dateLabelText.append(" | ")
+            }
             if itemAuthor.count > clipLength {
                 dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
                 dateLabelText.append(String(0x2026))
