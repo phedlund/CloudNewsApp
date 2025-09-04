@@ -1,0 +1,99 @@
+{
+  "color-space-for-untagged-svg-colors" : "display-p3",
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.20286,0.29266,0.43320,1.00000",
+      "display-p3:0.06513,0.15170,0.28121,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "cloudnews_Orange.svg",
+          "name" : "cloudnews_Orange",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              217.875,
+              18.6640625
+            ]
+          }
+        },
+        {
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "cloudnews_Red.svg",
+          "name" : "cloudnews_Red",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              111.4375,
+              -33.2265625
+            ]
+          }
+        },
+        {
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "cloudnews_Blue.svg",
+          "name" : "cloudnews_Blue",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -1.9296875,
+              -62.984375
+            ]
+          }
+        },
+        {
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "cloudnews_Green.svg",
+          "name" : "cloudnews_Green",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -109.2265625,
+              -30.40625
+            ]
+          }
+        },
+        {
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "cloudnews_Yellow.svg",
+          "name" : "cloudnews_Yellow",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -218.84375,
+              19.1171875
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

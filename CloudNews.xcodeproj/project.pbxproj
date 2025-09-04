@@ -42,6 +42,8 @@
 		D04A7A712C62FC2F00C24568 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
 		D050B31427B0BE0200442584 /* block-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = D050B31327B0BE0200442584 /* block-ads.json */; };
 		D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D050B31627B0C0C100442584 /* ContentBlocker.swift */; };
+		D054E3E82E6A450A0088D629 /* CloudNews.icon in Resources */ = {isa = PBXBuildFile; fileRef = D054E3E72E6A450A0088D629 /* CloudNews.icon */; };
+		D054E3E92E6A450A0088D629 /* CloudNews.icon in Resources */ = {isa = PBXBuildFile; fileRef = D054E3E72E6A450A0088D629 /* CloudNews.icon */; };
 		D058E1372E5BB190006523B1 /* Valet in Frameworks */ = {isa = PBXBuildFile; productRef = D058E1362E5BB190006523B1 /* Valet */; };
 		D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061B1632C0A433C00E5D993 /* NewsObjects.swift */; };
 		D061EB942D5C3EC5003A9914 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061EB932D5C3EBE003A9914 /* Node.swift */; };
@@ -151,6 +153,7 @@
 		D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContextExtension.swift; sourceTree = "<group>"; };
 		D050B31327B0BE0200442584 /* block-ads.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "block-ads.json"; sourceTree = "<group>"; };
 		D050B31627B0C0C100442584 /* ContentBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlocker.swift; sourceTree = "<group>"; };
+		D054E3E72E6A450A0088D629 /* CloudNews.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = CloudNews.icon; sourceTree = "<group>"; };
 		D061B1632C0A433C00E5D993 /* NewsObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsObjects.swift; sourceTree = "<group>"; };
 		D061EB932D5C3EBE003A9914 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -229,6 +232,7 @@
 		D02F4497265C86BE00A3505B = {
 			isa = PBXGroup;
 			children = (
+				D054E3E72E6A450A0088D629 /* CloudNews.icon */,
 				D02F44AA265C86BF00A3505B /* Info.plist */,
 				D0F1B72D2868DE7200C51BFF /* CloudNews.entitlements */,
 				D02F449C265C86BE00A3505B /* Shared */,
@@ -455,6 +459,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D050B31427B0BE0200442584 /* block-ads.json in Resources */,
+				D054E3E82E6A450A0088D629 /* CloudNews.icon in Resources */,
 				D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */,
 				D02F44BB265C86BF00A3505B /* Assets.xcassets in Resources */,
 				D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */,
@@ -466,6 +471,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */,
+				D054E3E92E6A450A0088D629 /* CloudNews.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -705,7 +711,7 @@
 		D02F44C0265C86BF00A3505B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = CloudNews;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -745,7 +751,7 @@
 		D02F44C1265C86BF00A3505B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = CloudNews;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";

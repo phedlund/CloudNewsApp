@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.0"
+   id="svg2"
+   height="431.74338"
+   width="431.74338"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <foreignObject
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       id="foreignObject7" />
+    <linearGradient
+       id="RSSg-9"
+       y2="225.94"
+       x2="225.94"
+       y1="30.059999"
+       x1="30.059999"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         id="stop8788"
+         stop-color="#E3702D"
+         offset="0.0" />
+      <stop
+         id="stop8790"
+         stop-color="#EA7D31"
+         offset="0.1071" />
+      <stop
+         id="stop8792"
+         stop-color="#F69537"
+         offset="0.3503" />
+      <stop
+         id="stop8794"
+         stop-color="#FB9E3A"
+         offset="0.5" />
+      <stop
+         id="stop8796"
+         stop-color="#EA7C31"
+         offset="0.7016" />
+      <stop
+         id="stop8798"
+         stop-color="#DE642B"
+         offset="0.8866" />
+      <stop
+         id="stop8800"
+         stop-color="#D95B29"
+         offset="1.0" />
+    </linearGradient>
+    <foreignObject
+       id="foreignObject7-0"
+       height="1"
+       width="1"
+       y="0"
+       x="0"
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/" />
+    <linearGradient
+       xlink:href="#RSSg-9"
+       id="linearGradient5890"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.3671875,0,0,1.3671875,540.48511,-542.80438)"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer2"
+     style="display:inline"
+     transform="translate(-512.94248,-315.83184)">
+    <rect
+       transform="rotate(40,-513.5392,100.26022)"
+       id="rect8802"
+       y="-542.80438"
+       x="540.48511"
+       ry="75.195312"
+       rx="75.195312"
+       height="350"
+       width="350"
+       style="fill:#cc5d15;stroke-width:2.73438" />
+    <rect
+       transform="rotate(40,-513.5392,100.26022)"
+       id="rect8804"
+       y="-535.96844"
+       x="547.32104"
+       ry="68.359375"
+       rx="68.359375"
+       height="336.32812"
+       width="336.32812"
+       style="fill:#f49c52;stroke-width:2.73438" />
+    <rect
+       transform="rotate(40,-513.5392,100.26022)"
+       style="fill:url(#linearGradient5890);stroke-width:2.73438"
+       id="rect8806"
+       y="-529.13251"
+       x="554.15698"
+       ry="64.257812"
+       rx="64.257812"
+       height="322.65625"
+       width="322.65625" />
+    <circle
+       transform="rotate(40,-513.5392,100.26022)"
+       id="circle8808"
+       r="32.8125"
+       cy="-284.40594"
+       cx="633.45386"
+       style="fill:#ffffff;stroke-width:1.36719" />
+    <path
+       id="path8810"
+       d="M 743.32898,295.29518 707.71988,265.4156 A 112.10938,112.10938 0 0 0 693.90164,107.47232 l 29.87958,-35.6091 a 158.59375,158.59375 0 0 1 19.54776,223.43196 z"
+       style="fill:#ffffff;stroke-width:2.73438"
+       transform="translate(-55.69932,353.55307)" />
+    <path
+       id="path8812"
+       d="M 768.46481,316.38665 A 191.40625,191.40625 0 0 0 744.87269,46.72739 l 30.75839,-36.65643 a 239.25782,239.25782 0 0 1 29.49016,337.07408 z"
+       style="fill:#ffffff;stroke-width:2.73438"
+       transform="translate(-55.69932,353.55307)" />
+  </g>
+</svg>

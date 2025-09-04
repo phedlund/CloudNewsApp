@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.0"
+   id="svg2"
+   height="406.33572"
+   width="406.33572"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <foreignObject
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       id="foreignObject7" />
+    <linearGradient
+       id="RSSg"
+       y2="225.94"
+       x2="225.94"
+       y1="30.059999"
+       x1="30.059999"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         id="stop7713"
+         stop-color="#808080"
+         offset="0.0"
+         style="stop-color:#d40000;stop-opacity:1" />
+      <stop
+         id="stop7715"
+         stop-color="#929292"
+         offset="0.2785"
+         style="stop-color:#d40000;stop-opacity:1" />
+      <stop
+         id="stop7717"
+         stop-color="#9B9B9B"
+         offset="0.5"
+         style="stop-color:#ff0000;stop-opacity:1" />
+      <stop
+         id="stop7719"
+         stop-color="#919191"
+         offset="0.5871"
+         style="stop-color:#ff0000;stop-opacity:1" />
+      <stop
+         id="stop7721"
+         stop-color="#797979"
+         offset="0.8427"
+         style="stop-color:#d40000;stop-opacity:1" />
+      <stop
+         id="stop7723"
+         stop-color="#707070"
+         offset="1.0"
+         style="stop-color:#d40000;stop-opacity:1" />
+    </linearGradient>
+    <foreignObject
+       id="foreignObject7-0"
+       height="1"
+       width="1"
+       y="0"
+       x="0"
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/" />
+    <linearGradient
+       xlink:href="#RSSg"
+       id="linearGradient5892"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.3671875,0,0,1.3671875,503.44024,-287.80364)"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer3"
+     style="display:inline"
+     transform="translate(-417.23914,-276.42474)">
+    <rect
+       transform="rotate(20,-1030.3992,18.833265)"
+       id="rect7725"
+       y="-287.80356"
+       x="503.44019"
+       ry="75.195312"
+       rx="75.195312"
+       height="350"
+       width="350"
+       style="fill:#d40000;stroke-width:2.73438" />
+    <rect
+       transform="rotate(20,-1030.3992,18.833265)"
+       id="rect7727"
+       y="-280.96762"
+       x="510.27612"
+       ry="68.359375"
+       rx="68.359375"
+       height="336.32809"
+       width="336.32809"
+       style="fill:#ff0000;stroke-width:2.73438" />
+    <rect
+       transform="rotate(20,-1030.3992,18.833265)"
+       id="rect7729"
+       y="-274.13184"
+       x="517.11206"
+       ry="64.257805"
+       rx="64.257805"
+       height="322.65625"
+       width="322.65625"
+       style="fill:url(#linearGradient5892);stroke-width:2.73438" />
+    <circle
+       style="fill:#ffffff"
+       cx="68"
+       cy="189"
+       r="24"
+       id="circle7731"
+       transform="matrix(1.284736,0.46760566,-0.46760566,1.284736,510.14876,256.86805)" />
+    <path
+       style="fill:#ffffff"
+       d="M -325.69622,669.79633 A 155.84719,155.84719 0 0 0 -481.54341,513.94915 v -38.9618 a 194.80898,194.80898 0 0 1 194.80899,194.80898 z"
+       id="path7735"
+       transform="matrix(1.1540987,0.42005758,-0.42005758,1.1540987,1304.1788,-19.64366)" />
+    <path
+       style="fill:#ffffff"
+       d="m -352.41288,669.79633 h -37.8486 a 91.281924,91.281924 0 0 0 -91.28193,-91.28192 v -37.8486 a 129.13053,129.13053 0 0 1 129.13053,129.13052 z"
+       id="path7733"
+       transform="matrix(1.1540987,0.42005758,-0.42005758,1.1540987,1304.1788,-19.64365)" />
+  </g>
+</svg>

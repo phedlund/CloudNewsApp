@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.0"
+   id="svg2"
+   height="350"
+   width="350"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94"
+       id="linearGradient8924">
+      <stop
+         style="stop-color:#003399;stop-opacity:1"
+         offset="0.0"
+         stop-color="#808080"
+         id="stop8926" />
+      <stop
+         style="stop-color:#0066cc;stop-opacity:1"
+         offset="0.2785"
+         stop-color="#929292"
+         id="stop8928" />
+      <stop
+         style="stop-color:#0083d7;stop-opacity:1"
+         offset="0.5"
+         stop-color="#9B9B9B"
+         id="stop8930" />
+      <stop
+         style="stop-color:#0083d7;stop-opacity:1"
+         offset="0.5871"
+         stop-color="#919191"
+         id="stop8932" />
+      <stop
+         style="stop-color:#0066cc;stop-opacity:1"
+         offset="0.8427"
+         stop-color="#797979"
+         id="stop8934" />
+      <stop
+         style="stop-color:#003399;stop-opacity:1"
+         offset="1.0"
+         stop-color="#707070"
+         id="stop8936" />
+    </linearGradient>
+    <foreignObject
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       id="foreignObject7" />
+    <foreignObject
+       id="foreignObject7-0"
+       height="1"
+       width="1"
+       y="0"
+       x="0"
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/" />
+    <linearGradient
+       xlink:href="#linearGradient8924"
+       id="linearGradient5894"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.3671875,0,0,1.3671875,392.69936,-76.02831)"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer4"
+     style="display:inline"
+     transform="translate(-337.00002,-277.52488)">
+    <rect
+       style="fill:#003399;stroke-width:2.73438"
+       width="350"
+       height="350"
+       rx="75.195312"
+       ry="75.195312"
+       x="392.69934"
+       y="-76.028191"
+       id="rect8899"
+       transform="translate(-55.69932,353.55307)" />
+    <rect
+       style="fill:#0083d7;stroke-width:2.73438"
+       width="336.32809"
+       height="336.32809"
+       rx="68.359375"
+       ry="68.359375"
+       x="399.53528"
+       y="-69.192253"
+       id="rect8901"
+       transform="translate(-55.69932,353.55307)" />
+    <rect
+       style="fill:url(#linearGradient5894);stroke-width:2.73438"
+       width="322.65625"
+       height="322.65625"
+       rx="64.257805"
+       ry="64.257805"
+       x="406.37122"
+       y="-62.356483"
+       id="rect8903"
+       transform="translate(-55.69932,353.55307)" />
+    <circle
+       style="fill:#ffffff;stroke-width:1.36719"
+       cx="480.88287"
+       cy="185.78813"
+       r="32.8125"
+       id="circle8907"
+       transform="translate(-55.69932,353.55307)" />
+    <path
+       style="fill:#ffffff;stroke-width:1.22817"
+       d="M 606.66411,218.60062 H 560.17974 A 112.10937,112.10937 0 0 0 448.07036,106.49125 V 60.00688 a 158.59375,158.59375 0 0 1 158.59375,158.59374 z"
+       id="path8909"
+       transform="translate(-55.69932,353.55307)" />
+    <path
+       style="fill:#ffffff;stroke-width:1.22817"
+       d="M 639.47661,218.60062 A 191.40625,191.40625 0 0 0 448.07036,27.19438 v -47.85156 a 239.2578,239.2578 0 0 1 239.25782,239.2578 z"
+       id="path8911"
+       transform="translate(-55.69932,353.55307)" />
+  </g>
+</svg>
