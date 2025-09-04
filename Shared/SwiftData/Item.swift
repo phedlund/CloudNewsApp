@@ -111,17 +111,6 @@ nonisolated final class Item {
         } else if let mediaDescription = item.mediaDescription {
             summary = mediaDescription
         }
-        if !summary.isEmpty {
-            if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-                if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-                    if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                       let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                        let sub = summary[start..<end]
-                        summary = summary.replacingOccurrences(of: sub, with: "")
-                    }
-                }
-            }
-        }
         let displayBody = await plainSummary(raw: summary)
 
         let clipLength = 50

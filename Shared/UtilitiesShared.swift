@@ -39,13 +39,16 @@ extension DateFormatter {
 
 @MainActor
 func plainSummary(raw: String) -> String {
-    guard let doc: Document = try? SwiftSoup.parse(raw) else {
-        return raw
-    } // parse html
-    guard let txt = try? doc.text() else {
+    do {
+        if let cleanHtml = try SwiftSoup.clean(raw, Whitelist.relaxed()) {
+            let doc = try SwiftSoup.parse(cleanHtml)
+            return try doc.text()
+        } else {
+            return raw
+        }
+    } catch {
         return raw
     }
-    return txt
 }
 
 extension Logger {
