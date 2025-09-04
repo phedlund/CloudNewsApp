@@ -41,6 +41,9 @@ struct FeedSettingsView: View {
             Form {
                 Section {
                     favIconView
+                        .alignmentGuide(.listRowSeparatorLeading) { d in
+                                    d[.leading]
+                                }
                     TextField("Title", text: $title) { isEditing in
                         if !isEditing {
                             Task {
