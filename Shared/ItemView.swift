@@ -20,18 +20,19 @@ extension View {
 }
 
 struct ItemView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
-    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
+    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons = true
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
 
     @State private var isHorizontalCompact = false
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
-
-    @Query private var favIcons: [FavIcon]
+    @State private var thumbnailImage: SystemImage?
+    @State private var faviconImage: SystemImage?
 
     private let item: Item
     private let cellSize: CGSize
@@ -45,8 +46,12 @@ struct ItemView: View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
-                    thumbnailView
-                        .padding(.top, compactView ? 1 : .zero)
+                    if showThumbnails {
+                        thumbnailView
+                            .padding(.top, compactView ? 1 : .zero)
+                    } else {
+                        EmptyView()
+                    }
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: .paddingSix) {
                             HStack {
@@ -98,9 +103,21 @@ struct ItemView: View {
                     .padding([.top, .trailing],  .paddingSix)
             }
         }
-        .task {
-            Task { @MainActor in
-                updateSizeAndOffset()
+        .onAppear {
+            updateSizeAndOffset()
+            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+                self.thumbnailImage = uiImage
+            }
+
+            let feedId = item.feedId
+            var fetchDescriptor = FetchDescriptor<FavIcon>(predicate: #Predicate<FavIcon> { $0.id == feedId })
+            fetchDescriptor.fetchLimit = 1
+            if let favIcon = try? modelContext.fetch(fetchDescriptor).first {
+                if let data = favIcon.icon {
+                    if let uiImage = SystemImage(data: data) {
+                        self.faviconImage = uiImage
+                    }
+                }
             }
         }
 #else
@@ -150,24 +167,26 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            if let favicon = favIcons.first(where: { $0.id == item.feedId }),
-               let data = favicon.icon,
-               let uiImage = SystemImage(data: data) {
+            if showFavIcons {
+                if let faviconImage {
 #if os(macOS)
-                    Image(nsImage: uiImage)
+                    Image(nsImage: faviconImage)
                         .resizable()
                         .frame(width: 22, height: 22)
 #else
-                    Image(uiImage: uiImage)
+                    Image(uiImage: faviconImage)
                         .resizable()
                         .frame(width: 22, height: 22)
 #endif
+                } else {
+                    Image(.rss)
+                        .font(.system(size: 18, weight: .light))
+                }
             } else {
-                Image(.rss)
-                    .font(.system(size: 18, weight: .light))
+                EmptyView()
             }
         }
-        .labelStyle(includeFavIcon: showFavIcons ?? true)
+        .labelStyle(.titleAndIcon)
     }
 
     @MainActor
@@ -197,15 +216,15 @@ private extension ItemView {
     @MainActor
     var thumbnailView: some View {
         VStack {
-            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+            if let thumbnailImage {
                 #if os(macOS)
-                Image(nsImage: uiImage)
+                Image(nsImage: thumbnailImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: thumbnailSize.width, height: thumbnailSize.height)
                     .clipped()
 #else
-                Image(uiImage: uiImage)
+                Image(uiImage: thumbnailImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: thumbnailSize.width, height: thumbnailSize.height)
@@ -255,13 +274,3 @@ extension View {
     }
 }
 
-extension View {
-    @ViewBuilder
-    func labelStyle(includeFavIcon: Bool) -> some View {
-        if includeFavIcon {
-            self.labelStyle(.titleAndIcon)
-        } else {
-            self.labelStyle(.titleOnly)
-        }
-    }
-}
