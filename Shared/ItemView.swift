@@ -20,7 +20,6 @@ extension View {
 }
 
 struct ItemView: View {
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -36,10 +35,12 @@ struct ItemView: View {
 
     private let item: Item
     private let cellSize: CGSize
+    private let faviconData: Data?
 
-    init(item: Item, size: CGSize) {
+    init(item: Item, size: CGSize, faviconData: Data?) {
         self.item = item
         self.cellSize = size
+        self.faviconData = faviconData
     }
 
     var body: some View {
@@ -79,10 +80,10 @@ struct ItemView: View {
         .listRowInsets(.none)
         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
         .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
-        .onChange(of: compactView, initial: true) { _, newValue in
+        .onChange(of: compactView, initial: true) { _, _ in
             updateSizeAndOffset()
         }
-        .onChange(of: showThumbnails, initial: true) { _, newValue in
+        .onChange(of: showThumbnails, initial: true) { _, _ in
             updateSizeAndOffset()
         }
 #if os(iOS)
@@ -108,17 +109,7 @@ struct ItemView: View {
             if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
                 self.thumbnailImage = uiImage
             }
-
-            let feedId = item.feedId
-            var fetchDescriptor = FetchDescriptor<FavIcon>(predicate: #Predicate<FavIcon> { $0.id == feedId })
-            fetchDescriptor.fetchLimit = 1
-            if let favIcon = try? modelContext.fetch(fetchDescriptor).first {
-                if let data = favIcon.icon {
-                    if let uiImage = SystemImage(data: data) {
-                        self.faviconImage = uiImage
-                    }
-                }
-            }
+            decodeFavicon()
         }
 #else
         .overlay(alignment: .topTrailing) {
@@ -128,12 +119,19 @@ struct ItemView: View {
             }
         }
         .opacity(item.unread ? 1.0 : 0.4 )
+        .task {
+            updateSizeAndOffset()
+            decodeFaviconIfNeeded()
+        }
 #endif
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
             isHorizontalCompact = newValue == .compact
         }
 #endif
+        .onChange(of: faviconData ?? Data()) { _, _ in
+            decodeFavicon()
+        }
     }
 }
 
@@ -168,13 +166,13 @@ private extension ItemView {
                 .lineLimit(1)
         } icon: {
             if showFavIcons {
-                if let faviconImage {
+                if let uiImage = faviconImage {
 #if os(macOS)
-                    Image(nsImage: faviconImage)
+                    Image(nsImage: uiImage)
                         .resizable()
                         .frame(width: 22, height: 22)
 #else
-                    Image(uiImage: faviconImage)
+                    Image(uiImage: uiImage)
                         .resizable()
                         .frame(width: 22, height: 22)
 #endif
@@ -217,7 +215,7 @@ private extension ItemView {
     var thumbnailView: some View {
         VStack {
             if let thumbnailImage {
-                #if os(macOS)
+#if os(macOS)
                 Image(nsImage: thumbnailImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -229,7 +227,7 @@ private extension ItemView {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: thumbnailSize.width, height: thumbnailSize.height)
                     .clipped()
-                #endif
+#endif
             }
         }
     }
@@ -255,6 +253,19 @@ private extension ItemView {
         }
     }
 
+    @MainActor
+    private func decodeFavicon() {
+        guard showFavIcons else {
+            faviconImage = nil
+            return
+        }
+        if let data = faviconData {
+            faviconImage = SystemImage(data: data)
+        } else {
+            faviconImage = nil
+        }
+    }
+
 }
 
 //struct ItemRow_Previews: PreviewProvider {
@@ -273,4 +284,3 @@ extension View {
         }
     }
 }
-

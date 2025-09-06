@@ -39,6 +39,7 @@ struct ItemsListView: View {
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
+    @State private var favIconDataByFeedId = [Int64: Data]()
 
     @Binding var selectedItem: Item?
 
@@ -57,7 +58,7 @@ struct ItemsListView: View {
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             List(items, selection: $selectedItem) { item in
                 NavigationLink(value: item) {
-                    ItemView(item: item, size: cellSize)
+                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
                         .id(item.id)
                         .frame(height: cellHeight, alignment: .center)
                         .contextMenu {
@@ -129,7 +130,7 @@ struct ItemsListView: View {
                         LazyVStack(alignment: .center, spacing: 16.0) {
                             ForEach(items, id: \.id) { item in
                                 NavigationLink(value: item) {
-                                    ItemView(item: item, size: cellSize)
+                                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
                                         .id(item.id)
                                         .contextMenu {
                                             contextMenu(item: item)
@@ -161,6 +162,7 @@ struct ItemsListView: View {
                                 }
                                 do {
                                     items = try modelContext.fetch(fetchDescriptor)
+                                    refreshFavicons(for: items)
                                     if let firstItem = items.first, firstItem.unread {
                                         doScrollToTop()
                                     }
@@ -177,6 +179,7 @@ struct ItemsListView: View {
                             if newValue == .idle {
                                 do {
                                     items = try modelContext.fetch(fetchDescriptor)
+                                    refreshFavicons(for: items)
                                 } catch {
                                     //
                                 }
@@ -315,9 +318,31 @@ struct ItemsListView: View {
             }
             do {
                 items = try modelContext.fetch(fetchDescriptor)
+                refreshFavicons(for: items)
             } catch {
                 //
             }
+        }
+    }
+
+    private func refreshFavicons(for items: [Item]) {
+        let feedIds = Set(items.map { $0.feedId })
+        guard !feedIds.isEmpty else {
+            favIconDataByFeedId.removeAll()
+            return
+        }
+        let descriptor = FetchDescriptor<FavIcon>(predicate: #Predicate<FavIcon> { feedIds.contains($0.id) })
+        do {
+            let favIcons = try modelContext.fetch(descriptor)
+            var favIconDict = [Int64: Data]()
+            for favIcon in favIcons {
+                if let data = favIcon.icon {
+                    favIconDict[favIcon.id] = data
+                }
+            }
+            favIconDataByFeedId = favIconDict
+        } catch {
+            favIconDataByFeedId.removeAll()
         }
     }
 
