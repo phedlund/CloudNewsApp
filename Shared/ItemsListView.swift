@@ -40,6 +40,7 @@ struct ItemsListView: View {
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
     @State private var favIconDataByFeedId = [Int64: Data]()
+    @State private var navigatedBack = false
 
     @Binding var selectedItem: Item?
 
@@ -143,6 +144,11 @@ struct ItemsListView: View {
                             ArticlesPageView(itemId: item.id, items: items)
                                 .environment(newsModel)
                         }
+                        .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
+                            if newPath.count < oldPath.count {
+                                navigatedBack = true
+                            }
+                        }
                         .onChange(of: selectedNode, initial: true) { oldNode, newNode in
                             guard newNode != oldNode else {
                                 return
@@ -224,7 +230,11 @@ struct ItemsListView: View {
             }
             .navigationSubtitle(Text("\(items.count) articles"))
             .task {
-                updateFetchDescriptor()
+                if navigatedBack == true {
+                    navigatedBack = false
+                } else {
+                    updateFetchDescriptor()
+                }
             }
 #endif
         }
