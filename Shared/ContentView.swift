@@ -84,6 +84,7 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
+        .tint(.accent)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
