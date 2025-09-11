@@ -83,7 +83,6 @@ struct ContentView: View {
                 }
             }
         }
-        .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {

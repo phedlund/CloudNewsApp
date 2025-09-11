@@ -126,9 +126,8 @@ struct ArticleSettingsView: View {
                 }
             }
         }
-        .accentColor(.accent)
+        .tint(.accent)
         .buttonStyle(.bordered)
-        .accentColor(.phWhiteIcon)
         .padding()
         .onAppear {
             item = newsModel.currentItem

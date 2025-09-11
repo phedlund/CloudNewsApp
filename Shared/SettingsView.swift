@@ -129,7 +129,6 @@ struct SettingsView: View {
             } header: {
                 Text("Syncing")
             }
-            .tint(nil)
             Section {
                 Toggle(isOn: $showFavIcons) {
                     Text("Show Favicons")
@@ -140,7 +139,6 @@ struct SettingsView: View {
             } header: {
                 Text("Images")
             }
-            .tint(nil)
             Section {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
@@ -161,7 +159,6 @@ struct SettingsView: View {
             } header: {
                 Text("Reading")
             }
-            .tint(nil)
             Section {
                 Picker(selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
@@ -212,7 +209,7 @@ struct SettingsView: View {
             } header: {
                 Text("Support")
             }
-            .accentColor(.phWhiteIcon)
+            .tint(.accent)
 #endif
         }
         .formStyle(.grouped)

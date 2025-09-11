@@ -172,7 +172,6 @@ struct SidebarView: View {
                     SettingsView()
                         .environment(newsModel)
                 }
-                .tint(.accent)
             case .feedSettings:
                 NavigationView {
                     FeedSettingsView()

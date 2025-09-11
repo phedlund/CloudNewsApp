@@ -219,7 +219,6 @@ struct ItemsListView: View {
                         }
                     }
                     .defaultScrollAnchor(.top)
-                    .accentColor(.phDarkIcon)
                     .background {
                         Color.gray
                             .opacity(0.10)
