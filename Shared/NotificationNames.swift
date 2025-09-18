@@ -17,5 +17,6 @@ extension NSNotification.Name {
     public static let syncNews = NSNotification.Name("SyncNews")
     public static let nextArticle = NSNotification.Name("NextArticle")
     public static let previousArticle = NSNotification.Name("PreviousArticle")
+    public static let articlesUpdated = NSNotification.Name("ArticlesUpdated")
 
 }

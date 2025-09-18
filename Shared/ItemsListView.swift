@@ -210,6 +210,13 @@ struct ItemsListView: View {
                         .onChange(of: isNewInstall) { _, _ in
                             updateFetchDescriptor()
                         }
+                        .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
+                        }
                     }
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .idle {

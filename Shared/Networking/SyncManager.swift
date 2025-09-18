@@ -15,12 +15,12 @@ import SwiftUI
 import UserNotifications
 import WidgetKit
 
-enum SyncState: CustomStringConvertible {
+enum SyncState: CustomStringConvertible, Equatable {
     case idle
     case started
     case folders
     case feeds
-    case articles
+    case articles(update: String)
     case unread
     case starred
     case favicons
@@ -35,8 +35,11 @@ enum SyncState: CustomStringConvertible {
             return "Updating folders…"
         case .feeds:
             return "Updating feeds…"
-        case .articles:
-            return "Updating articles…"
+        case .articles(let update):
+            if update.isEmpty {
+                return "Updating articles…"
+            }
+            return "Updating \(update)…"
         case .unread:
             return "Updating unread articles…"
         case .starred:
@@ -410,7 +413,7 @@ final class SyncManager {
             await parseFeeds(data: feedsData)
         }
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
-            syncState = .articles
+            syncState = .articles(update: "")
             await parseItems(data: itemsData)
         }
     }
@@ -492,9 +495,25 @@ final class SyncManager {
             return
         }
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let totalCount = decodedResponse.items.count
+        var counter = 0
         for eachItem in decodedResponse.items {
+            counter += 1
+            await MainActor.run {
+                self.syncState = .articles(update: "\(counter) of \(totalCount)")
+            }
             await backgroundActor.insertItem(itemDTO: eachItem)
             itemIds.append(eachItem.id)
+            if counter % 15 == 0 {
+                do {
+                    try await backgroundActor.save()
+                } catch {
+                    syncState = .idle
+                }
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .articlesUpdated, object: nil)
+                }
+            }
         }
         do {
             try await backgroundActor.save()
@@ -502,7 +521,9 @@ final class SyncManager {
             await MainActor.run {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
-        } catch { }
+        } catch {
+            syncState = .idle
+        }
     }
 
     private func updateThumbnails() async {
