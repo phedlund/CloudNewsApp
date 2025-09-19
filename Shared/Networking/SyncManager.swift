@@ -181,7 +181,6 @@ final class SyncManager {
             try await repeatSync()
         }
         WidgetCenter.shared.reloadAllTimelines()
-        syncState = .idle
         return currentStatus
     }
 
@@ -521,6 +520,7 @@ final class SyncManager {
             await MainActor.run {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
+            syncState = .idle
         } catch {
             syncState = .idle
         }
