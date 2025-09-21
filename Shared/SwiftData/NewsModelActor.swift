@@ -7,6 +7,8 @@
 
 import Foundation
 import SwiftData
+import SwiftSoup
+import UIKit
 
 public let schema = Schema([
     Node.self,
@@ -20,6 +22,12 @@ public let schema = Schema([
     Unstarred.self,
     FavIcon.self
 ])
+
+struct ExistingItemMedia: Sendable {
+    let thumbnailURL: URL?
+    let image: Data?
+    let thumbnail: Data?
+}
 
 @ModelActor
 actor NewsModelActor: Sendable {
@@ -223,5 +231,142 @@ actor NewsModelActor: Sendable {
         }
     }
 
-}
+    func existingMediaMap(for ids: Set<Int64>) async throws -> [Int64: ExistingItemMedia] {
+        let descriptor = FetchDescriptor<Item>(predicate: #Predicate { ids.contains($0.id) })
+        let items = try modelContext.fetch(descriptor)
+        var map = [Int64: ExistingItemMedia]()
+        map.reserveCapacity(items.count)
+        for it in items {
+            map[it.id] = ExistingItemMedia(thumbnailURL: it.thumbnailURL, image: it.image, thumbnail: it.thumbnail)
+        }
+        return map
+    }
 
+    func buildAndInsert(from dto: ItemDTO, existing: ExistingItemMedia?) async {
+        let displayTitle = await plainSummary(raw: dto.title)
+
+        var summary = ""
+        if let body = dto.body {
+            summary = body
+        } else if let mediaDescription = dto.mediaDescription {
+            summary = mediaDescription
+        }
+        let displayBody = await plainSummary(raw: summary)
+
+        let clipLength = 50
+        var dateLabelText = ""
+        await dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: dto.pubDate))
+
+        if let itemAuthor = dto.author, !itemAuthor.isEmpty {
+            if !dateLabelText.isEmpty {
+                dateLabelText.append(" | ")
+            }
+            if itemAuthor.count > clipLength {
+                dateLabelText.append(contentsOf: itemAuthor.filter({ !$0.isNewline }).prefix(clipLength))
+                dateLabelText.append(String(0x2026))
+            } else {
+                dateLabelText.append(itemAuthor)
+            }
+        }
+
+        var itemImageUrl: URL? = existing?.thumbnailURL
+        var imageData: Data? = existing?.image
+        var thumbnailData: Data? = existing?.thumbnail
+
+        if existing == nil {
+            let validSchemas = ["http", "https", "file"]
+
+            func internalUrl(_ urlString: String?) async -> URL? {
+                if let urlString, let url = URL(string: urlString) {
+                    do {
+                        let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                        if let html = String(data: data, encoding: .utf8) {
+                            let doc: Document = try SwiftSoup.parse(html)
+                            if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                                let ogImage = try meta.attr("content")
+                                return URL(string: ogImage)
+                            } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                                let twImage = try meta.attr("content")
+                                return URL(string: twImage)
+                            }
+                        }
+                    } catch {
+                        print(error.localizedDescription)
+                    }
+                }
+                return nil
+            }
+
+            if let urlString = dto.mediaThumbnail, let imgUrl = URL(string: urlString) {
+                itemImageUrl = imgUrl
+            } else if let summary = dto.body {
+                do {
+                    let doc: Document = try SwiftSoup.parse(summary)
+                    let srcs: Elements = try doc.select("img[src]")
+                    let images = try srcs.array().map({ try $0.attr("src") })
+                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                        itemImageUrl = imgUrl
+                    } else {
+                        itemImageUrl = await internalUrl(dto.url)
+                    }
+                } catch Exception.Error(_, let message) {
+                    print(message)
+                } catch {
+                    print(error.localizedDescription)
+                }
+            } else {
+                itemImageUrl = await internalUrl(dto.url)
+            }
+
+            if let itemImageUrl {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                    imageData = data
+    #if os(macOS)
+                    if let uiImage = NSImage(data: data) {
+                        thumbnailData = uiImage.tiffRepresentation
+                    }
+    #else
+                    if let uiImage = UIImage(data: data) {
+                        let displayScale = UITraitCollection.current.displayScale
+                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                    }
+    #endif
+                } catch {
+                    print("Error fetching data: \(error)")
+                }
+            }
+        }
+
+        let item = Item(author: dto.author,
+                        body: dto.body,
+                        contentHash: dto.contentHash,
+                        displayBody: displayBody,
+                        displayTitle: displayTitle,
+                        dateFeedAuthor: dateLabelText,
+                        enclosureLink: dto.enclosureLink,
+                        enclosureMime: dto.enclosureMime,
+                        feedId: dto.feedId,
+                        fingerprint: dto.fingerprint,
+                        guid: dto.guid,
+                        guidHash: dto.guidHash,
+                        id: dto.id,
+                        lastModified: dto.lastModified,
+                        mediaThumbnail: dto.mediaThumbnail,
+                        mediaDescription: dto.mediaDescription,
+                        pubDate: dto.pubDate,
+                        rtl: dto.rtl,
+                        starred: dto.starred,
+                        title: dto.title,
+                        unread: dto.unread,
+                        updatedDate: dto.updatedDate,
+                        url: dto.url,
+                        thumbnailURL: itemImageUrl,
+                        image: imageData,
+                        thumbnail: thumbnailData)
+
+        modelContext.insert(item)
+    }
+}

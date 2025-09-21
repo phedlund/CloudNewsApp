@@ -494,35 +494,75 @@ final class SyncManager {
             return
         }
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let totalCount = decodedResponse.items.count
-        var counter = 0
-        for eachItem in decodedResponse.items {
-            counter += 1
-            await MainActor.run {
-                self.syncState = .articles(update: "\(counter) of \(totalCount)")
-            }
-            await backgroundActor.insertItem(itemDTO: eachItem)
-            itemIds.append(eachItem.id)
-            if counter % 15 == 0 {
-                do {
-                    try await backgroundActor.save()
-                } catch {
-                    syncState = .idle
-                }
-                await MainActor.run {
-                    NotificationCenter.default.post(name: .articlesUpdated, object: nil)
-                }
-            }
-        }
+
+        let incomingIds = Set(decodedResponse.items.map(\.id))
         do {
-            try await backgroundActor.save()
-            let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
-            await MainActor.run {
-                UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+            let existingMediaById = try await backgroundActor.existingMediaMap(for: incomingIds)
+            let totalCount = decodedResponse.items.count
+            var counter = 0
+            for eachItem in decodedResponse.items {
+                counter += 1
+                await MainActor.run {
+                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
+                }
+
+                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id])
+
+                itemIds.append(eachItem.id)
+
+                if counter % 15 == 0 {
+                    do {
+                        try await backgroundActor.save()
+                    } catch {
+                        syncState = .idle
+                    }
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
+                    }
+                }
             }
-            syncState = .idle
+
+            do {
+                try await backgroundActor.save()
+                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                await MainActor.run {
+                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+                }
+                syncState = .idle
+            } catch {
+                syncState = .idle
+            }
         } catch {
-            syncState = .idle
+            let totalCount = decodedResponse.items.count
+            var counter = 0
+            for eachItem in decodedResponse.items {
+                counter += 1
+                await MainActor.run {
+                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
+                }
+                await backgroundActor.insertItem(itemDTO: eachItem)
+                itemIds.append(eachItem.id)
+                if counter % 15 == 0 {
+                    do {
+                        try await backgroundActor.save()
+                    } catch {
+                        syncState = .idle
+                    }
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
+                    }
+                }
+            }
+            do {
+                try await backgroundActor.save()
+                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                await MainActor.run {
+                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+                }
+                syncState = .idle
+            } catch {
+                syncState = .idle
+            }
         }
     }
 
@@ -561,7 +601,6 @@ final class SyncManager {
         for eachId in modelIds {
             do {
                 var itemImageUrl: URL?
-                // Ask the actor for the favicon URL string safely
                 if let mediaThumbnail = await backgroundActor.itemMediaThumbnail(for: eachId) {
                     itemImageUrl = URL(string: mediaThumbnail)
                 } else if let summary = await backgroundActor.itemBody(for: eachId) {
