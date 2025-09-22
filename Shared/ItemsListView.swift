@@ -102,6 +102,24 @@ struct ItemsListView: View {
                 }
                 updateFetchDescriptor()
             }
+            .onChange(of: syncManager.syncState) { _, newValue in
+                if newValue == .idle {
+                    do {
+                        items = try modelContext.fetch(fetchDescriptor)
+                        refreshFavicons(for: items)
+                    } catch {
+                        //
+                    }
+                    doScrollToTop()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
                 var nextIndex = items.startIndex
                 if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
