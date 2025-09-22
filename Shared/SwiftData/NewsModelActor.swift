@@ -8,7 +8,11 @@
 import Foundation
 import SwiftData
 import SwiftSoup
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 
 public let schema = Schema([
     Node.self,

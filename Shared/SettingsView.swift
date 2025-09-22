@@ -140,9 +140,11 @@ struct SettingsView: View {
                 Text("Images")
             }
             Section {
+#if !os(macOS)
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
+#endif
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }

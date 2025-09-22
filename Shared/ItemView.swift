@@ -121,7 +121,10 @@ struct ItemView: View {
         .opacity(item.unread ? 1.0 : 0.4 )
         .task {
             updateSizeAndOffset()
-            decodeFaviconIfNeeded()
+            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+                self.thumbnailImage = uiImage
+            }
+            decodeFavicon()
         }
 #endif
 #if !os(macOS)
