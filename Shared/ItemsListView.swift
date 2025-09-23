@@ -36,7 +36,6 @@ struct ItemsListView: View {
     @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var items = [Item]()
     @State private var scrollToTop = false
-    @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
     @State private var favIconDataByFeedId = [Int64: Data]()
@@ -53,215 +52,202 @@ struct ItemsListView: View {
     var body: some View {
         let _ = Self._printChanges()
         @Bindable var bindable = newsModel
-        GeometryReader { geometry in
 #if os(macOS)
-            let cellWidth = CGFloat.infinity
-            let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            List(items, selection: $selectedItem) { item in
-                NavigationLink(value: item) {
-                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
-                        .id(item.id)
-                        .frame(height: cellHeight, alignment: .center)
-                        .contextMenu {
-                            contextMenu(item: item)
-                        }
-                }
-            }
-            .onChange(of: bindable.navigationItemId) { _, newId in
-                Logger.app.debug("Getting new item: \(newId)")
-                if newId > 0,
-                   let item = items.first(where: { $0.id == bindable.navigationItemId }) {
-                    selectedItem = item
-                    bindable.navigationItemId = 0
-                }
-            }
-            .onChange(of: selectedNode, initial: true) { oldNode, newNode in
-                guard oldNode != newNode else {
-                    return
-                }
-                updateFetchDescriptor()
-            }
-            .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
-                cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
-            }
-            .onChange(of: hideRead, initial: true) { oldValue, newValue in
-                guard oldValue != newValue else {
-                    return
-                }
-                updateFetchDescriptor()
-            }
-            .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
-                guard oldValue != newValue else {
-                    return
-                }
-                updateFetchDescriptor()
-            }
-            .onChange(of: isNewInstall) { oldValue, newValue in
-                guard oldValue != newValue else {
-                    return
-                }
-                updateFetchDescriptor()
-            }
-            .onChange(of: syncManager.syncState) { _, newValue in
-                if newValue == .idle {
-                    do {
-                        items = try modelContext.fetch(fetchDescriptor)
-                        refreshFavicons(for: items)
-                    } catch {
-                        //
+        List(items, selection: $selectedItem) { item in
+            NavigationLink(value: item) {
+                ItemView(item: item, faviconData: favIconDataByFeedId[item.feedId])
+                    .id(item.id)
+                    .contextMenu {
+                        contextMenu(item: item)
                     }
-                    doScrollToTop()
-                }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+        }
+        .onChange(of: bindable.navigationItemId) { _, newId in
+            Logger.app.debug("Getting new item: \(newId)")
+            if newId > 0,
+               let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                selectedItem = item
+                bindable.navigationItemId = 0
+            }
+        }
+        .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+            guard oldNode != newNode else {
+                return
+            }
+            updateFetchDescriptor()
+        }
+        .onChange(of: hideRead, initial: true) { oldValue, newValue in
+            guard oldValue != newValue else {
+                return
+            }
+            updateFetchDescriptor()
+        }
+        .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+            guard oldValue != newValue else {
+                return
+            }
+            updateFetchDescriptor()
+        }
+        .onChange(of: isNewInstall) { oldValue, newValue in
+            guard oldValue != newValue else {
+                return
+            }
+            updateFetchDescriptor()
+        }
+        .onChange(of: syncManager.syncState) { _, newValue in
+            if newValue == .idle {
                 do {
                     items = try modelContext.fetch(fetchDescriptor)
+                    refreshFavicons(for: items)
                 } catch {
                     //
                 }
+                doScrollToTop()
             }
-            .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
-                var nextIndex = items.startIndex
-                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
-                    nextIndex = currentIndex.advanced(by: -1)
-                }
-                nextIndex = nextIndex > items.startIndex ? nextIndex: items.startIndex
-                $selectedItem.wrappedValue = items[nextIndex]
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+            do {
+                items = try modelContext.fetch(fetchDescriptor)
+            } catch {
+                //
             }
-            .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { _ in
-                var nextIndex = items.startIndex
-                if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
-                    nextIndex = currentIndex.advanced(by: 1)
-                }
-                nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
-                $selectedItem.wrappedValue = items[nextIndex]
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
+            var nextIndex = items.startIndex
+            if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                nextIndex = currentIndex.advanced(by: -1)
             }
-            .task {
-                updateFetchDescriptor()
+            nextIndex = nextIndex > items.startIndex ? nextIndex: items.startIndex
+            $selectedItem.wrappedValue = items[nextIndex]
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { _ in
+            var nextIndex = items.startIndex
+            if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
+                nextIndex = currentIndex.advanced(by: 1)
             }
+            nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
+            $selectedItem.wrappedValue = items[nextIndex]
+        }
+        .task {
+            updateFetchDescriptor()
+        }
 #else
-            let cellWidth = min(geometry.size.width * 0.93, 700.0)
-            let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            NavigationStack(path: $bindable.itemNavigationPath) {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical) {
-                        ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
-                        LazyVStack(alignment: .center, spacing: 16.0) {
-                            ForEach(items, id: \.id) { item in
-                                NavigationLink(value: item) {
-                                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
-                                        .id(item.id)
-                                        .contextMenu {
-                                            contextMenu(item: item)
-                                        }
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .navigationDestination(for: Item.self) { item in
-                            ArticlesPageView(itemId: item.id, items: items)
-                                .environment(newsModel)
-                        }
-                        .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
-                            if newPath.count < oldPath.count {
-                                navigatedBack = true
-                            }
-                        }
-                        .onChange(of: selectedNode, initial: true) { oldNode, newNode in
-                            guard newNode != oldNode else {
-                                return
-                            }
-                            bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
-                            updateFetchDescriptor()
-                            doScrollToTop()
-                        }
-                        .onChange(of: scenePhase) { _, newPhase in
-                            if newPhase == .active {
-                                if bindable.navigationItemId > 0,
-                                    let item = items.first(where: { $0.id == bindable.navigationItemId }) {
-                                    bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
-                                    bindable.itemNavigationPath.append(item)
-                                    bindable.navigationItemId = 0
-                                    doScrollToTop()
-                                }
-                                do {
-                                    items = try modelContext.fetch(fetchDescriptor)
-                                    refreshFavicons(for: items)
-                                    if let firstItem = items.first, firstItem.unread {
-                                        doScrollToTop()
+        NavigationStack(path: $bindable.itemNavigationPath) {
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
+                    LazyVStack(alignment: .center, spacing: 16.0) {
+                        ForEach(items, id: \.id) { item in
+                            NavigationLink(value: item) {
+                                ItemView(item: item, faviconData: favIconDataByFeedId[item.feedId])
+                                    .id(item.id)
+                                    .contextMenu {
+                                        contextMenu(item: item)
                                     }
-                                } catch {
-                                    //
-                                }
-                                if didSyncInBackground {
-                                    didSyncInBackground = false
-                                    doScrollToTop()
-                                }
                             }
+                            .buttonStyle(.plain)
                         }
-                        .onChange(of: syncManager.syncState) { _, newValue in
-                            if newValue == .idle {
-                                do {
-                                    items = try modelContext.fetch(fetchDescriptor)
-                                    refreshFavicons(for: items)
-                                } catch {
-                                    //
-                                }
+                    }
+                    .navigationDestination(for: Item.self) { item in
+                        ArticlesPageView(itemId: item.id, items: items)
+                            .environment(newsModel)
+                    }
+                    .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
+                        if newPath.count < oldPath.count {
+                            navigatedBack = true
+                        }
+                    }
+                    .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+                        guard newNode != oldNode else {
+                            return
+                        }
+                        bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                        updateFetchDescriptor()
+                        doScrollToTop()
+                    }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if newPhase == .active {
+                            if bindable.navigationItemId > 0,
+                               let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                                bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                                bindable.itemNavigationPath.append(item)
+                                bindable.navigationItemId = 0
                                 doScrollToTop()
                             }
-                        }
-                        .onChange(of: compactView, initial: true) { _, newValue in
-                            cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
-                        }
-                        .onChange(of: hideRead, initial: true) { oldValue, newValue in
-                            guard oldValue != newValue else {
-                                return
-                            }
-                            updateFetchDescriptor()
-                        }
-                        .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
-                            guard oldValue != newValue else {
-                                return
-                            }
-                            updateFetchDescriptor()
-                        }
-                        .onChange(of: isNewInstall) { _, _ in
-                            updateFetchDescriptor()
-                        }
-                        .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
                             do {
                                 items = try modelContext.fetch(fetchDescriptor)
+                                refreshFavicons(for: items)
+                                if let firstItem = items.first, firstItem.unread {
+                                    doScrollToTop()
+                                }
                             } catch {
                                 //
                             }
-                        }
-                    }
-                    .onScrollPhaseChange { _, newPhase, context in
-                        if newPhase == .idle {
-                            Task {
-                                try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
+                            if didSyncInBackground {
+                                didSyncInBackground = false
+                                doScrollToTop()
                             }
                         }
                     }
-                    .defaultScrollAnchor(.top)
-                    .background {
-                        Color.gray
-                            .opacity(0.10)
-                            .ignoresSafeArea(edges: .vertical)
+                    .onChange(of: syncManager.syncState) { _, newValue in
+                        if newValue == .idle {
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                                refreshFavicons(for: items)
+                            } catch {
+                                //
+                            }
+                            doScrollToTop()
+                        }
                     }
-                    .scrollContentBackground(.hidden)
+                    .onChange(of: hideRead, initial: true) { oldValue, newValue in
+                        guard oldValue != newValue else {
+                            return
+                        }
+                        updateFetchDescriptor()
+                    }
+                    .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+                        guard oldValue != newValue else {
+                            return
+                        }
+                        updateFetchDescriptor()
+                    }
+                    .onChange(of: isNewInstall) { _, _ in
+                        updateFetchDescriptor()
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+                        do {
+                            items = try modelContext.fetch(fetchDescriptor)
+                        } catch {
+                            //
+                        }
+                    }
                 }
-            }
-            .navigationSubtitle(Text("\(items.count) articles"))
-            .task {
-                if navigatedBack == true {
-                    navigatedBack = false
-                } else {
-                    updateFetchDescriptor()
+                .onScrollPhaseChange { _, newPhase, context in
+                    if newPhase == .idle {
+                        Task {
+                            try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
+                        }
+                    }
                 }
+                .defaultScrollAnchor(.top)
+                .background {
+                    Color.gray
+                        .opacity(0.10)
+                        .ignoresSafeArea(edges: .vertical)
+                }
+                .scrollContentBackground(.hidden)
             }
-#endif
         }
+        .navigationSubtitle(Text("\(items.count) articles"))
+        .task {
+            if navigatedBack == true {
+                navigatedBack = false
+            } else {
+                updateFetchDescriptor()
+            }
+        }
+#endif
     }
 
     @MainActor
@@ -303,6 +289,7 @@ struct ItemsListView: View {
             return
         }
         if markReadWhileScrolling {
+            let cellHeight: CGFloat = compactView ? .compactCellHeight : .defaultCellHeight
             let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
             if numberOfItems > 0 {
                 let itemsToMarkRead = items

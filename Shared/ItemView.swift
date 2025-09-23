@@ -34,12 +34,10 @@ struct ItemView: View {
     @State private var faviconImage: SystemImage?
 
     private let item: Item
-    private let cellSize: CGSize
     private let faviconData: Data?
 
-    init(item: Item, size: CGSize, faviconData: Data?) {
+    init(item: Item, faviconData: Data?) {
         self.item = item
-        self.cellSize = size
         self.faviconData = faviconData
     }
 
@@ -87,7 +85,13 @@ struct ItemView: View {
             updateSizeAndOffset()
         }
 #if os(iOS)
-        .frame(width: cellSize.width, height: cellSize.height)
+        .containerRelativeFrame([.horizontal, .vertical], alignment: .center) { length, axis in
+            if axis == .vertical {
+                return compactView ? .compactCellHeight : .defaultCellHeight
+            } else {
+              return min(length * 0.93, 700.0)
+            }
+        }
         .padding([.trailing], .paddingSix)
         .if(!item.unread && !item.starred) {
             $0.opacity(0.4)
@@ -112,6 +116,9 @@ struct ItemView: View {
             decodeFavicon()
         }
 #else
+        .containerRelativeFrame(.vertical, alignment: .center) { length, axis in
+            return compactView ? .compactCellHeight : .defaultCellHeight
+        }
         .overlay(alignment: .topTrailing) {
             if item.starred {
                 Image(systemName: "star.fill")
