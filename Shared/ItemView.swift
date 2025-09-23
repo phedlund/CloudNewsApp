@@ -84,7 +84,17 @@ struct ItemView: View {
         .onChange(of: showThumbnails, initial: true) { _, _ in
             updateSizeAndOffset()
         }
-#if os(iOS)
+        .onChange(of: horizontalSizeClass) { _, newValue in
+            isHorizontalCompact = newValue == .compact
+        }
+        .onChange(of: faviconData ?? Data()) { _, _ in
+            decodeFavicon()
+        }
+#if os(macOS)
+        .containerRelativeFrame(.vertical, alignment: .center) { length, axis in
+            return compactView ? .compactCellHeight : .defaultCellHeight
+        }
+#else
         .containerRelativeFrame([.horizontal, .vertical], alignment: .center) { length, axis in
             if axis == .vertical {
                 return compactView ? .compactCellHeight : .defaultCellHeight
@@ -93,53 +103,25 @@ struct ItemView: View {
             }
         }
         .padding([.trailing], .paddingSix)
-        .if(!item.unread && !item.starred) {
-            $0.opacity(0.4)
-        }
         .background(Color.phWhiteCellBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay() {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(.black.opacity(0.15), lineWidth: 1)
         }
+#endif
         .overlay(alignment: .topTrailing) {
             if item.starred {
                 Image(systemName: "star.fill")
                     .padding([.top, .trailing],  .paddingSix)
             }
         }
+        .opacity((item.unread || item.starred) ? 1.0 : 0.4)
         .onAppear {
             updateSizeAndOffset()
             if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
                 self.thumbnailImage = uiImage
             }
-            decodeFavicon()
-        }
-#else
-        .containerRelativeFrame(.vertical, alignment: .center) { length, axis in
-            return compactView ? .compactCellHeight : .defaultCellHeight
-        }
-        .overlay(alignment: .topTrailing) {
-            if item.starred {
-                Image(systemName: "star.fill")
-                    .padding([.top, .trailing],  .paddingSix)
-            }
-        }
-        .opacity(item.unread ? 1.0 : 0.4 )
-        .task {
-            updateSizeAndOffset()
-            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
-                self.thumbnailImage = uiImage
-            }
-            decodeFavicon()
-        }
-#endif
-#if !os(macOS)
-        .onChange(of: horizontalSizeClass) { _, newValue in
-            isHorizontalCompact = newValue == .compact
-        }
-#endif
-        .onChange(of: faviconData ?? Data()) { _, _ in
             decodeFavicon()
         }
     }
