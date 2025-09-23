@@ -20,7 +20,6 @@ extension View {
 }
 
 struct ItemView: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
@@ -33,13 +32,8 @@ struct ItemView: View {
     @State private var thumbnailImage: SystemImage?
     @State private var faviconImage: SystemImage?
 
-    private let item: Item
-    private let faviconData: Data?
-
-    init(item: Item, faviconData: Data?) {
-        self.item = item
-        self.faviconData = faviconData
-    }
+    let item: Item
+    let faviconData: Data?
 
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
