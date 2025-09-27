@@ -5,94 +5,161 @@
 //  Created by Peter Hedlund on 9/5/21.
 //
 
+import Foundation
 import SwiftData
 import SwiftUI
+import WebKit
 
 #if os(iOS)
+struct ArticlesPageViewModel {
+    let items: [ArticleWebContent]
+    init(itemModels: [Item], openUrlAction: OpenURLAction) {
+        self.items = itemModels.map { item in
+            ArticleWebContent(item: item, openUrlAction: openUrlAction)
+        }
+    }
+}
+
 struct ArticlesPageView: View {
     @Environment(NewsModel.self) private var newsModel
+    @Environment(\.openURL) private var openURL
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    @State private var item: Item
     @State private var itemsToMarkRead = [Item]()
-    @State private var isAppearing = false
     @State private var isShowingPopover = false
-    @Bindable var pageViewProxy = PageViewProxy()
+    @State private var currentPage = WebPage()
+    @State private var scrollId: Int64?
+    @State private var viewModel: ArticlesPageViewModel? = nil
 
-    private let items: [Item]
+    private let itemModels: [Item]
+    private var isButtonDisabled: Bool {
+        currentPage.isLoading || (currentPage.url != nil && currentPage.url?.scheme != "file")
+    }
 
-    init(item: Item, items: [Item]) {
-        self.items = items
-        self._item = State(initialValue: item)
+    init(itemId: Int64, items: [Item]) {
+        self.itemModels = items
+        _scrollId = .init(initialValue: itemId)
     }
 
     var body: some View {
+        let items = viewModel?.items ?? []
+
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    ArticleView(content: ArticleWebContent(item: item), pageViewReader: pageViewProxy)
+                    ArticleView(webContent: item)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
             .scrollTargetLayout()
+            .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { notification in
+                var nextIndex = items.startIndex
+                if let selectedItemId = scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: -1)
+                }
+                if nextIndex <= items.startIndex {
+                    nextIndex = items.startIndex
+                }
+                let previousItem = items[nextIndex]
+                scrollId = previousItem.id
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .nextArticle)) { notification in
+                var nextIndex = items.startIndex
+                if let selectedItemId = scrollId, let selectedItem = items.first(where: { $0.id == selectedItemId } ), let currentIndex = items.firstIndex(of: selectedItem) {
+                    nextIndex = currentIndex.advanced(by: 1)
+                }
+                if nextIndex > items.endIndex {
+                    nextIndex = items.startIndex
+                }
+                let nextItem = items[nextIndex]
+                scrollId = nextItem.id
+            }
         }
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
-        .navigationTitle(pageViewProxy.title)
+        .scrollPosition(id: $scrollId)
+        .navigationTitle(currentPage.title)
         .scrollContentBackground(.hidden)
         .background {
             Color.phWhiteBackground
                 .ignoresSafeArea(edges: .vertical)
         }
         .toolbar {
-            pageViewToolBarContent(pageViewProxy: pageViewProxy)
+            pageViewToolBarContent()
         }
         .toolbarRole(.editor)
-        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
-        .onAppear {
-            pageViewProxy.scrollId = item.id
-            isAppearing = true
+        .task {
+            if viewModel == nil {
+                viewModel = ArticlesPageViewModel(itemModels: itemModels, openUrlAction: openURL)
+                if let newItem = viewModel?.items.first(where: { $0.id == scrollId } ) {
+                    currentPage = newItem.page
+                    newsModel.currentItem = newItem.item
+                    if newItem.item.unread {
+                        await newsModel.markItemsRead(items: [newItem.item])
+                    }
+                }
+            }
         }
-        .onChange(of: pageViewProxy.scrollId ?? 0, initial: false) { _, newValue in
-            if let newItem = items.first(where: { $0.id == newValue } ), newItem.unread {
-                if isAppearing {
-                    newsModel.markItemsRead(items: [newItem])
-                    isAppearing = false
-                } else {
-                    itemsToMarkRead.append(newItem)
+        .onChange(of: scrollId ?? 0, initial: false) { _, newValue in
+            if let newItem = items.first(where: { $0.id == newValue } ) {
+                currentPage = newItem.page
+                newsModel.currentItem = newItem.item
+                if newItem.item.unread {
+                    itemsToMarkRead.append(newItem.item)
                 }
             }
         }
         .onScrollPhaseChange { _, newPhase in
             if  newPhase == .idle {
-                newsModel.markItemsRead(items: itemsToMarkRead)
-                itemsToMarkRead.removeAll()
+                Task {
+                    await newsModel.markItemsRead(items: itemsToMarkRead)
+                    itemsToMarkRead.removeAll()
+                }
             }
         }
-        .scrollPosition(id: $pageViewProxy.scrollId)
+        .onChange(of: fontSize) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
+            }
+        }
+        .onChange(of: lineHeight) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
+            }
+        }
+        .onChange(of: marginPortrait) {
+            if let newItem = items.first(where: { $0.id == scrollId } ) {
+                newItem.reloadItemSummary(true)
+            }
+        }
     }
 
     @ToolbarContentBuilder
-    func pageViewToolBarContent(pageViewProxy: PageViewProxy) -> some ToolbarContent {
+    func pageViewToolBarContent() -> some ToolbarContent {
         ToolbarItemGroup(placement: .topBarLeading) {
             Button {
-                pageViewProxy.goBack = true
+                print("Tapping Back for \(currentPage.title)")
+                currentPage.load(currentPage.backForwardList.backList.last!)
             } label: {
                 Image(systemName: "chevron.backward")
             }
-            .disabled(!pageViewProxy.canGoBack)
+            .disabled(currentPage.backForwardList.backList.isEmpty)
             Button {
-                pageViewProxy.goForward = true
+                print("Tapping Forward for \(currentPage.title)")
+                currentPage.load(currentPage.backForwardList.forwardList.last!)
             } label: {
                 Image(systemName: "chevron.forward")
             }
-            .disabled(!pageViewProxy.canGoForward)
+            .disabled(currentPage.backForwardList.forwardList.isEmpty)
             Button {
-                if pageViewProxy.isLoading {
-                    pageViewProxy.reload = false
+                if currentPage.isLoading {
+                    currentPage.stopLoading()
                 } else {
-                    pageViewProxy.reload = true
+                    currentPage.reload()
                 }
             } label: {
-                if pageViewProxy.isLoading {
+                if currentPage.isLoading {
                     Image(systemName: "xmark")
                 } else {
                     Image(systemName: "arrow.clockwise")
@@ -100,23 +167,18 @@ struct ArticlesPageView: View {
             }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                ShareLinkButton(item: currentItem, url: pageViewProxy.url)
-                    .disabled(pageViewProxy.isLoading)
-            } else {
-                EmptyView()
-            }
+            ShareLinkButton(item: newsModel.currentItem, url: currentPage.url)
+                .disabled(currentPage.isLoading)
             Button {
                 isShowingPopover = true
             } label: {
                 Image(systemName: "textformat.size")
             }
-            .disabled(pageViewProxy.isLoading)
+            .disabled(isButtonDisabled)
             .popover(isPresented: $isShowingPopover, attachmentAnchor: .point(.zero), arrowEdge: .top) {
-                if let currentItem = items.first(where: { $0.id == pageViewProxy.scrollId }) {
-                    ArticleSettingsView(item: currentItem)
-                        .presentationDetents([.height(300.0)])
-                }
+                ArticleSettingsView()
+                    .presentationDetents([.height(300.0)])
+                    .environment(newsModel)
             }
         }
     }
@@ -129,3 +191,4 @@ struct ArticlesPageView: View {
 //    }
 //}
 #endif
+

@@ -21,9 +21,9 @@ struct BadgeView: View {
         self._unreadCount = unreadCount
         var predicate = #Predicate<Item> { _ in return false }
         switch node.type {
-        case .empty:
+        case .empty, .all:
             break
-        case .all:
+        case .unread:
             predicate = #Predicate<Item> { $0.unread == true }
         case .starred:
             predicate = #Predicate<Item> { $0.starred == true }
@@ -34,7 +34,7 @@ struct BadgeView: View {
                 var feedIds = [Int64]()
                 for child in children {
                     switch child.type {
-                    case .empty, .all, .starred, .folder:
+                    case .empty, .all, .unread, .starred, .folder:
                         break
                     case .feed(let id):
                         feedIds.append(id)
@@ -65,19 +65,6 @@ struct BadgeView: View {
         }
         .onChange(of: items.count, initial: true) { _, newValue in
             unreadCount = newValue
-            if node.type == .all {
-#if os(macOS)
-                NSApp.dockTile.badgeLabel = newValue > 0 ? "\(newValue)" : ""
-#else
-                Task {
-                    do {
-                        try await UNUserNotificationCenter.current().setBadgeCount(newValue)
-                    } catch {
-                        //
-                    }
-                }
-#endif
-            }
         }
     }
 

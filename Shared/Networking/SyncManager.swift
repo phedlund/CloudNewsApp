@@ -5,27 +5,69 @@
 //  Created by Peter Hedlund on 8/26/24.
 //
 
-
+#if os(macOS)
+import AppKit
+#endif
 import Foundation
 import SwiftData
+import SwiftSoup
+import SwiftUI
+import UserNotifications
+import WidgetKit
 
-@Observable
-final class SyncManagerReader {
-    var isSyncing = false
+enum SyncState: CustomStringConvertible, Equatable {
+    case idle
+    case started
+    case folders
+    case feeds
+    case articles(update: String)
+    case unread
+    case starred
+    case favicons
+
+    var description: String {
+        switch self {
+        case .idle:
+            return ""
+        case .started:
+            return "Getting started…"
+        case .folders:
+            return "Updating folders…"
+        case .feeds:
+            return "Updating feeds…"
+        case .articles(let update):
+            if update.isEmpty {
+                return "Updating articles…"
+            }
+            return "Updating \(update)…"
+        case .unread:
+            return "Updating unread articles…"
+        case .starred:
+            return "Updating starred articles…"
+        case .favicons:
+            return "Updating favicons…"
+        }
+    }
 }
 
+
 @Observable
-final class SyncManager: @unchecked Sendable {
-    private let databaseActor: NewsDataModelActor
+final class SyncManager {
+    @ObservationIgnored @AppStorage(SettingKeys.syncInBackground) private var syncInBackground = false
+    @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
+    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
+
     private var backgroundSession: URLSession?
-    var syncManagerReader = SyncManagerReader()
+    var syncState: SyncState = .idle
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
-    private var folderNode = Node(id: "", type: .empty, title: "")
-    private var feedNode = Node(id: "", type: .empty, title: "")
+    private var feedDTOs = [FeedDTO]()
+    private var itemIds = [Int64]()
 
-    init(databaseActor: NewsDataModelActor) {
-        self.databaseActor = databaseActor
+    let modelContainer: ModelContainer
+
+    init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
     }
 
     func configureSession() {
@@ -35,6 +77,9 @@ final class SyncManager: @unchecked Sendable {
     }
 
     func backgroundSync() async {
+        guard syncInBackground == true else {
+            return
+        }
         try? await pruneItems()
         if let backgroundSession {
             let foldersRequest = try? Router.folders.urlRequest()
@@ -47,7 +92,7 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = foldersResponse {
-                parseFolders(data: data.0)
+                await parseFolders(data: data.0)
             }
 
             let feedsRequest = try? Router.feeds.urlRequest()
@@ -61,12 +106,11 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = feedsResponse {
-                parseFeeds(data: data.0)
+                await parseFeeds(data: data.0)
             }
 
-
-            let newestKnownLastModified = await databaseActor.maxLastModified()
-            Preferences().lastModified = Int32(newestKnownLastModified)
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let newestKnownLastModified = await backgroundActor.maxLastModified()
 
             let updatedParameters: ParameterDict = ["type": 3,
                                                     "lastModified": newestKnownLastModified,
@@ -84,7 +128,7 @@ final class SyncManager: @unchecked Sendable {
             }
 
             if let data = itemsResponse {
-                parseItems(data: data.0)
+                await parseItems(data: data.0)
             }
         }
     }
@@ -100,11 +144,17 @@ final class SyncManager: @unchecked Sendable {
                         if let data = try? Data(contentsOf: url) {
                             switch dlTask.taskDescription {
                             case "folders":
-                                parseFolders(data: data)
+                                Task {
+                                    await parseFolders(data: data)
+                                }
                             case "feeds":
-                                parseFeeds(data: data)
+                                Task {
+                                    await parseFeeds(data: data)
+                                }
                             case "items":
-                                parseItems(data: data)
+                                Task {
+                                    await parseItems(data: data)
+                                }
                             default:
                                 break
                             }
@@ -112,19 +162,25 @@ final class SyncManager: @unchecked Sendable {
                     }
                 }
             }
+            Task { @MainActor in
+                didSyncInBackground = true
+            }
         }
     }
 
     func sync() async throws -> NewsStatusDTO? {
-        syncManagerReader.isSyncing = true
-        let itemCount = try await databaseActor.itemCount()
+        syncState = .started
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
         let currentStatus = try await newsStatus()
         if itemCount == 0 {
             try await initialSync()
+            syncState = .favicons
+            await getFavIcons()
         } else {
             try await repeatSync()
         }
-        syncManagerReader.isSyncing = false
+        WidgetCenter.shared.reloadAllTimelines()
         return currentStatus
     }
 
@@ -155,22 +211,52 @@ final class SyncManager: @unchecked Sendable {
         let unreadParameters: ParameterDict = ["type": 3,
                                                "getRead": false,
                                                "batchSize": -1]
-        let unreadRouter = Router.items(parameters: unreadParameters)
+        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
 
         let starredParameters: ParameterDict = ["type": 2,
                                                 "getRead": true,
                                                 "batchSize": -1]
-        let starredRouter = Router.items(parameters: starredParameters)
+        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
 
-        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-        let unreadItemsData = try await URLSession.shared.data (for: unreadRouter.urlRequest()).0
-        let starredItemsData = try await URLSession.shared.data (for: starredRouter.urlRequest()).0
+        let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
+            var results = [Int: Data]()
 
-        parseFolders(data: foldersData)
-        parseFeeds(data: feedsData)
-        parseItems(data: unreadItemsData)
-        parseItems(data: starredItemsData)
+            group.addTask {
+                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+            }
+            group.addTask {
+                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+            }
+            group.addTask {
+                return (3, try await URLSession.shared.data (for: unreadRequest).0)
+            }
+            group.addTask {
+                return (4, try await URLSession.shared.data (for: starredRequest).0)
+            }
+
+            for try await (index, result) in group {
+                results[index] = result
+            }
+
+            return results
+        }
+
+        if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            syncState = .folders
+            await parseFolders(data: foldersData)
+        }
+        if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            syncState = .feeds
+            await parseFeeds(data: feedsData)
+        }
+        if let unreadData = results[3] as Data?, !unreadData.isEmpty {
+            syncState = .unread
+            await parseItems(data: unreadData)
+        }
+        if let starredData = results[4] as Data?, !starredData.isEmpty {
+            syncState = .starred
+            await parseItems(data: starredData)
+        }
     }
 
     /*
@@ -189,12 +275,11 @@ final class SyncManager: @unchecked Sendable {
      */
 
     private func repeatSync() async throws {
-        try await pruneItems()
-
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         var localReadIds = [Int64]()
-        let identifiers = try await databaseActor.allModelIds(FetchDescriptor<Read>())
+        let identifiers = try await backgroundActor.allModelIds(FetchDescriptor<Read>())
         for identifier in identifiers {
-            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
                 localReadIds.append(itemId)
             }
         }
@@ -207,7 +292,7 @@ final class SyncManager: @unchecked Sendable {
             if let httpReadResponse = readItemsResponse as? HTTPURLResponse {
                 switch httpReadResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Read.self)
+                    try await backgroundActor.delete(model: Read.self)
                 default:
                     break
                 }
@@ -215,82 +300,68 @@ final class SyncManager: @unchecked Sendable {
         }
 
         var localUnreadIds = [Int64]()
-        let unreadIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unread>())
+        let unreadIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Unread>())
         for identifier in unreadIdentifiers {
-            if let itemId = try await databaseActor.fetchItemId(by: identifier) {
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
                 localUnreadIds.append(itemId)
             }
         }
 
         if !localUnreadIds.isEmpty {
-            let unreadParameters = ["items": localUnreadIds]
+            let unreadParameters = ["itemIds": localUnreadIds]
             let unreadRouter = Router.itemsUnread(parameters: unreadParameters)
             async let (_, unreadResponse) = URLSession.shared.data(for: unreadRouter.urlRequest(), delegate: nil)
             let unreadItemsResponse = try await unreadResponse
             if let httpUnreadResponse = unreadItemsResponse as? HTTPURLResponse {
                 switch httpUnreadResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Unread.self)
+                    try await backgroundActor.delete(model: Unread.self)
                 default:
                     break
                 }
             }
         }
 
-        var localStarredParameters = [StarredParameter]()
-        let starredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Starred>())
+        var localStarredIds = [Int64]()
+        let starredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Starred>())
         for identifier in starredIdentifiers {
-            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
-                localStarredParameters.append(parameters)
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
+                localStarredIds.append(itemId)
             }
         }
 
-        if !localStarredParameters.isEmpty {
-            var params = [Any]()
-            for starredItem in localStarredParameters {
-                var param: [String: Any] = [:]
-                param["feedId"] = starredItem.feedId
-                param["guidHash"] = starredItem.guidHash
-                params.append(param)
-            }
-            let starredParameters = ["items": params]
+        if !localStarredIds.isEmpty {
+            let starredParameters = ["itemIds": localStarredIds]
             let starredRouter = Router.itemsStarred(parameters: starredParameters)
             async let (_, starredResponse) = URLSession.shared.data(for: starredRouter.urlRequest(), delegate: nil)
             let starredItemsResponse = try await starredResponse
             if let httpStarredResponse = starredItemsResponse as? HTTPURLResponse {
                 switch httpStarredResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Starred.self)
+                    try await backgroundActor.delete(model: Starred.self)
                 default:
                     break
                 }
             }
         }
 
-        var localUnstarredParameters = [StarredParameter]()
-        let unStarredIdentifiers = try await databaseActor.allModelIds(FetchDescriptor<Unstarred>())
+        var localUnstarredIds = [Int64]()
+        let unStarredIdentifiers = try await backgroundActor.allModelIds(FetchDescriptor<Unstarred>())
         for identifier in unStarredIdentifiers {
-            if let parameters = try await databaseActor.fetchStarredParameter(by: identifier) {
-                localUnstarredParameters.append(parameters)
+            if let itemId = try await backgroundActor.fetchItemId(by: identifier) {
+                localUnstarredIds.append(itemId)
             }
         }
 
-        if !localUnstarredParameters.isEmpty {
-            var params = [Any]()
-            for unstarredItem in localUnstarredParameters {
-                var param: [String: Any] = [:]
-                param["feedId"] = unstarredItem.feedId
-                param["guidHash"] = unstarredItem.guidHash
-                params.append(param)
-            }
-            let unstarredParameters = ["items": params]
+        if !localUnstarredIds.isEmpty {
+            let unstarredParameters = ["itemIds": localUnstarredIds]
             let unstarredRouter = Router.itemsStarred(parameters: unstarredParameters)
             async let (_, unstarredResponse) = URLSession.shared.data(for: unstarredRouter.urlRequest(), delegate: nil)
             let unstarredItemsResponse = try await unstarredResponse
-            if let httpStarredResponse = unstarredItemsResponse as? HTTPURLResponse {
-                switch httpStarredResponse.statusCode {
+            if let httpUnstarredResponse = unstarredItemsResponse as? HTTPURLResponse {
+                switch httpUnstarredResponse.statusCode {
                 case 200:
-                    await databaseActor.deleteAll(Unstarred.self)
+                    try await backgroundActor.delete(model: Unstarred.self)
                 default:
                     break
                 }
@@ -300,8 +371,7 @@ final class SyncManager: @unchecked Sendable {
         let foldersRequest = try Router.folders.urlRequest()
         let feedsRequest = try Router.feeds.urlRequest()
 
-        let newestKnownLastModified = await databaseActor.maxLastModified()
-        Preferences().lastModified = Int32(newestKnownLastModified)
+        let newestKnownLastModified = await backgroundActor.maxLastModified()
         let updatedParameters: ParameterDict = ["type": 3,
                                                 "lastModified": newestKnownLastModified,
                                                 "id": 0]
@@ -309,15 +379,45 @@ final class SyncManager: @unchecked Sendable {
 
         let itemsRequest = try updatedItemRouter.urlRequest()
 
-        let foldersData = try await URLSession.shared.data (for: foldersRequest).0
-        let feedsData = try await URLSession.shared.data (for: feedsRequest).0
-        let itemsData = try await URLSession.shared.data (for: itemsRequest).0
-        parseFolders(data: foldersData)
-        parseFeeds(data: feedsData)
-        parseItems(data: itemsData)
+        let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
+            var results = [Int: Data]()
+
+            group.addTask { [self] in
+                try await pruneItems()
+                return (0, Data())
+            }
+            group.addTask {
+                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+            }
+            group.addTask {
+                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+            }
+            group.addTask {
+                return (3, try await URLSession.shared.data (for: itemsRequest).0)
+            }
+
+            for try await (index, result) in group {
+                results[index] = result
+            }
+
+            return results
+        }
+
+        if let foldersData = results[1] as Data?, !foldersData.isEmpty {
+            syncState = .folders
+            await parseFolders(data: foldersData)
+        }
+        if let feedsData = results[2] as Data?, !feedsData.isEmpty {
+            syncState = .feeds
+            await parseFeeds(data: feedsData)
+        }
+        if let itemsData = results[3] as Data?, !itemsData.isEmpty {
+            syncState = .articles(update: "")
+            await parseItems(data: itemsData)
+        }
     }
 
-    private func parseFolders(data: Data) {
+    private func parseFolders(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
@@ -326,91 +426,284 @@ final class SyncManager: @unchecked Sendable {
         }
         self.foldersDTO = decodedResponse
         let folderIds = decodedResponse.folders.map( { $0.id } )
-        Task {
-            do {
-                try await databaseActor.pruneFolders(serverFolderIds: folderIds)
-            } catch {
-                //
-            }
+        do {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            try await backgroundActor.pruneFolders(serverFolderIds: folderIds)
+        } catch {
+            //
         }
     }
 
-    private func parseFeeds(data: Data) {
+    private func parseFeeds(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
             //                    throw NetworkError.generic(message: "Unable to decode")
             return
         }
-        Task {
-            let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
-            await databaseActor.insert(allNode)
-            let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
-            await databaseActor.insert(starredNode)
-            for folderDTO in foldersDTO.folders {
-                var feeds = [Node]()
-                let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
-                for feedDTO in feedDTOs  {
-                    let feedToStore = Feed(item: feedDTO)
-                    let type = NodeType.feed(id: feedDTO.id)
-                    feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
-                    feeds.append(feedNode)
-                    await databaseActor.insert(feedToStore)
-                }
-                let type = NodeType.folder(id: folderDTO.id)
-                folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: feeds, pinned: 1)
-                let feedsWithUpdateErrorCount = feeds.filter { $0.errorCount > 0 }
-                if !feedsWithUpdateErrorCount.isEmpty {
-                    folderNode.errorCount = 1
-                }
-                await databaseActor.insert(folderNode)
-                let itemToStore = Folder(item: folderDTO)
-                await databaseActor.insert(itemToStore)
-            }
-            let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
-            for feedDTO in feedDTOs {
-                let feedToStore = Feed(item: feedDTO)
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        self.feedDTOs = decodedResponse.feeds
+        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
+        await backgroundActor.insert(allNode)
+        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 1)
+        await backgroundActor.insert(unreadNode)
+        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
+        await backgroundActor.insert(starredNode)
+        for folderDTO in foldersDTO.folders {
+            var feeds = [NodeDTO]()
+            let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
+            for feedDTO in feedDTOs  {
                 let type = NodeType.feed(id: feedDTO.id)
-                feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: feedToStore.favIconURL, errorCount: feedDTO.updateErrorCount > 20 ? 1 : 0, pinned: feedDTO.pinned ? 1 : 0)
-                await databaseActor.insert(feedToStore)
-                await databaseActor.insert(feedNode)
+                let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+                feeds.append(feedNodeDTO)
+                await backgroundActor.insertFeed(feedDTO: feedDTO)
             }
-            let feedIds = decodedResponse.feeds.map( { $0.id } )
-            Task {
-                do {
-                    try await databaseActor.pruneFeeds(serverFeedIds: feedIds)
-                } catch {
-                    //
-                }
+            var localErrorCount: Int64 = 0
+            let feedsWithUpdateErrorCount = feeds.filter { $0.errorCount > 0 }
+            if !feedsWithUpdateErrorCount.isEmpty {
+                localErrorCount = 1
             }
-            try? await databaseActor.save()
+            let type = NodeType.folder(id: folderDTO.id)
+            let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 1, favIcon: nil, children: feeds)
+            await backgroundActor.insertNode(nodeDTO: folderNodeDTO)
+            let itemToStore = Folder(item: folderDTO)
+            await backgroundActor.insert(itemToStore)
         }
+        let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
+        for feedDTO in feedDTOs {
+            let type = NodeType.feed(id: feedDTO.id)
+            let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+            await backgroundActor.insertFeed(feedDTO: feedDTO)
+            await backgroundActor.insertNode(nodeDTO: feedNodeDTO)
+        }
+        let feedIds = decodedResponse.feeds.map( { $0.id } )
+        Task {
+            do {
+                try await backgroundActor.pruneFeeds(serverFeedIds: feedIds)
+            } catch {
+                //
+            }
+        }
+        try? await backgroundActor.save()
     }
 
-    private func parseItems(data: Data) {
+    private func parseItems(data: Data) async {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
             return
         }
-        Task {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+
+        let incomingIds = Set(decodedResponse.items.map(\.id))
+        do {
+            let existingMediaById = try await backgroundActor.existingMediaMap(for: incomingIds)
+            let totalCount = decodedResponse.items.count
+            var counter = 0
             for eachItem in decodedResponse.items {
-                let itemToStore = await Item(item: eachItem)
-                await databaseActor.insert(itemToStore)
+                counter += 1
+                await MainActor.run {
+                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
+                }
+
+                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id])
+
+                itemIds.append(eachItem.id)
+
+                if counter % 15 == 0 {
+                    do {
+                        try await backgroundActor.save()
+                    } catch {
+                        syncState = .idle
+                    }
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
+                    }
+                }
             }
-            try? await databaseActor.save()
+
+            do {
+                try await backgroundActor.save()
+                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                await MainActor.run {
+                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+                }
+                syncState = .idle
+            } catch {
+                syncState = .idle
+            }
+        } catch {
+            let totalCount = decodedResponse.items.count
+            var counter = 0
+            for eachItem in decodedResponse.items {
+                counter += 1
+                await MainActor.run {
+                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
+                }
+                await backgroundActor.insertItem(itemDTO: eachItem)
+                itemIds.append(eachItem.id)
+                if counter % 15 == 0 {
+                    do {
+                        try await backgroundActor.save()
+                    } catch {
+                        syncState = .idle
+                    }
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
+                    }
+                }
+            }
+            do {
+                try await backgroundActor.save()
+                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                await MainActor.run {
+                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+                }
+                syncState = .idle
+            } catch {
+                syncState = .idle
+            }
+        }
+    }
+
+    private func updateThumbnails() async {
+
+        func internalUrl(_ urlString: String?) async -> URL? {
+            if let urlString, let url = URL(string: urlString) {
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                    if let html = String(data: data, encoding: .utf8) {
+                        let doc: Document = try SwiftSoup.parse(html)
+                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                            let ogImage = try meta.attr("content")
+                            let ogUrl = URL(string: ogImage)
+                            return ogUrl
+                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                            let twImage = try meta.attr("content")
+                            let twUrl = URL(string: twImage)
+                            return twUrl
+                        } else {
+                            return nil
+                        }
+                    }
+                } catch(let error) {
+                    print(error.localizedDescription)
+                }
+            }
+            return nil
+        }
+
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let predicate = #Predicate<Item> { itemIds.contains($0.id) }
+        let descriptor = FetchDescriptor(predicate: predicate)
+        let modelIds = try! await backgroundActor.allModelIds(descriptor)
+        let validSchemas = ["http", "https", "file"]
+        for eachId in modelIds {
+            do {
+                var itemImageUrl: URL?
+                if let mediaThumbnail = await backgroundActor.itemMediaThumbnail(for: eachId) {
+                    itemImageUrl = URL(string: mediaThumbnail)
+                } else if let summary = await backgroundActor.itemBody(for: eachId) {
+                    do {
+                        let doc: Document = try SwiftSoup.parse(summary)
+                        let srcs: Elements = try doc.select("img[src]")
+                        let images = try srcs.array().map({ try $0.attr("src") })
+                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                            itemImageUrl = imgUrl
+                        } else {
+                            itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
+                        }
+                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
+                        print(message)
+                    } catch(let error) {
+                        print(error.localizedDescription)
+                    }
+                } else {
+                    itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
+                }
+
+                var imageData: Data?
+                var thumbnailData: Data?
+                if let itemImageUrl {
+                    do {
+                        let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                        imageData = data
+#if os(macOS)
+                        if let uiImage = NSImage(data: data) {
+                            thumbnailData = uiImage.tiffRepresentation
+                        }
+#else
+                        if let uiImage = UIImage(data: data) {
+                            let displayScale = UITraitCollection.current.displayScale
+                            let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                            thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                        }
+#endif
+                    } catch {
+                        print("Error fetching data: \(error)")
+                    }
+                }
+                do {
+                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnailURL, to: itemImageUrl)
+                    let _ = try await backgroundActor.update(eachId, keypath: \.image, to: imageData)
+                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnail, to: thumbnailData)
+                    try await backgroundActor.save()
+                } catch {
+                    //
+                }
+            }
         }
     }
 
     private func pruneItems() async throws {
         do {
-            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * Preferences().keepDuration), to: Date()) {
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")
-                try await databaseActor.delete(Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+                try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
             throw DatabaseError.itemsFailedImport
         }
+    }
+
+    private func getFavIcons() async {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        for feedDTO in feedDTOs {
+            let validSchemas = ["http", "https", "file"]
+            var itemImageUrl: URL?
+            if let faviconLink = feedDTO.faviconLink,
+               let url = URL(string: faviconLink),
+               let scheme = url.scheme,
+               validSchemas.contains(scheme) {
+                itemImageUrl = url
+            } else {
+                if let feedUrl = URL(string: feedDTO.link ?? "data:null"),
+                   let host = feedUrl.host,
+                   let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
+                    itemImageUrl = url
+                }
+            }
+
+            var imageData: Data?
+            if let itemImageUrl {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                    imageData = data
+                } catch {
+                    print("Error fetching data: \(error)")
+                }
+            }
+
+            if let imageData {
+                let favIconDTO = FavIconDTO(id: feedDTO.id, url: itemImageUrl, icon: imageData)
+                await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
+            }
+        }
+        do {
+            try await backgroundActor.save()
+        } catch { }
     }
 
 }

@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Unread {
+nonisolated final class Unread {
     @Attribute(.unique) var itemId: Int64
 
     init(itemId: Int64) {
@@ -18,7 +18,7 @@ final class Unread {
 }
 
 @Model
-final class Read {
+nonisolated final class Read {
     @Attribute(.unique) var itemId: Int64
 
     init(itemId: Int64) {

@@ -9,19 +9,19 @@ import Foundation
 import SwiftData
 
 @Model
-final class Unstarred {
-    @Attribute(.unique) var itemIdData: Data
+nonisolated final class Unstarred {
+    @Attribute(.unique) var itemId: Int64
 
-    init(itemIdData: Data) {
-        self.itemIdData = itemIdData
+    init(itemId: Int64) {
+        self.itemId = itemId
     }
 }
 
 @Model
-final class Starred {
-    @Attribute(.unique) var itemIdData: Data
+nonisolated final class Starred {
+    @Attribute(.unique) var itemId: Int64
 
-    init(itemIdData: Data) {
-        self.itemIdData = itemIdData
+    init(itemId: Int64) {
+        self.itemId = itemId
     }
 }

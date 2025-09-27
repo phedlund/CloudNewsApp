@@ -8,46 +8,98 @@
 import BackgroundTasks
 import SwiftData
 import SwiftUI
+import Valet
 
 @main
 struct CloudNewsApp: App {
     private let container: ModelContainer
     private let newsModel: NewsModel
-    private let modelActor: NewsDataModelActor
+    private let modelActor: NewsModelActor
     private let syncManager: SyncManager
+
+    @State private var isShowingAddFolder = false
+    @State private var isShowingAddFeed = false
+    @State private var isShowingFeedSettings = false
+    @State private var isShowingAcknowledgements = false
 
 #if !os(macOS)
     @Environment(\.scenePhase) var scenePhase
 #else
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 #endif
-    
+
     init() {
-        container = SharedDatabase.shared.modelContainer
-        self.modelActor = NewsDataModelActor(modelContainer: container)
-        self.newsModel = NewsModel(databaseActor: modelActor)
-        self.syncManager = SyncManager(databaseActor: modelActor)
-        syncManager.configureSession()
+        do {
+            container = try ModelContainer(for: schema)
+            self.modelActor = NewsModelActor(modelContainer: container)
+            self.newsModel = NewsModel(modelContainer: container)
+            self.syncManager = SyncManager(modelContainer: container)
+            syncManager.configureSession()
+            ContentBlocker.shared.rules(completion: { _ in })
+            let _ = CssProvider.shared.css()
+            migrateKeychain()
+        } catch {
+            fatalError("Failed to create container")
+        }
     }
-    
+
     var body: some Scene {
-        WindowGroup {
+#if os(macOS)
+        Window(Text("CloudNews"), id: "mainWindow") {
             ContentView()
                 .environment(newsModel)
                 .environment(syncManager)
         }
         .modelContainer(container)
-        .database(SharedDatabase.shared.database)
-#if !os(macOS)
+        .defaultSize(width: 1000, height: 650)
+        .windowToolbarStyle(.unified)
+        .commands {
+            AppCommands(newsModel: newsModel,
+                        isShowingAddFeed: $isShowingAddFeed,
+                        isShowingFeedSettings: $isShowingFeedSettings,
+                        isShowingAddFolder: $isShowingAddFolder,
+                        isShowingAcknowledgements: $isShowingAcknowledgements)
+        }
+#else
+        WindowGroup {
+            ContentView()
+                .environment(newsModel)
+                .environment(syncManager)
+                .sheet(isPresented: $isShowingAcknowledgements) {
+                    NavigationView {
+                        AcknowledgementsView()
+                    }
+                }
+                .sheet(isPresented: $isShowingAddFolder) {
+                    NavigationView {
+                        AddView(selectedAdd: .folder)
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
+                .sheet(isPresented: $isShowingAddFeed) {
+                    NavigationView {
+                        AddView(selectedAdd: .feed)
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
+                .sheet(isPresented: $isShowingFeedSettings) {
+                    NavigationView {
+                        FeedSettingsView()
+                            .environment(newsModel)
+                    }
+                    .modelContainer(container)
+                }
+        }
+        .modelContainer(container)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
             await syncManager.backgroundSync()
         }
-#endif
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
-            syncManager.processSessionData()
+            await syncManager.processSessionData()
         }
-#if !os(macOS)
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
@@ -60,15 +112,15 @@ struct CloudNewsApp: App {
                 fatalError("Unknown scene phase")
             }
         }
-#endif
-#if os(macOS)
-        .defaultSize(width: 1000, height: 650)
-        .windowToolbarStyle(.unifiedCompact)
         .commands {
-            AppCommands(newsModel: newsModel)
+            AppCommands(newsModel: newsModel,
+                        isShowingAddFeed: $isShowingAddFeed,
+                        isShowingFeedSettings: $isShowingFeedSettings,
+                        isShowingAddFolder: $isShowingAddFolder,
+                        isShowingAcknowledgements: $isShowingAcknowledgements)
         }
 #endif
-        
+
 #if os(macOS)
         Settings {
             SettingsView()
@@ -77,24 +129,24 @@ struct CloudNewsApp: App {
         }
         .restorationBehavior(.disabled)
 
-        WindowGroup(Text("Log In"), id: "login") {
-            LoginWebViewView()
+        Window(Text("Log In"), id: "login") {
+            LoginView()
                 .frame(width: 600, height: 750)
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
 
-        WindowGroup(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
+        Window(Text("Feed Settings"), id: ModalSheet.feedSettings.rawValue) {
             FeedSettingsView()
                 .environment(newsModel)
                 .frame(width: 600, height: 500)
-            
+
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
+        Window(Text("Add Feed"), id: ModalSheet.addFeed.rawValue) {
             AddView(selectedAdd: .feed)
                 .environment(newsModel)
                 .frame(width: 500, height: 220)
@@ -103,7 +155,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
+        Window(Text("Add Folder"), id: ModalSheet.addFolder.rawValue) {
             AddView(selectedAdd: .folder)
                 .environment(newsModel)
                 .frame(width: 500, height: 200)
@@ -112,7 +164,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        WindowGroup(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
+        Window(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }
@@ -135,5 +187,19 @@ struct CloudNewsApp: App {
         }
     }
 #endif
+
+    private func migrateKeychain() {
+        let valet = Valet.valet(with: Identifier(nonEmpty: "CloudNews")!, accessibility: .afterFirstUnlock)
+        let query: [String: AnyHashable] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.peterandlinda.iOCNews"
+        ]
+
+        do {
+            try valet.migrateObjects(matching: query, removeOnCompletion: true)
+        } catch {
+            print("Error migrating keychain data: \(error)")
+        }
+    }
 
 }

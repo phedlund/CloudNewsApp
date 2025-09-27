@@ -8,9 +8,10 @@
 
 import Foundation
 
-enum NodeType: Equatable, Hashable, Codable {
+nonisolated enum NodeType: Equatable, Hashable, Codable {
     case empty
     case all
+    case unread
     case starred
     case folder(id: Int64)
     case feed(id: Int64)
@@ -23,12 +24,14 @@ extension NodeType: CustomStringConvertible {
             return ""
         case .all:
             return "aaaa"
-        case .starred:
+        case .unread:
             return "bbbb"
+        case .starred:
+            return "cccc"
         case .folder(id: let id):
-            return "cccc_\(String(format: "%03d", id))"
-        case .feed(id: let id):
             return "dddd_\(String(format: "%03d", id))"
+        case .feed(id: let id):
+            return "eeee_\(String(format: "%03d", id))"
         }
     }
     

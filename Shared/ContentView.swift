@@ -6,6 +6,7 @@
 //
 
 import BackgroundTasks
+import OSLog
 import SwiftData
 import SwiftUI
 import UserNotifications
@@ -13,22 +14,17 @@ import UserNotifications
 struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
-    @Environment(\.scenePhase) private var scenePhase
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openURL) private var openUrl
 #endif
-    @KeychainStorage(SettingKeys.username) var username = ""
-    @KeychainStorage(SettingKeys.password) var password = ""
     @AppStorage(SettingKeys.server) private var server = ""
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
-    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
-    @AppStorage(SettingKeys.hideRead) private var hideRead = false
 
     @State private var isShowingLogin = false
     @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
-    @State private var fetchDescriptor = FetchDescriptor<Item>()
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     @Query private var feeds: [Feed]
@@ -36,6 +32,7 @@ struct ContentView: View {
     @Query private var nodes: [Node]
 
     var body: some View {
+        let _ = Logger.app.debug("ContentView body")
         let _ = Self._printChanges()
 #if os(iOS)
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
@@ -45,9 +42,13 @@ struct ContentView: View {
         } detail: {
             ZStack {
                 if selectedNode != nil {
-                    ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
+                    ItemsListView(selectedItem: $selectedItem)
                         .environment(newsModel)
                         .environment(syncManager)
+                        .onOpenURL { url in
+                            print("Open URL: \(url)")
+                            processUrl(url)
+                        }
                         .toolbar {
                             contentViewToolBarContent()
                         }
@@ -82,7 +83,6 @@ struct ContentView: View {
                 }
             }
         }
-        .accentColor(.accent)
         .navigationSplitViewStyle(.automatic)
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
             if let nodeType = NodeType.fromData(newValue) {
@@ -92,6 +92,8 @@ struct ContentView: View {
                     navigationTitle = ""
                 case .all:
                     navigationTitle = "All Articles"
+                case .unread:
+                    navigationTitle = "Unread Articles"
                 case .starred:
                     navigationTitle = "Starred Articles"
                 case .folder(let id):
@@ -102,26 +104,25 @@ struct ContentView: View {
                     navigationTitle = feed?.title ?? "Untitled Feed"
                 }
                 preferredColumn = .detail
-                updateFetchDescriptor(nodeType: nodeType)
             }
         }
-        .onChange(of: hideRead, initial: true) { _, _ in
-            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
-                updateFetchDescriptor(nodeType: nodeType)
-            }
-        }
-        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+        .onChange(of: selectedItem, initial: true) { _, newValue in
+            newsModel.currentItem = newValue
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
                 .environment(syncManager)
+                .onOpenURL { url in
+                    let _ = Logger.app.debug("Opening URL \(url)")
+                    processUrl(url)
+                }
+
         } content: {
             if selectedNode != nil {
                 let _ = Self._printChanges()
-                ItemsListView(fetchDescriptor: fetchDescriptor, selectedItem: $selectedItem)
+                ItemsListView(selectedItem: $selectedItem)
                     .environment(newsModel)
                     .environment(syncManager)
                     .toolbar {
@@ -137,8 +138,8 @@ struct ContentView: View {
                 }
             }
         } detail: {
-            if let selectedItem {
-                MacArticleView(content: ArticleWebContent(item: selectedItem))
+            if let item = newsModel.currentItem {
+                ArticleViewMac(content: ArticleWebContent(item: item, openUrlAction: openUrl))
                     .environment(newsModel)
             } else {
                 ContentUnavailableView("No Article Selected",
@@ -165,6 +166,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+            Logger.app.debug("Got new node selection: \(newValue)")
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
                 switch nodeType {
@@ -172,6 +174,8 @@ struct ContentView: View {
                     navigationTitle = ""
                 case .all:
                     navigationTitle = "All Articles"
+                case .unread:
+                    navigationTitle = "Unread Articles"
                 case .starred:
                     navigationTitle = "Starred Articles"
                 case .folder(let id):
@@ -182,56 +186,37 @@ struct ContentView: View {
                     navigationTitle = feed?.title ?? "Untitled Feed"
                 }
                 preferredColumn = .detail
-                updateFetchDescriptor(nodeType: nodeType)
             }
         }
         .onChange(of: selectedItem, initial: true) { _, newValue in
             newsModel.currentItem = newValue
             if let newValue {
-                newsModel.markItemsRead(items: [newValue])
+                Task {
+                    await newsModel.markItemsRead(items: [newValue])
+                }
             }
-        }
-        .onChange(of: hideRead, initial: true) { _, _ in
-            if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
-                updateFetchDescriptor(nodeType: nodeType)
-            }
-        }
-        .onChange(of: sortOldestFirst, initial: true) { _, newValue in
-            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
         }
 #endif
     }
 
-    private func updateFetchDescriptor(nodeType: NodeType) {
-        switch nodeType {
-        case .empty:
-            fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .all:
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.unread
-                } else {
-                    return true
+    private func processUrl(_ url: URL) {
+        Logger.app.debug(">>> processUrl \(url)")
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            if let queryItems = components.queryItems {
+                let queryDictionary = queryItems.reduce(into: [String: String]()) { result, item in
+                    result[item.name] = item.value
                 }
-            }
-        case .starred:
-            fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
-        case .folder(id:  let id):
-            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return feedIds.contains($0.feedId) && $0.unread
-                } else {
-                    return feedIds.contains($0.feedId)
+                if let feedIdString = queryDictionary["feedId"],
+                   let feedId = Int64(feedIdString) {
+                    selectedNode = NodeType.feed(id: feedId).asData
+                    if let itemIdString = queryDictionary["id"],
+                       let itemId = Int64(itemIdString) {
+                        newsModel.navigationItemId = itemId
+                    }
                 }
-            }
-        case .feed(id: let id):
-            fetchDescriptor.predicate = #Predicate<Item>{
-                if hideRead {
-                    return $0.feedId == id && $0.unread
-                } else {
-                    return $0.feedId == id
-                }
+                print("Query items: \(queryDictionary)")
+            } else {
+                selectedNode = NodeType.all.asData
             }
         }
     }
@@ -244,60 +229,6 @@ struct ContentView: View {
         }
     }
 
-//    private func currentNode() -> Node? {
-//        guard let nodeType = NodeType.fromData(selectedNode ?? Data()) else { return nil }
-//        return nodes.first(where: { $0.type == nodeType } )
-//    }
-//
-//    private func updateNodes() async {
-//        return
-//        let allNodeModel = Node(title: "All Articles", errorCount: 0, nodeName: Constants.allNodeGuid, isExpanded: false, nodeType: .all, isTopLevel: true)
-//        let starredNodeModel = Node(title: "Starred Articles", errorCount: 0, nodeName: Constants.starNodeGuid, isExpanded: false, nodeType: .starred, isTopLevel: true)
-//        await newsModel.backgroundModelActor.insert(allNodeModel)
-//        await newsModel.backgroundModelActor.insert(starredNodeModel)
-//        try? await newsModel.backgroundModelActor.save()
-////        let sortDescriptor = SortDescriptor<Folder>(\.id, order: .forward)
-//
-//        do {
-//            for folder in folders {
-//                let folderNodeModel = Node(title: folder.name ?? "Untitled Folder", errorCount: 0, nodeName: "cccc_\(String(format: "%03d", folder.id))", isExpanded: folder.opened, nodeType: .folder(id: folder.id), isTopLevel: true)
-//
-//                var children = [Node]()
-//                let folderFeeds = feeds.filter( { $0.folderId == folder.id })
-//                for feed in folderFeeds {
-//                    let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: false)
-//                    feedNodeModel.feed = feed
-//                    Task {
-//                        await newsModel.backgroundModelActor.insert(feedNodeModel)
-//                    }
-//                    children.append(feedNodeModel)
-//                    feed.node = feedNodeModel
-//                }
-//
-//                Task {
-//                    await newsModel.backgroundModelActor.insert(folderNodeModel)
-//                }
-//                folderNodeModel.folder = folder
-//                folderNodeModel.children = children
-//                folder.node = folderNodeModel
-//                try await newsModel.backgroundModelActor.save()
-//            }
-//
-//            let folderFreeFeeds = feeds.filter( { $0.folderId == 0 } )
-//            for feed in folderFreeFeeds {
-//                let feedNodeModel = Node(title: feed.title ?? "Untitled Feed", errorCount: feed.updateErrorCount, nodeName: "dddd_\(String(format: "%03d", feed.id))", isExpanded: false, nodeType: .feed(id: feed.id), isTopLevel: true)
-//                feedNodeModel.feed = feed
-//                Task {
-//                    await newsModel.backgroundModelActor.insert(feedNodeModel)
-//                }
-//                feed.node = feedNodeModel
-//            }
-//            try await newsModel.backgroundModelActor.save()
-//        } catch {
-//
-//        }
-//
-//    }
 }
 
 //struct ContentView_Previews: PreviewProvider {

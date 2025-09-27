@@ -8,35 +8,55 @@
 import Foundation
 import WebKit
 
-@MainActor
 class ContentBlocker {
-
     static let shared = ContentBlocker()
+    private var cachedRuleList: WKContentRuleList?
 
-    private var rules: WKContentRuleList?
-
-    func loadJson() -> String? {
-        guard let path = Bundle.main.path(forResource: "block-ads", ofType: "json"),
-            let source = try? String(contentsOfFile: path, encoding: .utf8) else {
-                assert(false)
-                return nil
+    private static func loadJson() -> String? {
+        guard let url = Bundle.main.url(forResource: "block-ads", withExtension: "json"),
+              let source = try? String(contentsOf: url, encoding: .utf8) else {
+            assert(false)
+            return nil
         }
         return source
     }
 
-    func ruleList() async throws -> WKContentRuleList? {
-        guard let blockRules = ContentBlocker.shared.loadJson() else {
-            return nil
+    //    func ruleList() async -> WKContentRuleList? {
+    //        if let cached = cacheQueue.sync(execute: { cachedRuleList }) {
+    //            return cached
+    //        }
+    //        // Load the block rules synchronously, before any await
+    //        guard let blockRules = loadJson() else {
+    //            return nil
+    //        }
+    //        // Make a unique copy of the string to satisfy Sendable requirements
+    //        let blockRulesCopy = String(blockRules)
+    //        do {
+    //            let compiled = try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRulesCopy)
+    //            cacheQueue.async {
+    //                self.cachedRuleList = compiled
+    //            }
+    //            return compiled
+    //        } catch {
+    //            return nil
+    //        }
+    //    }
+
+    func rules(completion: @escaping @Sendable (WKContentRuleList?) -> Void) {
+        if let cached = cachedRuleList {
+            completion(cached)
+            return
         }
-        
-        do {
-            if rules == nil {
-                rules = try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRules)
+        guard let blockRules = ContentBlocker.loadJson() else {
+            completion(nil)
+            return
+        }
+        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "ContentBlockingRules", encodedContentRuleList: blockRules, completionHandler:  { @Sendable rules, error in
+            Task { @MainActor in
+                self.cachedRuleList = rules
             }
-            return rules
-        } catch {
-            return nil
-        }
+            completion(rules)
+        })
     }
-    
 }
+

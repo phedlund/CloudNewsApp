@@ -7,7 +7,7 @@ and (orientation: portrait) {
     body {
         background: var(--bg-color);
         color: var(--text-color);
-        align: center;
+        text-align: left;
         width: var(--body-width-portrait);
         max-width: 700px;
         margin-top: 40px;
@@ -20,9 +20,9 @@ and (orientation: portrait) {
     article {
         width: var(--body-width-portrait);
         max-width: 700px;
-        margin-left:auto;
-        margin-right:auto;
-        margin-top:30px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 30px;
         word-wrap: break-word;
     }
 
@@ -33,7 +33,7 @@ and (orientation: landscape) {
     body {
         background: var(--bg-color);
         color: var(--text-color);
-        align: center;
+        text-align: left;
         width: var(--body-width-landscape);
         max-width: 700px;
         margin-top: 40px;
@@ -45,9 +45,9 @@ and (orientation: landscape) {
     article {
         width: var(--body-width-landscape);
         max-width: 700px;
-        margin-left:auto;
-        margin-right:auto;
-        margin-top:30px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 30px;
     }
 
 }

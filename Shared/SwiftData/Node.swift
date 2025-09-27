@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final public class Node {
+nonisolated final public class Node {
     #Index<Node>([\.id])
 
     @Attribute(.unique) public var id: String
@@ -17,7 +17,6 @@ final public class Node {
     var isExpanded = false
     var type: NodeType
     var title: String
-    var favIconURL: URL? = nil
     var pinned: UInt8 = 0
 
     // Parental relationship
@@ -25,23 +24,35 @@ final public class Node {
 
     // Inverse
     @Relationship(deleteRule: .noAction, inverse: \Node.parent) var children: [Node]?
-    @Relationship(deleteRule: .noAction) var folder: Folder?
-    @Relationship(deleteRule: .noAction) var feed: Feed?
 
-    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, favIconURL: URL? = nil, children: [Node]? = nil, errorCount: Int64 = 0, pinned: UInt8 = 0) {
+    init(id: String, type: NodeType, title: String, isExpanded: Bool = false, children: [Node]? = nil, errorCount: Int64 = 0, pinned: UInt8 = 0) {
         self.id = id
         self.type = type
         self.title = title
         self.isExpanded = isExpanded
-        self.favIconURL = favIconURL
         self.children = children
         self.errorCount = errorCount
         self.pinned = pinned
     }
 
-}
+    convenience init(item: NodeDTO) {
+        var childNodes = [Node]()
+        if let childDTOs = item.children {
+            for child in childDTOs {
+                childNodes.append(Node(item: child))
+            }
+        }
 
-extension Node: Identifiable { }
+        self.init(id: item.id,
+                  type: item.type,
+                  title: item.title,
+                  isExpanded: item.isExpanded,
+                  children: childNodes.isEmpty ? nil : childNodes ,
+                  errorCount: item.errorCount,
+                  pinned: item.pinned)
+    }
+
+}
 
 extension Node {
 

@@ -11,7 +11,7 @@ import SwiftSoup
 import SwiftUI
 
 @Model
-final class Item {
+nonisolated final class Item {
     #Index<Item>([\.id], [\.feedId])
 
     var author: String?
@@ -32,20 +32,22 @@ final class Item {
     var mediaDescription: String?
     var pubDate: Date
     var rtl: Bool
-    //    var readable: String?
     var starred: Bool
     var title: String?
     var unread: Bool
     var updatedDate: Date?
     var url: String?
     var thumbnailURL: URL?
+    @Attribute(.externalStorage) var image: Data?
+    @Attribute(.externalStorage) var thumbnail: Data?
 
-    nonisolated var feed: Feed? {
+    @MainActor
+    var feed: Feed? {
         let context = self.modelContext
         return context?.feed(id: feedId)
     }
 
-    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil, thumbnailURL: URL? = nil) {
+    init(author: String? = nil, body: String? = nil, contentHash: String? = nil, displayBody: String, displayTitle: String, dateFeedAuthor: String, enclosureLink: String? = nil, enclosureMime: String? = nil, feedId: Int64, fingerprint: String? = nil, guid: String? = nil, guidHash: String? = nil, id: Int64, lastModified: Date, mediaThumbnail: String? = nil, mediaDescription: String? = nil, pubDate: Date, rtl: Bool, starred: Bool, title: String? = nil, unread: Bool, updatedDate: Date? = nil, url: String? = nil, thumbnailURL: URL? = nil, image: Data? = nil, thumbnail: Data? = nil) {
         self.author = author
         self.body = body
         self.contentHash = contentHash
@@ -70,6 +72,8 @@ final class Item {
         self.updatedDate = updatedDate
         self.url = url
         self.thumbnailURL = thumbnailURL
+        self.image = image
+        self.thumbnail = thumbnail
     }
 
     convenience init(item: ItemDTO) async {
@@ -99,7 +103,7 @@ final class Item {
             return nil
         }
 
-        let displayTitle = plainSummary(raw: item.title)
+        let displayTitle = await plainSummary(raw: item.title)
 
         var summary = ""
         if let body = item.body {
@@ -107,28 +111,17 @@ final class Item {
         } else if let mediaDescription = item.mediaDescription {
             summary = mediaDescription
         }
-        if !summary.isEmpty {
-            if summary.range(of: "<style>", options: .caseInsensitive) != nil {
-                if summary.range(of: "</style>", options: .caseInsensitive) != nil {
-                    if let start = summary.range(of:"<style>", options: .caseInsensitive)?.lowerBound,
-                       let end = summary.range(of: "</style>", options: .caseInsensitive)?.upperBound {
-                        let sub = summary[start..<end]
-                        summary = summary.replacingOccurrences(of: sub, with: "")
-                    }
-                }
-            }
-        }
-        let displayBody = plainSummary(raw: summary)
+        let displayBody = await plainSummary(raw: summary)
 
         let clipLength = 50
         var dateLabelText = ""
-        dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
-        if !dateLabelText.isEmpty {
-            dateLabelText.append(" | ")
-        }
+        await dateLabelText.append(DateFormatter.dateAuthorFormatter.string(from: item.pubDate))
 
         if let itemAuthor = item.author,
            !itemAuthor.isEmpty {
+            if !dateLabelText.isEmpty {
+                dateLabelText.append(" | ")
+            }
             if itemAuthor.count > clipLength {
                 dateLabelText.append(contentsOf: itemAuthor.filter( { !$0.isNewline }).prefix(clipLength))
                 dateLabelText.append(String(0x2026))
@@ -161,6 +154,28 @@ final class Item {
             itemImageUrl = await internalUrl(item.url)
         }
 
+        var imageData: Data?
+        var thumbnailData: Data?
+        if let itemImageUrl {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+                imageData = data
+#if os(macOS)
+                if let uiImage = NSImage(data: data) {
+                    thumbnailData = uiImage.tiffRepresentation
+                }
+#else
+                if let uiImage = UIImage(data: data) {
+                    let displayScale = UITraitCollection.current.displayScale
+                    let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                    thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                }
+#endif
+            } catch {
+                print("Error fetching data: \(error)")
+            }
+        }
+
         self.init(author: item.author,
                   body: item.body,
                   contentHash: item.contentHash,
@@ -184,7 +199,9 @@ final class Item {
                   unread: item.unread,
                   updatedDate: item.updatedDate,
                   url: item.url,
-                  thumbnailURL: itemImageUrl)
+                  thumbnailURL: itemImageUrl,
+                  image: imageData,
+                  thumbnail: thumbnailData)
     }
 
 }

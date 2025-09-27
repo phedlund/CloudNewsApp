@@ -98,13 +98,13 @@ platform :ios do
       code_sign_identity: "Apple Distribution: Peter Hedlund", # name of certificate included in the provisioning profile
       profile_name: profile_name,
       bundle_identifier: identifier,
-      build_configurations: ["Debug"] # the release build configuration
+      build_configurations: ["Release"] # the release build configuration
     )
 
     gym(
-      {{ workspace_parameter }} # workspace: "/path/to/workspace",
+      # {{ workspace_parameter }} # workspace: "/path/to/workspace",
       scheme: "CloudNews",
-      configuration: "Debug",
+      configuration: "Release",
       export_method: "app-store", # options are app-store, ad-hoc, package, enterprise, development, validation, developer-id and mac-application
       export_options: {
         provisioningProfiles: {

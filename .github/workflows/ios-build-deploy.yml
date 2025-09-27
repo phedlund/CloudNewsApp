@@ -25,9 +25,6 @@ jobs:
               with:
                   xcode-version: latest-stable
 
-            - name: Install package dependencies via cocoapods
-              run: pod install
-
             - name: Decode signing certificate into a file
               env:
                   CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
@@ -44,7 +41,7 @@ jobs:
                   SIGNING_KEY_FILE_PATH: signing-cert.p12
 
             - name: Upload ipa and dsyms to artifacts
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: app-store binary
                   path: |

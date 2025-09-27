@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 7/9/21.
 //
 
-import Kingfisher
 import SwiftData
 import SwiftUI
 
@@ -14,9 +13,6 @@ struct NodeView: View {
 
     let node: Node
 
-    @State private var isShowingConfirmation = false
-    @State private var favIcon: SystemImage?
-    @State private var title = "Untitled"
     @State private var unreadCount = 0
 
 #if os(iOS)
@@ -27,6 +23,8 @@ struct NodeView: View {
     let childrenPadding = 0.0
 #endif
 
+    @Query private var favIcons: [FavIcon]
+
     var body: some View {
         HStack {
             Label {
@@ -35,7 +33,7 @@ struct NodeView: View {
                         .lineLimit(1)
                     Spacer()
                     BadgeView(node: node, unreadCount: $unreadCount)
-                        .padding(.trailing, node.id.hasPrefix("cccc_") ? childrenPadding : noChildrenPadding)
+                        .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
             } icon: {
@@ -44,36 +42,10 @@ struct NodeView: View {
             .labelStyle(.titleAndIcon)
             Spacer()
         }
-        .confirmationDialog(
-            "Are you sure you want to delete \"\(node.title)\"?",
-            isPresented: $isShowingConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Yes", role: .destructive) {
-                withAnimation {
-//                   newsModel.delete(node)
-                }
-            }
-            .keyboardShortcut(.defaultAction)
-            Button("No", role: .cancel) { }
-        } message: {
-            switch node.type {
-            case .empty, .all, .starred:
-                EmptyView()
-            case .folder(_):
-                Text("All feeds and articles in \"\(node.title)\" will also be deleted")
-            case .feed(_):
-                Text("All articles in \"\(node.title)\" will also be deleted")
-            }
-        }
         .onChange(of: unreadCount, initial: true) { _, newValue in
             newsModel.unreadCounts[node.type] = newValue
         }
     }
-
-}
-
-private extension NodeView {
 
     var favIconView: some View {
         HStack {
@@ -81,24 +53,36 @@ private extension NodeView {
             case .all, .empty:
                 Image(.rss)
                     .font(.system(size: 18, weight: .light))
+            case .unread:
+                Image(systemName: "eye.slash")
             case .starred:
                 Image(systemName: "star.fill")
             case .folder( _):
                 Image(systemName: "folder")
-            case .feed( _):
-                KFImage(node.favIconURL)
-                    .placeholder {
-                        Image(.rss)
-                            .font(.system(size: 18, weight: .light))
-                    }
-                    .resizable()
-                    .frame(width: 22, height: 22)
+            case .feed(id: let id):
+                if let favicon = favIcons.first(where: { $0.id == id }),
+                   let data = favicon.icon,
+                   let uiImage = SystemImage(data: data) {
+#if os(macOS)
+                    Image(nsImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#else
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#endif
+                } else {
+                    Image(.rss)
+                        .font(.system(size: 18, weight: .light))
+                }
             }
         }
         .frame(width: 22, height: 22)
     }
 
 }
+
 //struct NodeView_Previews: PreviewProvider {
 //    static var previews: some View {
 //        NodeView()

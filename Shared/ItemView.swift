@@ -5,7 +5,6 @@
 //  Created by Peter Hedlund on 1/14/23.
 //
 
-import Kingfisher
 import SwiftData
 import SwiftUI
 
@@ -25,27 +24,35 @@ struct ItemView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @AppStorage(SettingKeys.compactView) private var compactView = false
-    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons: Bool?
+    @AppStorage(SettingKeys.showFavIcons) private var showFavIcons = true
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
 
     @State private var isHorizontalCompact = false
     @State private var thumbnailSize = CGSize.zero
     @State private var thumbnailOffset = CGFloat.zero
+    @State private var thumbnailImage: SystemImage?
+    @State private var faviconImage: SystemImage?
 
     private let item: Item
     private let cellSize: CGSize
+    private let faviconData: Data?
 
-    init(item: Item, size: CGSize) {
+    init(item: Item, size: CGSize, faviconData: Data?) {
         self.item = item
         self.cellSize = size
+        self.faviconData = faviconData
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .top, spacing: .zero) {
                 ZStack(alignment: .topLeading) {
-                    thumbnailView
-                        .padding(.top, compactView ? 1 : .zero)
+                    if showThumbnails {
+                        thumbnailView
+                            .padding(.top, compactView ? 1 : .zero)
+                    } else {
+                        EmptyView()
+                    }
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: .paddingSix) {
                             HStack {
@@ -73,33 +80,36 @@ struct ItemView: View {
         .listRowInsets(.none)
         .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
         .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
-        .onChange(of: compactView, initial: true) { _, newValue in
+        .onChange(of: compactView, initial: true) { _, _ in
             updateSizeAndOffset()
         }
-        .onChange(of: showThumbnails, initial: true) { _, newValue in
+        .onChange(of: showThumbnails, initial: true) { _, _ in
             updateSizeAndOffset()
         }
 #if os(iOS)
         .frame(width: cellSize.width, height: cellSize.height)
         .padding([.trailing], .paddingSix)
-        .background(in: RoundedRectangle(cornerRadius: 1.0))
-        .backgroundStyle(
-            Color.phWhiteCellBackground
-                .shadow(.drop(color: .init(.sRGBLinear, white: 0, opacity: 0.25), radius: 1, x: 0.75, y: 1))
-        )
+        .if(!item.unread && !item.starred) {
+            $0.opacity(0.4)
+        }
+        .background(Color.phWhiteCellBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay() {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(.black.opacity(0.15), lineWidth: 1)
+        }
         .overlay(alignment: .topTrailing) {
             if item.starred {
                 Image(systemName: "star.fill")
                     .padding([.top, .trailing],  .paddingSix)
             }
         }
-        .if(!item.unread && !item.starred) {
-            $0.opacity(0.4)
-        }
-        .task {
-            Task { @MainActor in
-                updateSizeAndOffset()
+        .onAppear {
+            updateSizeAndOffset()
+            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+                self.thumbnailImage = uiImage
             }
+            decodeFavicon()
         }
 #else
         .overlay(alignment: .topTrailing) {
@@ -109,12 +119,22 @@ struct ItemView: View {
             }
         }
         .opacity(item.unread ? 1.0 : 0.4 )
+        .task {
+            updateSizeAndOffset()
+            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
+                self.thumbnailImage = uiImage
+            }
+            decodeFavicon()
+        }
 #endif
 #if !os(macOS)
         .onChange(of: horizontalSizeClass) { _, newValue in
             isHorizontalCompact = newValue == .compact
         }
 #endif
+        .onChange(of: faviconData ?? Data()) { _, _ in
+            decodeFavicon()
+        }
     }
 }
 
@@ -148,15 +168,26 @@ private extension ItemView {
 #endif
                 .lineLimit(1)
         } icon: {
-            KFImage(item.feed?.favIconURL)
-                .placeholder {
+            if showFavIcons {
+                if let uiImage = faviconImage {
+#if os(macOS)
+                    Image(nsImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#else
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 22, height: 22)
+#endif
+                } else {
                     Image(.rss)
                         .font(.system(size: 18, weight: .light))
                 }
-                .resizable()
-                .frame(width: 22, height: 22)
+            } else {
+                EmptyView()
+            }
         }
-        .labelStyle(includeFavIcon: showFavIcons ?? true)
+        .labelStyle(.titleAndIcon)
     }
 
     @MainActor
@@ -181,17 +212,26 @@ private extension ItemView {
         .if(isHorizontalCompact) {
             $0.frame(height: thumbnailSize.height - 4)
         }
-//        .bodyFrame(active: isHorizontalCompact, height: thumbnailSize.height - 4)
     }
 
     @MainActor
     var thumbnailView: some View {
         VStack {
-            KFImage(item.thumbnailURL)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                .clipped()
+            if let thumbnailImage {
+#if os(macOS)
+                Image(nsImage: thumbnailImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                    .clipped()
+#else
+                Image(uiImage: thumbnailImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
+                    .clipped()
+#endif
+            }
         }
     }
 
@@ -216,6 +256,19 @@ private extension ItemView {
         }
     }
 
+    @MainActor
+    private func decodeFavicon() {
+        guard showFavIcons else {
+            faviconImage = nil
+            return
+        }
+        if let data = faviconData {
+            faviconImage = SystemImage(data: data)
+        } else {
+            faviconImage = nil
+        }
+    }
+
 }
 
 //struct ItemRow_Previews: PreviewProvider {
@@ -231,17 +284,6 @@ extension View {
             self.frame(height: height)
         } else {
             self
-        }
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func labelStyle(includeFavIcon: Bool) -> some View {
-        if includeFavIcon {
-            self.labelStyle(.titleAndIcon)
-        } else {
-            self.labelStyle(.titleOnly)
         }
     }
 }

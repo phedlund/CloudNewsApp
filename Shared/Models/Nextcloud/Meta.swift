@@ -55,7 +55,7 @@ struct Meta: Codable {
     var totalitems: String
     var itemsperpage: String
     
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case status
         case statuscode
         case message

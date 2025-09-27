@@ -13,7 +13,7 @@ struct Avatar: Codable {
     let data: String?
     let mime: String?
 
-    enum CodingKeys: String, CodingKey {
+    nonisolated enum CodingKeys: String, CodingKey {
         case data = "data"
         case mime = "mime"
     }

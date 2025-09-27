@@ -63,6 +63,7 @@ struct SettingsView: View {
     @AppStorage(SettingKeys.adBlock) var adBlock = true
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
     @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
+    @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @State private var isShowingMailView = false
     @State private var isShowingSheet = false
@@ -128,7 +129,6 @@ struct SettingsView: View {
             } header: {
                 Text("Syncing")
             }
-            .tint(nil)
             Section {
                 Toggle(isOn: $showFavIcons) {
                     Text("Show Favicons")
@@ -139,11 +139,12 @@ struct SettingsView: View {
             } header: {
                 Text("Images")
             }
-            .tint(nil)
             Section {
+#if !os(macOS)
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
+#endif
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }
@@ -160,7 +161,6 @@ struct SettingsView: View {
             } header: {
                 Text("Reading")
             }
-            .tint(nil)
             Section {
                 Picker(selection: $keepDuration) {
                     Text("1 month").tag(KeepDuration.one)
@@ -211,7 +211,7 @@ struct SettingsView: View {
             } header: {
                 Text("Support")
             }
-            .accentColor(.phWhiteIcon)
+            .tint(.accent)
 #endif
         }
         .formStyle(.grouped)
@@ -228,7 +228,7 @@ struct SettingsView: View {
                     AddView(selectedAdd: .feed)
                 }
             case .login:
-                LoginWebViewView()
+                LoginView()
             case .certificate:
                 if let host = URL(string: server)?.host {
                     NavigationView {
@@ -296,6 +296,7 @@ struct SettingsView: View {
                         productName = ""
                         productVersion = ""
                         isNewInstall = true
+                        selectedNode = nil
                         updateFooter()
                     } catch {
                         //
@@ -311,17 +312,13 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .loginComplete)) { _ in
             currentSettingsSheet = .login
             onDismiss()
-#if os(macOS)
-            NSApplication.shared.keyWindow?.close()
-#endif
         }
 #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("") {
+                Button(role: .confirm) {
                     dismiss()
                 }
-                .buttonStyle(XButton())
             }
         }
 #endif

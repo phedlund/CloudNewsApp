@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum DatabaseError {
+enum DatabaseError: Error {
     case generic(message: String)
     case itemsFailedImport
     case feedsFailedImport
@@ -19,9 +19,6 @@ enum DatabaseError {
     case folderErrorDeleting
     case nodeErrorDeleting
     case folderErrorMarkingExpanded
-}
-
-extension DatabaseError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
@@ -51,7 +48,7 @@ extension DatabaseError: LocalizedError {
     }
 }
 
-enum NetworkError {
+enum NetworkError: Error {
     case generic(message: String)
     case missingUrl
     case methodNotAllowed
@@ -69,9 +66,6 @@ enum NetworkError {
     case folderErrorRenaming
     case folderErrorDeleting
     case newsAppNeedsUpdate
-}
-
-extension NetworkError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {

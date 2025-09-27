@@ -1,0 +1,33 @@
+{
+  "originHash" : "e3c382c7d749a80ce0b176a0a35cce2c9bba4903aaf3c45c82aeccb9cdba0fe9",
+  "pins" : [
+    {
+      "identity" : "openssl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/OpenSSL",
+      "state" : {
+        "revision" : "623c84da314e85363236507ca38a4bde65df21c3",
+        "version" : "3.3.3001"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup",
+      "state" : {
+        "revision" : "dee225a3da7b68d34936abc4dc8f34f2264db647",
+        "version" : "2.9.6"
+      }
+    },
+    {
+      "identity" : "valet",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/square/Valet",
+      "state" : {
+        "revision" : "05c9e514fbd352a6866877ca31326b4e0b7d6d01",
+        "version" : "5.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

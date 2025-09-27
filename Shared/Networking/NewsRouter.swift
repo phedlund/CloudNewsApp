@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import KeychainAccess
 import SwiftUI
+import Valet
 
 public typealias ParameterDict = [String: Any]
 
@@ -27,8 +27,6 @@ enum UrlSessionMethod: String {
 enum StatusRouter {
     case status
 
-    static let applicationJson = "application/json"
-
     private var method: UrlSessionMethod {
         switch self {
         case .status:
@@ -36,14 +34,8 @@ enum StatusRouter {
         }
     }
 
-    private var credentials: String {
-        @KeychainStorage(SettingKeys.username) var username = ""
-        @KeychainStorage(SettingKeys.password) var password = ""
-        return Data("\(username):\(password)".utf8).base64EncodedString()
-    }
-
     private var basicAuthHeader: String {
-        return "Basic \(credentials)"
+        return ValetManager.shared.basicAuthHeader
     }
 
     // MARK: URLRequest
@@ -78,8 +70,8 @@ enum StatusRouter {
 
                 var urlRequest = URLRequest(url: url ?? URL(fileURLWithPath: "/"))
                 urlRequest.httpMethod = method.rawValue
-                urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
+                urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: Constants.Headers.authorization)
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.accept)
                 return urlRequest
             } else {
                 throw NetworkError.missingUrl
@@ -109,26 +101,24 @@ enum Router {
     case itemsRead(parameters: ParameterDict)
     case itemUnread(id: Int)
     case itemsUnread(parameters: ParameterDict)
-    case itemStarred(id: Int, guid: String)
+    case itemStarred(id: Int)
     case itemsStarred(parameters: ParameterDict)
-    case itemUnstarred(id: Int, guid: String)
+    case itemUnstarred(id: Int)
     case itemsUnstarred(parameters: ParameterDict)
     case allItemsRead
 
     case version
     case status
 
-    static let applicationJson = "application/json"
-
     private var method: UrlSessionMethod {
         switch self {
         case .feeds, .folders, .items, .updatedItems, .version, .status:
             return .get
-        case .addFeed, .addFolder:
+        case .addFeed, .addFolder, .itemsRead, .itemsUnread, .itemStarred, .itemUnstarred, .itemsStarred, .itemsUnstarred, .markFeedRead, .renameFeed, .moveFeed, .markFolderRead, .itemRead, .itemUnread, .allItemsRead:
             return .post
         case .deleteFeed, .deleteFolder:
             return .delete
-        case .moveFeed, .renameFeed, .markFeedRead, .renameFolder, .markFolderRead, .itemRead, .itemsRead, .itemUnread, .itemsUnread, .itemStarred,. itemsStarred, .itemUnstarred, .itemsUnstarred, .allItemsRead:
+        case .renameFolder:
             return .put
         }
     }
@@ -171,12 +161,12 @@ enum Router {
             return "/item/\(id)/unread"
         case .itemsUnread(_):
             return "/items/unread/multiple"
-        case .itemStarred(let id, let guid):
-            return "/item/\(id)/\(guid)/star"
+        case .itemStarred(let id):
+            return "/item/\(id)/star"
         case .itemsStarred(_):
             return "/items/star/multiple"
-        case .itemUnstarred(let id, let guid):
-            return "/item/\(id)/\(guid)/unstar"
+        case .itemUnstarred(let id):
+            return "/item/\(id)/unstar"
         case .itemsUnstarred(_):
             return "/items/unstar/multiple"
         case .allItemsRead:
@@ -188,14 +178,8 @@ enum Router {
         }
     }
 
-    private var credentials: String {
-        @KeychainStorage(SettingKeys.username) var username: String = ""
-        @KeychainStorage(SettingKeys.password) var password: String = ""
-        return Data("\(username):\(password)".utf8).base64EncodedString()
-    }
-
     private var basicAuthHeader: String {
-        return "Basic \(credentials)"
+        return ValetManager.shared.basicAuthHeader
     }
 
     // MARK: URLRequest
@@ -203,15 +187,15 @@ enum Router {
     func urlRequest() throws -> URLRequest {
         @AppStorage(SettingKeys.server) var server: String = ""
 
-        let baseURLString = "\(server)/index.php/apps/news/api/v1-2"
+        let baseURLString = "\(server)/index.php/apps/news/api/v1-3"
         let url = URL(string: baseURLString)! //FIX
 
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
         urlRequest.httpMethod = method.rawValue
         urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
         urlRequest.timeoutInterval = 20.0
-        urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: "Authorization")
-        urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Accept")
+        urlRequest.setValue(basicAuthHeader, forHTTPHeaderField: Constants.Headers.authorization)
+        urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.accept)
 
         switch self {
         case .folders, .feeds:
@@ -221,7 +205,7 @@ enum Router {
             let parameters = ["url": url, "folderId": folder == 0 ? NSNull() : folder] as [String : Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
         case .deleteFeed(_):
             break
@@ -230,21 +214,21 @@ enum Router {
             let parameters = ["folderId": folder == 0 ? NSNull() : folder] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .renameFeed( _, let name):
             let parameters = ["feedTitle": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .addFolder(let name):
             let parameters = ["name": name]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
         case .deleteFolder( _):
             break
@@ -253,7 +237,7 @@ enum Router {
             let parameters = ["name": name] as [String: Any]
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
         case .items(let parameters), .updatedItems(let parameters):
@@ -266,13 +250,13 @@ enum Router {
                 urlRequest.url = components?.url
             }
 
-        case .itemsRead(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
+        case .itemsRead(let parameters), .itemsUnread(let parameters), .itemsStarred(let parameters), .itemsUnstarred(let parameters):
             if let body = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
                 urlRequest.httpBody = body
-                urlRequest.setValue(Router.applicationJson, forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue(Constants.Headers.contentTypeJson, forHTTPHeaderField: Constants.Headers.contentType)
             }
 
-        case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemsUnread, .itemStarred, .itemUnstarred, .allItemsRead:
+        case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemStarred, .itemUnstarred, .allItemsRead:
             break
         }
 

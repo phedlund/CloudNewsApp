@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-#if os(macOS)
 struct AppCommands: Commands {
     @Environment(\.openWindow) var openWindow
     let newsModel: NewsModel
@@ -18,51 +17,100 @@ struct AppCommands: Commands {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
+    @Binding var isShowingAddFeed: Bool
+    @Binding var isShowingFeedSettings: Bool
+    @Binding var isShowingAddFolder: Bool
+    @Binding var isShowingAcknowledgements: Bool
+
     @CommandsBuilder var body: some Commands {
         SidebarCommands()
-        CommandGroup(replacing: CommandGroupPlacement.newItem) {
-            EmptyView()
-        }
         CommandGroup(after: .sidebar) {
             Divider()
             MarkReadButton()
                 .environment(newsModel)
             Divider()
-            Button("Refresh") {
+            Button {
                 NotificationCenter.default.post(name: .syncNews, object: nil)
+            } label: {
+                Label {
+                    Text("Refresh")
+                } icon: {
+                    Image(systemName: "arrow.clockwise")
+                }
             }
             .keyboardShortcut("r")
             Divider()
         }
         CommandMenu("Folder") {
-            Button("New Folder...") {
+            Button {
+#if os(macOS)
                 openWindow(id: ModalSheet.addFolder.rawValue)
+#else
+                isShowingAddFolder.toggle()
+#endif
+            } label: {
+                Label {
+                    Text("New Folder...")
+                } icon: {
+                    Image(systemName: "folder.badge.plus")
+                }
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
             Divider()
-            Button("Rename...") {
+            Button {
                 NotificationCenter.default.post(name: .renameFolder, object: nil)
+            } label: {
+                Label {
+                    Text("Rename...")
+                } icon: {
+                    Image(systemName: "folder.badge.gearshape")
+                }
             }
             .disabled(isFolderRenameDisabled())
             Divider()
-            Button("Delete Folder...") {
+            Button {
                 NotificationCenter.default.post(name: .deleteFolder, object: nil)
+            } label: {
+                Label {
+                    Text("Delete Folder...")
+                } icon: {
+                    Image(systemName: "folder.badge.minus")
+                }
             }
-            .keyboardShortcut(.delete)
             .disabled(isFolderRenameDisabled())
         }
         CommandMenu("Feed") {
-            Button("New Feed...") {
+            Button {
+#if os(macOS)
                 openWindow(id: ModalSheet.addFeed.rawValue)
+#else
+                isShowingAddFeed.toggle()
+#endif
+            } label: {
+                Label {
+                    Text("New Feed...")
+                } icon: {
+                    Image(systemName: "document.badge.plus")
+                }
             }
             .keyboardShortcut("n")
             Divider()
-            Button("Settings...") {
+            Button {
                 switch newsModel.currentNodeType {
-                case .empty, .all, .starred, .folder(id: _):
+                case .empty, .all, .unread, .starred, .folder(id: _):
                     break
                 case .feed(id: _):
+#if os(macOS)
                     openWindow(id: ModalSheet.feedSettings.rawValue)
+#else
+                    isShowingFeedSettings.toggle()
+#endif
+                }
+            } label: {
+                Label {
+                    Text("Feed Settings...")
+                } icon: {
+                    Image(systemName: "document.badge.gearshape")
                 }
             }
             .disabled(isFeedSettingsDisabled())
@@ -70,41 +118,78 @@ struct AppCommands: Commands {
             Button {
                 NotificationCenter.default.post(name: .deleteFeed, object: nil)
             } label: {
-                Text("Delete Feed...")
+                Label {
+                    Text("Delete Feed...")
+                } icon: {
+                    Image(systemName: "delete.left")
+                }
             }
-            .keyboardShortcut(.delete)
             .disabled(isFeedSettingsDisabled())
         }
         CommandMenu("Article") {
-            Button("Previous") {
+            Button {
                 NotificationCenter.default.post(name: .previousArticle, object: nil)
+            } label: {
+                Label {
+                    Text("Previous")
+                } icon: {
+                    Image(systemName: "arrow.backward")
+                }
             }
             .keyboardShortcut("p", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
-            Button("Next") {
+            Button {
                 NotificationCenter.default.post(name: .nextArticle, object: nil)
+            } label: {
+                Label {
+                    Text("Next")
+                } icon: {
+                    Image(systemName: "arrow.forward")
+                }
             }
             .keyboardShortcut("n", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
-            Button(newsModel.currentItem?.unread ?? false ? "Read" : "Unread") {
+            Button {
                 Task {
-                    newsModel.toggleCurrentItemRead()
+                    await newsModel.toggleCurrentItemRead()
+                }
+            } label: {
+                Label {
+                    Text(newsModel.currentItem?.unread ?? false ? "Read" : "Unread")
+                } icon: {
+                    Image(systemName: newsModel.currentItem?.unread ?? false ? "eye" : "eye.slash")
                 }
             }
             .keyboardShortcut("u", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
-            Button(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star") {
+            Button {
                 Task {
-                    try? await newsModel.markCurrentItemStarred()
+                    try? await newsModel.toggleCurrentItemStarred()
+                }
+            } label: {
+                Label {
+                    Text(newsModel.currentItem?.starred ?? false ? "Unstar" : "Star")
+                } icon: {
+                    Image(systemName: newsModel.currentItem?.starred ?? false ? "star" : "star.fill")
                 }
             }
             .keyboardShortcut("s", modifiers: [.control])
             .disabled(isCurrentItemDisabled())
             Divider()
-            Button("Copy Link") {
+            Button {
                 if let urlString = newsModel.currentItem?.url, let url = URL(string: urlString) {
+#if os(macOS)
                     MacClipboard.set(url: url)
+#else
+                    UIPasteboard.general.url = url
+#endif
+                }
+            } label: {
+                Label {
+                    Text("Copy Link")
+                } icon: {
+                    Image(systemName: "link")
                 }
             }
             .keyboardShortcut("c", modifiers: [.command, .option])
@@ -173,7 +258,7 @@ struct AppCommands: Commands {
                 }
             }
         }
-        CommandGroup(after: .help) {
+        CommandGroup(replacing: .help) {
             Divider()
             Link(destination: supportURL) {
                 Label("Contact", systemImage: "mail")
@@ -182,8 +267,14 @@ struct AppCommands: Commands {
                 Label("Web Site", systemImage: "link")
             }
             Divider()
-            Button("Acknowledgements...") {
+            Button {
                 openWindow(id: ModalSheet.acknowledgement.rawValue)
+            } label: {
+                Label {
+                    Text("Acknowledgements...")
+                } icon: {
+                    Image(systemName: "hand.thumbsup")
+                }
             }
         }
     }
@@ -204,7 +295,7 @@ struct AppCommands: Commands {
 
     private func isFolderRenameDisabled() -> Bool {
         switch newsModel.currentNodeType {
-        case .empty, .all, .starred, .feed(id: _):
+        case .empty, .all, .unread, .starred, .feed(id: _):
             return true
         case .folder(id: _):
             return false
@@ -213,7 +304,7 @@ struct AppCommands: Commands {
 
     private func isFeedSettingsDisabled() -> Bool {
         switch newsModel.currentNodeType {
-        case .empty, .all, .starred, .folder(id: _):
+        case .empty, .all, .unread, .starred, .folder(id: _):
             return true
         case .feed(id: _):
             return false
@@ -235,6 +326,7 @@ struct AppCommands: Commands {
 
 }
 
+#if os(macOS)
 public class MacClipboard {
     public static func set(text: String?) {
         if let text {
@@ -266,5 +358,4 @@ public class MacClipboard {
         NSPasteboard.general.clearContents()
     }
 }
-
 #endif

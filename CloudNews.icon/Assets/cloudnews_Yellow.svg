@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.0"
+   id="svg2"
+   height="431.74338"
+   width="431.74338"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94"
+       id="linearGradient8970">
+      <stop
+         style="stop-color:#e3d42d;stop-opacity:1;"
+         offset="0"
+         stop-color="#808080"
+         id="stop8972" />
+      <stop
+         style="stop-color:#eadf32;stop-opacity:1;"
+         offset="0.27849999"
+         stop-color="#929292"
+         id="stop8974" />
+      <stop
+         style="stop-color:#eff636;stop-opacity:1;"
+         offset="0.5"
+         stop-color="#9B9B9B"
+         id="stop8976" />
+      <stop
+         id="stop6696"
+         stop-color="#9B9B9B"
+         offset="0.54355001"
+         style="stop-color:#edf83c;stop-opacity:1;" />
+      <stop
+         style="stop-color:#edeb31;stop-opacity:1;"
+         offset="0.58710003"
+         stop-color="#919191"
+         id="stop8978" />
+      <stop
+         style="stop-color:#dec62a;stop-opacity:1;"
+         offset="0.8427"
+         stop-color="#797979"
+         id="stop8980" />
+      <stop
+         style="stop-color:#d9ba29;stop-opacity:1;"
+         offset="1"
+         stop-color="#707070"
+         id="stop8982" />
+    </linearGradient>
+    <foreignObject
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       id="foreignObject7" />
+    <foreignObject
+       id="foreignObject7-0"
+       height="1"
+       width="1"
+       y="0"
+       x="0"
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/" />
+    <linearGradient
+       xlink:href="#linearGradient8970"
+       id="linearGradient6714"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.3671875,0,0,1.3671875,-20.719291,187.01571)"
+       x1="30.059999"
+       y1="30.059999"
+       x2="225.94"
+       y2="225.94" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(-135.01345,37.721204)"
+     style="display:inline">
+    <rect
+       transform="rotate(-40)"
+       style="fill:#d9ba29;fill-opacity:1"
+       width="350"
+       height="350"
+       rx="75.195312"
+       ry="75.195312"
+       x="-20.719315"
+       y="187.01581"
+       id="rect8863" />
+    <rect
+       transform="rotate(-40)"
+       style="fill:#ebf452;fill-opacity:1"
+       width="336.32809"
+       height="336.32809"
+       rx="68.359375"
+       ry="68.359375"
+       x="-13.883377"
+       y="193.85175"
+       id="rect8865" />
+    <rect
+       transform="rotate(-40)"
+       style="fill:url(#linearGradient6714)"
+       width="322.65625"
+       height="322.65625"
+       rx="64.257805"
+       ry="64.257805"
+       x="-7.0474396"
+       y="200.68752"
+       id="rect8867" />
+    <circle
+       style="fill:#ffffff;stroke-width:1.36719"
+       cx="67.464287"
+       cy="448.83212"
+       r="32.8125"
+       id="circle8871"
+       transform="rotate(-39.999999)" />
+    <path
+       style="fill:#ffffff;stroke-width:1.22817"
+       d="m 457.62985,244.74537 -35.60909,29.87958 A 112.10937,112.10937 0 0 0 264.07748,260.80671 L 234.1979,225.19762 a 158.59375,158.59375 0 0 1 223.43195,19.54775 z"
+       id="path8873" />
+    <path
+       style="fill:#ffffff;stroke-width:1.22817"
+       d="M 482.76569,223.6539 A 191.40625,191.40625 0 0 0 213.10643,200.06179 l -30.75839,-36.65643 a 239.2578,239.2578 0 0 1 337.07407,29.49015 z"
+       id="path8875" />
+  </g>
+</svg>

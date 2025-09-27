@@ -5,7 +5,7 @@
 //  Created by Peter Hedlund on 12/3/22.
 //
 
-import Combine
+import OSLog
 import SwiftData
 import SwiftUI
 
@@ -28,41 +28,96 @@ struct ItemsListView: View {
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
+    @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
+    @AppStorage(SettingKeys.hideRead) private var hideRead = false
+    @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
+    @AppStorage(SettingKeys.isNewInstall) private var isNewInstall = true
 
-    @Query private var items: [Item]
-
-    @State private var path = [Item]()
+    @State private var fetchDescriptor = FetchDescriptor<Item>()
+    @State private var items = [Item]()
     @State private var scrollToTop = false
     @State private var cellHeight: CGFloat = .defaultCellHeight
     @State private var lastOffset: CGFloat = .zero
     @State private var isScrollingToTop = false
-    @State private var sortDescriptors: [SortDescriptor<Item>]
+    @State private var favIconDataByFeedId = [Int64: Data]()
+    @State private var navigatedBack = false
 
     @Binding var selectedItem: Item?
 
-    let fetchDescriptor: FetchDescriptor<Item>
+    @Query private var feeds: [Feed]
 
-    init(fetchDescriptor: FetchDescriptor<Item>, selectedItem: Binding<Item?>) {
+    init(selectedItem: Binding<Item?>) {
         self._selectedItem = selectedItem
-        sortDescriptors = fetchDescriptor.sortBy
-        self.fetchDescriptor = fetchDescriptor
-        _items = Query(fetchDescriptor)
     }
 
     var body: some View {
         let _ = Self._printChanges()
+        @Bindable var bindable = newsModel
         GeometryReader { geometry in
 #if os(macOS)
             let cellWidth = CGFloat.infinity
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
             List(items, selection: $selectedItem) { item in
                 NavigationLink(value: item) {
-                    ItemView(item: item, size: cellSize)
+                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
                         .id(item.id)
                         .frame(height: cellHeight, alignment: .center)
                         .contextMenu {
                             contextMenu(item: item)
                         }
+                }
+            }
+            .onChange(of: bindable.navigationItemId) { _, newId in
+                Logger.app.debug("Getting new item: \(newId)")
+                if newId > 0,
+                   let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                    selectedItem = item
+                    bindable.navigationItemId = 0
+                }
+            }
+            .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+                guard oldNode != newNode else {
+                    return
+                }
+                updateFetchDescriptor()
+            }
+            .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
+                cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
+            }
+            .onChange(of: hideRead, initial: true) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
+                updateFetchDescriptor()
+            }
+            .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
+                updateFetchDescriptor()
+            }
+            .onChange(of: isNewInstall) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
+                updateFetchDescriptor()
+            }
+            .onChange(of: syncManager.syncState) { _, newValue in
+                if newValue == .idle {
+                    do {
+                        items = try modelContext.fetch(fetchDescriptor)
+                        refreshFavicons(for: items)
+                    } catch {
+                        //
+                    }
+                    doScrollToTop()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+                do {
+                    items = try modelContext.fetch(fetchDescriptor)
+                } catch {
+                    //
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .previousArticle)) { _ in
@@ -81,17 +136,20 @@ struct ItemsListView: View {
                 nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
                 $selectedItem.wrappedValue = items[nextIndex]
             }
+            .task {
+                updateFetchDescriptor()
+            }
 #else
             let cellWidth = min(geometry.size.width * 0.93, 700.0)
             let cellSize = CGSize(width: cellWidth, height: cellHeight)
-            ListGroup(path: $path) {
+            NavigationStack(path: $bindable.itemNavigationPath) {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
                         LazyVStack(alignment: .center, spacing: 16.0) {
                             ForEach(items, id: \.id) { item in
                                 NavigationLink(value: item) {
-                                    ItemView(item: item, size: cellSize)
+                                    ItemView(item: item, size: cellSize, faviconData: favIconDataByFeedId[item.feedId])
                                         .id(item.id)
                                         .contextMenu {
                                             contextMenu(item: item)
@@ -100,39 +158,106 @@ struct ItemsListView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .newsNavigationDestination(type: Item.self, items: items)
-                        .onChange(of: selectedNode) { _, _ in
-                            path.removeAll()
+                        .navigationDestination(for: Item.self) { item in
+                            ArticlesPageView(itemId: item.id, items: items)
+                                .environment(newsModel)
+                        }
+                        .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
+                            if newPath.count < oldPath.count {
+                                navigatedBack = true
+                            }
+                        }
+                        .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+                            guard newNode != oldNode else {
+                                return
+                            }
+                            bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                            updateFetchDescriptor()
                             doScrollToTop()
                         }
                         .onChange(of: scenePhase) { _, newPhase in
                             if newPhase == .active {
+                                if bindable.navigationItemId > 0,
+                                    let item = items.first(where: { $0.id == bindable.navigationItemId }) {
+                                    bindable.itemNavigationPath.removeLast(bindable.itemNavigationPath.count)
+                                    bindable.itemNavigationPath.append(item)
+                                    bindable.navigationItemId = 0
+                                    doScrollToTop()
+                                }
+                                do {
+                                    items = try modelContext.fetch(fetchDescriptor)
+                                    refreshFavicons(for: items)
+                                    if let firstItem = items.first, firstItem.unread {
+                                        doScrollToTop()
+                                    }
+                                } catch {
+                                    //
+                                }
+                                if didSyncInBackground {
+                                    didSyncInBackground = false
+                                    doScrollToTop()
+                                }
+                            }
+                        }
+                        .onChange(of: syncManager.syncState) { _, newValue in
+                            if newValue == .idle {
+                                do {
+                                    items = try modelContext.fetch(fetchDescriptor)
+                                    refreshFavicons(for: items)
+                                } catch {
+                                    //
+                                }
                                 doScrollToTop()
                             }
                         }
-                        .onChange(of: syncManager.syncManagerReader.isSyncing) { _, newValue in
-                            if newValue == false {
-                                doScrollToTop()
-                            }
+                        .onChange(of: compactView, initial: true) { _, newValue in
+                            cellHeight = newValue == true ? .compactCellHeight : .defaultCellHeight
                         }
-                        .onChange(of: $compactView.wrappedValue, initial: true) { _, newValue in
-                            cellHeight = newValue ? .compactCellHeight : .defaultCellHeight
+                        .onChange(of: hideRead, initial: true) { oldValue, newValue in
+                            guard oldValue != newValue else {
+                                return
+                            }
+                            updateFetchDescriptor()
+                        }
+                        .onChange(of: sortOldestFirst, initial: true) { oldValue, newValue in
+                            guard oldValue != newValue else {
+                                return
+                            }
+                            updateFetchDescriptor()
+                        }
+                        .onChange(of: isNewInstall) { _, _ in
+                            updateFetchDescriptor()
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .articlesUpdated)) { _ in
+                            do {
+                                items = try modelContext.fetch(fetchDescriptor)
+                            } catch {
+                                //
+                            }
                         }
                     }
                     .onScrollPhaseChange { _, newPhase, context in
                         if newPhase == .idle {
                             Task {
-                                try? markRead(context.geometry.contentOffset.y)
+                                try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
                             }
                         }
                     }
                     .defaultScrollAnchor(.top)
-                    .accentColor(.phDarkIcon)
                     .background {
-                        Color.phWhiteBackground
+                        Color.gray
+                            .opacity(0.10)
                             .ignoresSafeArea(edges: .vertical)
                     }
                     .scrollContentBackground(.hidden)
+                }
+            }
+            .navigationSubtitle(Text("\(items.count) articles"))
+            .task {
+                if navigatedBack == true {
+                    navigatedBack = false
+                } else {
+                    updateFetchDescriptor()
                 }
             }
 #endif
@@ -150,7 +275,9 @@ struct ItemsListView: View {
     @ViewBuilder
     private func contextMenu(item: Item) -> some View {
         Button {
-            newsModel.toggleItemRead(item: item)
+            Task {
+                await newsModel.toggleItemRead(item: item)
+            }
         } label: {
             Label {
                 Text(item.unread ? "Read" : "Unread")
@@ -160,7 +287,7 @@ struct ItemsListView: View {
         }
         Button {
             Task {
-                try? await newsModel.markStarred(item: item, starred: !item.starred)
+                await newsModel.toggleItemStarred(item: item)
             }
         } label: {
             Label {
@@ -171,46 +298,88 @@ struct ItemsListView: View {
         }
     }
 
-    private func markRead(_ offset: CGFloat) throws {
+    private func markRead(_ offset: CGFloat) async throws {
         guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
             return
         }
         if markReadWhileScrolling {
-            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)) - 1, 0))
+            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
             if numberOfItems > 0 {
-                let itemsToMarkRead = try modelContext.fetch(fetchDescriptor)
+                let itemsToMarkRead = items
                     .prefix(numberOfItems)
                     .filter( { $0.unread == true } )
-                newsModel.markItemsRead(items: Array(itemsToMarkRead))
+                await newsModel.markItemsRead(items: Array(itemsToMarkRead))
             }
         }
         lastOffset = offset
     }
 
-}
-
-struct NavigationDestinationModifier: ViewModifier {
-    @Environment(NewsModel.self) private var newsModel
-    let type: Item.Type
-    let items: [Item]
-
-    @ViewBuilder func body(content: Content) -> some View {
-#if os(iOS)
-        content
-            .navigationDestination(for: type) { item in
-                ArticlesPageView(item: item, items: items)
-                    .environment(newsModel)
+    private func updateFetchDescriptor() {
+        if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+            fetchDescriptor.sortBy = sortOldestFirst ? [SortDescriptor(\Item.id, order: .forward)] : [SortDescriptor(\Item.id, order: .reverse)]
+            switch nodeType {
+            case .empty:
+                fetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+            case .all:
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return $0.unread
+                    } else {
+                        return true
+                    }
+                }
+            case .unread:
+                fetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+            case .starred:
+                fetchDescriptor.predicate = #Predicate<Item>{ $0.starred }
+            case .folder(id:  let id):
+                let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return feedIds.contains($0.feedId) && $0.unread
+                    } else {
+                        return feedIds.contains($0.feedId)
+                    }
+                }
+            case .feed(id: let id):
+                fetchDescriptor.predicate = #Predicate<Item>{
+                    if hideRead {
+                        return $0.feedId == id && $0.unread
+                    } else {
+                        return $0.feedId == id
+                    }
+                }
             }
-#else
-        content
-#endif
+            do {
+                items = try modelContext.fetch(fetchDescriptor)
+                refreshFavicons(for: items)
+            } catch {
+                //
+            }
+        }
     }
-}
 
-extension View {
-    func newsNavigationDestination(type: Item.Type, items: [Item]) -> some View {
-        modifier(NavigationDestinationModifier(type: Item.self, items: items))
+    private func refreshFavicons(for items: [Item]) {
+        let feedIds = Set(items.map { $0.feedId })
+        guard !feedIds.isEmpty else {
+            favIconDataByFeedId.removeAll()
+            return
+        }
+        let descriptor = FetchDescriptor<FavIcon>(predicate: #Predicate<FavIcon> { feedIds.contains($0.id) })
+        do {
+            let favIcons = try modelContext.fetch(descriptor)
+            var favIconDict = [Int64: Data]()
+            for favIcon in favIcons {
+                if let data = favIcon.icon {
+                    favIconDict[favIcon.id] = data
+                }
+            }
+            favIconDataByFeedId = favIconDict
+        } catch {
+            favIconDataByFeedId.removeAll()
+        }
     }
+
 }
 
 struct ScrollToTopView: View {

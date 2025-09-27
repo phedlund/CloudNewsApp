@@ -85,7 +85,6 @@ public struct SharedDatabase {
     public let database: NewsDatabase
 
     private init(modelContainer: ModelContainer? = nil, database: (any NewsDatabase)? = nil) {
-        //        self.schemas = newsSchema
         let modelContainer = try! ModelContainer(for: schema)
         self.modelContainer = modelContainer
         self.database = database ?? BackgroundNewsDatabase(modelContainer: modelContainer)
@@ -146,9 +145,7 @@ final public class BackgroundNewsDatabase: NewsDatabase {
         return try await self.database.fetch(descriptor)
     }
 
-    public func insert(_ model: some PersistentModel) async {
-        //      return await self.database.insert(model)
-    }
+    public func insert(_ model: some PersistentModel) async { }
 
     public func save() async throws {
         return try await self.database.save()

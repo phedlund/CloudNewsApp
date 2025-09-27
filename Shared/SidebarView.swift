@@ -60,85 +60,97 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        if isShowingError {
-            HStack {
-                Spacer(minLength: 10.0)
+        Group {
+            if isShowingError {
                 HStack {
-                    Text(errorMessage)
-                        .colorInvert()
-                    Spacer()
-                    Button {
-                        isShowingError = false
-                    } label: {
-                        Text("Dismiss")
+                    Spacer(minLength: 10.0)
+                    HStack {
+                        Text(errorMessage)
+                            .colorInvert()
+                        Spacer()
+                        Button {
+                            isShowingError = false
+                        } label: {
+                            Text("Dismiss")
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.all, 10.0)
+                    .background(Color.red.opacity(0.95))
+                    .cornerRadius(6.0)
+                    .transition(.move(edge: .top))
+                    Spacer(minLength: 10.0)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.all, 10.0)
-                .background(Color.red.opacity(0.95))
-                .cornerRadius(6.0)
-                .transition(.move(edge: .top))
-                Spacer(minLength: 10.0)
             }
-        }
-        List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
-            NodeView(node: node)
-                .environment(newsModel)
-                .tag(node.type.asData)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    nodeSelection = node.type.asData
+            if nodes.isEmpty {
+                ContentUnavailableView {
+                    Label("No Feeds Available", image: .rss)
+                } description: {
+                    Text("Tap the sync button \(Image(systemName: "arrow.clockwise")) to download your feeds. Then select a feed from the sidebar to show its articles.")
                 }
-                .contextMenu {
-                    contextMenu(node: node)
-                }
-                .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
-                    Button(role: .destructive) {
-                        switch detail.type {
-                        case .all, .empty, .starred:
-                            break
-                        case .feed(id: _),  .folder(id: _):
-                            Task {
-                                do {
-                                    try await newsModel.delete(detail)
-                                } catch let error as NetworkError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error as DatabaseError {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
-                                } catch let error {
-                                    errorMessage = error.localizedDescription
-                                    isShowingError = true
+            } else {
+                List(nodes, id: \.id, children: \.wrappedChildren, selection: $nodeSelection) { node in
+                    NodeView(node: node)
+                        .environment(newsModel)
+                        .tag(node.type.asData)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            nodeSelection = node.type.asData
+                        }
+                        .contextMenu {
+                            contextMenu(node: node)
+                        }
+                        .confirmationDialog("Delete?", isPresented: $isShowingConfirmation, presenting: confirmationNode) { detail in
+                            Button(role: .destructive) {
+                                switch detail.type {
+                                case .all, .empty, .unread, .starred:
+                                    break
+                                case .feed(id: _),  .folder(id: _):
+                                    Task {
+                                        do {
+                                            try await newsModel.delete(detail)
+                                        } catch let error as NetworkError {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        } catch let error as DatabaseError {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        } catch let error {
+                                            errorMessage = error.localizedDescription
+                                            isShowingError = true
+                                        }
+                                    }
                                 }
+                            } label: {
+                                Text("Delete \(detail.title)")
+                            }
+                            Button("Cancel", role: .cancel) {
+                                confirmationNode = nil
+                            }
+                        } message: { detail in
+                            switch detail.type {
+                            case .all, .empty, .unread, .starred:
+                                EmptyView()
+                            case .feed(id: _):
+                                Text("This will delete the feed \(detail.title)")
+                            case .folder(id: _):
+                                Text("This will delete the folder \(detail.title) and all its feeds")
                             }
                         }
-                    } label: {
-                        Text("Delete \(detail.title)")
-                    }
-                    Button("Cancel", role: .cancel) {
-                        confirmationNode = nil
-                    }
-                } message: { detail in
-                    switch detail.type {
-                    case .all, .empty, .starred:
-                        EmptyView()
-                    case .feed(id: _):
-                        Text("This will delete the feed \(detail.title)")
-                    case .folder(id: _):
-                        Text("This will delete the folder \(detail.title) and all its feeds")
-                    }
                 }
-        }
-        .listStyle(.automatic)
-        .refreshable {
-            sync()
+                .listStyle(.automatic)
+                .refreshable {
+                    sync()
+                }
+            }
         }
 #if os(macOS)
         .navigationSplitViewColumnWidth(min: 200, ideal: 300, max: 400)
 #endif
-        .toolbar(content: sidebarToolBarContent)
+        .toolbar {
+            sidebarToolBarContent()
+        }
 #if os(macOS)
         .onReceive(syncTimer) { _ in
             if syncInterval.rawValue > .zero {
@@ -150,6 +162,7 @@ struct SidebarView: View {
         }
 #endif
         .navigationTitle(Text("Feeds"))
+        .navigationSubtitle(syncManager.syncState.description)
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
         }, content: { sheet in
@@ -159,7 +172,6 @@ struct SidebarView: View {
                     SettingsView()
                         .environment(newsModel)
                 }
-                .tint(.accent)
             case .feedSettings:
                 NavigationView {
                     FeedSettingsView()
@@ -178,7 +190,7 @@ struct SidebarView: View {
             TextField("Title", text: $alertInput)
             Button("Rename") {
                 switch newsModel.currentNodeType {
-                case .empty, .all, .starred, .feed( _):
+                case .empty, .all, .unread, .starred, .feed( _):
                     break
                 case .folder(let id):
                     Task {
@@ -196,7 +208,7 @@ struct SidebarView: View {
         })
         .onReceive(NotificationCenter.default.publisher(for: .renameFolder)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .feed( _):
+            case .empty, .all, .unread, .starred, .feed( _):
                 break
             case .folder(let id):
                 Task {
@@ -208,7 +220,7 @@ struct SidebarView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFolder)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .feed( _):
+            case .empty, .all, .unread, .starred, .feed( _):
                 break
             case .folder(let id):
                 if let node = nodes.first(where: { $0.type == .folder(id: id) }) {
@@ -219,7 +231,7 @@ struct SidebarView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .deleteFeed)) { _ in
             switch newsModel.currentNodeType {
-            case .empty, .all, .starred, .folder( _):
+            case .empty, .all, .unread, .starred, .folder( _):
                 break
             case .feed(let id):
                 if let node = nodes.first(where: { $0.type == .feed(id: id) }) {
@@ -240,7 +252,7 @@ struct SidebarView: View {
                 try await newsModel.renameFolder(folderId: folderId, to: newName)
                 node.title = newName
                 folder.name = newName
-                try await newsModel.databaseActor.save()
+                try modelContext.save()
             } catch let error as NetworkError {
                 errorMessage = error.localizedDescription
                 isShowingError = true
@@ -256,7 +268,7 @@ struct SidebarView: View {
 
     private func folderForNodeType(_ nodeType: NodeType) -> Folder? {
         switch nodeType {
-        case .empty, .all, .starred, .feed(_):
+        case .empty, .all, .unread, .starred, .feed(_):
             return nil
         case .folder(let id):
             return folders.first(where: { $0.id == id })
@@ -268,11 +280,11 @@ struct SidebarView: View {
         switch node.type {
         case .empty, .starred:
             EmptyView()
-        case .all:
-            MarkReadButton()
+        case .all, .unread:
+            MarkReadButton(nodeType: node.type)
                 .environment(newsModel)
         case .folder( _):
-            MarkReadButton()
+            MarkReadButton(nodeType: node.type)
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
@@ -289,7 +301,7 @@ struct SidebarView: View {
                 Label("Delete...", systemImage: "trash")
             }
         case .feed( _):
-            MarkReadButton()
+            MarkReadButton(nodeType: node.type)
                 .environment(newsModel)
             Button {
                 nodeSelection = node.type.asData
@@ -316,26 +328,19 @@ struct SidebarView: View {
         ToolbarItemGroup(placement: .primaryAction) {
 #if os(macOS)
             Spacer()
-            ProgressView()
-                .progressViewStyle(.circular)
-                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
-                .controlSize(.small)
+            if syncManager.syncState != .idle {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+            }
+#endif
             Button {
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
-#else
-            ProgressView()
-                .progressViewStyle(.circular)
-                .opacity(syncManager.syncManagerReader.isSyncing ? 1.0 : 0.0)
-            Button {
-                sync()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .disabled(syncManager.syncManagerReader.isSyncing || isNewInstall)
+            .disabled(syncManager.syncState != .idle || isNewInstall)
+#if !os(macOS)
             Button {
                 modalSheet = .settings
             } label: {
@@ -350,7 +355,7 @@ struct SidebarView: View {
         switch node.type {
         case .empty, .starred:
             result.predicate = #Predicate<Item>{ _ in false }
-        case .all:
+        case .all, .unread:
             result.predicate = #Predicate<Item>{ $0.unread }
         case .folder(id: let id):
             let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )

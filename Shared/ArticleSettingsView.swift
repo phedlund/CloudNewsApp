@@ -13,7 +13,7 @@ struct ArticleSettingsView: View {
     @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
     @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
 
-    let item: Item
+    @State private var item: Item?
 
     private let buttonHeight = 25.0
     private let buttonWidth = 100.0
@@ -21,20 +21,17 @@ struct ArticleSettingsView: View {
     var body: some View {
         Grid(alignment: .center, horizontalSpacing: 15, verticalSpacing: 20) {
             GridRow {
-                let itemCopy = item
-                let isUnRead = itemCopy.unread
-                let isStarred = itemCopy.starred
                 Button {
                     Task {
-                        item.unread.toggle()
-                        try await newsModel.databaseActor.save()
-                        try? await newsModel.markRead(items: [itemCopy], unread: !isUnRead)
+                        if let item {
+                            await newsModel.toggleItemRead(item: item)
+                        }
                     }
                 } label: {
                     Label {
-                        Text(isUnRead ? "Read" : "Unread")
+                        Text(item?.unread ?? true ? "Read" : "Unread")
                     } icon: {
-                        Image(systemName: isUnRead ? "eye" : "eye.slash")
+                        Image(systemName: item?.unread ?? true ? "eye" : "eye.slash")
                             .imageScale(.large)
                     }
                     .labelStyle(.iconOnly)
@@ -43,13 +40,15 @@ struct ArticleSettingsView: View {
                 }
                 Button {
                     Task {
-                        try? await newsModel.markStarred(item: itemCopy, starred: !isStarred)
+                        if let item {
+                            await newsModel.toggleItemStarred(item: item)
+                        }
                     }
                 } label: {
                     Label {
-                        Text(isStarred ? "Unstar" : "Star")
+                        Text(item?.starred ?? true ? "Unstar" : "Star")
                     } icon: {
-                        Image(systemName: isStarred ? "star" : "star.fill")
+                        Image(systemName: item?.starred ?? true ? "star" : "star.fill")
                             .imageScale(.large)
                     }
                     .labelStyle(.iconOnly)
@@ -127,10 +126,12 @@ struct ArticleSettingsView: View {
                 }
             }
         }
-        .accentColor(.accent)
+        .tint(.accent)
         .buttonStyle(.bordered)
-        .accentColor(.phWhiteIcon)
         .padding()
+        .onAppear {
+            item = newsModel.currentItem
+        }
     }
 }
 

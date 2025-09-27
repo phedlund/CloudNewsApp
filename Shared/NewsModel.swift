@@ -8,10 +8,12 @@
 import Foundation
 import Observation
 import SwiftData
+import SwiftUI
+import UserNotifications
+import WidgetKit
 
 @Observable
 class NewsModel: @unchecked Sendable {
-    let databaseActor: NewsDataModelActor
     let session = ServerStatus.shared.session
 
     var currentNodeType: NodeType = .empty {
@@ -23,42 +25,50 @@ class NewsModel: @unchecked Sendable {
             }
         }
     }
+
     var currentItem: Item? = nil
-
+    var navigationItemId: Int64 = 0
     var unreadItemIds = [PersistentIdentifier]()
-
     var unreadCounts = [NodeType: Int]()
 
-    init(databaseActor: NewsDataModelActor) {
-        self.databaseActor = databaseActor
+    var itemNavigationPath = NavigationPath()
+
+    let modelContainer: ModelContainer
+
+    init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
     }
 
-    private func updateUnreadItemIds() async  {
-        Task {
-            var unreadFetchDescriptor = FetchDescriptor<Item>()
-            switch currentNodeType {
-            case .empty:
-                unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-            case .all:
-                unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
-            case .starred:
-                unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-            case .folder(id:  let id):
-                let feedIds = await databaseActor.feedIdsInFolder(folder: id) ?? []
-                unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-            case .feed(id: let id):
-                unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-            }
-            unreadItemIds = try await databaseActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
+    func updateUnreadItemIds() async  {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        var unreadFetchDescriptor = FetchDescriptor<Item>()
+        switch currentNodeType {
+        case .empty:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .all, .unread:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+        case .starred:
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
+        case .folder(id:  let id):
+            let feedIds = await backgroundActor.feedIdsInFolder(folder: id) ?? []
+            unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
+        case .feed(id: let id):
+            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
+        }
+        do {
+            unreadItemIds = try await backgroundActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
+        } catch {
+            unreadItemIds = []
         }
     }
 
     func delete(_ node: Node) async throws {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         switch node.type {
-        case .empty, .all, .starred:
+        case .empty, .all, .unread, .starred:
             break
         case .folder(let id):
-            if let feedIds = await databaseActor.feedIdsInFolder(folder: id) {
+            if let feedIds = await backgroundActor.feedIdsInFolder(folder: id) {
                 let deleteRouter = Router.deleteFolder(id: Int(id))
                 do {
                     let (_, deleteResponse) = try await session.data(for: deleteRouter.urlRequest(), delegate: nil)
@@ -67,10 +77,10 @@ class NewsModel: @unchecked Sendable {
                         switch httpResponse.statusCode {
                         case 200, 404: // 404 = Folder does not exist but the app thinks it does, so delete locally
                             for feedId in feedIds {
-                                try await databaseActor.deleteItems(with: feedId)
+                                try await backgroundActor.deleteItems(with: feedId)
                             }
-                            try await databaseActor.deleteNode(id: node.id)
-                            try await databaseActor.deleteFolder(id: id)
+                            try await backgroundActor.deleteNode(id: node.id)
+                            try await backgroundActor.deleteFolder(id: id)
                         default:
                             throw NetworkError.folderErrorDeleting
                         }
@@ -89,9 +99,9 @@ class NewsModel: @unchecked Sendable {
                     print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     switch httpResponse.statusCode {
                     case 200, 404: // 404 = Feed does not exist but the app thinks it does, so delete locally
-                        try await databaseActor.deleteItems(with: Int64(id))
-                        try await databaseActor.deleteNode(id: node.id)
-                        try await databaseActor.deleteFeed(id: Int64(id))
+                        try await backgroundActor.deleteItems(with: Int64(id))
+                        try await backgroundActor.deleteNode(id: node.id)
+                        try await backgroundActor.deleteFeed(id: Int64(id))
                     default:
                         throw NetworkError.feedErrorDeleting
                     }
@@ -102,6 +112,7 @@ class NewsModel: @unchecked Sendable {
                 throw NetworkError.generic(message: error.localizedDescription)
             }
         }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func version() async throws -> String {
@@ -131,13 +142,33 @@ class NewsModel: @unchecked Sendable {
                         return
                     }
                     if let feedDTO = decodedResponse.feeds.first {
+                        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                         let type = NodeType.feed(id: feedDTO.id)
-                        let feedNode = Node(id: type.description, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, children: [], errorCount: 0)
-                        await databaseActor.insert(feedNode)
-                        let itemToStore = Feed(item: feedDTO)
-                        await databaseActor.insert(itemToStore)
+                        let feedNode = Node(id: type.description,
+                                            type: type,
+                                            title: feedDTO.title ?? "Untitled Feed",
+                                            children: [],
+                                            errorCount: 0)
+                        await backgroundActor.insert(feedNode)
+                        let feedToInsert = Feed(added: feedDTO.added,
+                                                faviconLink: feedDTO.faviconLink,
+                                                folderId: feedDTO.folderId,
+                                                id: feedDTO.id,
+                                                lastUpdateError: feedDTO.lastUpdateError,
+                                                link: feedDTO.link,
+                                                nextUpdateTime: feedDTO.nextUpdateTime,
+                                                ordering: feedDTO.ordering,
+                                                pinned: feedDTO.pinned,
+                                                title: feedDTO.title,
+                                                unreadCount: feedDTO.unreadCount ?? 0,
+                                                updateErrorCount: feedDTO.updateErrorCount,
+                                                url: feedDTO.url,
+                                                items: [])
+                        await backgroundActor.insert(feedToInsert)
                         try await addItems(feed: feedDTO.id)
+                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link)
                     }
+                    WidgetCenter.shared.reloadAllTimelines()
                 case 405:
                     throw NetworkError.methodNotAllowed
                 case 409:
@@ -169,12 +200,14 @@ class NewsModel: @unchecked Sendable {
                     return
                 }
                 if let folderDTO = decodedResponse.folders.first {
+                    let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                     let type = NodeType.folder(id: folderDTO.id)
-                    let folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, favIconURL: nil, children: [], errorCount: 0)
-                    await databaseActor.insert(folderNode)
+                    let folderNode = Node(id: type.description, type: type, title: folderDTO.name, isExpanded: folderDTO.opened, children: [], errorCount: 0)
+                    await backgroundActor.insert(folderNode)
                     let itemToStore = Folder(item: folderDTO)
-                    await databaseActor.insert(itemToStore)
+                    await backgroundActor.insert(itemToStore)
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             case 405:
                 throw NetworkError.methodNotAllowed
             case 409:
@@ -205,79 +238,141 @@ class NewsModel: @unchecked Sendable {
                 guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
                     return
                 }
+                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 for eachItem in decodedResponse.items {
                     let itemToStore = await Item(item: eachItem)
-                    await databaseActor.insert(itemToStore)
+                    let itemToInsert = Item(author: itemToStore.author,
+                                            body: itemToStore.body,
+                                            contentHash: itemToStore.contentHash,
+                                            displayBody: itemToStore.displayBody,
+                                            displayTitle: itemToStore.displayTitle,
+                                            dateFeedAuthor: itemToStore.dateFeedAuthor,
+                                            enclosureLink: itemToStore.enclosureLink,
+                                            enclosureMime: itemToStore.enclosureMime,
+                                            feedId: itemToStore.feedId,
+                                            fingerprint: itemToStore.fingerprint,
+                                            guid: itemToStore.guid,
+                                            guidHash: itemToStore.guidHash,
+                                            id: itemToStore.id,
+                                            lastModified: itemToStore.lastModified,
+                                            mediaThumbnail: itemToStore.mediaThumbnail,
+                                            mediaDescription: itemToStore.mediaDescription,
+                                            pubDate: itemToStore.pubDate,
+                                            rtl: itemToStore.rtl,
+                                            starred: itemToStore.starred,
+                                            title: itemToStore.title,
+                                            unread: itemToStore.unread,
+                                            updatedDate: itemToStore.updatedDate,
+                                            url: itemToStore.url,
+                                            thumbnailURL: itemToStore.thumbnailURL,
+                                            image: itemToStore.image,
+                                            thumbnail: itemToStore.thumbnail)
+                    await backgroundActor.insert(itemToInsert)
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             default:
                 break
             }
         }
     }
 
-    @MainActor
+    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?) async throws {
+        let validSchemas = ["http", "https", "file"]
+        var itemImageUrl: URL?
+        if let faviconLink = faviconLink,
+           let url = URL(string: faviconLink),
+           let scheme = url.scheme,
+           validSchemas.contains(scheme) {
+            itemImageUrl = url
+        } else {
+            if let feedUrl = URL(string: link ?? "data:null"),
+               let host = feedUrl.host,
+               let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
+                itemImageUrl = url
+            }
+        }
+
+        var imageData: Data?
+        if let itemImageUrl {
+            let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+            imageData = data
+        }
+
+        if let imageData {
+            let favIconDTO = FavIconDTO(id: feedId, url: itemImageUrl, icon: imageData)
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
+            try await backgroundActor.save()
+        }
+    }
+
     func markCurrentItemsRead() async {
         var internalUnreadItemIds = [Int64]()
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         do {
             for unreadItemId in unreadItemIds {
-                if let itemId = try await databaseActor.update(unreadItemId, keypath: \.unread, to: false) {
+                if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
             }
+            try await backgroundActor.save()
             try await markRead(itemIds: internalUnreadItemIds, unread: false)
         } catch {
 
         }
     }
 
-    @MainActor
-    func markItemsRead(items: [Item]) {
+    func markItemsRead(items: [Item]) async {
         guard !items.isEmpty else {
             return
         }
-        for item in items {
-            item.unread = false
-        }
-        Task {
-            try await databaseActor.save()
-            try await self.markRead(items: items, unread: false)
-        }
-    }
-
-    @MainActor
-    func toggleCurrentItemRead() {
-        if let currentItem = currentItem {
-            toggleItemRead(item: currentItem)
-        }
-    }
-
-    @MainActor
-    func toggleItemRead(item: Item) {
-        Task {
-            do {
-                item.unread.toggle()
-                try await databaseActor.save()
-                try await self.markRead(items: [item], unread: !item.unread)
-            } catch {
-                //
+        do {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            var internalUnreadItemIds = [Int64]()
+            for unreadItemId in items.compactMap(\.persistentModelID) {
+                if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
+                    internalUnreadItemIds.append(itemId)
+                }
             }
+            for item in items {
+                item.unread.toggle()
+            }
+            try await backgroundActor.save()
+            try await self.markRead(itemIds: internalUnreadItemIds, unread: false)
+        } catch {
+            
         }
     }
 
-    func markRead(items: [Item], unread: Bool) async throws {
-        guard !items.isEmpty else {
-            return
+    func toggleCurrentItemRead() async {
+        if let currentItem = currentItem {
+            await toggleItemRead(item: currentItem)
         }
-        let itemIds = items.map( { $0.id } )
-        try await markRead(itemIds: itemIds, unread: unread)
     }
 
-    func markRead(itemIds: [Int64], unread: Bool) async throws {
+    func toggleItemRead(item: Item) async {
+        do {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let currentState = item.unread
+            var internalUnreadItemIds = [Int64]()
+            if let itemId = try await backgroundActor.update(item.persistentModelID, keypath: \.unread, to: !currentState) {
+                    internalUnreadItemIds.append(itemId)
+                }
+            item.unread.toggle()
+            try await backgroundActor.save()
+            try await self.markRead(itemIds: internalUnreadItemIds, unread: !currentState)
+        } catch {
+
+        }
+    }
+
+    private func markRead(itemIds: [Int64], unread: Bool) async throws {
         guard !itemIds.isEmpty else {
             return
         }
         do {
-            let parameters: ParameterDict = ["items": itemIds]
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let parameters: ParameterDict = ["itemIds": itemIds]
             var router: Router
             if unread {
                 router = Router.itemsUnread(parameters: parameters)
@@ -289,42 +384,55 @@ class NewsModel: @unchecked Sendable {
                 switch httpResponse.statusCode {
                 case 200:
                     if unread {
-                        try await databaseActor.delete(model: Unread.self)
+                        try await backgroundActor.delete(model: Unread.self)
                     } else {
-                        try await databaseActor.delete(model: Read.self)
+                        try await backgroundActor.delete(model: Read.self)
                     }
                 default:
                     if unread {
                         for itemId in itemIds {
-                            await databaseActor.insert(Read(itemId: itemId))
+                            await backgroundActor.insert(Read(itemId: itemId))
                         }
                     } else {
                         for itemId in itemIds {
-                            await databaseActor.insert(Unread(itemId: itemId))
+                            await backgroundActor.insert(Unread(itemId: itemId))
                         }
                     }
                 }
-                try await databaseActor.save()
+                try await backgroundActor.save()
             }
             await updateUnreadItemIds()
+            let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true } )
+            await MainActor.run {
+                UNUserNotificationCenter.current().setBadgeCount(unreadCount)
+            }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 
-    func markCurrentItemStarred() async throws {
+    func toggleCurrentItemStarred() async throws {
         if let currentItem = currentItem {
-            try await markStarred(item: currentItem, starred: !currentItem.starred)
+            await toggleItemStarred(item: currentItem)
         }
     }
 
-    func markStarred(item: Item, starred: Bool) async throws {
+    func toggleItemStarred(item: Item) async {
         do {
-            item.starred = starred
-            try await databaseActor.save()
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let currentState = item.starred
+            let _ = try await backgroundActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
+            item.starred.toggle()
+            try await backgroundActor.save()
+            try await self.markStarred(itemIds: [item.id], starred: !currentState)
+        } catch {
 
-            let parameters: ParameterDict = ["items": [["feedId": item.feedId,
-                                                        "guidHash": item.guidHash as Any]]]
+        }
+    }
+
+    private func markStarred(itemIds: [Int64], starred: Bool) async throws {
+        do {
+            let parameters: ParameterDict = ["itemIds": itemIds]
             var router: Router
             if starred {
                 router = Router.itemsStarred(parameters: parameters)
@@ -333,24 +441,28 @@ class NewsModel: @unchecked Sendable {
             }
             let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
             if let httpResponse = response as? HTTPURLResponse {
+                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                 print(String(data: data, encoding: .utf8) ?? "")
                 switch httpResponse.statusCode {
                 case 200:
                     if starred {
-                        try await databaseActor.delete(model: Unstarred.self)
+                        try await backgroundActor.delete(model: Unstarred.self)
                     } else {
-                        try await databaseActor.delete(model: Starred.self)
+                        try await backgroundActor.delete(model: Starred.self)
                     }
                 default:
-                    let itemDataId = try JSONEncoder().encode(item.persistentModelID)
                     if starred {
-                        await databaseActor.insert(Starred(itemIdData: itemDataId))
+                        for itemId in itemIds {
+                            await backgroundActor.insert(Unstarred(itemId: itemId))
+                        }
                     } else {
-                        await databaseActor.insert(Unstarred(itemIdData: itemDataId))
+                        for itemId in itemIds {
+                            await backgroundActor.insert(Starred(itemId: itemId))
+                        }
                     }
                 }
-                try await databaseActor.save()
+                try await backgroundActor.save()
             }
         } catch(let error) {
             throw NetworkError.generic(message: error.localizedDescription)
@@ -382,7 +494,8 @@ class NewsModel: @unchecked Sendable {
     }
 
     func folderName(id: Int64) async -> String {
-        return await databaseActor.folderName(id: id) ?? Constants.untitledFolderName
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        return await backgroundActor.folderName(id: id) ?? Constants.untitledFolderName
     }
     
     func renameFolder(folderId: Int64, to name: String) async throws {
@@ -434,20 +547,23 @@ class NewsModel: @unchecked Sendable {
     }
 
     func feedPrefersWeb(id: Int64) async -> Bool {
-        return await databaseActor.feedPrefersWeb(id: id)
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        return await backgroundActor.feedPrefersWeb(id: id)
     }
 
     func resetDataBase() async throws {
         do {
-            try await databaseActor.delete(model: Node.self)
-            try await databaseActor.delete(model: Feeds.self)
-            try await databaseActor.delete(model: Feed.self)
-            try await databaseActor.delete(model: Folder.self)
-            try await databaseActor.delete(model: Item.self)
-            try await databaseActor.delete(model: Read.self)
-            try await databaseActor.delete(model: Unread.self)
-            try await databaseActor.delete(model: Starred.self)
-            try await databaseActor.delete(model: Unstarred.self)
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            try await backgroundActor.delete(model: Node.self)
+            try await backgroundActor.delete(model: Feeds.self)
+            try await backgroundActor.delete(model: Feed.self)
+            try await backgroundActor.delete(model: Folder.self)
+            try await backgroundActor.delete(model: Item.self)
+            try await backgroundActor.delete(model: Read.self)
+            try await backgroundActor.delete(model: Unread.self)
+            try await backgroundActor.delete(model: Starred.self)
+            try await backgroundActor.delete(model: Unstarred.self)
+            try await backgroundActor.delete(model: FavIcon.self)
         } catch {
             throw DatabaseError.generic(message: "Failed to clear the local database")
         }

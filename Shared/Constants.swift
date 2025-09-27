@@ -13,10 +13,12 @@ import UIKit
 struct Constants {
     static let appRefreshTaskId = "dev.pbh.cloudnews.sync"
     static let appUrlSessionId = "dev.pbh.cloudnews.background"
+    static let appGroup = "group.dev.pbh.cloudnews"
 
     static let emptyNodeGuid = "0044f316-8559-4aea-b5fe-41084135730b"
     static let allNodeGuid = "aaaa"
-    static let starNodeGuid = "bbbb"
+    static let unreadNodeGuid = "bbbb"
+    static let starNodeGuid = "cccc"
 
     static let email = "support@pbh.dev"
     static let website = "https://pbh.dev/cloudnews"
@@ -24,6 +26,13 @@ struct Constants {
     static let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
     static let untitledFolderName = NSLocalizedString("Untitled Folder", comment: "Untitled folder name")
+
+    struct Headers {
+        static let contentTypeJson = "application/json"
+        static let authorization = "Authorization"
+        static let accept = "Accept"
+        static let contentType = "Content-Type"
+    }
 
     struct ArticleSettings {
     #if os(macOS)

@@ -8,6 +8,7 @@
 
 import Foundation
 import OpenSSL
+import SwiftUI
 
 struct ProductStatus {
     var name: String
@@ -15,8 +16,10 @@ struct ProductStatus {
 }
 
 final class ServerStatus: NSObject {
-    nonisolated(unsafe) static let shared = ServerStatus()
-    private let preferences = Preferences()
+    @AppStorage(SettingKeys.server) private var server = ""
+    @AppStorage(SettingKeys.allowUntrustedCertificate) private var allowUntrustedCertificate = false
+
+    static let shared = ServerStatus()
 
     let session: URLSession
 
@@ -26,17 +29,15 @@ final class ServerStatus: NSObject {
     }
 
     func check() async throws -> ProductStatus? {
-        let serverAddress = preferences.server
+        let serverAddress = server
         if !serverAddress.isEmpty {
-            preferences.server = ""
-            @KeychainStorage(SettingKeys.username) var username = ""
-            @KeychainStorage(SettingKeys.password) var password = ""
+            server = ""
             var address = serverAddress.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
             if !address.contains("://"),
                !address.hasPrefix("http") {
                 address = "https://\(address)"
             }
-            preferences.server = address
+            server = address
             let router = StatusRouter.status
             do {
                 let (data, _) = try await session.data(for: router.urlRequest(), delegate: nil)
@@ -52,7 +53,7 @@ final class ServerStatus: NSObject {
     }
 
     func reset() {
-        preferences.allowUntrustedCertificate = false
+        allowUntrustedCertificate = false
         if let directory = ServerStatus.certificatesDirectory {
             do {
                 try FileManager.default.removeItem(at: directory)
@@ -110,14 +111,14 @@ final class ServerStatus: NSObject {
 final class ServerStatusDelegate: NSObject, URLSessionDelegate {
 
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        if checkTrustedChallenge(session, didReceive: challenge) {
+        if await checkTrustedChallenge(session, didReceive: challenge) {
             return (URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
         } else {
             return (URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
         }
     }
 
-    private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
+    @MainActor private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
         let protectionSpace = challenge.protectionSpace
         let directoryCertificate = ServerStatus.certificatesDirectory!
         let host = challenge.protectionSpace.host

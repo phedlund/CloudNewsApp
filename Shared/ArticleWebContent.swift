@@ -6,121 +6,129 @@
 //  Copyright © 2021 Peter Hedlund. All rights reserved.
 //
 
-import Combine
 import Observation
 import SwiftSoup
 import SwiftUI
+import WebKit
 
-@Observable
-class ArticleWebContent {
-    var url: URL?
+struct ArticleWebContent: Identifiable {
+    @AppStorage(SettingKeys.fontSize) private var fontSize = Constants.ArticleSettings.defaultFontSize
+    @AppStorage(SettingKeys.lineHeight) private var lineHeight = Constants.ArticleSettings.defaultLineHeight
+    @AppStorage(SettingKeys.marginPortrait) private var marginPortrait = Constants.ArticleSettings.defaultMarginWidth
+
+    var id: Int64 {
+        item.id
+    }
+    var page: WebPage
     var item: Item
 
-    private let author: String
-    private let title: String
-    private let feedTitle: String
-    private let dateText: String
-    private let baseString: String
-    private let urlString: String
-    private let summary: String
-    private let fileName: String
+    @State private var isLoaded = false
 
-    private var preferences = Preferences()
-    private var isInInit = false
-
-    private var cssPath: String {
-        if let bundleUrl = Bundle.main.url(forResource: "Web", withExtension: "bundle"),
-           let bundle = Bundle(url: bundleUrl),
-           let path = bundle.path(forResource: "rss", ofType: "css", inDirectory: "css") {
-            return path
-        } else {
-            return ""
-        }
-    }
-
-    init(item: Item) {
+    init(item: Item, openUrlAction: OpenURLAction) {
         self.item = item
-        isInInit = true
-        title = item.displayTitle
-        summary = Self.output(item: item)
-        baseString = Self.baseString(item: item)
-        urlString = Self.itemUrl(item: item)
-        dateText = Self.dateText(item: item)
-        author = Self.itemAuthor(item: item)
-        feedTitle = item.feed?.title ?? "Untitled"
-        fileName = "summary_\(item.id)"
-        reloadItemSummary()
-        isInInit = false
+        let webConfig = WebPage.Configuration()
+        ContentBlocker.shared.rules { rules in
+            if let rules {
+                Task { @MainActor in
+                    webConfig.userContentController.add(rules)
+                }
+            }
+        }
+        page = WebPage(configuration: webConfig, navigationDecider: ArticleNavigationDecider(openUrlAction: openUrlAction))
     }
 
-    func reloadItemSummary() {
+    func reloadItemSummary(_ fromSource: Bool = false) {
+        if fromSource == true {
+            isLoaded = false
+        }
+        if isLoaded {
+            return
+        }
+        if let feed = item.feed {
+            if feed.preferWeb == true,
+               let urlString = item.url,
+               let url = URL(string: urlString) {
+                page.load(URLRequest(url: url))
+            } else {
+                do {
+                    let title = item.displayTitle
+                    let baseString = baseString()
+                    let summary = output()
+                    let urlString = item.url ?? ""
+                    let dateText = DateFormatter.dateTextFormatter.string(from: item.pubDate)
+                    let author = itemAuthor()
+                    let feedTitle = item.feed?.title ?? "Untitled"
+                    let fileName = "summary_\(item.id)"
 
-        let htmlTemplate = """
-        <?xml version="1.0" encoding="utf-8"?>
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-        <html xmlns="http://www.w3.org/1999/xhtml">
-            <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                <title>
-                    \(title)
-                </title>
-            <style>\(updateCssVariables())</style>
-            <link rel="stylesheet" href="\(cssPath)" media="all">
-            <base href="\(baseString)">
-            </head>
-            <body>
-                <article>
-                    <div class="titleHeader">
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                                <td>
-                                    <div class="feedTitle">
-                                        \(feedTitle)
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="articleDate">
-                                        \(dateText)
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="articleTitle">
-                        <a class="articleTitleLink" href="\(urlString)">\(title)</a>
-                    </div>
-                    <div class="articleAuthor">
-                        <p>
-                            \(author)
-                        </p>
-                    </div>
-                    <div class="articleBody">
-                        <p>
-                            \(summary)
-                        </p>
-                    </div>
-                    <div class="footer">
-                        <a href="\(urlString)"><br />\(urlString)</a>
-                    </div>
-                </article>
-            </body>
-        </html>
-        """
-        
-        do {
-            if let saveUrl = tempDirectory()?
-                .appendingPathComponent(fileName)
-                .appendingPathExtension("html") {
-                try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
-                url = saveUrl
+                    let htmlTemplate = """
+                    <!DOCTYPE html>
+                    <html>
+                        <head>
+                        <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                            <title>
+                                \(title)
+                            </title>
+                            <style>
+                                \(updateCssVariables())
+                                \(CssProvider.shared.css())
+                            </style>
+                        <base href="\(baseString)">
+                        </head>
+                        <body>
+                            <article>
+                                <div class="titleHeader">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td>
+                                                <div class="feedTitle">
+                                                    \(feedTitle)
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="articleDate">
+                                                    \(dateText)
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="articleTitle">
+                                    <a class="articleTitleLink" href="\(urlString)">\(title)</a>
+                                </div>
+                                <div class="articleAuthor">
+                                    <p>
+                                        \(author)
+                                    </p>
+                                </div>
+                                <div class="articleBody">
+                                    <p>
+                                        \(summary)
+                                    </p>
+                                </div>
+                                <div class="footer">
+                                    <a href="\(urlString)"><br />\(urlString)</a>
+                                </div>
+                            </article>
+                        </body>
+                    </html>
+                    """
+                    if let saveUrl = tempDirectory()?
+                        .appendingPathComponent(fileName)
+                        .appendingPathExtension("html") {
+                        try htmlTemplate.write(to: saveUrl, atomically: true, encoding: .utf8)
+                        page.load(URLRequest(url: saveUrl))
+                    }
+                }
+                catch(let error) {
+                    print(error.localizedDescription)
+                }
             }
-        } catch(let error) {
-            print(error.localizedDescription)
+            isLoaded = true
         }
     }
 
-    private static func baseString(item: Item) -> String {
+    private func baseString() -> String {
         var result = ""
 
         if let urlString = item.url,
@@ -132,32 +140,47 @@ class ArticleWebContent {
         return result
     }
 
-    private static func output(item: Item) -> String {
+    private func output() -> String {
         var result = ""
 
         if let html = item.body,
-           let urlString = item.url,
-           let url = URL(string: urlString),
-           let scheme = url.scheme,
-           let host = url.host {
+           let urlString = item.url {
 
             result = html
             do {
-                let baseString = "\(scheme)://\(host)"
+                let baseString = baseString()
                 let document = try SwiftSoup.parse(html, baseString)
-
-                if baseString.lowercased().contains("youtu"), urlString.lowercased().contains("watch?v="), let equalIndex = urlString.firstIndex(of: "=") {
-                    let videoIdStartIndex = urlString.index(after: equalIndex)
-                    let videoId = String(urlString[videoIdStartIndex...])
-                    try document.body()?.html(embedYTString(videoId))
-                } else {
-                    let iframes = try document.select("iframe")
-                    for iframe in iframes {
-                        let src = try iframe.attr("src")
-                        if src.contains("youtu") || src.contains("vimeo") {
-                            try iframe.wrap("<div class=\"video-wrapper\"></div>")
+                if let components = URLComponents(string: urlString.lowercased()), let host = components.host {
+                    if host.lowercased().contains("youtu") {
+                        if let queryItems = components.queryItems {
+                            for item in queryItems {
+                                if item.name == "v", let value = item.value {
+                                    try document.body()?.html(embedYTString(value))
+                                    continue
+                                }
+                            }
+                        } else {
+                            if components.path.contains("shorts") {
+                                if let url = URL(string: urlString.lowercased()) {
+                                    try document.body()?.html(embedYTString(url.lastPathComponent))
+                                }
+                            }
+                        }
+                    } else {
+                        let iframes = try document.select("iframe")
+                        for iframe in iframes {
+                            let src = try iframe.attr("src")
+                            if src.contains("youtu") || src.contains("vimeo") {
+                                try iframe.wrap("<div class=\"video-wrapper\"></div>")
+                            }
                         }
                     }
+                }
+                // Select all anchor tags with target="_blank"
+                let links = try document.select("a[target=_blank]")
+                // Iterate through the selected links and remove the "target" attribute
+                for link in links {
+                    try link.removeAttr("target") //
                 }
                 if let html = try document.body()?.html() {
                     result = html
@@ -171,7 +194,7 @@ class ArticleWebContent {
         return result
     }
 
-    private static func embedYTString(_ videoId: String) -> String {
+    private func embedYTString(_ videoId: String) -> String {
         return """
             <div class="video-wrapper">
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/\(videoId)" frameborder="0" allowfullscreen></iframe>
@@ -179,11 +202,7 @@ class ArticleWebContent {
             """
     }
 
-    private static func itemUrl(item: Item) -> String {
-        return item.url ?? ""
-    }
-
-    private static func itemAuthor(item: Item) -> String {
+    private func itemAuthor() -> String {
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {
             author = "By \(itemAuthor)"
@@ -191,24 +210,17 @@ class ArticleWebContent {
         return author
     }
 
-    private static func dateText(item: Item) -> String {
-        let dateFormat = DateFormatter()
-        dateFormat.dateStyle = .medium;
-        dateFormat.timeStyle = .short;
-        return dateFormat.string(from: item.pubDate)
-    }
-
     private func updateCssVariables() -> String {
-        let fontSize: Double = Double(preferences.fontSize) / 14.0
+        let fontSize: Double = Double(fontSize) / 14.0
         return """
             :root {
                 font: -apple-system-body;
                 --bg-color: \(Color.phWhiteBackground.hexaRGB!);
                 --text-color: \(Color.phWhiteText.hexaRGB!);
                 --font-size: \(fontSize);
-                --body-width-portrait: \(preferences.marginPortrait)vw;
-                --body-width-landscape: \(preferences.marginPortrait)vw;
-                --line-height: \(preferences.lineHeight)em;
+                --body-width-portrait: \(marginPortrait)vw;
+                --body-width-landscape: \(marginPortrait)vw;
+                --line-height: \(lineHeight)em;
                 --link-color: \(Color.phWhiteLink.hexaRGB!);
             }
         """
@@ -218,14 +230,12 @@ class ArticleWebContent {
 
 extension ArticleWebContent: Equatable {
     static func == (lhs: ArticleWebContent, rhs: ArticleWebContent) -> Bool {
-        return lhs.url != nil && rhs.url != nil && lhs.url == rhs.url
+        return lhs.item.id == rhs.item.id
     }
-    
-
 }
 
 extension String {
-    
+
     //based on https://gist.github.com/rais38/4683817
     /**
      @see https://devforums.apple.com/message/705665#705665
@@ -265,5 +275,5 @@ extension String {
             return nil
         }
     }
-    
+
 }

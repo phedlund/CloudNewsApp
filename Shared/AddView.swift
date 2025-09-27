@@ -50,9 +50,10 @@ struct AddView: View {
                     }
                     HStack {
                         Spacer()
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .opacity(isAdding ? 1.0 : 0.0)
+                        if isAdding {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        }
                         Button {
                             switch selectedAdd {
                             case .feed:
