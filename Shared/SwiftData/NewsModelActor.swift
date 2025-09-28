@@ -323,25 +323,25 @@ actor NewsModelActor: Sendable {
                 itemImageUrl = await internalUrl(dto.url)
             }
 
-            if let itemImageUrl {
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-                    imageData = data
-    #if os(macOS)
-                    if let uiImage = NSImage(data: data) {
-                        thumbnailData = uiImage.tiffRepresentation
-                    }
-    #else
-                    if let uiImage = UIImage(data: data) {
-                        let displayScale = UITraitCollection.current.displayScale
-                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
-                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
-                    }
-    #endif
-                } catch {
-                    print("Error fetching data: \(error)")
-                }
-            }
+//            if let itemImageUrl {
+//                do {
+//                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+//                    imageData = data
+//    #if os(macOS)
+//                    if let uiImage = NSImage(data: data) {
+//                        thumbnailData = uiImage.tiffRepresentation
+//                    }
+//    #else
+//                    if let uiImage = UIImage(data: data) {
+//                        let displayScale = UITraitCollection.current.displayScale
+//                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+//                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+//                    }
+//    #endif
+//                } catch {
+//                    print("Error fetching data: \(error)")
+//                }
+//            }
         }
 
         let item = Item(author: dto.author,

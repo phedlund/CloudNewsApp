@@ -22,16 +22,17 @@ struct ItemView: View {
     let item: Item
     let faviconData: Data?
 
-    private var thumbnailImage: Image? {
+    private var thumbnailUrl: URL? {
         guard showThumbnails else { return nil }
-        if let data = item.image ?? item.thumbnail {
-#if os(macOS)
-            if let nsImg = NSImage(data: data) { return Image(nsImage: nsImg) }
-#else
-            if let uiImg = UIImage(data: data, scale: displayScale) { return Image(uiImage: uiImg) }
-#endif
-        }
-        return nil
+        return item.thumbnailURL
+//        if let data = item.image ?? item.thumbnail {
+//#if os(macOS)
+//            if let nsImg = NSImage(data: data) { return Image(nsImage: nsImg) }
+//#else
+//            if let uiImg = UIImage(data: data, scale: displayScale) { return Image(uiImage: uiImg) }
+//#endif
+//        }
+//        return nil
     }
 
     private var faviconImage: Image? {
@@ -53,7 +54,7 @@ struct ItemView: View {
     }
 
     private var cardMode: ItemCard.Mode {
-        let hasThumb = (thumbnailImage != nil)
+        let hasThumb = (thumbnailUrl != nil)
         if compactView {
             return hasThumb ? .compactWithImage : .compactNoImage
         } else {
@@ -66,7 +67,7 @@ struct ItemView: View {
             title: item.displayTitle,
             subtitle: item.dateFeedAuthor,
             bodyText: item.displayBody,
-            image: thumbnailImage,
+            imageUrl: item.thumbnailURL,
             favicon: effectiveFavicon,
             showsFavicon: effectiveFavicon != nil,
             mode: cardMode,

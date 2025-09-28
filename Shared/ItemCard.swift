@@ -57,7 +57,7 @@ public struct ItemCard: View {
     public var title: String
     public var subtitle: String?
     public var bodyText: String?
-    public var image: Image?
+    public var imageUrl: URL?
     public var favicon: Image?
     public var showsFavicon: Bool
     public var mode: Mode
@@ -70,7 +70,7 @@ public struct ItemCard: View {
     public init(title: String,
                 subtitle: String? = nil,
                 bodyText: String? = nil,
-                image: Image? = nil,
+                imageUrl: URL? = nil,
                 favicon: Image? = nil,
                 showsFavicon: Bool = true,
                 mode: Mode,
@@ -80,7 +80,7 @@ public struct ItemCard: View {
         self.title = title
         self.subtitle = subtitle
         self.bodyText = bodyText
-        self.image = image
+        self.imageUrl = imageUrl
         self.favicon = favicon
         self.showsFavicon = showsFavicon
         self.mode = mode
@@ -131,15 +131,37 @@ public struct ItemCard: View {
 
     private var card: some View {
         HStack(alignment: .top, spacing: sizes.contentSpacing) {
-            if mode.showsImage, let image {
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: mode.isCompact ? sizes.compactImageWidth : sizes.largeImageWidth,
-                           height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
-                    .clipped()
-                    .matchedGeometryEffect(id: "thumb", in: ns)
+            if mode.showsImage, let url = imageUrl {
+                CachedAsyncImage(
+                    url: url,
+                    transaction: .init(animation: .easeIn), loadFullResolution: true
+                ) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: mode.isCompact ? sizes.compactImageWidth : sizes.largeImageWidth,
+                                   height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
+                            .clipped()
+                            .matchedGeometryEffect(id: "thumb", in: ns)
+                    case .failure(let error):
+                        Text("\(error.localizedDescription)")
+                    @unknown default:
+                        Color.red
+                    }
+                }
             }
+//                image
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: mode.isCompact ? sizes.compactImageWidth : sizes.largeImageWidth,
+//                           height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
+//                    .clipped()
+//                    .matchedGeometryEffect(id: "thumb", in: ns)
+//            }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -197,8 +219,8 @@ public struct ItemCard: View {
         private let subtitle = "Sep 23 | Juli Clover"
         private let summary = "Apple's thin and light iPhone Air is built with a durable titanium frame, and as we've seen demonstrated, it is highly resistant to bending even though it's only 5.6mm thick. Less has been shared about its drop protection, but device insurance provider Allstate..."
 
-        private var demoImage: Image {
-            Image(systemName: "photo")
+        private var imageURL: URL {
+            URL(string: "https://pbh.dev/images/apps/cloudnews/iphone1.png")!
         }
 
         var body: some View {
@@ -207,7 +229,7 @@ public struct ItemCard: View {
                     title: title,
                     subtitle: subtitle,
                     bodyText: summary,
-                    image: demoImage,
+                    imageUrl: imageURL,
                     favicon: Image(systemName: "globe"),
                     showsFavicon: showFavicon,
                     mode: mode,
