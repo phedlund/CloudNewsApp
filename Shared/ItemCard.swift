@@ -105,19 +105,18 @@ public struct ItemCard: View {
 
             if isStarred {
                 Image(systemName: "star.fill")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                     .padding(8)
                     .matchedGeometryEffect(id: "star", in: ns)
             }
         }
         .frame(height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
         .background {
-            switch style {
-            case .system:
-                Rectangle().fill(.background)
-            case .filled(let bg, _, _):
-                Rectangle().fill(bg)
-            }
+#if os(macOS)
+            Rectangle().fill(.clear)
+#else
+            Rectangle().fill(.background)
+#endif
         }
         .clipShape(RoundedRectangle(cornerRadius: sizes.cornerRadius, style: .continuous))
         .overlay(
@@ -230,7 +229,7 @@ public struct ItemCard: View {
             }
             .frame(maxWidth: 900)
             .padding(.vertical)
-            .background(Color(.systemGroupedBackground))
+            .background(Color(.secondarySystemFill))
         }
     }
 
