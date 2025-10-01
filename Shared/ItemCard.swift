@@ -1,6 +1,8 @@
 import SwiftUI
 
 public struct ItemCard: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     public enum Mode: CaseIterable, Hashable {
         case largeWithImage
         case compactWithImage
@@ -130,7 +132,11 @@ public struct ItemCard: View {
     }
 
     private var card: some View {
-        HStack(alignment: .top, spacing: sizes.contentSpacing) {
+        var effectiveLargeImageWidth = sizes.largeImageWidth
+        if horizontalSizeClass == .compact {
+            effectiveLargeImageWidth = sizes.largeImageWidth * 0.75
+        }
+        return HStack(alignment: .top, spacing: sizes.contentSpacing) {
             if mode.showsImage, let url = imageUrl {
                 CachedAsyncImage(
                     url: url,
@@ -143,7 +149,7 @@ public struct ItemCard: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: mode.isCompact ? sizes.compactImageWidth : sizes.largeImageWidth,
+                            .frame(width: mode.isCompact ? sizes.compactImageWidth : effectiveLargeImageWidth,
                                    height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
                             .clipped()
                             .matchedGeometryEffect(id: "thumb", in: ns)
