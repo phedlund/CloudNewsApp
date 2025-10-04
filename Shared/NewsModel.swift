@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Observation
 import SwiftData
 import SwiftUI
 import UserNotifications
