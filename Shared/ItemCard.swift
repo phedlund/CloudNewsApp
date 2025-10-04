@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct ItemCard: View {
+public struct ItemCard: View, Equatable {
     public enum Mode: CaseIterable, Hashable {
         case largeWithImage
         case compactWithImage
@@ -27,7 +27,7 @@ public struct ItemCard: View {
         case filled(background: Color, border: Color = .black, borderOpacity: Double = 0.15)
     }
 
-    public struct Sizes {
+    public struct Sizes: Equatable {
         public var largeHeight: CGFloat = 160
         public var compactHeight: CGFloat = 85
         public var largeImageWidth: CGFloat = 145
@@ -65,7 +65,7 @@ public struct ItemCard: View {
     public var sizes: Sizes
     public var style: Style = .system
 
-    @Namespace private var ns
+//    @Namespace private var ns
 
     public init(title: String,
                 subtitle: String? = nil,
@@ -107,7 +107,7 @@ public struct ItemCard: View {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.primary)
                     .padding(8)
-                    .matchedGeometryEffect(id: "star", in: ns)
+//                    .matchedGeometryEffect(id: "star", in: ns)
             }
         }
         .frame(height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
@@ -138,7 +138,7 @@ public struct ItemCard: View {
                     .frame(width: mode.isCompact ? sizes.compactImageWidth : sizes.largeImageWidth,
                            height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
                     .clipped()
-                    .matchedGeometryEffect(id: "thumb", in: ns)
+//                    .matchedGeometryEffect(id: "thumb", in: ns)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -146,7 +146,7 @@ public struct ItemCard: View {
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-                    .matchedGeometryEffect(id: "title", in: ns)
+//                    .matchedGeometryEffect(id: "title", in: ns)
 
                 if let subtitle, !subtitle.isEmpty {
                     HStack(spacing: 6) {
@@ -157,7 +157,7 @@ public struct ItemCard: View {
                                 .frame(width: sizes.faviconSize, height: sizes.faviconSize)
                                 .clipShape(RoundedRectangle(cornerRadius: sizes.faviconSize * 0.2, style: .continuous))
                                 .transition(.opacity.combined(with: .scale))
-                                .matchedGeometryEffect(id: "favicon", in: ns)
+//                                .matchedGeometryEffect(id: "favicon", in: ns)
                         }
 
                         Text(subtitle)
@@ -165,7 +165,7 @@ public struct ItemCard: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
-                    .matchedGeometryEffect(id: "meta", in: ns)
+//                    .matchedGeometryEffect(id: "meta", in: ns)
                 }
 
                 if !mode.isCompact, let bodyText, !bodyText.isEmpty {
@@ -174,7 +174,7 @@ public struct ItemCard: View {
                         .foregroundStyle(.primary)
                         .lineLimit(4)
                         .transition(.opacity.combined(with: .move(edge: .top)))
-                        .matchedGeometryEffect(id: "body", in: ns, properties: .position)
+//                        .matchedGeometryEffect(id: "body", in: ns, properties: .position)
                 }
 
                 Spacer(minLength: 0)
