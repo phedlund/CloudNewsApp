@@ -62,7 +62,6 @@ final class SyncManager {
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
-    private var itemIds = [Int64]()
 
     let modelContainer: ModelContainer
 
@@ -129,9 +128,6 @@ final class SyncManager {
 
             if let data = itemsResponse {
                 await parseItems(data: data.0)
-                if !itemIds.isEmpty {
-                    await updateWidgetThumbnails()
-                }
             }
         }
     }
@@ -157,9 +153,6 @@ final class SyncManager {
                             case "items":
                                 Task {
                                     await parseItems(data: data)
-                                    if await !itemIds.isEmpty {
-                                        await updateWidgetThumbnails()
-                                    }
                                 }
                             default:
                                 break
@@ -258,9 +251,6 @@ final class SyncManager {
         if let unreadData = results[3] as Data?, !unreadData.isEmpty {
             syncState = .unread
             await parseItems(data: unreadData)
-            if !itemIds.isEmpty {
-                await updateWidgetThumbnails()
-            }
         }
         if let starredData = results[4] as Data?, !starredData.isEmpty {
             syncState = .starred
@@ -423,9 +413,6 @@ final class SyncManager {
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
             syncState = .articles(update: "")
             await parseItems(data: itemsData)
-            if !itemIds.isEmpty {
-                await updateWidgetThumbnails()
-            }
         }
     }
 
@@ -518,11 +505,7 @@ final class SyncManager {
                     self.syncState = .articles(update: "\(counter) of \(totalCount)")
                 }
 
-                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id])
-
-                if eachItem.unread == true {
-                    itemIds.append(eachItem.id)
-                }
+                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id], retrieveWidgetImage: (counter < 10) && (eachItem.unread == true))
 
                 if counter % 15 == 0 {
                     do {
@@ -548,43 +531,6 @@ final class SyncManager {
             }
         } catch {
             //
-        }
-    }
-
-    private func updateWidgetThumbnails() async {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let firstTenUnreadItemIds = Array(itemIds.prefix(10))
-        let predicate = #Predicate<Item> { firstTenUnreadItemIds.contains($0.id) }
-        let descriptor = FetchDescriptor(predicate: predicate)
-        let modelIds = try! await backgroundActor.allModelIds(descriptor)
-        for eachId in modelIds {
-            do {
-                var thumbnailData: Data?
-                if let itemImageUrl = await backgroundActor.itemImageUrl(for: eachId) {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-#if os(macOS)
-                        if let uiImage = NSImage(data: data) {
-                            thumbnailData = uiImage.tiffRepresentation
-                        }
-#else
-                        if let uiImage = UIImage(data: data) {
-                            let displayScale = UITraitCollection.current.displayScale
-                            let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
-                            thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
-                        }
-#endif
-                    } catch {
-                        print("Error fetching data: \(error)")
-                    }
-                }
-                do {
-                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnail, to: thumbnailData)
-                    try await backgroundActor.save()
-                } catch {
-                    //
-                }
-            }
         }
     }
 

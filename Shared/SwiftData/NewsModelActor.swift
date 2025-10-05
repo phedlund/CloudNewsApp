@@ -246,7 +246,7 @@ actor NewsModelActor: Sendable {
         return map
     }
 
-    func buildAndInsert(from dto: ItemDTO, existing: ExistingItemMedia?) async {
+    func buildAndInsert(from dto: ItemDTO, existing: ExistingItemMedia?, retrieveWidgetImage: Bool = false) async {
         let displayTitle = await plainSummary(raw: dto.title)
 
         var summary = ""
@@ -275,9 +275,9 @@ actor NewsModelActor: Sendable {
 
         var itemImageUrl: URL? = existing?.thumbnailURL
 //        var imageData: Data? = existing?.image
-//        var thumbnailData: Data? = existing?.thumbnail
+        var thumbnailData: Data? = existing?.thumbnail
 
-        if existing == nil {
+        if itemImageUrl == nil {
             let validSchemas = ["http", "https", "file"]
 
             func internalUrl(_ urlString: String?) async -> URL? {
@@ -323,25 +323,25 @@ actor NewsModelActor: Sendable {
                 itemImageUrl = await internalUrl(dto.url)
             }
 
-//            if let itemImageUrl {
-//                do {
-//                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+            if let itemImageUrl, retrieveWidgetImage == true {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
 //                    imageData = data
-//    #if os(macOS)
-//                    if let uiImage = NSImage(data: data) {
-//                        thumbnailData = uiImage.tiffRepresentation
-//                    }
-//    #else
-//                    if let uiImage = UIImage(data: data) {
-//                        let displayScale = UITraitCollection.current.displayScale
-//                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
-//                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
-//                    }
-//    #endif
-//                } catch {
-//                    print("Error fetching data: \(error)")
-//                }
-//            }
+    #if os(macOS)
+                    if let uiImage = NSImage(data: data) {
+                        thumbnailData = uiImage.tiffRepresentation
+                    }
+    #else
+                    if let uiImage = UIImage(data: data) {
+                        let displayScale = UITraitCollection.current.displayScale
+                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+                    }
+    #endif
+                } catch {
+                    print("Error fetching data: \(error)")
+                }
+            }
         }
 
         let item = Item(author: dto.author,
@@ -369,7 +369,7 @@ actor NewsModelActor: Sendable {
                         url: dto.url,
                         thumbnailURL: itemImageUrl,
                         image: nil,
-                        thumbnail: nil)
+                        thumbnail: thumbnailData)
 
         modelContext.insert(item)
     }
