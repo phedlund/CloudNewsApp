@@ -16,9 +16,6 @@ struct CachedAsyncImage<Content: View>: View {
     }
     
     var url: URL?
-    var transaction: Transaction = Transaction()
-    var compressedSize: CGSize = .init(width: 10, height: 8)
-    var loadFullResolution: Bool = false
     @ViewBuilder var content: (AsyncImagePhase) -> Content
     
     @State private var uiImage: UIImage? = nil
@@ -27,25 +24,14 @@ struct CachedAsyncImage<Content: View>: View {
 
     var body: some View {
         content(phase)
-            .transaction { view in
-                view.animation = self.transaction.animation
-            }
             .onChange(of: url, initial: true) {
                 Task {
                     await self.updateImage()
                 }
             }
-            .onChange(of: loadFullResolution, {
-                Task {
-                    await self.updateImage()
-                }
-            })
     }
 
     private func updateImage() async {
-        
-        let targetSize = loadFullResolution ? nil : compressedSize
-        
         guard let url else {
             self.phase = .empty
             return
@@ -54,7 +40,7 @@ struct CachedAsyncImage<Content: View>: View {
         let request = URLRequest(url: url)
 
         if let cached = URLCache.shared.cachedResponse(for: request) {
-            let image = cached.data.compressedImage(to: targetSize)
+            let image = UIImage(data: cached.data)
             if let image = image {
                 self.phase = .success(Image(uiImage: image))
                 return
@@ -80,7 +66,7 @@ struct CachedAsyncImage<Content: View>: View {
 
         URLCache.shared.storeCachedResponse(.init(response: response, data: data), for: request)
 
-        guard let image = data.compressedImage(to: targetSize) else {
+        guard let image = UIImage(data: data) else {
             self.phase = .failure(LoadImageError.loadImageFailed)
             return
         }
@@ -89,42 +75,4 @@ struct CachedAsyncImage<Content: View>: View {
         return
     }
 
-}
-
-
-private extension CGSize {
-    var pngBytes: Int {
-        Int(width * height * 9)
-    }
-    
-    var jpegBytes: Int {
-        Int(width * height * 3)
-    }
-}
-
-private extension Data {
-
-    func compressedImage(to size: CGSize?) -> UIImage? {
-        guard let size = size else {
-            return UIImage(data: self)
-        }
-        
-        if self.count < size.pngBytes {
-            return UIImage(data: self)
-        }
-        
-        let scale = 2.0
-        let options: [CFString: Any] = [
-            kCGImageSourceShouldCache : false,
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: Swift.max(size.width, size.height) * scale
-        ]
-        
-        guard
-            let src = CGImageSourceCreateWithData(self as CFData, nil),
-            let cgImage = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary)
-        else { return nil }
-
-        return UIImage(cgImage: cgImage)
-    }
 }

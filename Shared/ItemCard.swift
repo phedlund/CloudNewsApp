@@ -137,13 +137,14 @@ public struct ItemCard: View {
         }
         return HStack(alignment: .top, spacing: sizes.contentSpacing) {
             if mode.showsImage, let url = imageUrl {
-                CachedAsyncImage(
-                    url: url,
-                    transaction: .init(animation: .easeIn), loadFullResolution: true
-                ) { phase in
+                CachedAsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
-                        ProgressView()
+                        VStack {
+                            ProgressView()
+                        }
+                        .frame(width: mode.isCompact ? sizes.compactImageWidth : effectiveLargeImageWidth,
+                               height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
                     case .success(let image):
                         image
                             .resizable()
