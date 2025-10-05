@@ -274,8 +274,8 @@ actor NewsModelActor: Sendable {
         }
 
         var itemImageUrl: URL? = existing?.thumbnailURL
-        var imageData: Data? = existing?.image
-        var thumbnailData: Data? = existing?.thumbnail
+//        var imageData: Data? = existing?.image
+//        var thumbnailData: Data? = existing?.thumbnail
 
         if existing == nil {
             let validSchemas = ["http", "https", "file"]
@@ -368,8 +368,8 @@ actor NewsModelActor: Sendable {
                         updatedDate: dto.updatedDate,
                         url: dto.url,
                         thumbnailURL: itemImageUrl,
-                        image: imageData,
-                        thumbnail: thumbnailData)
+                        image: nil,
+                        thumbnail: nil)
 
         modelContext.insert(item)
     }
