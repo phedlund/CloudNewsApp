@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Observation
 import SwiftData
 import SwiftUI
 import UserNotifications
@@ -240,35 +239,9 @@ class NewsModel: @unchecked Sendable {
                 }
                 let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 for eachItem in decodedResponse.items {
-                    let itemToStore = await Item(item: eachItem)
-                    let itemToInsert = Item(author: itemToStore.author,
-                                            body: itemToStore.body,
-                                            contentHash: itemToStore.contentHash,
-                                            displayBody: itemToStore.displayBody,
-                                            displayTitle: itemToStore.displayTitle,
-                                            dateFeedAuthor: itemToStore.dateFeedAuthor,
-                                            enclosureLink: itemToStore.enclosureLink,
-                                            enclosureMime: itemToStore.enclosureMime,
-                                            feedId: itemToStore.feedId,
-                                            fingerprint: itemToStore.fingerprint,
-                                            guid: itemToStore.guid,
-                                            guidHash: itemToStore.guidHash,
-                                            id: itemToStore.id,
-                                            lastModified: itemToStore.lastModified,
-                                            mediaThumbnail: itemToStore.mediaThumbnail,
-                                            mediaDescription: itemToStore.mediaDescription,
-                                            pubDate: itemToStore.pubDate,
-                                            rtl: itemToStore.rtl,
-                                            starred: itemToStore.starred,
-                                            title: itemToStore.title,
-                                            unread: itemToStore.unread,
-                                            updatedDate: itemToStore.updatedDate,
-                                            url: itemToStore.url,
-                                            thumbnailURL: itemToStore.thumbnailURL,
-                                            image: itemToStore.image,
-                                            thumbnail: itemToStore.thumbnail)
-                    await backgroundActor.insert(itemToInsert)
+                    await backgroundActor.buildAndInsert(from: eachItem, existing: nil)
                 }
+                try await backgroundActor.save()
                 WidgetCenter.shared.reloadAllTimelines()
             default:
                 break

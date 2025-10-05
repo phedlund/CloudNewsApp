@@ -6,7 +6,6 @@
 //  Copyright © 2021 Peter Hedlund. All rights reserved.
 //
 
-import Observation
 import SwiftSoup
 import SwiftUI
 import WebKit

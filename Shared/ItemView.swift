@@ -13,7 +13,11 @@ import AppKit
 import UIKit
 #endif
 
-struct ItemView: View {
+struct ItemView: View, Equatable {
+    static func == (lhs: ItemView, rhs: ItemView) -> Bool {
+        lhs.item == rhs.item && lhs.faviconData == rhs.faviconData
+    }
+
     @Environment(\.displayScale) private var displayScale: CGFloat
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons = true
