@@ -533,36 +533,7 @@ final class SyncManager {
                 syncState = .idle
             }
         } catch {
-            let totalCount = decodedResponse.items.count
-            var counter = 0
-            for eachItem in decodedResponse.items {
-                counter += 1
-                await MainActor.run {
-                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
-                }
-                await backgroundActor.insertItem(itemDTO: eachItem)
-                itemIds.append(eachItem.id)
-                if counter % 15 == 0 {
-                    do {
-                        try await backgroundActor.save()
-                    } catch {
-                        syncState = .idle
-                    }
-                    await MainActor.run {
-                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
-                    }
-                }
-            }
-            do {
-                try await backgroundActor.save()
-                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
-                await MainActor.run {
-                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
-                }
-                syncState = .idle
-            } catch {
-                syncState = .idle
-            }
+            //
         }
     }
 
