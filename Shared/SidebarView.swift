@@ -43,8 +43,6 @@ struct SidebarView: View {
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
-    @State private var selectedFeed: Int64 = 0
-    @State private var unreadPredicate = #Predicate<Item>{ _ in false }
 
     @Binding var nodeSelection: Data?
 

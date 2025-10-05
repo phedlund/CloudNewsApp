@@ -15,8 +15,6 @@ struct ItemsListView: View {
     let listRowSeparatorVisibility: Visibility = .visible
     let listRowBackground = EmptyView()
 #else
-    @State private var isHorizontalCompact = true
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let cellSpacing: CGFloat = 21.0
     let listRowSeparatorVisibility: Visibility = .hidden
     let listRowBackground = Color.phWhiteBackground
