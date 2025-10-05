@@ -8,7 +8,12 @@
 import SwiftData
 import SwiftUI
 
-struct NodeView: View {
+struct NodeView: View, Equatable {
+
+    static func == (lhs: NodeView, rhs: NodeView) -> Bool {
+        lhs.node == rhs.node
+    }
+
     @Environment(NewsModel.self) private var newsModel
 
     let node: Node
