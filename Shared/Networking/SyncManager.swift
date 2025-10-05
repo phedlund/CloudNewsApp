@@ -129,6 +129,9 @@ final class SyncManager {
 
             if let data = itemsResponse {
                 await parseItems(data: data.0)
+                if !itemIds.isEmpty {
+                    await updateWidgetThumbnails()
+                }
             }
         }
     }
@@ -154,6 +157,9 @@ final class SyncManager {
                             case "items":
                                 Task {
                                     await parseItems(data: data)
+                                    if await !itemIds.isEmpty {
+                                        await updateWidgetThumbnails()
+                                    }
                                 }
                             default:
                                 break
@@ -252,6 +258,9 @@ final class SyncManager {
         if let unreadData = results[3] as Data?, !unreadData.isEmpty {
             syncState = .unread
             await parseItems(data: unreadData)
+            if !itemIds.isEmpty {
+                await updateWidgetThumbnails()
+            }
         }
         if let starredData = results[4] as Data?, !starredData.isEmpty {
             syncState = .starred
@@ -414,6 +423,9 @@ final class SyncManager {
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
             syncState = .articles(update: "")
             await parseItems(data: itemsData)
+            if !itemIds.isEmpty {
+                await updateWidgetThumbnails()
+            }
         }
     }
 
@@ -508,7 +520,9 @@ final class SyncManager {
 
                 await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id])
 
-                itemIds.append(eachItem.id)
+                if eachItem.unread == true {
+                    itemIds.append(eachItem.id)
+                }
 
                 if counter % 15 == 0 {
                     do {
@@ -537,69 +551,18 @@ final class SyncManager {
         }
     }
 
-    private func updateThumbnails() async {
-
-        func internalUrl(_ urlString: String?) async -> URL? {
-            if let urlString, let url = URL(string: urlString) {
-                do {
-                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-                    if let html = String(data: data, encoding: .utf8) {
-                        let doc: Document = try SwiftSoup.parse(html)
-                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                            let ogImage = try meta.attr("content")
-                            let ogUrl = URL(string: ogImage)
-                            return ogUrl
-                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                            let twImage = try meta.attr("content")
-                            let twUrl = URL(string: twImage)
-                            return twUrl
-                        } else {
-                            return nil
-                        }
-                    }
-                } catch(let error) {
-                    print(error.localizedDescription)
-                }
-            }
-            return nil
-        }
-
+    private func updateWidgetThumbnails() async {
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let predicate = #Predicate<Item> { itemIds.contains($0.id) }
+        let firstTenUnreadItemIds = Array(itemIds.prefix(10))
+        let predicate = #Predicate<Item> { firstTenUnreadItemIds.contains($0.id) }
         let descriptor = FetchDescriptor(predicate: predicate)
         let modelIds = try! await backgroundActor.allModelIds(descriptor)
-        let validSchemas = ["http", "https", "file"]
         for eachId in modelIds {
             do {
-                var itemImageUrl: URL?
-                if let mediaThumbnail = await backgroundActor.itemMediaThumbnail(for: eachId) {
-                    itemImageUrl = URL(string: mediaThumbnail)
-                } else if let summary = await backgroundActor.itemBody(for: eachId) {
-                    do {
-                        let doc: Document = try SwiftSoup.parse(summary)
-                        let srcs: Elements = try doc.select("img[src]")
-                        let images = try srcs.array().map({ try $0.attr("src") })
-                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                            itemImageUrl = imgUrl
-                        } else {
-                            itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
-                        }
-                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                        print(message)
-                    } catch(let error) {
-                        print(error.localizedDescription)
-                    }
-                } else {
-                    itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
-                }
-
-                var imageData: Data?
                 var thumbnailData: Data?
-                if let itemImageUrl {
+                if let itemImageUrl = await backgroundActor.itemImageUrl(for: eachId) {
                     do {
                         let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-                        imageData = data
 #if os(macOS)
                         if let uiImage = NSImage(data: data) {
                             thumbnailData = uiImage.tiffRepresentation
@@ -616,8 +579,6 @@ final class SyncManager {
                     }
                 }
                 do {
-                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnailURL, to: itemImageUrl)
-                    let _ = try await backgroundActor.update(eachId, keypath: \.image, to: imageData)
                     let _ = try await backgroundActor.update(eachId, keypath: \.thumbnail, to: thumbnailData)
                     try await backgroundActor.save()
                 } catch {

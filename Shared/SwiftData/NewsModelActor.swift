@@ -197,9 +197,9 @@ actor NewsModelActor: Sendable {
         return model.id
     }
 
-    func itemMediaThumbnail(for itemId: PersistentIdentifier) async -> String? {
+    func itemImageUrl(for itemId: PersistentIdentifier) async -> URL? {
         guard let item = modelContext.model(for: itemId) as? Item else { return nil }
-        return item.mediaThumbnail
+        return item.thumbnailURL
     }
 
     func itemBody(for itemId: PersistentIdentifier) async -> String? {
