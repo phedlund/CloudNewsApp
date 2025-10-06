@@ -176,6 +176,7 @@ final class SyncManager {
             try await initialSync()
             syncState = .favicons
             await getFavIcons()
+            syncState = .idle
         } else {
             try await repeatSync()
         }
