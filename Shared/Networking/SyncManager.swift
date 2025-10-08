@@ -50,6 +50,13 @@ enum SyncState: CustomStringConvertible, Equatable {
     }
 }
 
+struct SyncRequests {
+    let foldersRequest: URLRequest
+    let feedsRequest: URLRequest
+    let itemsRequest: URLRequest
+    let unreadItemsRequest: URLRequest
+    let starredItemsRequest: URLRequest
+}
 
 @Observable
 final class SyncManager {
@@ -57,83 +64,89 @@ final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
 
-    private var backgroundSession: URLSession?
     var syncState: SyncState = .idle
+
+    private let backgroundActor: NewsModelActor
+    private let backgroundSession: URLSession
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
 
-    let modelContainer: ModelContainer
-
     init(modelContainer: ModelContainer) {
-        self.modelContainer = modelContainer
-    }
-
-    func configureSession() {
+        self.backgroundActor = NewsModelActor(modelContainer: modelContainer)
         let backgroundSessionConfig = URLSessionConfiguration.background(withIdentifier: Constants.appUrlSessionId)
         backgroundSessionConfig.sessionSendsLaunchEvents = true
         backgroundSession = URLSession(configuration: backgroundSessionConfig)
     }
 
-    func backgroundSync() async {
+    private func syncRequests() async throws -> SyncRequests {
+        let newestKnownLastModified = await backgroundActor.maxLastModified()
+        let foldersRequest = try Router.folders.urlRequest()
+        let feedsRequest = try Router.feeds.urlRequest()
+        
+        let updatedParameters: ParameterDict = ["type": 3,
+                                                "lastModified": newestKnownLastModified,
+                                                "id": 0]
+        let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
+        let itemsRequest = try updatedItemRouter.urlRequest()
+        let unreadParameters: ParameterDict = ["type": 3,
+                                               "getRead": false,
+                                               "batchSize": -1]
+        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
+
+        let starredParameters: ParameterDict = ["type": 2,
+                                                "getRead": true,
+                                                "batchSize": -1]
+        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
+
+        return SyncRequests(foldersRequest: foldersRequest, feedsRequest: feedsRequest, itemsRequest: itemsRequest, unreadItemsRequest: unreadRequest, starredItemsRequest: starredRequest)
+    }
+
+    func backgroundSync() async throws {
         guard syncInBackground == true else {
             return
         }
-        try? await pruneItems()
-        if let backgroundSession {
-            let foldersRequest = try? Router.folders.urlRequest()
-            let foldersResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: foldersRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: foldersRequest!)
-                task.taskDescription = "folders"
-                task.resume ()
-            }
+        try await pruneItems()
+        let syncRequests = try await syncRequests()
+        let foldersResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.foldersRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.foldersRequest)
+            task.taskDescription = "folders"
+            task.resume ()
+        }
 
-            if let data = foldersResponse {
-                await parseFolders(data: data.0)
-            }
+        if !foldersResponse.isEmpty {
+            await parseFolders(data: foldersResponse)
+        }
 
-            let feedsRequest = try? Router.feeds.urlRequest()
+        let feedsResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.feedsRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.feedsRequest)
+            task.taskDescription = "feeds"
+            task.resume ()
+        }
 
-            let feedsResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: feedsRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: feedsRequest!)
-                task.taskDescription = "feeds"
-                task.resume ()
-            }
+        if !feedsResponse.isEmpty {
+            await parseFeeds(data: feedsResponse)
+        }
 
-            if let data = feedsResponse {
-                await parseFeeds(data: data.0)
-            }
+        let itemsResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.itemsRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.itemsRequest)
+            task.taskDescription = "items"
+            task.resume ()
+        }
 
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-            let newestKnownLastModified = await backgroundActor.maxLastModified()
-
-            let updatedParameters: ParameterDict = ["type": 3,
-                                                    "lastModified": newestKnownLastModified,
-                                                    "id": 0]
-            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-
-            let itemsRequest = try? updatedItemRouter.urlRequest()
-
-            let itemsResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: itemsRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: itemsRequest!)
-                task.taskDescription = "items"
-                task.resume ()
-            }
-
-            if let data = itemsResponse {
-                await parseItems(data: data.0)
-            }
+        if !itemsResponse.isEmpty {
+            await parseItems(data: itemsResponse)
         }
     }
 
     func processSessionData() {
-        backgroundSession?.getAllTasks { [self] tasks in
+        backgroundSession.getAllTasks { [self] tasks in
             for task in tasks {
                 if task.state == .suspended || task.state == .canceling { continue }
                 // NOTE: It seems the task state is .running when this is called, instead of .completed as one might expect.
@@ -169,7 +182,6 @@ final class SyncManager {
 
     func sync() async throws -> NewsStatusDTO? {
         syncState = .started
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
         let currentStatus = try await newsStatus()
         if itemCount == 0 {
@@ -205,33 +217,22 @@ final class SyncManager {
      */
 
     private func initialSync() async throws {
-        let foldersRequest = try Router.folders.urlRequest()
-        let feedsRequest = try Router.feeds.urlRequest()
-
-        let unreadParameters: ParameterDict = ["type": 3,
-                                               "getRead": false,
-                                               "batchSize": -1]
-        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
-
-        let starredParameters: ParameterDict = ["type": 2,
-                                                "getRead": true,
-                                                "batchSize": -1]
-        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
+        let syncRequests = try await syncRequests()
 
         let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
             var results = [Int: Data]()
 
             group.addTask {
-                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+                return (1, try await URLSession.shared.data (for: syncRequests.foldersRequest).0)
             }
             group.addTask {
-                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+                return (2, try await URLSession.shared.data (for: syncRequests.feedsRequest).0)
             }
             group.addTask {
-                return (3, try await URLSession.shared.data (for: unreadRequest).0)
+                return (3, try await URLSession.shared.data (for: syncRequests.unreadItemsRequest).0)
             }
             group.addTask {
-                return (4, try await URLSession.shared.data (for: starredRequest).0)
+                return (4, try await URLSession.shared.data (for: syncRequests.starredItemsRequest).0)
             }
 
             for try await (index, result) in group {
@@ -275,7 +276,6 @@ final class SyncManager {
      */
 
     private func repeatSync() async throws {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         var localReadIds = [Int64]()
         let identifiers = try await backgroundActor.allModelIds(FetchDescriptor<Read>())
         for identifier in identifiers {
@@ -367,17 +367,7 @@ final class SyncManager {
                 }
             }
         }
-
-        let foldersRequest = try Router.folders.urlRequest()
-        let feedsRequest = try Router.feeds.urlRequest()
-
-        let newestKnownLastModified = await backgroundActor.maxLastModified()
-        let updatedParameters: ParameterDict = ["type": 3,
-                                                "lastModified": newestKnownLastModified,
-                                                "id": 0]
-        let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-
-        let itemsRequest = try updatedItemRouter.urlRequest()
+        let syncRequests = try await syncRequests()
 
         let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
             var results = [Int: Data]()
@@ -387,13 +377,13 @@ final class SyncManager {
                 return (0, Data())
             }
             group.addTask {
-                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+                return (1, try await URLSession.shared.data (for: syncRequests.foldersRequest).0)
             }
             group.addTask {
-                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+                return (2, try await URLSession.shared.data (for: syncRequests.feedsRequest).0)
             }
             group.addTask {
-                return (3, try await URLSession.shared.data (for: itemsRequest).0)
+                return (3, try await URLSession.shared.data (for: syncRequests.itemsRequest).0)
             }
 
             for try await (index, result) in group {
@@ -427,7 +417,6 @@ final class SyncManager {
         self.foldersDTO = decodedResponse
         let folderIds = decodedResponse.folders.map( { $0.id } )
         do {
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             try await backgroundActor.pruneFolders(serverFolderIds: folderIds)
         } catch {
             //
@@ -441,7 +430,6 @@ final class SyncManager {
             //                    throw NetworkError.generic(message: "Unable to decode")
             return
         }
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         self.feedDTOs = decodedResponse.feeds
         let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
         await backgroundActor.insert(allNode)
@@ -493,7 +481,6 @@ final class SyncManager {
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
             return
         }
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
 
         let incomingIds = Set(decodedResponse.items.map(\.id))
         do {
@@ -539,7 +526,6 @@ final class SyncManager {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date()) {
                 print("limitDate: \(limitDate) date: \(Date())")
-                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
@@ -548,7 +534,6 @@ final class SyncManager {
     }
 
     private func getFavIcons() async {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         for feedDTO in feedDTOs {
             let validSchemas = ["http", "https", "file"]
             var itemImageUrl: URL?

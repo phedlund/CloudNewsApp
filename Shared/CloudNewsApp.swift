@@ -34,7 +34,6 @@ struct CloudNewsApp: App {
             self.modelActor = NewsModelActor(modelContainer: container)
             self.newsModel = NewsModel(modelContainer: container)
             self.syncManager = SyncManager(modelContainer: container)
-            syncManager.configureSession()
             ContentBlocker.shared.rules(completion: { _ in })
             let _ = CssProvider.shared.css()
             migrateKeychain()
@@ -95,7 +94,7 @@ struct CloudNewsApp: App {
         .modelContainer(container)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
             await scheduleAppRefresh()
-            await syncManager.backgroundSync()
+            try? await syncManager.backgroundSync()
         }
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
             await syncManager.processSessionData()
