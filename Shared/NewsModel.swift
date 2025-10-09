@@ -375,7 +375,7 @@ class NewsModel: @unchecked Sendable {
                 try await backgroundActor.save()
             }
             await updateUnreadItemIds()
-            let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true } )
+            let unreadCount = await backgroundActor.unreadCount()
             await MainActor.run {
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }

@@ -16,7 +16,7 @@ enum SettingKeys {
     static let hideRead = "hideRead"
     static let isNewInstall = "IsNewInstall"
     static let keepDuration = "KeepDuration"
-    static let lastModified = "lastModified"
+    static let lastModified = "LastModified"
     static let lineHeight = "LineHeight"
     static let marginPortrait = "MarginPortrait"
     static let markReadWhileScrolling = "MarkWhileScrolling"

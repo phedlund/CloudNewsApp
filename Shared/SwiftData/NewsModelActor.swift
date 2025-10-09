@@ -117,9 +117,19 @@ actor NewsModelActor: Sendable {
         }
     }
 
-    func fetchCount<T: PersistentModel>(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) throws -> Int {
+    private func fetchCount<T: PersistentModel>(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) throws -> Int {
         let fetchDescriptor = FetchDescriptor<T>(predicate: predicate, sortBy: sortBy)
         let count = try modelContext.fetchCount(fetchDescriptor)
+        return count
+    }
+
+    func hasItems() -> Bool {
+        let count = (try? fetchCount(predicate: #Predicate<Item> { _ in true } )) ?? 0
+        return count > 0
+    }
+
+    func unreadCount() -> Int {
+        let count = (try? fetchCount(predicate: #Predicate<Item> { $0.unread == true } )) ?? 0
         return count
     }
 
@@ -146,13 +156,21 @@ actor NewsModelActor: Sendable {
         try modelContext.fetchIdentifiers(descriptor)
     }
     
-    func maxLastModified() async -> Int64 {
-        var result: Int64 = 0
-        do {
-            let items: [Item] = try fetchData()
-            result = Int64(items.map( { $0.lastModified }).max()?.timeIntervalSince1970 ?? 0)
-        } catch { }
-        return result
+    func maxLastModified() async -> TimeInterval {
+        var descriptor = FetchDescriptor<Item>(
+            sortBy: [SortDescriptor(\.lastModified, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        descriptor.propertiesToFetch = [\.lastModified]
+
+        guard let items = try? modelContext.fetch(descriptor),
+              let maxDate = items.first?.lastModified else {
+            // Return Unix epoch for 5 days ago
+            let fiveDaysAgo = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
+            return fiveDaysAgo.timeIntervalSince1970
+        }
+
+        return maxDate.timeIntervalSince1970
     }
     
     func deleteNode(id: String) async throws {

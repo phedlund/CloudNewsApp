@@ -63,6 +63,7 @@ final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.syncInBackground) private var syncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
+    @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
 
     var syncState: SyncState = .idle
 
@@ -80,12 +81,12 @@ final class SyncManager {
     }
 
     private func syncRequests() async throws -> SyncRequests {
-        let newestKnownLastModified = await backgroundActor.maxLastModified()
+//        let newestKnownLastModified = await backgroundActor.maxLastModified()
         let foldersRequest = try Router.folders.urlRequest()
         let feedsRequest = try Router.feeds.urlRequest()
         
         let updatedParameters: ParameterDict = ["type": 3,
-                                                "lastModified": newestKnownLastModified,
+                                                "lastModified": lastModified,
                                                 "id": 0]
         let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
         let itemsRequest = try updatedItemRouter.urlRequest()
@@ -113,11 +114,7 @@ final class SyncManager {
         } onCancel: {
             let task = backgroundSession.downloadTask(with: syncRequests.foldersRequest)
             task.taskDescription = "folders"
-            task.resume ()
-        }
-
-        if !foldersResponse.isEmpty {
-            await parseFolders(data: foldersResponse)
+            task.resume()
         }
 
         let feedsResponse = try await withTaskCancellationHandler {
@@ -125,11 +122,7 @@ final class SyncManager {
         } onCancel: {
             let task = backgroundSession.downloadTask(with: syncRequests.feedsRequest)
             task.taskDescription = "feeds"
-            task.resume ()
-        }
-
-        if !feedsResponse.isEmpty {
-            await parseFeeds(data: feedsResponse)
+            task.resume()
         }
 
         let itemsResponse = try await withTaskCancellationHandler {
@@ -137,7 +130,15 @@ final class SyncManager {
         } onCancel: {
             let task = backgroundSession.downloadTask(with: syncRequests.itemsRequest)
             task.taskDescription = "items"
-            task.resume ()
+            task.resume()
+        }
+
+        if !foldersResponse.isEmpty {
+            await parseFolders(data: foldersResponse)
+        }
+
+        if !feedsResponse.isEmpty {
+            await parseFeeds(data: feedsResponse)
         }
 
         if !itemsResponse.isEmpty {
@@ -182,15 +183,17 @@ final class SyncManager {
 
     func sync() async throws -> NewsStatusDTO? {
         syncState = .started
-        let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
+        let hasItems = await backgroundActor.hasItems()
         let currentStatus = try await newsStatus()
-        if itemCount == 0 {
-            try await initialSync()
-            syncState = .favicons
-            await getFavIcons()
-            syncState = .idle
-        } else {
+        if hasItems || lastModified == 0 {
             try await repeatSync()
+        } else {
+            try await initialSync()
+            if !hasItems {
+                syncState = .favicons
+                await getFavIcons()
+            }
+            syncState = .idle
         }
         WidgetCenter.shared.reloadAllTimelines()
         return currentStatus
@@ -229,10 +232,10 @@ final class SyncManager {
                 return (2, try await URLSession.shared.data (for: syncRequests.feedsRequest).0)
             }
             group.addTask {
-                return (3, try await URLSession.shared.data (for: syncRequests.unreadItemsRequest).0)
+                return (3, try await URLSession.shared.data (for: syncRequests.starredItemsRequest).0)
             }
             group.addTask {
-                return (4, try await URLSession.shared.data (for: syncRequests.starredItemsRequest).0)
+                return (4, try await URLSession.shared.data (for: syncRequests.unreadItemsRequest).0)
             }
 
             for try await (index, result) in group {
@@ -250,13 +253,13 @@ final class SyncManager {
             syncState = .feeds
             await parseFeeds(data: feedsData)
         }
-        if let unreadData = results[3] as Data?, !unreadData.isEmpty {
-            syncState = .unread
-            await parseItems(data: unreadData)
-        }
-        if let starredData = results[4] as Data?, !starredData.isEmpty {
+        if let starredData = results[3] as Data?, !starredData.isEmpty {
             syncState = .starred
             await parseItems(data: starredData)
+        }
+        if let unreadData = results[4] as Data?, !unreadData.isEmpty {
+            syncState = .unread
+            await parseItems(data: unreadData)
         }
     }
 
@@ -482,12 +485,20 @@ final class SyncManager {
             return
         }
 
-        let incomingIds = Set(decodedResponse.items.map(\.id))
+        let incomingItems = decodedResponse.items
+        let incomingIds = Set(incomingItems.map(\.id))
+        let incomingLastModified = incomingItems.compactMap {
+            return Int($0.lastModified.timeIntervalSince1970)
+        }
+        if !incomingLastModified.isEmpty {
+            lastModified = incomingLastModified.reduce(0, max)
+        }
+
         do {
             let existingMediaById = try await backgroundActor.existingMediaMap(for: incomingIds)
-            let totalCount = decodedResponse.items.count
+            let totalCount = incomingItems.count
             var counter = 0
-            for eachItem in decodedResponse.items {
+            for eachItem in incomingItems {
                 counter += 1
                 await MainActor.run {
                     self.syncState = .articles(update: "\(counter) of \(totalCount)")
@@ -509,7 +520,7 @@ final class SyncManager {
 
             do {
                 try await backgroundActor.save()
-                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                let unreadCount = await backgroundActor.unreadCount()
                 await MainActor.run {
                     UNUserNotificationCenter.current().setBadgeCount(unreadCount)
                 }
