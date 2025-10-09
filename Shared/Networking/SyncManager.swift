@@ -553,12 +553,6 @@ final class SyncManager {
                let scheme = url.scheme,
                validSchemas.contains(scheme) {
                 itemImageUrl = url
-            } else {
-                if let feedUrl = URL(string: feedDTO.link ?? "data:null"),
-                   let host = feedUrl.host,
-                   let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
-                    itemImageUrl = url
-                }
             }
 
             var imageData: Data?
@@ -578,7 +572,9 @@ final class SyncManager {
         }
         do {
             try await backgroundActor.save()
-        } catch { }
+        } catch {
+            //
+        }
     }
 
 }

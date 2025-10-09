@@ -7,9 +7,18 @@
 
 import Foundation
 import SwiftData
+import SwiftSoup
 import SwiftUI
 import UserNotifications
 import WidgetKit
+
+
+public enum FavIconService {
+    case feed
+    case homePage
+    case duckDuckGo
+    case google
+}
 
 @Observable
 class NewsModel: @unchecked Sendable {
@@ -249,19 +258,40 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?) async throws {
+    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?, service: FavIconService = .homePage) async throws {
         let validSchemas = ["http", "https", "file"]
         var itemImageUrl: URL?
-        if let faviconLink = faviconLink,
-           let url = URL(string: faviconLink),
-           let scheme = url.scheme,
-           validSchemas.contains(scheme) {
-            itemImageUrl = url
-        } else {
+
+        switch service {
+        case .feed:
+            if let faviconLink = faviconLink,
+               let url = URL(string: faviconLink),
+               let scheme = url.scheme,
+               validSchemas.contains(scheme) {
+                itemImageUrl = url
+            }
+        case .homePage:
+            if let urlString = link, let url = URL(string: urlString) {
+                let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
+                if let html = String(data: data, encoding: .utf8) {
+                    let doc: Document = try SwiftSoup.parse(html)
+                    if let favIconLinkString = try doc.select("link[rel=icon]").first()?.attr("href"),
+                       let favIconUrl = URL(string: favIconLinkString, relativeTo: url) {
+                        itemImageUrl = favIconUrl
+                    }
+                }
+            }
+        case .duckDuckGo:
             if let feedUrl = URL(string: link ?? "data:null"),
                let host = feedUrl.host,
                let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
                 itemImageUrl = url
+            }
+        case .google:
+            if let feedUrl = URL(string: link ?? "data:null"),
+               let host = feedUrl.host,
+               let url = URL(string: "http://www.google.com/s2/favicons") {
+                itemImageUrl = url.appending(queryItems: [URLQueryItem(name: "domain", value: host)])
             }
         }
 
