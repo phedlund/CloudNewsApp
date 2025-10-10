@@ -174,7 +174,7 @@ class NewsModel: @unchecked Sendable {
                                                 items: [])
                         await backgroundActor.insert(feedToInsert)
                         try await addItems(feed: feedDTO.id)
-                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link)
+                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link, service: .feed)
                     }
                     WidgetCenter.shared.reloadAllTimelines()
                 case 405:
