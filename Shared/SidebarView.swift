@@ -348,22 +348,6 @@ struct SidebarView: View {
         }
     }
 
-    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
-        var result = FetchDescriptor<Item>()
-        switch node.type {
-        case .empty, .starred:
-            result.predicate = #Predicate<Item>{ _ in false }
-        case .all, .unread:
-            result.predicate = #Predicate<Item>{ $0.unread }
-        case .folder(id: let id):
-            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-        case .feed(id: let id):
-            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-        }
-        return result
-    }
-
     private func sync() {
         Task {
             do {
