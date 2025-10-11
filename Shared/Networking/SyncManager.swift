@@ -62,7 +62,7 @@ struct SyncRequests {
 final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.syncInBackground) private var syncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
-    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
+    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration: KeepDuration = .three
     @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
 
     var syncState: SyncState = .idle
@@ -535,9 +535,8 @@ final class SyncManager {
 
     private func pruneItems() async throws {
         do {
-            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date()) {
-                print("limitDate: \(limitDate) date: \(Date())")
-                try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration.rawValue), to: Date()) {
+                try await backgroundActor.delete(model: Item.self, where: #Predicate<Item> { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
             throw DatabaseError.itemsFailedImport
