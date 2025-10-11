@@ -156,7 +156,7 @@ struct ItemsListView: View {
                     }
                 }
                 .onScrollPhaseChange { _, newPhase, context in
-                    if newPhase == .idle {
+                    if newPhase == .idle, markReadWhileScrolling == true, isScrollingToTop == false, scenePhase == .active {
                         Task {
                             try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
                         }
@@ -281,18 +281,16 @@ struct ItemsListView: View {
     }
 
     private func markRead(_ offset: CGFloat) async throws {
-        guard isScrollingToTop == false, scenePhase == .active, offset > lastOffset else {
+        guard offset > lastOffset else {
             return
         }
-        if markReadWhileScrolling {
-            let cellHeight: CGFloat = compactView ? .compactCellHeight : .defaultCellHeight
-            let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
-            if numberOfItems > 0 {
-                let itemsToMarkRead = items
-                    .prefix(numberOfItems)
-                    .filter( { $0.unread == true } )
-                await newsModel.markItemsRead(items: Array(itemsToMarkRead))
-            }
+        let cellHeight: CGFloat = compactView ? .compactCellHeight : .defaultCellHeight
+        let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
+        if numberOfItems > 0 {
+            let itemsToMarkRead = items
+                .prefix(numberOfItems)
+                .filter( { $0.unread == true } )
+            await newsModel.markItemsRead(items: Array(itemsToMarkRead))
         }
         lastOffset = offset
     }
