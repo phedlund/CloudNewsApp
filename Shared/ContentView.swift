@@ -23,13 +23,33 @@ struct ContentView: View {
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @State private var isShowingLogin = false
-    @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
     @Query private var nodes: [Node]
+
+    var navigationTitle: String {
+        var result = ""
+        switch newsModel.currentNodeType {
+            case .empty:
+                result = ""
+            case .all:
+                result = "All Articles"
+            case .unread:
+                result = "Unread Articles"
+            case .starred:
+                result = "Starred Articles"
+            case .folder(let id):
+                let folder = folders.first(where: { $0.id == id })
+                result = folder?.name ?? Constants.untitledFolderName
+            case .feed(let id):
+                let feed = feeds.first(where: { $0.id == id })
+                result = feed?.title ?? "Untitled Feed"
+            }
+        return result
+    }
 
     var body: some View {
 #if DEBUG
@@ -62,7 +82,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle(navigationTitle ?? "Untitled")
+            .navigationTitle(navigationTitle)
             .onAppear {
                 Task {
                     let center = UNUserNotificationCenter.current()
@@ -86,25 +106,12 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+        .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
-                switch nodeType {
-                case .empty:
-                    navigationTitle = ""
-                case .all:
-                    navigationTitle = "All Articles"
-                case .unread:
-                    navigationTitle = "Unread Articles"
-                case .starred:
-                    navigationTitle = "Starred Articles"
-                case .folder(let id):
-                    let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? Constants.untitledFolderName
-                case .feed(let id):
-                    let feed = feeds.first(where: { $0.id == id })
-                    navigationTitle = feed?.title ?? "Untitled Feed"
-                }
                 preferredColumn = .detail
             }
         }
