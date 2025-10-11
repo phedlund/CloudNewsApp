@@ -32,15 +32,17 @@ struct ContentView: View {
     @Query private var nodes: [Node]
 
     var body: some View {
+#if DEBUG
         let _ = Logger.app.debug("ContentView body")
         let _ = Self._printChanges()
+#endif
 #if os(iOS)
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
                 .environment(syncManager)
         } detail: {
-            ZStack {
+            Group {
                 if selectedNode != nil {
                     ItemsListView(selectedItem: $selectedItem)
                         .environment(newsModel)
@@ -106,7 +108,10 @@ struct ContentView: View {
                 preferredColumn = .detail
             }
         }
-        .onChange(of: selectedItem, initial: true) { _, newValue in
+        .onChange(of: selectedItem, initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             newsModel.currentItem = newValue
         }
 #else
