@@ -78,7 +78,6 @@
 		D0C926392DCAD90C005415E5 /* UtilitiesShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */; };
 		D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
-		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
 		D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */; };
@@ -176,7 +175,6 @@
 		D0C925EC2DC836A6005415E5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D0C925EE2DC836A6005415E5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilitiesShared.swift; sourceTree = "<group>"; };
-		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
 		D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatus.swift; sourceTree = "<group>"; };
@@ -264,7 +262,6 @@
 				D02F44A0265C86BE00A3505B /* ContentView.swift */,
 				D0B0B2F5267ED1C600A997DB /* SidebarView.swift */,
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
-				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemView.swift */,
 				D07B359B2E88506200D92ADF /* ItemCard.swift */,
@@ -541,7 +538,6 @@
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D0F41D792A78186600EEAC78 /* Feed.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* NewsModel.swift in Sources */,
-				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D0F41D752A78185900EEAC78 /* Item.swift in Sources */,
 				D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */,

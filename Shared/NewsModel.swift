@@ -446,11 +446,14 @@ class NewsModel: @unchecked Sendable {
                         }
                     }
                 }
-                try await backgroundActor.save()
             }
+            try await backgroundActor.save()
             await updateUnreadItemIds()
+
             let unreadCount = await backgroundActor.unreadCount()
+
             await MainActor.run {
+                invalidateUnreadCounts()
                 NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }

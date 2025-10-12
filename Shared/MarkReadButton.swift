@@ -37,7 +37,6 @@ struct MarkReadButton: View {
                 await newsModel.updateUnreadItemIds()
                 await newsModel.markCurrentItemsRead()
 
-                // Refresh count after operation
                 if let node {
                     await newsModel.refreshUnreadCount(for: node)
                 }

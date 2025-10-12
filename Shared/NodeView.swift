@@ -18,8 +18,6 @@ struct NodeView: View, Equatable {
 
     let node: Node
 
-    @State private var unreadCount = 0
-
 #if os(iOS)
     let noChildrenPadding = 10.0
     let childrenPadding = -8.0
@@ -30,6 +28,10 @@ struct NodeView: View, Equatable {
 
     @Query private var favIcons: [FavIcon]
 
+    private var count: Int {
+        newsModel.unreadCounts[node.id] ?? 0
+    }
+
     var body: some View {
         HStack {
             Label {
@@ -37,7 +39,7 @@ struct NodeView: View, Equatable {
                     Text(node.title)
                         .lineLimit(1)
                     Spacer()
-                    BadgeView(node: node)
+                    badgeView
                         .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
@@ -47,9 +49,31 @@ struct NodeView: View, Equatable {
             .labelStyle(.titleAndIcon)
             Spacer()
         }
-//        .onChange(of: unreadCount, initial: true) { _, newValue in
-//            newsModel.unreadCounts[node.type] = newValue
-//        }
+        .task(id: node.id) {
+            await newsModel.refreshUnreadCount(for: node)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
+            Task {
+                await newsModel.refreshUnreadCount(for: node)
+            }
+        }
+    }
+
+    var badgeView: some View {
+        HStack {
+            if node.errorCount > 0 {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.black, .red)
+            }
+            if count > 0 {
+                Text("\(count)")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
+                    .background(Capsule().fill(.secondary))
+            }
+        }
     }
 
     var favIconView: some View {
