@@ -37,7 +37,7 @@ struct NodeView: View, Equatable {
                     Text(node.title)
                         .lineLimit(1)
                     Spacer()
-                    BadgeView(node: node, unreadCount: $unreadCount)
+                    BadgeView(node: node)
                         .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
                 }
                 .contentShape(Rectangle())
@@ -47,9 +47,9 @@ struct NodeView: View, Equatable {
             .labelStyle(.titleAndIcon)
             Spacer()
         }
-        .onChange(of: unreadCount, initial: true) { _, newValue in
-            newsModel.unreadCounts[node.type] = newValue
-        }
+//        .onChange(of: unreadCount, initial: true) { _, newValue in
+//            newsModel.unreadCounts[node.type] = newValue
+//        }
     }
 
     var favIconView: some View {

@@ -18,5 +18,6 @@ extension NSNotification.Name {
     public static let nextArticle = NSNotification.Name("NextArticle")
     public static let previousArticle = NSNotification.Name("PreviousArticle")
     public static let articlesUpdated = NSNotification.Name("ArticlesUpdated")
+    public static let unreadStateDidChange = Notification.Name("UnreadStateDidChange")
 
 }

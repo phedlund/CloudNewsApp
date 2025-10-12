@@ -37,7 +37,7 @@ class NewsModel: @unchecked Sendable {
     var currentItem: Item? = nil
     var navigationItemId: Int64 = 0
     var unreadItemIds = [PersistentIdentifier]()
-    var unreadCounts = [NodeType: Int]()
+    private(set) var unreadCounts = [String: Int]()
 
     var itemNavigationPath = NavigationPath()
 
@@ -45,6 +45,44 @@ class NewsModel: @unchecked Sendable {
 
     init(modelContainer: ModelContainer) {
         self.modelContainer = modelContainer
+    }
+
+    @MainActor
+    func refreshUnreadCount(for node: Node) async {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+
+        var predicate: Predicate<Item>
+        switch node.type {
+        case .empty, .all:
+            predicate = #Predicate<Item> { _ in false }
+        case .unread:
+            predicate = #Predicate<Item> { $0.unread == true }
+        case .starred:
+            predicate = #Predicate<Item> { $0.starred == true }
+        case .feed(let id):
+            predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
+        case .folder(let id):
+            let feedIds = await backgroundActor.feedIdsInFolder(folder: id) ?? []
+            predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+        }
+
+        let descriptor = FetchDescriptor<Item>(predicate: predicate)
+        if let count = try? await backgroundActor.fetchCount(descriptor) {
+            unreadCounts[node.id] = count
+        }
+    }
+
+    // Refresh all counts
+    @MainActor
+    func refreshAllUnreadCounts(nodes: [Node]) async {
+        for node in nodes {
+            await refreshUnreadCount(for: node)
+        }
+    }
+
+    // Invalidate all counts (call after batch operations)
+    func invalidateUnreadCounts() {
+        unreadCounts.removeAll()
     }
 
     func updateUnreadItemIds() async  {
@@ -314,17 +352,23 @@ class NewsModel: @unchecked Sendable {
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         do {
             for unreadItemId in unreadItemIds {
+                // Don't modify main context items here
                 if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
             }
             try await backgroundActor.save()
             try await markRead(itemIds: internalUnreadItemIds, unread: false)
-        } catch {
 
+            // IMPORTANT: Invalidate counts after batch operation
+            await MainActor.run {
+                invalidateUnreadCounts()
+            }
+        } catch {
+            print("Error marking items read: \(error)")
         }
     }
-
+    
     func markItemsRead(items: [Item]) async {
         guard !items.isEmpty else {
             return
@@ -407,6 +451,7 @@ class NewsModel: @unchecked Sendable {
             await updateUnreadItemIds()
             let unreadCount = await backgroundActor.unreadCount()
             await MainActor.run {
+                NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
                 UNUserNotificationCenter.current().setBadgeCount(unreadCount)
             }
         } catch(let error) {

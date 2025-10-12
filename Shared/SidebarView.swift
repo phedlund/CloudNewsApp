@@ -161,6 +161,9 @@ struct SidebarView: View {
 #endif
         .navigationTitle(Text("Feeds"))
         .navigationSubtitle(syncManager.syncState.description)
+        .task {
+            await newsModel.refreshAllUnreadCounts(nodes: nodes)
+        }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
         }, content: { sheet in

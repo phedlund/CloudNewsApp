@@ -11,38 +11,54 @@ import SwiftUI
 struct MarkReadButton: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
+    @Query private var nodes: [Node]
 
     var nodeType: NodeType?
+
+    private var effectiveNodeType: NodeType {
+        nodeType ?? newsModel.currentNodeType
+    }
+
+    private var node: Node? {
+        nodes.first { $0.type == effectiveNodeType }
+    }
+
+    private var unreadCount: Int {
+        guard let node else { return 0 }
+        return newsModel.unreadCounts[node.id] ?? 0
+    }
 
     var body: some View {
         Button(role: .confirm) {
             Task {
-                // Ensure the model targets the right node for the underlying operations
                 if let nodeType {
                     newsModel.currentNodeType = nodeType
                 }
                 await newsModel.updateUnreadItemIds()
-                for itemID in newsModel.unreadItemIds {
-                    if let item = modelContext.model(for: itemID) as? Item {
-                        item.unread = false
-                    }
-                }
                 await newsModel.markCurrentItemsRead()
+
+                // Refresh count after operation
+                if let node {
+                    await newsModel.refreshUnreadCount(for: node)
+                }
             }
         } label: {
-            Label {
-                Text("Mark Read")
-            } icon: {
-                Image(systemName: "checkmark")
-            }
+            Label("Mark Read", systemImage: "checkmark")
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(isMarkReadDisabled)
-    }
-
-    private var isMarkReadDisabled: Bool {
-        let key = nodeType ?? newsModel.currentNodeType
-        return (newsModel.unreadCounts[key] ?? 0) == 0
+        .disabled(unreadCount == 0)
+        .task(id: String(describing: effectiveNodeType)) {
+            if let node {
+                await newsModel.refreshUnreadCount(for: node)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
+            Task {
+                if let node {
+                    await newsModel.refreshUnreadCount(for: node)
+                }
+            }
+        }
     }
 }
 

@@ -117,19 +117,21 @@ actor NewsModelActor: Sendable {
         }
     }
 
-    private func fetchCount<T: PersistentModel>(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) throws -> Int {
-        let fetchDescriptor = FetchDescriptor<T>(predicate: predicate, sortBy: sortBy)
-        let count = try modelContext.fetchCount(fetchDescriptor)
-        return count
+    func fetchCount(_ descriptor: FetchDescriptor<Item>) throws -> Int {
+        try modelContext.fetchCount(descriptor)
     }
 
     func hasItems() -> Bool {
-        let count = (try? fetchCount(predicate: #Predicate<Item> { _ in true } )) ?? 0
+        let predicate = #Predicate<Item> { _ in true }
+        let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate)
+        let count = (try? fetchCount(fetchDescriptor)) ?? 0
         return count > 0
     }
 
     func unreadCount() -> Int {
-        let count = (try? fetchCount(predicate: #Predicate<Item> { $0.unread == true } )) ?? 0
+        let predicate = #Predicate<Item> { $0.unread == true }
+        let fetchDescriptor = FetchDescriptor<Item>(predicate: predicate)
+        let count = (try? fetchCount(fetchDescriptor)) ?? 0
         return count
     }
 
