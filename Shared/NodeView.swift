@@ -9,6 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct NodeView: View, Equatable {
+    @Environment(\.modelContext) private var modelContext
 
     static func == (lhs: NodeView, rhs: NodeView) -> Bool {
         lhs.node == rhs.node
@@ -29,7 +30,7 @@ struct NodeView: View, Equatable {
     @Query private var favIcons: [FavIcon]
 
     private var count: Int {
-        newsModel.unreadCounts[node.id] ?? 0
+        newsModel.unreadCount(for: node)
     }
 
     var body: some View {
@@ -48,9 +49,6 @@ struct NodeView: View, Equatable {
             }
             .labelStyle(.titleAndIcon)
             Spacer()
-        }
-        .task(id: node.id) {
-            await newsModel.refreshUnreadCount(for: node)
         }
         .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
             Task {

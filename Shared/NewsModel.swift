@@ -23,12 +23,13 @@ public enum FavIconService {
 @Observable
 class NewsModel: @unchecked Sendable {
     let session = ServerStatus.shared.session
+    let modelContainer: ModelContainer
 
     var currentNodeType: NodeType = .empty {
         didSet {
             if oldValue != currentNodeType {
                 Task {
-                    await updateUnreadItemIds()
+                    await refreshCurrentNodeState()
                 }
             }
         }
@@ -36,43 +37,99 @@ class NewsModel: @unchecked Sendable {
 
     var currentItem: Item? = nil
     var navigationItemId: Int64 = 0
-    var unreadItemIds = [PersistentIdentifier]()
-    private(set) var unreadCounts = [String: Int]()
-
     var itemNavigationPath = NavigationPath()
 
-    let modelContainer: ModelContainer
+    // Simple storage - @Observable will handle change propagation
+    private(set) var unreadCounts: [String: Int] = [:]
+    private(set) var unreadItemIds: [String: [PersistentIdentifier]] = [:]
+
+    // Convenience accessors for current node
+    var currentUnreadItemIds: [PersistentIdentifier] {
+        unreadItemIds[currentNodeType.description] ?? []
+    }
+
+    var currentUnreadCount: Int {
+        unreadCounts[currentNodeType.description] ?? 0
+    }
 
     init(modelContainer: ModelContainer) {
         self.modelContainer = modelContainer
     }
 
+    // MARK: - Initial Cache Population
+
     @MainActor
-    func refreshUnreadCount(for node: Node) async {
+    func populateInitialCache(nodes: [Node]) async {
+        print("🔵 Starting cache population for \(nodes.count) nodes")
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
 
-        var predicate: Predicate<Item>
-        switch node.type {
-        case .empty, .all:
-            predicate = #Predicate<Item> { _ in false }
-        case .unread:
-            predicate = #Predicate<Item> { $0.unread == true }
-        case .starred:
-            predicate = #Predicate<Item> { $0.starred == true }
-        case .feed(let id):
-            predicate = #Predicate<Item> { $0.feedId == id && $0.unread == true }
-        case .folder(let id):
-            let feedIds = await backgroundActor.feedIdsInFolder(folder: id) ?? []
-            predicate = #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread == true }
+        var counts: [String: Int] = [:]
+
+        for (index, node) in nodes.enumerated() {
+            let predicate = await createUnreadPredicate(for: node.type, backgroundActor: backgroundActor)
+            let descriptor = FetchDescriptor<Item>(predicate: predicate)
+
+            do {
+                let count = try await backgroundActor.fetchCount(descriptor)
+                counts[node.id] = count
+                print("✅ [\(index + 1)/\(nodes.count)] Cached \(node.title): \(count)")
+            } catch {
+                print("❌ [\(index + 1)/\(nodes.count)] Failed to cache \(node.title): \(error)")
+                counts[node.id] = 0
+            }
         }
 
+        // Update all at once to trigger single UI update
+        self.unreadCounts = counts
+
+        print("🟢 Cache populated with \(counts.count) entries")
+
+        // Also populate current node's full state (with itemIds)
+        await refreshCurrentNodeState()
+
+        // Notify UI that counts are ready
+        NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
+    }
+
+    // MARK: - Refresh Methods
+
+    @MainActor
+    func refreshCurrentNodeState() async {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let nodeId = currentNodeType.description
+
+        print("🔄 Refreshing current node state: \(nodeId)")
+
+        let predicate = await createUnreadPredicate(for: currentNodeType, backgroundActor: backgroundActor)
         let descriptor = FetchDescriptor<Item>(predicate: predicate)
-        if let count = try? await backgroundActor.fetchCount(descriptor) {
-            unreadCounts[node.id] = count
+
+        do {
+            let count = try await backgroundActor.fetchCount(descriptor)
+            let ids = try await backgroundActor.fetchUnreadIds(descriptor: descriptor)
+
+            unreadCounts[nodeId] = count
+            unreadItemIds[nodeId] = ids
+
+            print("✅ Refreshed current node: \(count) items, \(ids.count) ids")
+        } catch {
+            print("❌ Error refreshing current node: \(error)")
         }
     }
 
-    // Refresh all counts
+    @MainActor
+    func refreshUnreadCount(for node: Node) async {
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let predicate = await createUnreadPredicate(for: node.type, backgroundActor: backgroundActor)
+        let descriptor = FetchDescriptor<Item>(predicate: predicate)
+
+        do {
+            let count = try await backgroundActor.fetchCount(descriptor)
+            unreadCounts[node.id] = count
+        } catch {
+            print("❌ Error refreshing count for \(node.title): \(error)")
+        }
+    }
+
     @MainActor
     func refreshAllUnreadCounts(nodes: [Node]) async {
         for node in nodes {
@@ -80,31 +137,50 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    // Invalidate all counts (call after batch operations)
+    // MARK: - Access Methods
+
+    func unreadCount(for node: Node) -> Int {
+        unreadCounts[node.id] ?? 0
+    }
+
+    func unreadCount(for nodeId: String) -> Int {
+        unreadCounts[nodeId] ?? 0
+    }
+
+    // MARK: - Cache Management
+
+    @MainActor
     func invalidateUnreadCounts() {
         unreadCounts.removeAll()
     }
 
-    func updateUnreadItemIds() async  {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        var unreadFetchDescriptor = FetchDescriptor<Item>()
-        switch currentNodeType {
-        case .empty:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .all, .unread:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ $0.unread }
+    @MainActor
+    func invalidateNode(_ nodeId: String) {
+        unreadCounts.removeValue(forKey: nodeId)
+        unreadItemIds.removeValue(forKey: nodeId)
+    }
+
+    @MainActor
+    func invalidateAllCache() {
+        unreadCounts.removeAll()
+        unreadItemIds.removeAll()
+    }
+
+    // MARK: - Helper Methods
+
+    private func createUnreadPredicate(for nodeType: NodeType, backgroundActor: NewsModelActor) async -> Predicate<Item> {
+        switch nodeType {
+        case  .all, .empty:
+            return #Predicate<Item> { _ in false }
+        case.unread:
+            return #Predicate<Item> { $0.unread }
         case .starred:
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ _ in false }
-        case .folder(id:  let id):
+            return #Predicate<Item> { $0.starred }
+        case .folder(let id):
             let feedIds = await backgroundActor.feedIdsInFolder(folder: id) ?? []
-            unreadFetchDescriptor.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-        case .feed(id: let id):
-            unreadFetchDescriptor.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-        }
-        do {
-            unreadItemIds = try await backgroundActor.fetchUnreadIds(descriptor: unreadFetchDescriptor)
-        } catch {
-            unreadItemIds = []
+            return #Predicate<Item> { feedIds.contains($0.feedId) && $0.unread }
+        case .feed(let id):
+            return #Predicate<Item> { $0.feedId == id && $0.unread }
         }
     }
 
@@ -347,12 +423,16 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    // MARK: - Mark Read/Unread Operations
+
     func markCurrentItemsRead() async {
         var internalUnreadItemIds = [Int64]()
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let itemIdsToMark = currentUnreadItemIds
+
         do {
-            for unreadItemId in unreadItemIds {
-                // Don't modify main context items here
+            // First update in background
+            for unreadItemId in itemIdsToMark {
                 if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
@@ -360,34 +440,91 @@ class NewsModel: @unchecked Sendable {
             try await backgroundActor.save()
             try await markRead(itemIds: internalUnreadItemIds, unread: false)
 
-            // IMPORTANT: Invalidate counts after batch operation
+            // Now update the main context items so views see the change
             await MainActor.run {
-                invalidateUnreadCounts()
+                let context = modelContainer.mainContext
+                for itemId in itemIdsToMark {
+                    if let item = context.model(for: itemId) as? Item {
+                        item.unread = false
+                    }
+                }
+
+                // Clear the itemIds since everything is now read
+                unreadItemIds[currentNodeType.description] = []
+
+                // Update counts
+                let nodeId = currentNodeType.description
+                unreadCounts[nodeId] = 0
+
+                // Also update "all" and "unread" counts
+                let allNodeId = NodeType.all.description
+                let unreadNodeId = NodeType.unread.description
+                if let allCount = unreadCounts[allNodeId] {
+                    unreadCounts[allNodeId] = max(0, allCount - internalUnreadItemIds.count)
+                }
+                if let unreadCount = unreadCounts[unreadNodeId] {
+                    unreadCounts[unreadNodeId] = max(0, unreadCount - internalUnreadItemIds.count)
+                }
+
+                NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
             }
+
+            await refreshCurrentNodeState()
         } catch {
             print("Error marking items read: \(error)")
         }
     }
-    
+
     func markItemsRead(items: [Item]) async {
-        guard !items.isEmpty else {
-            return
-        }
+        guard !items.isEmpty else { return }
+
         do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             var internalUnreadItemIds = [Int64]()
+
             for unreadItemId in items.compactMap(\.persistentModelID) {
                 if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
             }
+
             for item in items {
-                item.unread.toggle()
+                item.unread = false
             }
+
             try await backgroundActor.save()
-            try await self.markRead(itemIds: internalUnreadItemIds, unread: false)
+            try await markRead(itemIds: internalUnreadItemIds, unread: false)
+
+            await MainActor.run {
+                // Update counts incrementally instead of invalidating
+                for item in items {
+                    let feedNodeId = NodeType.feed(id: item.feedId).description
+                    if let currentCount = unreadCounts[feedNodeId] {
+                        unreadCounts[feedNodeId] = max(0, currentCount - 1)
+                    }
+                }
+
+                // Update "all" and "unread" counts
+                let allNodeId = NodeType.all.description
+                let unreadNodeId = NodeType.unread.description
+                if let allCount = unreadCounts[allNodeId] {
+                    unreadCounts[allNodeId] = max(0, allCount - items.count)
+                }
+                if let unreadCount = unreadCounts[unreadNodeId] {
+                    unreadCounts[unreadNodeId] = max(0, unreadCount - items.count)
+                }
+
+                // Update itemIds for current node
+                if var ids = unreadItemIds[currentNodeType.description] {
+                    let itemsToRemove = Set(items.map(\.persistentModelID))
+                    ids.removeAll { itemsToRemove.contains($0) }
+                    unreadItemIds[currentNodeType.description] = ids
+                }
+
+                NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
+            }
         } catch {
-            
+            print("Error marking items read: \(error)")
         }
     }
 
@@ -402,65 +539,94 @@ class NewsModel: @unchecked Sendable {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let currentState = item.unread
             var internalUnreadItemIds = [Int64]()
+
             if let itemId = try await backgroundActor.update(item.persistentModelID, keypath: \.unread, to: !currentState) {
-                    internalUnreadItemIds.append(itemId)
-                }
+                internalUnreadItemIds.append(itemId)
+            }
+
             item.unread.toggle()
             try await backgroundActor.save()
-            try await self.markRead(itemIds: internalUnreadItemIds, unread: !currentState)
-        } catch {
+            try await markRead(itemIds: internalUnreadItemIds, unread: !currentState)
 
+            // Update the count for the affected feed/folder immediately
+            await MainActor.run {
+                // Decrement or increment the count in cache
+                let feedNodeId = NodeType.feed(id: item.feedId).description
+                if let currentCount = unreadCounts[feedNodeId] {
+                    unreadCounts[feedNodeId] = max(0, currentCount + (currentState ? -1 : 1))
+                }
+                
+                // Also update "all" and "unread" counts
+                let allNodeId = NodeType.all.description
+                let unreadNodeId = NodeType.unread.description
+                if let allCount = unreadCounts[allNodeId] {
+                    unreadCounts[allNodeId] = max(0, allCount + (currentState ? -1 : 1))
+                }
+                if let unreadCount = unreadCounts[unreadNodeId] {
+                    unreadCounts[unreadNodeId] = max(0, unreadCount + (currentState ? -1 : 1))
+                }
+
+                // Update itemIds for current node if needed
+                if !currentState { // Item became unread
+                    if var ids = unreadItemIds[currentNodeType.description] {
+                        ids.append(item.persistentModelID)
+                        unreadItemIds[currentNodeType.description] = ids
+                    }
+                } else { // Item became read
+                    if var ids = unreadItemIds[currentNodeType.description] {
+                        ids.removeAll { $0 == item.persistentModelID }
+                        unreadItemIds[currentNodeType.description] = ids
+                    }
+                }
+
+                // Notify observers
+                NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
+            }
+        } catch {
+            print("Error toggling item read state: \(error)")
         }
     }
 
     private func markRead(itemIds: [Int64], unread: Bool) async throws {
-        guard !itemIds.isEmpty else {
-            return
-        }
-        do {
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-            let parameters: ParameterDict = ["itemIds": itemIds]
-            var router: Router
-            if unread {
-                router = Router.itemsUnread(parameters: parameters)
-            } else {
-                router = Router.itemsRead(parameters: parameters)
-            }
-            let (_, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                switch httpResponse.statusCode {
-                case 200:
-                    if unread {
-                        try await backgroundActor.delete(model: Unread.self)
-                    } else {
-                        try await backgroundActor.delete(model: Read.self)
+        guard !itemIds.isEmpty else { return }
+
+        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+        let parameters: ParameterDict = ["itemIds": itemIds]
+        let router = unread ? Router.itemsUnread(parameters: parameters) : Router.itemsRead(parameters: parameters)
+
+        let (_, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            switch httpResponse.statusCode {
+            case 200:
+                if unread {
+                    try await backgroundActor.delete(model: Unread.self)
+                } else {
+                    try await backgroundActor.delete(model: Read.self)
+                }
+            default:
+                if unread {
+                    for itemId in itemIds {
+                        await backgroundActor.insert(Read(itemId: itemId))
                     }
-                default:
-                    if unread {
-                        for itemId in itemIds {
-                            await backgroundActor.insert(Read(itemId: itemId))
-                        }
-                    } else {
-                        for itemId in itemIds {
-                            await backgroundActor.insert(Unread(itemId: itemId))
-                        }
+                } else {
+                    for itemId in itemIds {
+                        await backgroundActor.insert(Unread(itemId: itemId))
                     }
                 }
             }
-            try await backgroundActor.save()
-            await updateUnreadItemIds()
+        }
 
-            let unreadCount = await backgroundActor.unreadCount()
+        try await backgroundActor.save()
 
-            await MainActor.run {
-                invalidateUnreadCounts()
-                NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
-                UNUserNotificationCenter.current().setBadgeCount(unreadCount)
-            }
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
+        let unreadCount = await backgroundActor.unreadCount()
+        await MainActor.run {
+            NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
+            UNUserNotificationCenter.current().setBadgeCount(unreadCount)
         }
     }
+
+    // MARK: - Toggle Starred
 
     func toggleCurrentItemStarred() async throws {
         if let currentItem = currentItem {
@@ -475,48 +641,42 @@ class NewsModel: @unchecked Sendable {
             let _ = try await backgroundActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
             item.starred.toggle()
             try await backgroundActor.save()
-            try await self.markStarred(itemIds: [item.id], starred: !currentState)
+            try await markStarred(itemIds: [item.id], starred: !currentState)
         } catch {
-
+            print("Error toggling starred state: \(error)")
         }
     }
 
     private func markStarred(itemIds: [Int64], starred: Bool) async throws {
-        do {
-            let parameters: ParameterDict = ["itemIds": itemIds]
-            var router: Router
-            if starred {
-                router = Router.itemsStarred(parameters: parameters)
-            } else {
-                router = Router.itemsUnstarred(parameters: parameters)
-            }
-            let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
-            if let httpResponse = response as? HTTPURLResponse {
-                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-                print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                print(String(data: data, encoding: .utf8) ?? "")
-                switch httpResponse.statusCode {
-                case 200:
-                    if starred {
-                        try await backgroundActor.delete(model: Unstarred.self)
-                    } else {
-                        try await backgroundActor.delete(model: Starred.self)
+        let parameters: ParameterDict = ["itemIds": itemIds]
+        let router = starred ? Router.itemsStarred(parameters: parameters) : Router.itemsUnstarred(parameters: parameters)
+
+        let (data, response) = try await session.data(for: router.urlRequest(), delegate: nil)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            print(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            print(String(data: data, encoding: .utf8) ?? "")
+
+            switch httpResponse.statusCode {
+            case 200:
+                if starred {
+                    try await backgroundActor.delete(model: Unstarred.self)
+                } else {
+                    try await backgroundActor.delete(model: Starred.self)
+                }
+            default:
+                if starred {
+                    for itemId in itemIds {
+                        await backgroundActor.insert(Unstarred(itemId: itemId))
                     }
-                default:
-                    if starred {
-                        for itemId in itemIds {
-                            await backgroundActor.insert(Unstarred(itemId: itemId))
-                        }
-                    } else {
-                        for itemId in itemIds {
-                            await backgroundActor.insert(Starred(itemId: itemId))
-                        }
+                } else {
+                    for itemId in itemIds {
+                        await backgroundActor.insert(Starred(itemId: itemId))
                     }
                 }
-                try await backgroundActor.save()
             }
-        } catch(let error) {
-            throw NetworkError.generic(message: error.localizedDescription)
+            try await backgroundActor.save()
         }
     }
 

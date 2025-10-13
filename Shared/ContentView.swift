@@ -14,6 +14,7 @@ import UserNotifications
 struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
+    @Environment(\.modelContext) private var modelContext
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openUrl
@@ -25,6 +26,7 @@ struct ContentView: View {
     @State private var isShowingLogin = false
     @State private var selectedItem: Item? = nil
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
+    @State private var isInitialized = false
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
@@ -84,18 +86,6 @@ struct ContentView: View {
             }
             .navigationTitle(navigationTitle)
             .onAppear {
-                Task {
-                    let center = UNUserNotificationCenter.current()
-                    do {
-                        if try await center.requestAuthorization(options: [.badge]) == true {
-                            // You have authorization.
-                        } else {
-                            // You don't have authorization.
-                        }
-                    } catch {
-                        // Handle any errors.
-                    }
-                }
                 isShowingLogin = isNewInstall
             }
             .sheet(isPresented: $isShowingLogin) {
@@ -106,6 +96,28 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
+        .task {
+            let center = UNUserNotificationCenter.current()
+            do {
+                if try await center.requestAuthorization(options: [.badge]) == true {
+                    // You have authorization.
+                } else {
+                    // You don't have authorization.
+                }
+            } catch {
+                // Handle any errors.
+            }
+            if !isInitialized {
+                await newsModel.populateInitialCache(nodes: nodes)
+                isInitialized = true
+
+
+                // Now restore the selected node AFTER cache is ready
+                if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+                    newsModel.currentNodeType = nodeType
+                }
+            }
+        }
         .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
             guard newValue != oldValue else {
                 return

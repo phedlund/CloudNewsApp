@@ -25,7 +25,7 @@ struct MarkReadButton: View {
 
     private var unreadCount: Int {
         guard let node else { return 0 }
-        return newsModel.unreadCounts[node.id] ?? 0
+        return newsModel.unreadCount(for: node)
     }
 
     var body: some View {
@@ -34,30 +34,14 @@ struct MarkReadButton: View {
                 if let nodeType {
                     newsModel.currentNodeType = nodeType
                 }
-                await newsModel.updateUnreadItemIds()
                 await newsModel.markCurrentItemsRead()
-
-                if let node {
-                    await newsModel.refreshUnreadCount(for: node)
-                }
             }
         } label: {
             Label("Mark Read", systemImage: "checkmark")
         }
         .keyboardShortcut("a", modifiers: [.control])
+        .id(unreadCount)
         .disabled(unreadCount == 0)
-        .task(id: String(describing: effectiveNodeType)) {
-            if let node {
-                await newsModel.refreshUnreadCount(for: node)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
-            Task {
-                if let node {
-                    await newsModel.refreshUnreadCount(for: node)
-                }
-            }
-        }
     }
 }
 
