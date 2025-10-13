@@ -522,6 +522,7 @@ final class SyncManager {
                 try await backgroundActor.save()
                 let unreadCount = await backgroundActor.unreadCount()
                 await MainActor.run {
+                    NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
                     UNUserNotificationCenter.current().setBadgeCount(unreadCount)
                 }
                 syncState = .idle
