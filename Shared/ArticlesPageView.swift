@@ -50,6 +50,8 @@ struct ArticlesPageView: View {
             LazyHStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
                     ArticleView(webContent: item)
+                        .safeAreaPadding(.top, 50)
+                        .safeAreaPadding(.bottom, 20)
                         .containerRelativeFrame([.horizontal, .vertical])
                 }
             }

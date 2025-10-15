@@ -23,8 +23,6 @@ struct ArticleView: View {
             .scrollIndicators(.visible, axes: .vertical)
             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaPadding(.top, 40)
-            .safeAreaPadding(.bottom, 20)
     }
 
 }
