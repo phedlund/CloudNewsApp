@@ -9,7 +9,6 @@ import SwiftData
 import SwiftUI
 
 struct NodeView: View, Equatable {
-    @Environment(\.modelContext) private var modelContext
 
     static func == (lhs: NodeView, rhs: NodeView) -> Bool {
         lhs.node == rhs.node

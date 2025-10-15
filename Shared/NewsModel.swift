@@ -12,7 +12,6 @@ import SwiftUI
 import UserNotifications
 import WidgetKit
 
-
 public enum FavIconService {
     case feed
     case homePage
@@ -39,11 +38,9 @@ class NewsModel: @unchecked Sendable {
     var navigationItemId: Int64 = 0
     var itemNavigationPath = NavigationPath()
 
-    // Simple storage - @Observable will handle change propagation
     private(set) var unreadCounts: [String: Int] = [:]
     private(set) var unreadItemIds: [String: [PersistentIdentifier]] = [:]
 
-    // Convenience accessors for current node
     var currentUnreadItemIds: [PersistentIdentifier] {
         unreadItemIds[currentNodeType.description] ?? []
     }
@@ -60,34 +57,24 @@ class NewsModel: @unchecked Sendable {
 
     @MainActor
     func populateInitialCache(nodes: [Node]) async {
-        print("🔵 Starting cache population for \(nodes.count) nodes")
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
 
         var counts: [String: Int] = [:]
 
-        for (index, node) in nodes.enumerated() {
+        for node in nodes {
             let predicate = await createUnreadPredicate(for: node.type, backgroundActor: backgroundActor)
             let descriptor = FetchDescriptor<Item>(predicate: predicate)
 
             do {
                 let count = try await backgroundActor.fetchCount(descriptor)
                 counts[node.id] = count
-                print("✅ [\(index + 1)/\(nodes.count)] Cached \(node.title): \(count)")
             } catch {
-                print("❌ [\(index + 1)/\(nodes.count)] Failed to cache \(node.title): \(error)")
                 counts[node.id] = 0
             }
         }
 
-        // Update all at once to trigger single UI update
         self.unreadCounts = counts
-
-        print("🟢 Cache populated with \(counts.count) entries")
-
-        // Also populate current node's full state (with itemIds)
         await refreshCurrentNodeState()
-
-        // Notify UI that counts are ready
         NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
     }
 
@@ -98,8 +85,6 @@ class NewsModel: @unchecked Sendable {
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         let nodeId = currentNodeType.description
 
-        print("🔄 Refreshing current node state: \(nodeId)")
-
         let predicate = await createUnreadPredicate(for: currentNodeType, backgroundActor: backgroundActor)
         let descriptor = FetchDescriptor<Item>(predicate: predicate)
 
@@ -109,10 +94,8 @@ class NewsModel: @unchecked Sendable {
 
             unreadCounts[nodeId] = count
             unreadItemIds[nodeId] = ids
-
-            print("✅ Refreshed current node: \(count) items, \(ids.count) ids")
         } catch {
-            print("❌ Error refreshing current node: \(error)")
+//
         }
     }
 
@@ -126,7 +109,7 @@ class NewsModel: @unchecked Sendable {
             let count = try await backgroundActor.fetchCount(descriptor)
             unreadCounts[node.id] = count
         } catch {
-            print("❌ Error refreshing count for \(node.title): \(error)")
+//
         }
     }
 
