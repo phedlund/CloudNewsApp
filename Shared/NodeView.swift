@@ -49,6 +49,9 @@ struct NodeView: View, Equatable {
             .labelStyle(.titleAndIcon)
             Spacer()
         }
+        .task(id: node.id) {
+            await newsModel.refreshUnreadCount(for: node)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
             Task {
                 await newsModel.refreshUnreadCount(for: node)
@@ -68,7 +71,7 @@ struct NodeView: View, Equatable {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-                    .background(Capsule().fill(.secondary))
+                    .background(Capsule().fill(.gray))
             }
         }
     }
