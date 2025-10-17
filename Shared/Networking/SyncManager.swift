@@ -185,7 +185,7 @@ final class SyncManager {
         syncState = .started
         let hasItems = await backgroundActor.hasItems()
         let currentStatus = try await newsStatus()
-        if hasItems || lastModified == 0 {
+        if hasItems && lastModified > 0 {
             try await repeatSync()
         } else {
             try await initialSync()
@@ -545,33 +545,57 @@ final class SyncManager {
     }
 
     private func getFavIcons() async {
-        for feedDTO in feedDTOs {
-            let validSchemas = ["http", "https", "file"]
-            var itemImageUrl: URL?
-            if let faviconLink = feedDTO.faviconLink,
-               let url = URL(string: faviconLink),
-               let scheme = url.scheme,
-               validSchemas.contains(scheme) {
-                itemImageUrl = url
-            }
+        let maxConcurrentRequests = 15
 
-            var imageData: Data?
-            if let itemImageUrl {
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-                    imageData = data
-                } catch {
-                    print("Error fetching data: \(error)")
+        await withTaskGroup(of: Void.self) { group in
+            var index = 0
+            let feedCount = feedDTOs.count
+
+            for _ in 0..<min(maxConcurrentRequests, feedCount) {
+                if index < feedCount {
+                    group.addTask { [weak self, index] in
+                        guard let self = self else { return }
+                        await self.fetchAndStoreFavIcon(for: self.feedDTOs[index])
+                    }
+                    index += 1
                 }
             }
 
-            if let imageData {
-                let favIconDTO = FavIconDTO(id: feedDTO.id, url: itemImageUrl, icon: imageData)
-                await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
+            while let _ = await group.next() {
+                if index < feedCount {
+                    group.addTask { [weak self, index] in
+                        guard let self = self else { return }
+                        await self.fetchAndStoreFavIcon(for: self.feedDTOs[index])
+                    }
+                    index += 1
+                }
             }
         }
+
         do {
             try await backgroundActor.save()
+        } catch {
+            //
+        }
+    }
+
+    private func fetchAndStoreFavIcon(for feedDTO: FeedDTO) async {
+        let validSchemas = ["http", "https", "file"]
+        var itemImageUrl: URL?
+
+        if let faviconLink = feedDTO.faviconLink,
+           let url = URL(string: faviconLink),
+           let scheme = url.scheme,
+           validSchemas.contains(scheme) {
+            itemImageUrl = url
+        }
+
+        guard let itemImageUrl else { return }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+            let favIconDTO = FavIconDTO(id: feedDTO.id, url: itemImageUrl, icon: data)
+            await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
         } catch {
             //
         }
