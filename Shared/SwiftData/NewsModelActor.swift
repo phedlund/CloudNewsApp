@@ -266,7 +266,8 @@ actor NewsModelActor: Sendable {
         return map
     }
 
-    func buildAndInsert(from dto: ItemDTO, existing: ExistingItemMedia?, retrieveWidgetImage: Bool = false) async {
+    func buildAndInsert(from dto: ItemDTO, existing: ExistingItemMedia?, retrieveWidgetImage: Bool = false, imageCache: [String: URL?]) async -> [String: URL?] {
+        var updatedCache = imageCache
         let displayTitle = await plainSummary(raw: dto.title)
 
         var summary = ""
@@ -294,74 +295,18 @@ actor NewsModelActor: Sendable {
         }
 
         var itemImageUrl: URL? = existing?.thumbnailURL
-//        var imageData: Data? = existing?.image
         var thumbnailData: Data? = existing?.thumbnail
 
         if itemImageUrl == nil {
-            let validSchemas = ["http", "https", "file"]
+            itemImageUrl = await extractImageUrl(from: dto)
+        }
 
-            func internalUrl(_ urlString: String?) async -> URL? {
-                if let urlString, let url = URL(string: urlString) {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-                        if let html = String(data: data, encoding: .utf8) {
-                            let doc: Document = try SwiftSoup.parse(html)
-                            if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                                let ogImage = try meta.attr("content")
-                                return URL(string: ogImage)
-                            } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                                let twImage = try meta.attr("content")
-                                return URL(string: twImage)
-                            }
-                        }
-                    } catch {
-                        print(error.localizedDescription)
-                    }
-                }
-                return nil
-            }
+        if itemImageUrl == nil, retrieveWidgetImage {
+            itemImageUrl = await fetchImageUrlFromArticle(dto.url, cache: &updatedCache)
+        }
 
-            if let urlString = dto.mediaThumbnail, let imgUrl = URL(string: urlString) {
-                itemImageUrl = imgUrl
-            } else if let summary = dto.body {
-                do {
-                    let doc: Document = try SwiftSoup.parse(summary)
-                    let srcs: Elements = try doc.select("img[src]")
-                    let images = try srcs.array().map({ try $0.attr("src") })
-                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                        itemImageUrl = imgUrl
-                    } else {
-                        itemImageUrl = await internalUrl(dto.url)
-                    }
-                } catch Exception.Error(_, let message) {
-                    print(message)
-                } catch {
-                    print(error.localizedDescription)
-                }
-            } else {
-                itemImageUrl = await internalUrl(dto.url)
-            }
-
-            if let itemImageUrl, retrieveWidgetImage == true {
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-//                    imageData = data
-    #if os(macOS)
-                    if let uiImage = NSImage(data: data) {
-                        thumbnailData = uiImage.tiffRepresentation
-                    }
-    #else
-                    if let uiImage = UIImage(data: data) {
-                        let displayScale = UITraitCollection.current.displayScale
-                        let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
-                        thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
-                    }
-    #endif
-                } catch {
-                    print("Error fetching data: \(error)")
-                }
-            }
+        if let itemImageUrl, retrieveWidgetImage {
+            thumbnailData = await fetchThumbnail(from: itemImageUrl)
         }
 
         let item = Item(author: dto.author,
@@ -392,5 +337,107 @@ actor NewsModelActor: Sendable {
                         thumbnail: thumbnailData)
 
         modelContext.insert(item)
+        return updatedCache
     }
+
+    private func extractImageUrl(from dto: ItemDTO) async -> URL? {
+        let validSchemas = ["http", "https", "file"]
+
+        if let urlString = dto.mediaThumbnail, let imgUrl = URL(string: urlString) {
+            return imgUrl
+        }
+
+        if let summary = dto.body {
+            return await Task {
+                do {
+                    let doc: Document = try SwiftSoup.parse(summary)
+                    let srcs: Elements = try doc.select("img[src]")
+                    let images = try srcs.array().map({ try $0.attr("src") })
+                    let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
+                    if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
+                        return imgUrl
+                    }
+                } catch {
+                    //
+                }
+                return nil
+            }.value
+        }
+
+        return nil
+    }
+
+    private func fetchImageUrlFromArticle(_ urlString: String?, cache: inout [String: URL?]) async -> URL? {
+        guard let urlString else { return nil }
+
+        if let cachedResult = cache[urlString] {
+            return cachedResult
+        }
+
+        guard let url = URL(string: urlString) else {
+            cache[urlString] = nil
+            return nil
+        }
+
+        do {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 5.0
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+            guard let html = String(data: data, encoding: .utf8) else {
+                cache[urlString] = nil
+                return nil
+            }
+
+            let doc: Document = try SwiftSoup.parse(html)
+
+            if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
+                let ogImage = try meta.attr("content")
+                if let imageUrl = URL(string: ogImage) {
+                    cache[urlString] = imageUrl
+                    return imageUrl
+                }
+            }
+
+            if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
+                let twImage = try meta.attr("content")
+                if let imageUrl = URL(string: twImage) {
+                    cache[urlString] = imageUrl
+                    return imageUrl
+                }
+            }
+
+            cache[urlString] = nil
+        } catch {
+            cache[urlString] = nil
+        }
+
+        return nil
+    }
+
+    private func fetchThumbnail(from url: URL) async -> Data? {
+        do {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 5.0
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+
+    #if os(macOS)
+            if let uiImage = NSImage(data: data) {
+                return uiImage.tiffRepresentation
+            }
+    #else
+            if let uiImage = UIImage(data: data) {
+                let displayScale = UITraitCollection.current.displayScale
+                let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
+                return await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
+            }
+    #endif
+        } catch {
+            //
+        }
+
+        return nil
+    }
+
 }

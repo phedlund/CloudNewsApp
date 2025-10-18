@@ -72,6 +72,7 @@ final class SyncManager {
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
+    private var ogImageCache = [String: URL?]()
 
     init(modelContainer: ModelContainer) {
         self.backgroundActor = NewsModelActor(modelContainer: modelContainer)
@@ -498,13 +499,19 @@ final class SyncManager {
             let existingMediaById = try await backgroundActor.existingMediaMap(for: incomingIds)
             let totalCount = incomingItems.count
             var counter = 0
+
             for eachItem in incomingItems {
                 counter += 1
                 await MainActor.run {
                     self.syncState = .articles(update: "\(counter) of \(totalCount)")
                 }
 
-                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id], retrieveWidgetImage: (counter < 10) && (eachItem.unread == true))
+                ogImageCache = await backgroundActor.buildAndInsert(
+                    from: eachItem,
+                    existing: existingMediaById[eachItem.id],
+                    retrieveWidgetImage: (counter < 10) && (eachItem.unread == true),
+                    imageCache: ogImageCache
+                )
 
                 if counter % 15 == 0 {
                     do {

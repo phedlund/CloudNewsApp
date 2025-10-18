@@ -38,6 +38,8 @@ class NewsModel: @unchecked Sendable {
     var navigationItemId: Int64 = 0
     var itemNavigationPath = NavigationPath()
 
+    private var ogImageCache = [String: URL?]()
+
     private(set) var unreadCounts: [String: Int] = [:]
     private(set) var unreadItemIds: [String: [PersistentIdentifier]] = [:]
 
@@ -345,7 +347,11 @@ class NewsModel: @unchecked Sendable {
                 }
                 let backgroundActor = NewsModelActor(modelContainer: modelContainer)
                 for eachItem in decodedResponse.items {
-                    await backgroundActor.buildAndInsert(from: eachItem, existing: nil)
+                    ogImageCache = await backgroundActor.buildAndInsert(
+                        from: eachItem,
+                        existing: nil,
+                        imageCache: ogImageCache
+                    )
                 }
                 try await backgroundActor.save()
                 WidgetCenter.shared.reloadAllTimelines()
