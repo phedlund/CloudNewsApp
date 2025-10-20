@@ -123,19 +123,10 @@ public struct ItemCard: View {
                 .stroke(borderShapeStyle, lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: sizes.cornerRadius, style: .continuous))
-        // CRITICAL FIX: Remove all animations during scroll
-        // Only animate when user explicitly changes modes (not during scroll)
-        // If you need animations, add them at a higher level with explicit triggers
     }
 
     private var card: some View {
-        var effectiveLargeImageWidth = sizes.largeImageWidth
-        if horizontalSizeClass == .compact {
-            effectiveLargeImageWidth = sizes.largeImageWidth * 0.75
-        }
-
         return HStack(alignment: .top, spacing: sizes.contentSpacing) {
-            // Optimize image loading
             if mode.showsImage, let url = imageUrl {
                 ThumbnailImage(url: url, mode: mode, sizes: sizes)
             }
@@ -154,7 +145,6 @@ public struct ItemCard: View {
                                 .scaledToFit()
                                 .frame(width: sizes.faviconSize, height: sizes.faviconSize)
                                 .clipShape(RoundedRectangle(cornerRadius: sizes.faviconSize * 0.2, style: .continuous))
-                                // Removed transition - causes performance issues during scroll
                         }
 
                         Text(subtitle)
@@ -169,7 +159,6 @@ public struct ItemCard: View {
                         .font(.body)
                         .foregroundStyle(.primary)
                         .lineLimit(4)
-                        // Removed transition - causes performance issues during scroll
                 }
 
                 Spacer(minLength: 0)
