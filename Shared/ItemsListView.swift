@@ -140,14 +140,17 @@ struct ItemsListView: View {
                     ScrollToTopView(reader: proxy, scrollOnChange: $scrollToTop)
                     LazyVStack(alignment: .center, spacing: 16.0) {
                         ForEach(items, id: \.id) { item in
+                            // Cache the favicon lookup result outside the closure
+                            let faviconData = favIconDataByFeedId[item.feedId]
+
                             NavigationLink(value: item) {
-                                ItemView(item: item, faviconData: favIconDataByFeedId[item.feedId])
+                                ItemView(item: item, faviconData: faviconData)
                                     .id(item.id)
-                                    .contextMenu {
-                                        contextMenu(item: item)
-                                    }
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                contextMenuContent(for: item)
+                            }
                         }
                     }
                     .navigationDestination(for: Item.self) { item in
@@ -155,10 +158,18 @@ struct ItemsListView: View {
                             .environment(newsModel)
                     }
                 }
+                // Debounce the scroll marking with a time threshold
                 .onScrollPhaseChange { _, newPhase, context in
-                    if newPhase == .idle, markReadWhileScrolling == true, isScrollingToTop == false, scenePhase == .active {
-                        Task {
-                            try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
+                    if newPhase == .idle,
+                       markReadWhileScrolling == true,
+                       isScrollingToTop == false,
+                       scenePhase == .active {
+                        let currentOffset = context.geometry.contentOffset.y + context.geometry.contentInsets.top
+                        // Only mark as read if scrolled significantly since last mark
+                        if abs(currentOffset - lastOffset) > 50 {
+                            Task {
+                                try? await markRead(currentOffset)
+                            }
                         }
                     }
                 }
@@ -254,6 +265,27 @@ struct ItemsListView: View {
     }
 #endif
 
+    // Extracted to avoid recreating the view on every render
+    @ViewBuilder
+    private func contextMenuContent(for item: Item) -> some View {
+        Button {
+            Task {
+                await newsModel.toggleItemRead(item: item)
+            }
+        } label: {
+            Label(item.unread ? "Read" : "Unread",
+                  systemImage: item.unread ? "eye" : "eye.slash")
+        }
+        Button {
+            Task {
+                await newsModel.toggleItemStarred(item: item)
+            }
+        } label: {
+            Label(item.starred ? "Unstar" : "Star",
+                  systemImage: item.starred ? "star" : "star.fill")
+        }
+    }
+
     @ViewBuilder
     private func contextMenu(item: Item) -> some View {
         Button {
@@ -284,15 +316,22 @@ struct ItemsListView: View {
         guard offset > lastOffset else {
             return
         }
+
+        // Defer the update to avoid blocking
+        defer { lastOffset = offset }
+
         let cellHeight: CGFloat = compactView ? .compactCellHeight : .defaultCellHeight
         let numberOfItems = Int(max((offset / (cellHeight + cellSpacing)), 0))
-        if numberOfItems > 0 {
-            let itemsToMarkRead = items
-                .prefix(numberOfItems)
-                .filter( { $0.unread == true } )
-            await newsModel.markItemsRead(items: Array(itemsToMarkRead))
-        }
-        lastOffset = offset
+
+        guard numberOfItems > 0 else { return }
+
+        // Use a more efficient approach - only check items that could be visible
+        let maxVisibleIndex = min(numberOfItems, items.count)
+        let itemsToMarkRead = items[0..<maxVisibleIndex].filter { $0.unread }
+
+        guard !itemsToMarkRead.isEmpty else { return }
+
+        await newsModel.markItemsRead(items: Array(itemsToMarkRead))
     }
 
     private func updateFetchDescriptor() {

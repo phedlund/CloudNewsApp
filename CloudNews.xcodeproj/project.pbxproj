@@ -50,6 +50,9 @@
 		D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061B1632C0A433C00E5D993 /* NewsObjects.swift */; };
 		D061EB942D5C3EC5003A9914 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061EB932D5C3EBE003A9914 /* Node.swift */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
+		D0704F8B2EA58A8A001663EF /* ImagePrefetchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */; };
+		D0704F8D2EA58B22001663EF /* PrefetchAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */; };
+		D0704F8F2EA58FFC001663EF /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8E2EA58FFC001663EF /* ImageUtils.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
 		D07B359C2E88506200D92ADF /* ItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07B359B2E88506200D92ADF /* ItemCard.swift */; };
 		D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07EFCD22B0B011300032103 /* MarkReadButton.swift */; };
@@ -160,6 +163,9 @@
 		D061B1632C0A433C00E5D993 /* NewsObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsObjects.swift; sourceTree = "<group>"; };
 		D061EB932D5C3EBE003A9914 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePrefetchManager.swift; sourceTree = "<group>"; };
+		D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefetchAsyncImage.swift; sourceTree = "<group>"; };
+		D0704F8E2EA58FFC001663EF /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
 		D07B359B2E88506200D92ADF /* ItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCard.swift; sourceTree = "<group>"; };
 		D07EFCD22B0B011300032103 /* MarkReadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkReadButton.swift; sourceTree = "<group>"; };
@@ -266,6 +272,8 @@
 				D0873FAA29737CE70076DCB1 /* ItemView.swift */,
 				D07B359B2E88506200D92ADF /* ItemCard.swift */,
 				D05F87342E89E05400E9F05E /* CachedAsyncImage.swift */,
+				D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */,
+				D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D035E343287A5C1D00E1FE5E /* ShareLinkButton.swift */,
@@ -285,6 +293,7 @@
 				D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */,
 				D0F35C0527249B2F004BFC27 /* MailComposeView.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
+				D0704F8E2EA58FFC001663EF /* ImageUtils.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
 				D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */,
 				D0115C452E5F63D500872354 /* ValetManager.swift */,
@@ -497,6 +506,7 @@
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
 				D00634B12E2F25C400283CD7 /* FavIcon.swift in Sources */,
+				D0704F8F2EA58FFC001663EF /* ImageUtils.swift in Sources */,
 				D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
@@ -526,10 +536,12 @@
 				D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */,
 				D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */,
+				D0704F8B2EA58A8A001663EF /* ImagePrefetchManager.swift in Sources */,
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,
+				D0704F8D2EA58B22001663EF /* PrefetchAsyncImage.swift in Sources */,
 				D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */,
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,

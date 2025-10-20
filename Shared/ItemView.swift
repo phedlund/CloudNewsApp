@@ -15,7 +15,10 @@ import UIKit
 
 struct ItemView: View, Equatable {
     static func == (lhs: ItemView, rhs: ItemView) -> Bool {
-        lhs.item == rhs.item && lhs.faviconData == rhs.faviconData
+        lhs.item.id == rhs.item.id &&
+        lhs.item.unread == rhs.item.unread &&
+        lhs.item.starred == rhs.item.starred &&
+        lhs.faviconData == rhs.faviconData
     }
 
     @Environment(\.displayScale) private var displayScale: CGFloat
@@ -26,34 +29,20 @@ struct ItemView: View, Equatable {
     let item: Item
     let faviconData: Data?
 
+    // Cache the computed image to avoid recreating it
+    @State private var cachedFaviconImage: Image?
+
     private var thumbnailUrl: URL? {
         guard showThumbnails else { return nil }
         return item.thumbnailURL
-//        if let data = item.image ?? item.thumbnail {
-//#if os(macOS)
-//            if let nsImg = NSImage(data: data) { return Image(nsImage: nsImg) }
-//#else
-//            if let uiImg = UIImage(data: data, scale: displayScale) { return Image(uiImage: uiImg) }
-//#endif
-//        }
-//        return nil
-    }
-
-    private var faviconImage: Image? {
-        guard showFavIcons else { return nil }
-        if let data = faviconData {
-#if os(macOS)
-            if let nsImg = NSImage(data: data) { return Image(nsImage: nsImg) }
-#else
-            if let uiImg = UIImage(data: data) { return Image(uiImage: uiImg) }
-#endif
-        }
-        return nil
     }
 
     private var effectiveFavicon: Image? {
-        // Fallback to generic RSS icon if favicons are enabled but no data is available
-        if let icon = faviconImage { return icon }
+        // Use cached image if available
+        if let cached = cachedFaviconImage {
+            return cached
+        }
+        // Fallback to generic RSS icon if favicons are enabled but no data
         return showFavIcons ? Image(.rss) : nil
     }
 
@@ -102,6 +91,22 @@ struct ItemView: View, Equatable {
         }
         .padding(.trailing, .paddingSix)
 #endif
+        .task(id: faviconData) {
+            // Convert Data to Image once and cache it
+            if let data = faviconData, showFavIcons {
+#if os(macOS)
+                if let nsImg = NSImage(data: data) {
+                    cachedFaviconImage = Image(nsImage: nsImg)
+                }
+#else
+                if let uiImg = UIImage(data: data) {
+                    cachedFaviconImage = Image(uiImage: uiImg)
+                }
+#endif
+            } else {
+                cachedFaviconImage = nil
+            }
+        }
     }
 }
 

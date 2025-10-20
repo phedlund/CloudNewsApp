@@ -67,8 +67,6 @@ public struct ItemCard: View {
     public var sizes: Sizes
     public var style: Style = .system
 
-//    @Namespace private var ns
-
     public init(title: String,
                 subtitle: String? = nil,
                 bodyText: String? = nil,
@@ -125,9 +123,9 @@ public struct ItemCard: View {
                 .stroke(borderShapeStyle, lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: sizes.cornerRadius, style: .continuous))
-        .animation(.snappy(duration: 0.35, extraBounce: 0.02), value: mode)
-        .animation(.snappy(duration: 0.35, extraBounce: 0.02), value: showsFavicon)
-        .animation(.snappy(duration: 0.35, extraBounce: 0.02), value: isStarred)
+        // CRITICAL FIX: Remove all animations during scroll
+        // Only animate when user explicitly changes modes (not during scroll)
+        // If you need animations, add them at a higher level with explicit triggers
     }
 
     private var card: some View {
@@ -135,29 +133,11 @@ public struct ItemCard: View {
         if horizontalSizeClass == .compact {
             effectiveLargeImageWidth = sizes.largeImageWidth * 0.75
         }
+
         return HStack(alignment: .top, spacing: sizes.contentSpacing) {
+            // Optimize image loading
             if mode.showsImage, let url = imageUrl {
-                CachedAsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        VStack {
-                            ProgressView()
-                        }
-                        .frame(width: mode.isCompact ? sizes.compactImageWidth : effectiveLargeImageWidth,
-                               height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: mode.isCompact ? sizes.compactImageWidth : effectiveLargeImageWidth,
-                                   height: mode.isCompact ? sizes.compactHeight : sizes.largeHeight)
-                            .clipped()
-                    case .failure(let error):
-                        Text("\(error.localizedDescription)")
-                    @unknown default:
-                        Color.red
-                    }
-                }
+                ThumbnailImage(url: url, mode: mode, sizes: sizes)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -174,7 +154,7 @@ public struct ItemCard: View {
                                 .scaledToFit()
                                 .frame(width: sizes.faviconSize, height: sizes.faviconSize)
                                 .clipShape(RoundedRectangle(cornerRadius: sizes.faviconSize * 0.2, style: .continuous))
-                                .transition(.opacity.combined(with: .scale))
+                                // Removed transition - causes performance issues during scroll
                         }
 
                         Text(subtitle)
@@ -189,7 +169,7 @@ public struct ItemCard: View {
                         .font(.body)
                         .foregroundStyle(.primary)
                         .lineLimit(4)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        // Removed transition - causes performance issues during scroll
                 }
 
                 Spacer(minLength: 0)
@@ -202,13 +182,52 @@ public struct ItemCard: View {
     }
 }
 
+// MARK: - Optimized Thumbnail Image Component
+private struct ThumbnailImage: View {
+    let url: URL
+    let mode: ItemCard.Mode
+    let sizes: ItemCard.Sizes
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var effectiveWidth: CGFloat {
+        if mode.isCompact {
+            return sizes.compactImageWidth
+        } else {
+            return horizontalSizeClass == .compact ? sizes.largeImageWidth * 0.75 : sizes.largeImageWidth
+        }
+    }
+
+    private var effectiveHeight: CGFloat {
+        mode.isCompact ? sizes.compactHeight : sizes.largeHeight
+    }
+
+    var body: some View {
+        PrefetchAsyncImage(url: url) { image in
+            image
+                .resizable()
+                .scaledToFill()
+                .frame(width: effectiveWidth, height: effectiveHeight)
+                .clipped()
+        } placeholder: {
+            Color.gray.opacity(0.2)
+                .frame(width: effectiveWidth, height: effectiveHeight)
+                .overlay {
+                    Image(systemName: "photo")
+                        .foregroundStyle(.secondary)
+                        .font(.title3)
+                }
+        }
+    }
+}
+
 // MARK: - Preview
-#Preview("AdaptiveItemCard – interactive") {
+#Preview("AdaptiveItemCard — interactive") {
     struct Demo: View {
         @State private var mode: ItemCard.Mode = .largeWithImage
         @State private var showFavicon: Bool = true
 
-        private let title = "iPhone Air and iPhone 17 Pro Top Last Year’s Phones in Bend and Drop Tests"
+        private let title = "iPhone Air and iPhone 17 Pro Top Last Year's Phones in Bend and Drop Tests"
         private let subtitle = "Sep 23 | Juli Clover"
         private let summary = "Apple's thin and light iPhone Air is built with a durable titanium frame, and as we've seen demonstrated, it is highly resistant to bending even though it's only 5.6mm thick. Less has been shared about its drop protection, but device insurance provider Allstate..."
 
