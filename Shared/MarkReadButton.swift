@@ -40,7 +40,6 @@ struct MarkReadButton: View {
             Label("Mark Read", systemImage: "checkmark")
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .id(unreadCount)
         .disabled(unreadCount == 0)
     }
 }

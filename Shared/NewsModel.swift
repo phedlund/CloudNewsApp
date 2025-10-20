@@ -63,7 +63,7 @@ class NewsModel: @unchecked Sendable {
 
         var counts: [String: Int] = [:]
 
-        for node in nodes {
+        for (index, node) in nodes.enumerated() {
             let predicate = await createUnreadPredicate(for: node.type, backgroundActor: backgroundActor)
             let descriptor = FetchDescriptor<Item>(predicate: predicate)
 
@@ -77,6 +77,11 @@ class NewsModel: @unchecked Sendable {
 
         self.unreadCounts = counts
         await refreshCurrentNodeState()
+
+        let temp = self.unreadCounts
+        self.unreadCounts = [:]
+        self.unreadCounts = temp
+
         NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
     }
 
@@ -97,7 +102,7 @@ class NewsModel: @unchecked Sendable {
             unreadCounts[nodeId] = count
             unreadItemIds[nodeId] = ids
         } catch {
-//
+            //
         }
     }
 
@@ -111,7 +116,7 @@ class NewsModel: @unchecked Sendable {
             let count = try await backgroundActor.fetchCount(descriptor)
             unreadCounts[node.id] = count
         } catch {
-//
+            //
         }
     }
 
@@ -125,11 +130,13 @@ class NewsModel: @unchecked Sendable {
     // MARK: - Access Methods
 
     func unreadCount(for node: Node) -> Int {
-        unreadCounts[node.id] ?? 0
+        let count = unreadCounts[node.id] ?? 0
+        return count
     }
 
     func unreadCount(for nodeId: String) -> Int {
-        unreadCounts[nodeId] ?? 0
+        let count = unreadCounts[nodeId] ?? 0
+        return count
     }
 
     // MARK: - Cache Management
@@ -485,7 +492,6 @@ class NewsModel: @unchecked Sendable {
             try await markRead(itemIds: internalUnreadItemIds, unread: false)
 
             await MainActor.run {
-                // Update counts incrementally instead of invalidating
                 for item in items {
                     let feedNodeId = NodeType.feed(id: item.feedId).description
                     if let currentCount = unreadCounts[feedNodeId] {
@@ -493,7 +499,6 @@ class NewsModel: @unchecked Sendable {
                     }
                 }
 
-                // Update "all" and "unread" counts
                 let allNodeId = NodeType.all.description
                 let unreadNodeId = NodeType.unread.description
                 if let allCount = unreadCounts[allNodeId] {
@@ -503,7 +508,6 @@ class NewsModel: @unchecked Sendable {
                     unreadCounts[unreadNodeId] = max(0, unreadCount - items.count)
                 }
 
-                // Update itemIds for current node
                 if var ids = unreadItemIds[currentNodeType.description] {
                     let itemsToRemove = Set(items.map(\.persistentModelID))
                     ids.removeAll { itemsToRemove.contains($0) }
@@ -537,15 +541,12 @@ class NewsModel: @unchecked Sendable {
             try await backgroundActor.save()
             try await markRead(itemIds: internalUnreadItemIds, unread: !currentState)
 
-            // Update the count for the affected feed/folder immediately
             await MainActor.run {
-                // Decrement or increment the count in cache
                 let feedNodeId = NodeType.feed(id: item.feedId).description
                 if let currentCount = unreadCounts[feedNodeId] {
                     unreadCounts[feedNodeId] = max(0, currentCount + (currentState ? -1 : 1))
                 }
                 
-                // Also update "all" and "unread" counts
                 let allNodeId = NodeType.all.description
                 let unreadNodeId = NodeType.unread.description
                 if let allCount = unreadCounts[allNodeId] {
@@ -555,7 +556,6 @@ class NewsModel: @unchecked Sendable {
                     unreadCounts[unreadNodeId] = max(0, unreadCount + (currentState ? -1 : 1))
                 }
 
-                // Update itemIds for current node if needed
                 if !currentState { // Item became unread
                     if var ids = unreadItemIds[currentNodeType.description] {
                         ids.append(item.persistentModelID)
@@ -568,7 +568,6 @@ class NewsModel: @unchecked Sendable {
                     }
                 }
 
-                // Notify observers
                 NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
             }
         } catch {
