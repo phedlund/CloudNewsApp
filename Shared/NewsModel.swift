@@ -63,7 +63,7 @@ class NewsModel: @unchecked Sendable {
 
         var counts: [String: Int] = [:]
 
-        for (index, node) in nodes.enumerated() {
+        for node in nodes {
             let predicate = await createUnreadPredicate(for: node.type, backgroundActor: backgroundActor)
             let descriptor = FetchDescriptor<Item>(predicate: predicate)
 
