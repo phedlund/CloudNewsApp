@@ -25,6 +25,7 @@ struct SidebarView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
@@ -34,6 +35,7 @@ struct SidebarView: View {
 #endif
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
+    @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
 
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
@@ -156,6 +158,24 @@ struct SidebarView: View {
                     timerStart = Date.now
                     sync()
                 }
+            }
+        }
+#else
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            guard newPhase != oldPhase else {
+                return
+            }
+            switch newPhase {
+            case .active:
+                if syncOnStart {
+                    sync()
+                }
+            case .inactive:
+                break
+            case .background:
+                break
+            @unknown default:
+                fatalError("Unknown scene phase")
             }
         }
 #endif
