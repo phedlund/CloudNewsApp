@@ -435,11 +435,11 @@ final class SyncManager {
             return
         }
         self.feedDTOs = decodedResponse.feeds
-        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
+        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 5)
         await backgroundActor.insert(allNode)
-        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 1)
+        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 4)
         await backgroundActor.insert(unreadNode)
-        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
+        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 3)
         await backgroundActor.insert(starredNode)
         for folderDTO in foldersDTO.folders {
             var feeds = [NodeDTO]()
@@ -456,7 +456,7 @@ final class SyncManager {
                 localErrorCount = 1
             }
             let type = NodeType.folder(id: folderDTO.id)
-            let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 1, favIcon: nil, children: feeds)
+            let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 2, favIcon: nil, children: feeds)
             await backgroundActor.insertNode(nodeDTO: folderNodeDTO)
             let itemToStore = Folder(item: folderDTO)
             await backgroundActor.insert(itemToStore)

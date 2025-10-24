@@ -64,6 +64,11 @@ struct CloudNewsApp: App {
             ContentView()
                 .environment(newsModel)
                 .environment(syncManager)
+                .task {
+                    // Run all pending migrations once when the app starts
+                    let context = ModelContext(container)
+                    try? await DataMigrationManager.runPendingMigrations(modelContext: context)
+                }
                 .sheet(isPresented: $isShowingAcknowledgements) {
                     NavigationView {
                         AcknowledgementsView()

@@ -50,7 +50,7 @@ struct SidebarView: View {
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
     @Query(
         FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
-                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
+                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.title)])
     ) private var nodes: [Node]
 
     init(nodeSelection: Binding<Data?>) {
@@ -163,6 +163,10 @@ struct SidebarView: View {
         .navigationSubtitle(syncManager.syncState.description)
         .task {
             await newsModel.refreshAllUnreadCounts(nodes: nodes)
+            print("🔍 SidebarView - Current node pinned values:")
+            for node in nodes {
+                print("  - '\(node.title)' (type: \(node.type)) pinned: \(node.pinned)")
+            }
         }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
