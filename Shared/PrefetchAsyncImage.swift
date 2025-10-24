@@ -4,20 +4,28 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 
 struct PrefetchAsyncImage<Content: View, Placeholder: View>: View {
     let url: URL?
     @ViewBuilder let content: (Image) -> Content
     @ViewBuilder let placeholder: () -> Placeholder
 
-    @State private var image: UIImage?
+    @State private var image: SystemImage?
     @State private var isLoading = false
 
     var body: some View {
         Group {
             if let image = image {
+#if os(macOS)
+                content(Image(nsImage: image))
+#else
                 content(Image(uiImage: image))
+#endif
             } else {
                 placeholder()
                     .task(id: url) {

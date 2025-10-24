@@ -4,13 +4,17 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 
 @MainActor
 class ImagePrefetchManager: ObservableObject {
     static let shared = ImagePrefetchManager()
 
-    private var cache = NSCache<NSURL, UIImage>()
+    private var cache = NSCache<NSURL, SystemImage>()
     private var prefetchTasks: [URL: Task<Void, Never>] = [:]
     private let session: URLSession
 
@@ -44,7 +48,7 @@ class ImagePrefetchManager: ObservableObject {
         }
     }
 
-    func getImage(for url: URL) -> UIImage? {
+    func getImage(for url: URL) -> SystemImage? {
         return cache.object(forKey: url as NSURL)
     }
 

@@ -25,6 +25,7 @@ struct SidebarView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
@@ -34,6 +35,7 @@ struct SidebarView: View {
 #endif
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
+    @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
 
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
@@ -50,7 +52,7 @@ struct SidebarView: View {
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
     @Query(
         FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
-                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
+                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.title)])
     ) private var nodes: [Node]
 
     init(nodeSelection: Binding<Data?>) {
@@ -158,11 +160,33 @@ struct SidebarView: View {
                 }
             }
         }
+#else
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            guard newPhase != oldPhase else {
+                return
+            }
+            switch newPhase {
+            case .active:
+                if syncOnStart {
+                    sync()
+                }
+            case .inactive:
+                break
+            case .background:
+                break
+            @unknown default:
+                fatalError("Unknown scene phase")
+            }
+        }
 #endif
         .navigationTitle(Text("Feeds"))
         .navigationSubtitle(syncManager.syncState.description)
         .task {
             await newsModel.refreshAllUnreadCounts(nodes: nodes)
+            print("🔍 SidebarView - Current node pinned values:")
+            for node in nodes {
+                print("  - '\(node.title)' (type: \(node.type)) pinned: \(node.pinned)")
+            }
         }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil

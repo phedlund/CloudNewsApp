@@ -153,7 +153,7 @@ struct ContentView: View {
                         contentViewToolBarContent()
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .navigationTitle(navigationTitle ?? "Untitled")
+                    .navigationTitle(navigationTitle)
             } else {
                 ContentUnavailableView {
                     Label("No Feed Selected", image: .rss)
@@ -189,26 +189,12 @@ struct ContentView: View {
                 openSettings()
             }
         }
-        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
-            Logger.app.debug("Got new node selection: \(newValue)")
+        .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
-                switch nodeType {
-                case .empty:
-                    navigationTitle = ""
-                case .all:
-                    navigationTitle = "All Articles"
-                case .unread:
-                    navigationTitle = "Unread Articles"
-                case .starred:
-                    navigationTitle = "Starred Articles"
-                case .folder(let id):
-                    let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? Constants.untitledFolderName
-                case .feed(let id):
-                    let feed = feeds.first(where: { $0.id == id })
-                    navigationTitle = feed?.title ?? "Untitled Feed"
-                }
                 preferredColumn = .detail
             }
         }

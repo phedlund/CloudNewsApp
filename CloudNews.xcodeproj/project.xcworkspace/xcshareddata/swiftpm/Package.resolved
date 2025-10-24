@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/LRUCache.git",
       "state" : {
-        "revision" : "e0e9e039b33db8f2ef39b8e25607e38f46b13584",
-        "version" : "1.1.2"
+        "revision" : "0d91406ecd4d6c1c56275866f00508d9aeacc92a",
+        "version" : "1.2.0"
       }
     },
     {

@@ -18,14 +18,6 @@ struct NodeView: View, Equatable {
 
     let node: Node
 
-#if os(iOS)
-    let noChildrenPadding = 10.0
-    let childrenPadding = -8.0
-#else
-    let noChildrenPadding = 0.0
-    let childrenPadding = 0.0
-#endif
-
     @Query private var favIcons: [FavIcon]
 
     private var count: Int {
@@ -33,22 +25,18 @@ struct NodeView: View, Equatable {
     }
 
     var body: some View {
-        HStack {
-            Label {
-                HStack {
-                    Text(node.title)
-                        .lineLimit(1)
-                    Spacer()
-                    badgeView
-                        .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
-                }
-                .contentShape(Rectangle())
-            } icon: {
-                favIconView
-            }
-            .labelStyle(.titleAndIcon)
-            Spacer()
+        let badgeView = Text("\(count > 0 ? "\(count)" : "")")
+                .monospacedDigit()
+                .foregroundColor(node.errorCount > 0 ? .red : .secondary)
+
+        Label {
+            Text(node.title)
+                .lineLimit(1)
+                .badge(badgeView)
+        } icon: {
+            favIconView
         }
+        .labelStyle(.titleAndIcon)
         .task(id: node.id) {
             await newsModel.refreshUnreadCount(for: node)
         }
@@ -59,25 +47,8 @@ struct NodeView: View, Equatable {
         }
     }
 
-    var badgeView: some View {
-        HStack {
-            if node.errorCount > 0 {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.black, .red)
-            }
-            if count > 0 {
-                Text("\(count)")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5))
-                    .background(Capsule().fill(.gray))
-            }
-        }
-    }
-
     var favIconView: some View {
-        HStack {
+        Group {
             switch node.type {
             case .all, .empty:
                 Image(.rss)
@@ -117,3 +88,4 @@ struct NodeView: View, Equatable {
 //        NodeView()
 //    }
 //}
+

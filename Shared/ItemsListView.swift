@@ -37,6 +37,8 @@ struct ItemsListView: View {
     @State private var items = [Item]()
     @State private var scrollToTop = false
     @State private var lastOffset: CGFloat = .zero
+    @State private var scrollStoppedTask: Task<Void, Never>?
+
     @State private var isScrollingToTop = false
     @State private var favIconDataByFeedId = [Int64: Data]()
     @State private var navigatedBack = false
@@ -118,10 +120,25 @@ struct ItemsListView: View {
             }
             .listRowSeparator(.hidden)
         }
-        .onScrollPhaseChange { _, newPhase, context in
-            if newPhase == .idle {
-                Task {
-                    try? await markRead(context.geometry.contentOffset.y + context.geometry.contentInsets.top)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top
+        } action: { oldValue, newValue in
+            scrollStoppedTask?.cancel()
+
+            scrollStoppedTask = Task {
+                try? await Task.sleep(for: .milliseconds(150))
+
+                if !Task.isCancelled {
+                    if markReadWhileScrolling == true,
+                       isScrollingToTop == false,
+                       scenePhase == .active {
+                        let currentOffset = newValue
+                        if abs(currentOffset - lastOffset) > 50 {
+                            Task {
+                                try? await markRead(currentOffset)
+                            }
+                        }
+                    }
                 }
             }
         }
