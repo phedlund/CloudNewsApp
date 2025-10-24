@@ -18,14 +18,6 @@ struct NodeView: View, Equatable {
 
     let node: Node
 
-#if os(iOS)
-    let noChildrenPadding = 10.0
-    let childrenPadding = -8.0
-#else
-    let noChildrenPadding = 0.0
-    let childrenPadding = 0.0
-#endif
-
     @Query private var favIcons: [FavIcon]
 
     private var count: Int {
