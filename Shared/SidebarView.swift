@@ -45,6 +45,7 @@ struct SidebarView: View {
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
+    @State private var lastSyncTime = Date.distantPast
 
     @Binding var nodeSelection: Data?
 
@@ -167,8 +168,9 @@ struct SidebarView: View {
             }
             switch newPhase {
             case .active:
-                if syncOnStart {
+                if syncOnStart, Date() > lastSyncTime.addingTimeInterval(3 * 60) {
                     sync()
+                    lastSyncTime = Date()
                 }
             case .inactive:
                 break
@@ -393,6 +395,7 @@ struct SidebarView: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isShowingError = true
+                syncManager.syncState = .idle
             }
         }
     }
