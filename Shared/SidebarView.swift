@@ -185,10 +185,6 @@ struct SidebarView: View {
         .navigationSubtitle(syncManager.syncState.description)
         .task {
             await newsModel.refreshAllUnreadCounts(nodes: nodes)
-            print("🔍 SidebarView - Current node pinned values:")
-            for node in nodes {
-                print("  - '\(node.title)' (type: \(node.type)) pinned: \(node.pinned)")
-            }
         }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
