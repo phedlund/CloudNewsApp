@@ -60,6 +60,8 @@
 		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
 		D0A3A8432EAB046B00CE7067 /* DataMigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */; };
 		D0A3A8442EAB046B00CE7067 /* DataMigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */; };
+		D0A3A8AB2EB03D1A00CE7067 /* Puppy in Frameworks */ = {isa = PBXBuildFile; productRef = D0A3A8AA2EB03D1A00CE7067 /* Puppy */; };
+		D0A3A8AD2EB03E5E00CE7067 /* LogManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */; };
 		D0A551AC2C7D6E0A00118C99 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A551AB2C7D6E0A00118C99 /* SyncManager.swift */; };
 		D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */; };
 		D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F5267ED1C600A997DB /* SidebarView.swift */; };
@@ -172,6 +174,7 @@
 		D0873FAA29737CE70076DCB1 /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 		D0A1005827E6B963005D7D70 /* FooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterLabel.swift; sourceTree = "<group>"; };
 		D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataMigrationManager.swift; sourceTree = "<group>"; };
+		D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogManager.swift; sourceTree = "<group>"; };
 		D0A551AB2C7D6E0A00118C99 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingKeys.swift; sourceTree = "<group>"; };
 		D0B0B2F5267ED1C600A997DB /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -223,6 +226,7 @@
 				D058E1372E5BB190006523B1 /* Valet in Frameworks */,
 				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
 				D01AEA212E370EA600731B6F /* SwiftSoup in Frameworks */,
+				D0A3A8AB2EB03D1A00CE7067 /* Puppy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,6 +301,7 @@
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
 				D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */,
 				D0115C452E5F63D500872354 /* ValetManager.swift */,
+				D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */,
 				D050B31327B0BE0200442584 /* block-ads.json */,
 				D0E60F29277A81C9009CF78F /* Web.bundle */,
 				D02F44A2265C86BF00A3505B /* Assets.xcassets */,
@@ -397,6 +402,7 @@
 				D0E88402290C9E1E001ACB25 /* OpenSSL */,
 				D01AEA202E370EA600731B6F /* SwiftSoup */,
 				D058E1362E5BB190006523B1 /* Valet */,
+				D0A3A8AA2EB03D1A00CE7067 /* Puppy */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -456,6 +462,7 @@
 				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
 				D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D058E1352E5BB190006523B1 /* XCRemoteSwiftPackageReference "Valet" */,
+				D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -541,6 +548,7 @@
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */,
+				D0A3A8AD2EB03E5E00CE7067 /* LogManager.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,
 				D0704F8D2EA58B22001663EF /* PrefetchAsyncImage.swift in Sources */,
 				D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */,
@@ -942,6 +950,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sushichop/Puppy";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
 		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
@@ -968,6 +984,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D058E1352E5BB190006523B1 /* XCRemoteSwiftPackageReference "Valet" */;
 			productName = Valet;
+		};
+		D0A3A8AA2EB03D1A00CE7067 /* Puppy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */;
+			productName = Puppy;
 		};
 		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -69,6 +69,7 @@ final class SyncManager {
 
     private let backgroundActor: NewsModelActor
     private let backgroundSession: URLSession
+    private let logger = LogManager.shared.logger
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
@@ -108,6 +109,7 @@ final class SyncManager {
         guard syncInBackground == true else {
             return
         }
+        logger.info("Starting background sync")
         try await pruneItems()
         let syncRequests = try await syncRequests()
         let foldersResponse = try await withTaskCancellationHandler {
@@ -412,6 +414,7 @@ final class SyncManager {
     }
 
     private func parseFolders(data: Data) async {
+        logger.info("Parsing folders")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
@@ -428,6 +431,7 @@ final class SyncManager {
     }
 
     private func parseFeeds(data: Data) async {
+        logger.info("Parsing feeds")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
@@ -480,6 +484,7 @@ final class SyncManager {
     }
 
     private func parseItems(data: Data) async {
+        logger.info("Parsing items")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
@@ -544,6 +549,7 @@ final class SyncManager {
     private func pruneItems() async throws {
         do {
             if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration.rawValue), to: Date()) {
+                logger.info("Pruning items older than \(limitDate)")
                 try await backgroundActor.delete(model: Item.self, where: #Predicate<Item> { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
