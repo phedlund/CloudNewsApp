@@ -37,6 +37,8 @@ struct SidebarView: View {
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
     @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
 
+    private let logger = LogManager.shared.logger
+
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
     @State private var isShowingError = false
@@ -142,6 +144,7 @@ struct SidebarView: View {
                 }
                 .listStyle(.automatic)
                 .refreshable {
+                    logger.info("Pulled to refresh")
                     sync()
                 }
             }
@@ -172,6 +175,7 @@ struct SidebarView: View {
                     await WidgetTracker.shared.detect()
                 }
                 if syncOnStart, Date() > lastSyncTime.addingTimeInterval(3 * 60) {
+                    logger.info("Sync on start")
                     sync()
                     lastSyncTime = Date()
                 }
@@ -361,6 +365,7 @@ struct SidebarView: View {
             }
 #endif
             Button {
+                logger.info("Tapped sync", tag: "Button")
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
