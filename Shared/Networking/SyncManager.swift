@@ -64,6 +64,7 @@ final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration: KeepDuration = .three
     @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
+    @ObservationIgnored @AppStorage(SettingKeys.hasWidgets) private var hasWidgets = false
 
     var syncState: SyncState = .idle
 
@@ -514,7 +515,7 @@ final class SyncManager {
                 ogImageCache = await backgroundActor.buildAndInsert(
                     from: eachItem,
                     existing: existingMediaById[eachItem.id],
-                    retrieveWidgetImage: (counter < 10) && (eachItem.unread == true),
+                    retrieveWidgetImage: (hasWidgets == true) && (counter < 10) && (eachItem.unread == true),
                     imageCache: ogImageCache
                 )
 

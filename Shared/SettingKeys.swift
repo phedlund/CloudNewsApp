@@ -34,4 +34,5 @@ enum SettingKeys {
     static let syncInterval = "SyncInterval"
     static let syncOnStart = "SyncOnStart"
     static let username = "username"
+    static let hasWidgets = "HasWidgets"
 }
