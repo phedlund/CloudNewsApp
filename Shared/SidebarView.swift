@@ -172,12 +172,7 @@ struct SidebarView: View {
             switch newPhase {
             case .active:
                 Task {
-                    await WidgetTracker.shared.detect()
-                }
-                if syncOnStart, Date() > lastSyncTime.addingTimeInterval(3 * 60) {
-                    logger.info("Sync on start")
-                    sync()
-                    lastSyncTime = Date()
+                    await refresh()
                 }
             case .inactive:
                 break
@@ -401,6 +396,18 @@ struct SidebarView: View {
                 isShowingError = true
                 syncManager.syncState = .idle
             }
+        }
+    }
+
+    private func refresh() async {
+        if let nodeSelection, let type = NodeType.fromData(nodeSelection) {
+            newsModel.currentNodeType = type
+        }
+        await WidgetTracker.shared.detect()
+        if syncOnStart, Date() > lastSyncTime.addingTimeInterval(3 * 60) {
+            logger.info("Sync on start")
+            sync()
+            lastSyncTime = Date()
         }
     }
 }
