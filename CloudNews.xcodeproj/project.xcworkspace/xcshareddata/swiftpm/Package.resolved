@@ -1,5 +1,5 @@
 {
-  "originHash" : "dd895110a244fb8ecfbdfc2d21d7aaf2d70c1791235cdfd24ce1856fdc6f8c3f",
+  "originHash" : "ea115865e60ae83a234d5ee6d48238a110eb894630925776df4f6d105ec525a5",
   "pins" : [
     {
       "identity" : "lrucache",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/OpenSSL",
       "state" : {
-        "revision" : "316422d246d859c2c07f47678440988940bb88ee",
-        "version" : "3.6.0"
+        "revision" : "e7d34385da795aaaeb2212e38c7401e5c333f792",
+        "version" : "3.6.1"
       }
     },
     {
