@@ -140,11 +140,9 @@ struct SettingsView: View {
                 Text("Images")
             }
             Section {
-#if !os(macOS)
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
-#endif
                 Toggle(isOn: $compactView) {
                     Text("Comapct View")
                 }
@@ -239,9 +237,11 @@ struct SettingsView: View {
                 }
             case .mail:
 #if !os(macOS)
+                let logData = try? Data(contentsOf: URL.documentsDirectory.appendingPathComponent("cloudnews_logs.log"), options: [])
                 MailComposeView(recipients: [Constants.email],
                                 subject: Constants.subject,
-                                message: Constants.message) {
+                                message: Constants.message,
+                                attachment: logData != nil ? Attachment(data: logData!, mimeType: "text/plain", fileName: "cloudnews_logs.log") : nil) {
                     // Did finish action
                 }
 #else

@@ -10,12 +10,7 @@ import SwiftUI
 import WebKit
 
 struct ArticleView: View {
-    private let webContent: ArticleWebContent
-
-    init(webContent: ArticleWebContent) {
-        self.webContent = webContent
-        self.webContent.reloadItemSummary()
-    }
+    let webContent: ArticleWebContent
 
     var body: some View {
         WebView(webContent.page)
@@ -23,8 +18,9 @@ struct ArticleView: View {
             .scrollIndicators(.visible, axes: .vertical)
             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaPadding(.top, 40)
-            .safeAreaPadding(.bottom, 20)
+            .task {
+                webContent.reloadItemSummary()
+            }
     }
 
 }

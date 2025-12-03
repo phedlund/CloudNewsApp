@@ -50,91 +50,108 @@ enum SyncState: CustomStringConvertible, Equatable {
     }
 }
 
+struct SyncRequests {
+    let foldersRequest: URLRequest
+    let feedsRequest: URLRequest
+    let itemsRequest: URLRequest
+    let unreadItemsRequest: URLRequest
+    let starredItemsRequest: URLRequest
+}
 
 @Observable
 final class SyncManager {
     @ObservationIgnored @AppStorage(SettingKeys.syncInBackground) private var syncInBackground = false
     @ObservationIgnored @AppStorage(SettingKeys.didSyncInBackground) private var didSyncInBackground = false
-    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration = 0
+    @ObservationIgnored @AppStorage(SettingKeys.keepDuration) private var keepDuration: KeepDuration = .three
+    @ObservationIgnored @AppStorage(SettingKeys.lastModified) private var lastModified = 0
+    @ObservationIgnored @AppStorage(SettingKeys.hasWidgets) private var hasWidgets = false
 
-    private var backgroundSession: URLSession?
     var syncState: SyncState = .idle
+
+    private let backgroundActor: NewsModelActor
+    private let backgroundSession: URLSession
+    private let logger = LogManager.shared.logger
 
     private var foldersDTO = FoldersDTO(folders: [FolderDTO]())
     private var feedDTOs = [FeedDTO]()
-    private var itemIds = [Int64]()
-
-    let modelContainer: ModelContainer
+    private var ogImageCache = [String: URL?]()
 
     init(modelContainer: ModelContainer) {
-        self.modelContainer = modelContainer
-    }
-
-    func configureSession() {
+        self.backgroundActor = NewsModelActor(modelContainer: modelContainer)
         let backgroundSessionConfig = URLSessionConfiguration.background(withIdentifier: Constants.appUrlSessionId)
         backgroundSessionConfig.sessionSendsLaunchEvents = true
         backgroundSession = URLSession(configuration: backgroundSessionConfig)
     }
 
-    func backgroundSync() async {
+    private func syncRequests() async throws -> SyncRequests {
+//        let newestKnownLastModified = await backgroundActor.maxLastModified()
+        let foldersRequest = try Router.folders.urlRequest()
+        let feedsRequest = try Router.feeds.urlRequest()
+        
+        let updatedParameters: ParameterDict = ["type": 3,
+                                                "lastModified": lastModified,
+                                                "id": 0]
+        let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
+        let itemsRequest = try updatedItemRouter.urlRequest()
+        let unreadParameters: ParameterDict = ["type": 3,
+                                               "getRead": false,
+                                               "batchSize": -1]
+        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
+
+        let starredParameters: ParameterDict = ["type": 2,
+                                                "getRead": true,
+                                                "batchSize": -1]
+        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
+
+        return SyncRequests(foldersRequest: foldersRequest, feedsRequest: feedsRequest, itemsRequest: itemsRequest, unreadItemsRequest: unreadRequest, starredItemsRequest: starredRequest)
+    }
+
+    func backgroundSync() async throws {
         guard syncInBackground == true else {
             return
         }
-        try? await pruneItems()
-        if let backgroundSession {
-            let foldersRequest = try? Router.folders.urlRequest()
-            let foldersResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: foldersRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: foldersRequest!)
-                task.taskDescription = "folders"
-                task.resume ()
-            }
+        logger.info("Starting background sync")
+        try await pruneItems()
+        let syncRequests = try await syncRequests()
+        let foldersResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.foldersRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.foldersRequest)
+            task.taskDescription = "folders"
+            task.resume()
+        }
 
-            if let data = foldersResponse {
-                await parseFolders(data: data.0)
-            }
+        let feedsResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.feedsRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.feedsRequest)
+            task.taskDescription = "feeds"
+            task.resume()
+        }
 
-            let feedsRequest = try? Router.feeds.urlRequest()
+        let itemsResponse = try await withTaskCancellationHandler {
+            try await URLSession.shared.data(for: syncRequests.itemsRequest).0
+        } onCancel: {
+            let task = backgroundSession.downloadTask(with: syncRequests.itemsRequest)
+            task.taskDescription = "items"
+            task.resume()
+        }
 
-            let feedsResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: feedsRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: feedsRequest!)
-                task.taskDescription = "feeds"
-                task.resume ()
-            }
+        if !foldersResponse.isEmpty {
+            await parseFolders(data: foldersResponse)
+        }
 
-            if let data = feedsResponse {
-                await parseFeeds(data: data.0)
-            }
+        if !feedsResponse.isEmpty {
+            await parseFeeds(data: feedsResponse)
+        }
 
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-            let newestKnownLastModified = await backgroundActor.maxLastModified()
-
-            let updatedParameters: ParameterDict = ["type": 3,
-                                                    "lastModified": newestKnownLastModified,
-                                                    "id": 0]
-            let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-
-            let itemsRequest = try? updatedItemRouter.urlRequest()
-
-            let itemsResponse = await withTaskCancellationHandler {
-                try? await URLSession.shared.data (for: itemsRequest!)
-            } onCancel: {
-                let task = backgroundSession.downloadTask(with: itemsRequest!)
-                task.taskDescription = "items"
-                task.resume ()
-            }
-
-            if let data = itemsResponse {
-                await parseItems(data: data.0)
-            }
+        if !itemsResponse.isEmpty {
+            await parseItems(data: itemsResponse)
         }
     }
 
     func processSessionData() {
-        backgroundSession?.getAllTasks { [self] tasks in
+        backgroundSession.getAllTasks { [self] tasks in
             for task in tasks {
                 if task.state == .suspended || task.state == .canceling { continue }
                 // NOTE: It seems the task state is .running when this is called, instead of .completed as one might expect.
@@ -170,15 +187,17 @@ final class SyncManager {
 
     func sync() async throws -> NewsStatusDTO? {
         syncState = .started
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let itemCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { _ in true } )
+        let hasItems = await backgroundActor.hasItems()
         let currentStatus = try await newsStatus()
-        if itemCount == 0 {
-            try await initialSync()
-            syncState = .favicons
-            await getFavIcons()
-        } else {
+        if hasItems && lastModified > 0 {
             try await repeatSync()
+        } else {
+            try await initialSync()
+            if !hasItems {
+                syncState = .favicons
+                await getFavIcons()
+            }
+            syncState = .idle
         }
         WidgetCenter.shared.reloadAllTimelines()
         return currentStatus
@@ -205,33 +224,22 @@ final class SyncManager {
      */
 
     private func initialSync() async throws {
-        let foldersRequest = try Router.folders.urlRequest()
-        let feedsRequest = try Router.feeds.urlRequest()
-
-        let unreadParameters: ParameterDict = ["type": 3,
-                                               "getRead": false,
-                                               "batchSize": -1]
-        let unreadRequest = try Router.items(parameters: unreadParameters).urlRequest()
-
-        let starredParameters: ParameterDict = ["type": 2,
-                                                "getRead": true,
-                                                "batchSize": -1]
-        let starredRequest = try Router.items(parameters: starredParameters).urlRequest()
+        let syncRequests = try await syncRequests()
 
         let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
             var results = [Int: Data]()
 
             group.addTask {
-                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+                return (1, try await URLSession.shared.data (for: syncRequests.foldersRequest).0)
             }
             group.addTask {
-                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+                return (2, try await URLSession.shared.data (for: syncRequests.feedsRequest).0)
             }
             group.addTask {
-                return (3, try await URLSession.shared.data (for: unreadRequest).0)
+                return (3, try await URLSession.shared.data (for: syncRequests.starredItemsRequest).0)
             }
             group.addTask {
-                return (4, try await URLSession.shared.data (for: starredRequest).0)
+                return (4, try await URLSession.shared.data (for: syncRequests.unreadItemsRequest).0)
             }
 
             for try await (index, result) in group {
@@ -249,13 +257,13 @@ final class SyncManager {
             syncState = .feeds
             await parseFeeds(data: feedsData)
         }
-        if let unreadData = results[3] as Data?, !unreadData.isEmpty {
-            syncState = .unread
-            await parseItems(data: unreadData)
-        }
-        if let starredData = results[4] as Data?, !starredData.isEmpty {
+        if let starredData = results[3] as Data?, !starredData.isEmpty {
             syncState = .starred
             await parseItems(data: starredData)
+        }
+        if let unreadData = results[4] as Data?, !unreadData.isEmpty {
+            syncState = .unread
+            await parseItems(data: unreadData)
         }
     }
 
@@ -275,7 +283,6 @@ final class SyncManager {
      */
 
     private func repeatSync() async throws {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         var localReadIds = [Int64]()
         let identifiers = try await backgroundActor.allModelIds(FetchDescriptor<Read>())
         for identifier in identifiers {
@@ -367,17 +374,7 @@ final class SyncManager {
                 }
             }
         }
-
-        let foldersRequest = try Router.folders.urlRequest()
-        let feedsRequest = try Router.feeds.urlRequest()
-
-        let newestKnownLastModified = await backgroundActor.maxLastModified()
-        let updatedParameters: ParameterDict = ["type": 3,
-                                                "lastModified": newestKnownLastModified,
-                                                "id": 0]
-        let updatedItemRouter = Router.updatedItems(parameters: updatedParameters)
-
-        let itemsRequest = try updatedItemRouter.urlRequest()
+        let syncRequests = try await syncRequests()
 
         let results = try await withThrowingTaskGroup(of: (Int, Data).self) { group in
             var results = [Int: Data]()
@@ -387,13 +384,13 @@ final class SyncManager {
                 return (0, Data())
             }
             group.addTask {
-                return (1, try await URLSession.shared.data (for: foldersRequest).0)
+                return (1, try await URLSession.shared.data (for: syncRequests.foldersRequest).0)
             }
             group.addTask {
-                return (2, try await URLSession.shared.data (for: feedsRequest).0)
+                return (2, try await URLSession.shared.data (for: syncRequests.feedsRequest).0)
             }
             group.addTask {
-                return (3, try await URLSession.shared.data (for: itemsRequest).0)
+                return (3, try await URLSession.shared.data (for: syncRequests.itemsRequest).0)
             }
 
             for try await (index, result) in group {
@@ -418,6 +415,7 @@ final class SyncManager {
     }
 
     private func parseFolders(data: Data) async {
+        logger.info("Parsing folders")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FoldersDTO.self, from: data) else {
@@ -427,7 +425,6 @@ final class SyncManager {
         self.foldersDTO = decodedResponse
         let folderIds = decodedResponse.folders.map( { $0.id } )
         do {
-            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             try await backgroundActor.pruneFolders(serverFolderIds: folderIds)
         } catch {
             //
@@ -435,19 +432,19 @@ final class SyncManager {
     }
 
     private func parseFeeds(data: Data) async {
+        logger.info("Parsing feeds")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(FeedsDTO.self, from: data) else {
             //                    throw NetworkError.generic(message: "Unable to decode")
             return
         }
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
         self.feedDTOs = decodedResponse.feeds
-        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 1)
+        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 5)
         await backgroundActor.insert(allNode)
-        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 1)
+        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 4)
         await backgroundActor.insert(unreadNode)
-        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 1)
+        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 3)
         await backgroundActor.insert(starredNode)
         for folderDTO in foldersDTO.folders {
             var feeds = [NodeDTO]()
@@ -464,7 +461,7 @@ final class SyncManager {
                 localErrorCount = 1
             }
             let type = NodeType.folder(id: folderDTO.id)
-            let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 1, favIcon: nil, children: feeds)
+            let folderNodeDTO = NodeDTO(id: type.description, errorCount: localErrorCount, isExpanded: folderDTO.opened, type: type, title: folderDTO.name, favIconURL: nil, pinned: 2, favIcon: nil, children: feeds)
             await backgroundActor.insertNode(nodeDTO: folderNodeDTO)
             let itemToStore = Folder(item: folderDTO)
             await backgroundActor.insert(itemToStore)
@@ -488,27 +485,39 @@ final class SyncManager {
     }
 
     private func parseItems(data: Data) async {
+        logger.info("Parsing items")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let decodedResponse = try? decoder.decode(ItemsDTO.self, from: data) else {
             return
         }
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
 
-        let incomingIds = Set(decodedResponse.items.map(\.id))
+        let incomingItems = decodedResponse.items
+        let incomingIds = Set(incomingItems.map(\.id))
+        let incomingLastModified = incomingItems.compactMap {
+            return Int($0.lastModified.timeIntervalSince1970)
+        }
+        if !incomingLastModified.isEmpty {
+            lastModified = incomingLastModified.reduce(0, max)
+        }
+
         do {
             let existingMediaById = try await backgroundActor.existingMediaMap(for: incomingIds)
-            let totalCount = decodedResponse.items.count
+            let totalCount = incomingItems.count
             var counter = 0
-            for eachItem in decodedResponse.items {
+
+            for eachItem in incomingItems {
                 counter += 1
                 await MainActor.run {
                     self.syncState = .articles(update: "\(counter) of \(totalCount)")
                 }
 
-                await backgroundActor.buildAndInsert(from: eachItem, existing: existingMediaById[eachItem.id])
-
-                itemIds.append(eachItem.id)
+                ogImageCache = await backgroundActor.buildAndInsert(
+                    from: eachItem,
+                    existing: existingMediaById[eachItem.id],
+                    retrieveWidgetImage: (hasWidgets == true) && (counter < 10) && (eachItem.unread == true),
+                    imageCache: ogImageCache
+                )
 
                 if counter % 15 == 0 {
                     do {
@@ -524,8 +533,9 @@ final class SyncManager {
 
             do {
                 try await backgroundActor.save()
-                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
+                let unreadCount = await backgroundActor.unreadCount()
                 await MainActor.run {
+                    NotificationCenter.default.post(name: .unreadStateDidChange, object: nil)
                     UNUserNotificationCenter.current().setBadgeCount(unreadCount)
                 }
                 syncState = .idle
@@ -533,135 +543,15 @@ final class SyncManager {
                 syncState = .idle
             }
         } catch {
-            let totalCount = decodedResponse.items.count
-            var counter = 0
-            for eachItem in decodedResponse.items {
-                counter += 1
-                await MainActor.run {
-                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
-                }
-                await backgroundActor.insertItem(itemDTO: eachItem)
-                itemIds.append(eachItem.id)
-                if counter % 15 == 0 {
-                    do {
-                        try await backgroundActor.save()
-                    } catch {
-                        syncState = .idle
-                    }
-                    await MainActor.run {
-                        NotificationCenter.default.post(name: .articlesUpdated, object: nil)
-                    }
-                }
-            }
-            do {
-                try await backgroundActor.save()
-                let unreadCount = try await backgroundActor.fetchCount(predicate: #Predicate<Item> { $0.unread == true })
-                await MainActor.run {
-                    UNUserNotificationCenter.current().setBadgeCount(unreadCount)
-                }
-                syncState = .idle
-            } catch {
-                syncState = .idle
-            }
-        }
-    }
-
-    private func updateThumbnails() async {
-
-        func internalUrl(_ urlString: String?) async -> URL? {
-            if let urlString, let url = URL(string: urlString) {
-                do {
-                    let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
-                    if let html = String(data: data, encoding: .utf8) {
-                        let doc: Document = try SwiftSoup.parse(html)
-                        if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
-                            let ogImage = try meta.attr("content")
-                            let ogUrl = URL(string: ogImage)
-                            return ogUrl
-                        } else if let meta = try doc.head()?.select("meta[property=twitter:image]").first() as? Element {
-                            let twImage = try meta.attr("content")
-                            let twUrl = URL(string: twImage)
-                            return twUrl
-                        } else {
-                            return nil
-                        }
-                    }
-                } catch(let error) {
-                    print(error.localizedDescription)
-                }
-            }
-            return nil
-        }
-
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let predicate = #Predicate<Item> { itemIds.contains($0.id) }
-        let descriptor = FetchDescriptor(predicate: predicate)
-        let modelIds = try! await backgroundActor.allModelIds(descriptor)
-        let validSchemas = ["http", "https", "file"]
-        for eachId in modelIds {
-            do {
-                var itemImageUrl: URL?
-                if let mediaThumbnail = await backgroundActor.itemMediaThumbnail(for: eachId) {
-                    itemImageUrl = URL(string: mediaThumbnail)
-                } else if let summary = await backgroundActor.itemBody(for: eachId) {
-                    do {
-                        let doc: Document = try SwiftSoup.parse(summary)
-                        let srcs: Elements = try doc.select("img[src]")
-                        let images = try srcs.array().map({ try $0.attr("src") })
-                        let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })
-                        if let urlString = filteredImages.first, let imgUrl = URL(string: urlString) {
-                            itemImageUrl = imgUrl
-                        } else {
-                            itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
-                        }
-                    } catch Exception.Error(_, let message) { // An exception from SwiftSoup
-                        print(message)
-                    } catch(let error) {
-                        print(error.localizedDescription)
-                    }
-                } else {
-                    itemImageUrl = await internalUrl(await backgroundActor.itemUrl(for: eachId))
-                }
-
-                var imageData: Data?
-                var thumbnailData: Data?
-                if let itemImageUrl {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-                        imageData = data
-#if os(macOS)
-                        if let uiImage = NSImage(data: data) {
-                            thumbnailData = uiImage.tiffRepresentation
-                        }
-#else
-                        if let uiImage = UIImage(data: data) {
-                            let displayScale = UITraitCollection.current.displayScale
-                            let thumbnailSize = CGSize(width: 48 * displayScale, height: 48 * displayScale)
-                            thumbnailData = await uiImage.byPreparingThumbnail(ofSize: thumbnailSize)?.pngData()
-                        }
-#endif
-                    } catch {
-                        print("Error fetching data: \(error)")
-                    }
-                }
-                do {
-                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnailURL, to: itemImageUrl)
-                    let _ = try await backgroundActor.update(eachId, keypath: \.image, to: imageData)
-                    let _ = try await backgroundActor.update(eachId, keypath: \.thumbnail, to: thumbnailData)
-                    try await backgroundActor.save()
-                } catch {
-                    //
-                }
-            }
+            //
         }
     }
 
     private func pruneItems() async throws {
         do {
-            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration), to: Date()) {
-                print("limitDate: \(limitDate) date: \(Date())")
-                let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-                try await backgroundActor.delete(model: Item.self, where: #Predicate { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
+            if let limitDate = Calendar.current.date(byAdding: .day, value: (-30 * keepDuration.rawValue), to: Date()) {
+                logger.info("Pruning items older than \(limitDate)")
+                try await backgroundActor.delete(model: Item.self, where: #Predicate<Item> { $0.unread == false && $0.starred == false && $0.lastModified < limitDate } )
             }
         } catch {
             throw DatabaseError.itemsFailedImport
@@ -669,41 +559,60 @@ final class SyncManager {
     }
 
     private func getFavIcons() async {
-        let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        for feedDTO in feedDTOs {
-            let validSchemas = ["http", "https", "file"]
-            var itemImageUrl: URL?
-            if let faviconLink = feedDTO.faviconLink,
-               let url = URL(string: faviconLink),
-               let scheme = url.scheme,
-               validSchemas.contains(scheme) {
-                itemImageUrl = url
-            } else {
-                if let feedUrl = URL(string: feedDTO.link ?? "data:null"),
-                   let host = feedUrl.host,
-                   let url = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
-                    itemImageUrl = url
+        let maxConcurrentRequests = 15
+
+        await withTaskGroup(of: Void.self) { group in
+            var index = 0
+            let feedCount = feedDTOs.count
+
+            for _ in 0..<min(maxConcurrentRequests, feedCount) {
+                if index < feedCount {
+                    group.addTask { [weak self, index] in
+                        guard let self = self else { return }
+                        await self.fetchAndStoreFavIcon(for: self.feedDTOs[index])
+                    }
+                    index += 1
                 }
             }
 
-            var imageData: Data?
-            if let itemImageUrl {
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
-                    imageData = data
-                } catch {
-                    print("Error fetching data: \(error)")
+            while let _ = await group.next() {
+                if index < feedCount {
+                    group.addTask { [weak self, index] in
+                        guard let self = self else { return }
+                        await self.fetchAndStoreFavIcon(for: self.feedDTOs[index])
+                    }
+                    index += 1
                 }
-            }
-
-            if let imageData {
-                let favIconDTO = FavIconDTO(id: feedDTO.id, url: itemImageUrl, icon: imageData)
-                await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
             }
         }
+
         do {
             try await backgroundActor.save()
-        } catch { }
+        } catch {
+            //
+        }
+    }
+
+    private func fetchAndStoreFavIcon(for feedDTO: FeedDTO) async {
+        let validSchemas = ["http", "https", "file"]
+        var itemImageUrl: URL?
+
+        if let faviconLink = feedDTO.faviconLink,
+           let url = URL(string: faviconLink),
+           let scheme = url.scheme,
+           validSchemas.contains(scheme) {
+            itemImageUrl = url
+        }
+
+        guard let itemImageUrl else { return }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
+            let favIconDTO = FavIconDTO(id: feedDTO.id, url: itemImageUrl, icon: data)
+            await backgroundActor.insertFavIcon(itemDTO: favIconDTO)
+        } catch {
+            //
+        }
     }
 
 }

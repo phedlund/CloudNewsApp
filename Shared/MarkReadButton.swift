@@ -11,38 +11,36 @@ import SwiftUI
 struct MarkReadButton: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(\.modelContext) private var modelContext
+    @Query private var nodes: [Node]
 
     var nodeType: NodeType?
+
+    private var effectiveNodeType: NodeType {
+        nodeType ?? newsModel.currentNodeType
+    }
+
+    private var node: Node? {
+        nodes.first { $0.type == effectiveNodeType }
+    }
+
+    private var unreadCount: Int {
+        guard let node else { return 0 }
+        return newsModel.unreadCount(for: node)
+    }
 
     var body: some View {
         Button(role: .confirm) {
             Task {
-                // Ensure the model targets the right node for the underlying operations
                 if let nodeType {
                     newsModel.currentNodeType = nodeType
-                }
-                await newsModel.updateUnreadItemIds()
-                for itemID in newsModel.unreadItemIds {
-                    if let item = modelContext.model(for: itemID) as? Item {
-                        item.unread = false
-                    }
                 }
                 await newsModel.markCurrentItemsRead()
             }
         } label: {
-            Label {
-                Text("Mark Read")
-            } icon: {
-                Image(systemName: "checkmark")
-            }
+            Label("Mark Read", systemImage: "checkmark")
         }
         .keyboardShortcut("a", modifiers: [.control])
-        .disabled(isMarkReadDisabled)
-    }
-
-    private var isMarkReadDisabled: Bool {
-        let key = nodeType ?? newsModel.currentNodeType
-        return (newsModel.unreadCounts[key] ?? 0) == 0
+        .disabled(unreadCount == 0)
     }
 }
 

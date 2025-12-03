@@ -239,10 +239,10 @@ struct FeedSettingsView: View {
         }
     }
 
-    private func refreshFavIcon() async {
+    private func refreshFavIcon(service: FavIconService) async {
         if let feed = feedForNodeType(newsModel.currentNodeType) {
             do {
-                try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link)
+                try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link, service: service)
             } catch {
                 //
             }
@@ -273,12 +273,34 @@ struct FeedSettingsView: View {
                 EmptyView()
             }
             Spacer()
-            Button {
-                Task {
-                    await refreshFavIcon()
+            Menu {
+                Button {
+                    Task {
+                       await refreshFavIcon(service: .homePage)
+                    }
+                } label: {
+                    Label("Feed Home Page", systemImage: "")
+                        .labelStyle(.titleOnly)
+                }
+                Button {
+                    Task {
+                       await refreshFavIcon(service: .duckDuckGo)
+                    }
+                } label: {
+                    Label("DuckDuckGo", systemImage: "")
+                        .labelStyle(.titleOnly)
+                }
+                Button {
+                    Task {
+                       await refreshFavIcon(service: .google)
+                    }
+                } label: {
+                    Label("Google", systemImage: "")
+                        .labelStyle(.titleOnly)
                 }
             } label: {
-                Text("Refresh")
+                Label("Search for Favicon", systemImage: "")
+                    .labelStyle(.titleOnly)
             }
             .buttonStyle(.bordered)
         }

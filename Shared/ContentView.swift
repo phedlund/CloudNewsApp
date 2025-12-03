@@ -14,6 +14,7 @@ import UserNotifications
 struct ContentView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
+    @Environment(\.modelContext) private var modelContext
 #if os(macOS)
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openUrl
@@ -23,24 +24,47 @@ struct ContentView: View {
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @State private var isShowingLogin = false
-    @State private var navigationTitle: String?
     @State private var selectedItem: Item? = nil
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
+    @State private var isInitialized = false
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
     @Query private var nodes: [Node]
 
+    var navigationTitle: String {
+        var result = ""
+        switch newsModel.currentNodeType {
+            case .empty:
+                result = ""
+            case .all:
+                result = "All Articles"
+            case .unread:
+                result = "Unread Articles"
+            case .starred:
+                result = "Starred Articles"
+            case .folder(let id):
+                let folder = folders.first(where: { $0.id == id })
+                result = folder?.name ?? Constants.untitledFolderName
+            case .feed(let id):
+                let feed = feeds.first(where: { $0.id == id })
+                result = feed?.title ?? "Untitled Feed"
+            }
+        return result
+    }
+
     var body: some View {
+#if DEBUG
         let _ = Logger.app.debug("ContentView body")
         let _ = Self._printChanges()
+#endif
 #if os(iOS)
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             SidebarView(nodeSelection: $selectedNode)
                 .environment(newsModel)
                 .environment(syncManager)
         } detail: {
-            ZStack {
+            Group {
                 if selectedNode != nil {
                     ItemsListView(selectedItem: $selectedItem)
                         .environment(newsModel)
@@ -60,20 +84,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle(navigationTitle ?? "Untitled")
+            .navigationTitle(navigationTitle)
             .onAppear {
-                Task {
-                    let center = UNUserNotificationCenter.current()
-                    do {
-                        if try await center.requestAuthorization(options: [.badge]) == true {
-                            // You have authorization.
-                        } else {
-                            // You don't have authorization.
-                        }
-                    } catch {
-                        // Handle any errors.
-                    }
-                }
                 isShowingLogin = isNewInstall
             }
             .sheet(isPresented: $isShowingLogin) {
@@ -84,29 +96,41 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
+        .task {
+            let center = UNUserNotificationCenter.current()
+            do {
+                if try await center.requestAuthorization(options: [.badge]) == true {
+                    // You have authorization.
+                } else {
+                    // You don't have authorization.
+                }
+            } catch {
+                // Handle any errors.
+            }
+            if !isInitialized {
+                await newsModel.populateInitialCache(nodes: nodes)
+                isInitialized = true
+
+
+                // Now restore the selected node AFTER cache is ready
+                if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
+                    newsModel.currentNodeType = nodeType
+                }
+            }
+        }
+        .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
-                switch nodeType {
-                case .empty:
-                    navigationTitle = ""
-                case .all:
-                    navigationTitle = "All Articles"
-                case .unread:
-                    navigationTitle = "Unread Articles"
-                case .starred:
-                    navigationTitle = "Starred Articles"
-                case .folder(let id):
-                    let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? Constants.untitledFolderName
-                case .feed(let id):
-                    let feed = feeds.first(where: { $0.id == id })
-                    navigationTitle = feed?.title ?? "Untitled Feed"
-                }
                 preferredColumn = .detail
             }
         }
-        .onChange(of: selectedItem, initial: true) { _, newValue in
+        .onChange(of: selectedItem, initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             newsModel.currentItem = newValue
         }
 #else
@@ -129,7 +153,7 @@ struct ContentView: View {
                         contentViewToolBarContent()
                     }
                     .navigationSplitViewColumnWidth(min: 400, ideal: 500, max: 700)
-                    .navigationTitle(navigationTitle ?? "Untitled")
+                    .navigationTitle(navigationTitle)
             } else {
                 ContentUnavailableView {
                     Label("No Feed Selected", image: .rss)
@@ -165,26 +189,12 @@ struct ContentView: View {
                 openSettings()
             }
         }
-        .onChange(of: selectedNode ?? Data(), initial: true) { _, newValue in
-            Logger.app.debug("Got new node selection: \(newValue)")
+        .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
+            guard newValue != oldValue else {
+                return
+            }
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
-                switch nodeType {
-                case .empty:
-                    navigationTitle = ""
-                case .all:
-                    navigationTitle = "All Articles"
-                case .unread:
-                    navigationTitle = "Unread Articles"
-                case .starred:
-                    navigationTitle = "Starred Articles"
-                case .folder(let id):
-                    let folder = folders.first(where: { $0.id == id })
-                    navigationTitle = folder?.name ?? Constants.untitledFolderName
-                case .feed(let id):
-                    let feed = feeds.first(where: { $0.id == id })
-                    navigationTitle = feed?.title ?? "Untitled Feed"
-                }
                 preferredColumn = .detail
             }
         }

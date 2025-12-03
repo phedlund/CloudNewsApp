@@ -7,283 +7,112 @@
 
 import SwiftData
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
-extension View {
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: @autoclosure () -> Bool, transform: (Self) -> Content) -> some View {
-        if condition() {
-            transform(self)
-        } else {
-            self
-        }
+struct ItemView: View, Equatable {
+    static func == (lhs: ItemView, rhs: ItemView) -> Bool {
+        lhs.item.id == rhs.item.id &&
+        lhs.item.unread == rhs.item.unread &&
+        lhs.item.starred == rhs.item.starred &&
+        lhs.faviconData == rhs.faviconData
     }
-}
 
-struct ItemView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
+    @Environment(\.displayScale) private var displayScale: CGFloat
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.showFavIcons) private var showFavIcons = true
     @AppStorage(SettingKeys.showThumbnails) private var showThumbnails = true
 
-    @State private var isHorizontalCompact = false
-    @State private var thumbnailSize = CGSize.zero
-    @State private var thumbnailOffset = CGFloat.zero
-    @State private var thumbnailImage: SystemImage?
-    @State private var faviconImage: SystemImage?
+    let item: Item
+    let faviconData: Data?
 
-    private let item: Item
-    private let cellSize: CGSize
-    private let faviconData: Data?
+    // Cache the computed image to avoid recreating it
+    @State private var cachedFaviconImage: Image?
 
-    init(item: Item, size: CGSize, faviconData: Data?) {
-        self.item = item
-        self.cellSize = size
-        self.faviconData = faviconData
+    private var thumbnailUrl: URL? {
+        guard showThumbnails else { return nil }
+        return item.thumbnailURL
+    }
+
+    private var effectiveFavicon: Image? {
+        // Use cached image if available
+        if let cached = cachedFaviconImage {
+            return cached
+        }
+        // Fallback to generic RSS icon if favicons are enabled but no data
+        return showFavIcons ? Image(.rss) : nil
+    }
+
+    private var cardMode: ItemCard.Mode {
+        let hasThumb = (thumbnailUrl != nil)
+        if compactView {
+            return hasThumb ? .compactWithImage : .compactNoImage
+        } else {
+            return hasThumb ? .largeWithImage : .largeNoImage
+        }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            HStack(alignment: .top, spacing: .zero) {
-                ZStack(alignment: .topLeading) {
-                    if showThumbnails {
-                        thumbnailView
-                            .padding(.top, compactView ? 1 : .zero)
-                    } else {
-                        EmptyView()
-                    }
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: .paddingSix) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: .paddingSix) {
-                                    titleView
-                                    favIconDateAuthorView
-                                    if isHorizontalCompact {
-                                        Spacer()
-                                    } else {
-                                        EmptyView()
-                                    }
-                                }
-                            }
-                            .padding(.leading, thumbnailOffset)
-                            bodyView
-                        }
-                        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-                        .padding(.leading, .paddingEight)
-                    }
-                    .padding(.trailing, 16)
-                }
-            }
-            Spacer()
-        }
+        ItemCard(
+            title: item.displayTitle,
+            subtitle: item.dateFeedAuthor,
+            bodyText: item.displayBody,
+            imageUrl: item.thumbnailURL,
+            favicon: effectiveFavicon,
+            showsFavicon: effectiveFavicon != nil,
+            mode: cardMode,
+            isStarred: item.starred,
+            sizes: .init(
+                largeHeight: .defaultCellHeight,
+                compactHeight: .compactCellHeight,
+                largeImageWidth: 145,
+                compactImageWidth: 66,
+                cornerRadius: 12,
+                contentSpacing: 12,
+                faviconSize: 22
+            )
+        )
         .listRowInsets(.none)
-        .padding(.top, isHorizontalCompact ? .zero : .paddingEight)
-        .padding(.top, isHorizontalCompact && compactView ? .paddingEight : .zero)
-        .onChange(of: compactView, initial: true) { _, _ in
-            updateSizeAndOffset()
-        }
-        .onChange(of: showThumbnails, initial: true) { _, _ in
-            updateSizeAndOffset()
-        }
-#if os(iOS)
-        .frame(width: cellSize.width, height: cellSize.height)
-        .padding([.trailing], .paddingSix)
-        .if(!item.unread && !item.starred) {
-            $0.opacity(0.4)
-        }
-        .background(Color.phWhiteCellBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay() {
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(.black.opacity(0.15), lineWidth: 1)
-        }
-        .overlay(alignment: .topTrailing) {
-            if item.starred {
-                Image(systemName: "star.fill")
-                    .padding([.top, .trailing],  .paddingSix)
-            }
-        }
-        .onAppear {
-            updateSizeAndOffset()
-            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
-                self.thumbnailImage = uiImage
-            }
-            decodeFavicon()
-        }
-#else
-        .overlay(alignment: .topTrailing) {
-            if item.starred {
-                Image(systemName: "star.fill")
-                    .padding([.top, .trailing],  .paddingSix)
-            }
-        }
-        .opacity(item.unread ? 1.0 : 0.4 )
-        .task {
-            updateSizeAndOffset()
-            if let imageData = item.image, let uiImage = SystemImage(data: imageData) {
-                self.thumbnailImage = uiImage
-            }
-            decodeFavicon()
-        }
-#endif
-#if !os(macOS)
-        .onChange(of: horizontalSizeClass) { _, newValue in
-            isHorizontalCompact = newValue == .compact
-        }
-#endif
-        .onChange(of: faviconData ?? Data()) { _, _ in
-            decodeFavicon()
-        }
-    }
-}
-
-private extension ItemView {
-
-    @MainActor
-    var titleView: some View {
-        HStack {
-            Text(item.title ?? "Untitled")
-                .multilineTextAlignment(.leading)
-                .font(Font.headline.weight(.semibold))
-#if os(iOS)
-                .foregroundColor(.phWhiteText)
-#endif
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true) //force wrapping
-                .padding(.top, 4)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    @MainActor
-    var favIconDateAuthorView: some View {
-        Label {
-            Text(item.dateFeedAuthor)
-                .font(.subheadline)
-                .italic()
-#if os(iOS)
-                .foregroundColor(.phWhiteText)
-#endif
-                .lineLimit(1)
-        } icon: {
-            if showFavIcons {
-                if let uiImage = faviconImage {
+        .opacity((item.unread || item.starred) ? 1.0 : 0.4)
 #if os(macOS)
-                    Image(nsImage: uiImage)
-                        .resizable()
-                        .frame(width: 22, height: 22)
+        .containerRelativeFrame(.vertical, alignment: .center) { _, _ in
+            return compactView ? .compactCellHeight : .defaultCellHeight
+        }
 #else
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .frame(width: 22, height: 22)
-#endif
-                } else {
-                    Image(.rss)
-                        .font(.system(size: 18, weight: .light))
-                }
+        .containerRelativeFrame([.horizontal, .vertical], alignment: .center) { length, axis in
+            if axis == .vertical {
+                return compactView ? .compactCellHeight : .defaultCellHeight
             } else {
-                EmptyView()
+                return min(length * 0.93, 700.0)
             }
         }
-        .labelStyle(.titleAndIcon)
-    }
-
-    @MainActor
-    var bodyView: some View {
-        VStack(alignment: .leading) {
-            if compactView {
-                EmptyView()
-            } else {
-                HStack(alignment: .top) {
-                    Text(item.displayBody)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(4)
-                        .font(.body)
-#if os(iOS)
-                        .foregroundColor(.phWhiteText)
+        .padding(.trailing, .paddingSix)
 #endif
-                    Spacer()
-                }
-                .padding(.leading, thumbnailOffset)
-            }
-        }
-        .if(isHorizontalCompact) {
-            $0.frame(height: thumbnailSize.height - 4)
-        }
-    }
-
-    @MainActor
-    var thumbnailView: some View {
-        VStack {
-            if let thumbnailImage {
+        .task(id: faviconData) {
+            // Convert Data to Image once and cache it
+            if let data = faviconData, showFavIcons {
 #if os(macOS)
-                Image(nsImage: thumbnailImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                    .clipped()
-#else
-                Image(uiImage: thumbnailImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: thumbnailSize.width, height: thumbnailSize.height)
-                    .clipped()
-#endif
-            }
-        }
-    }
-
-    @MainActor
-    private func updateSizeAndOffset() {
-        if !showThumbnails {
-            thumbnailOffset = .zero
-            thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
-        } else {
-            if item.thumbnailURL != nil {
-                if compactView {
-                    thumbnailOffset = .compactThumbnailWidth + .paddingSix
-                    thumbnailSize = CGSize(width: .compactThumbnailWidth, height: .compactCellHeight)
-                } else {
-                    thumbnailOffset = .defaultThumbnailWidth + .paddingSix
-                    thumbnailSize = CGSize(width: .defaultThumbnailWidth, height: .defaultCellHeight)
+                if let nsImg = NSImage(data: data) {
+                    cachedFaviconImage = Image(nsImage: nsImg)
                 }
+#else
+                if let uiImg = UIImage(data: data) {
+                    cachedFaviconImage = Image(uiImage: uiImg)
+                }
+#endif
             } else {
-                thumbnailOffset = .zero
-                thumbnailSize = CGSize(width: 0, height: compactView ? .compactCellHeight : .defaultCellHeight)
+                cachedFaviconImage = nil
             }
         }
     }
-
-    @MainActor
-    private func decodeFavicon() {
-        guard showFavIcons else {
-            faviconImage = nil
-            return
-        }
-        if let data = faviconData {
-            faviconImage = SystemImage(data: data)
-        } else {
-            faviconImage = nil
-        }
-    }
-
 }
 
 //struct ItemRow_Previews: PreviewProvider {
 //    static var previews: some View {
-//        ItemRow()
+//        ItemView()
 //    }
 //}
 
-extension View {
-    @ViewBuilder
-    func bodyFrame(active: Bool, height: CGFloat) -> some View {
-        if active, height >= 0 {
-            self.frame(height: height)
-        } else {
-            self
-        }
-    }
-}

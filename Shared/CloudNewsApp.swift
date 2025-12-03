@@ -16,6 +16,7 @@ struct CloudNewsApp: App {
     private let newsModel: NewsModel
     private let modelActor: NewsModelActor
     private let syncManager: SyncManager
+    let logger = LogManager.shared.logger
 
     @State private var isShowingAddFolder = false
     @State private var isShowingAddFeed = false
@@ -34,10 +35,10 @@ struct CloudNewsApp: App {
             self.modelActor = NewsModelActor(modelContainer: container)
             self.newsModel = NewsModel(modelContainer: container)
             self.syncManager = SyncManager(modelContainer: container)
-            syncManager.configureSession()
             ContentBlocker.shared.rules(completion: { _ in })
             let _ = CssProvider.shared.css()
             migrateKeychain()
+            logger.info("App launched")
         } catch {
             fatalError("Failed to create container")
         }
@@ -65,6 +66,11 @@ struct CloudNewsApp: App {
             ContentView()
                 .environment(newsModel)
                 .environment(syncManager)
+                .task {
+                    // Run all pending migrations once when the app starts
+                    let context = ModelContext(container)
+                    try? await DataMigrationManager.runPendingMigrations(modelContext: context)
+                }
                 .sheet(isPresented: $isShowingAcknowledgements) {
                     NavigationView {
                         AcknowledgementsView()
@@ -94,10 +100,13 @@ struct CloudNewsApp: App {
         }
         .modelContainer(container)
         .backgroundTask(.appRefresh(Constants.appRefreshTaskId)) {
+            logger.info("Scheduling app refresh")
             await scheduleAppRefresh()
-            await syncManager.backgroundSync()
+            logger.info("Starting background sync")
+            try? await syncManager.backgroundSync()
         }
         .backgroundTask(.urlSession(Constants.appUrlSessionId)) {
+            logger.info("Starting background processing")
             await syncManager.processSessionData()
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -181,9 +190,9 @@ struct CloudNewsApp: App {
         request.requiresNetworkConnectivity = true
         do {
             try BGTaskScheduler.shared.submit(request)
-            print("Submit called")
+            logger.info("Added background task to refresh app")
         } catch {
-            print("Could not schedule app refresh task \(error.localizedDescription)")
+            logger.error("Could not schedule app refresh task \(error.localizedDescription)")
         }
     }
 #endif

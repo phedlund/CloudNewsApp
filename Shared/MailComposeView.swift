@@ -9,6 +9,13 @@
 import MessageUI
 import SwiftUI
 
+struct Attachment {
+    let data: Data
+    let mimeType: String
+    let fileName: String
+}
+
+
 @MainActor
 struct MailComposeView: UIViewControllerRepresentable {
     typealias UIViewControllerType = MFMailComposeViewController
@@ -16,7 +23,8 @@ struct MailComposeView: UIViewControllerRepresentable {
     let recipients: [String]
     let subject: String
     let message: String
-    
+    let attachment: Attachment?
+
     var didFinish: ()->()
     
     func makeCoordinator() -> MailComposeCoordinator {
@@ -29,6 +37,9 @@ struct MailComposeView: UIViewControllerRepresentable {
         mail.setToRecipients(recipients)
         mail.setSubject(subject)
         mail.setMessageBody(message, isHTML: false)
+        if let attachment {
+            mail.addAttachmentData(attachment.data, mimeType: attachment.mimeType, fileName: attachment.fileName)
+        }
         return mail
     }
         

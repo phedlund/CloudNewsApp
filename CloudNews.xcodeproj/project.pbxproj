@@ -48,11 +48,21 @@
 		D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061B1632C0A433C00E5D993 /* NewsObjects.swift */; };
 		D061EB942D5C3EC5003A9914 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = D061EB932D5C3EBE003A9914 /* Node.swift */; };
 		D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064CAED26E6D0E80053C11F /* Utilities.swift */; };
+		D0704F8B2EA58A8A001663EF /* ImagePrefetchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */; };
+		D0704F8D2EA58B22001663EF /* PrefetchAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */; };
+		D0704F8F2EA58FFC001663EF /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8E2EA58FFC001663EF /* ImageUtils.swift */; };
+		D0704FC22EA9A5DA001663EF /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0704F8E2EA58FFC001663EF /* ImageUtils.swift */; };
 		D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07A043926E58B5B00178EEE /* ArticlesPageView.swift */; };
+		D07B359C2E88506200D92ADF /* ItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07B359B2E88506200D92ADF /* ItemCard.swift */; };
 		D07EFCD32B0B011300032103 /* MarkReadButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07EFCD22B0B011300032103 /* MarkReadButton.swift */; };
 		D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0873FAA29737CE70076DCB1 /* ItemView.swift */; };
 		D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2FB267ED1E800A997DB /* ArticleView.swift */; };
 		D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A1005827E6B963005D7D70 /* FooterLabel.swift */; };
+		D0A3A8432EAB046B00CE7067 /* DataMigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */; };
+		D0A3A8442EAB046B00CE7067 /* DataMigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */; };
+		D0A3A8AB2EB03D1A00CE7067 /* Puppy in Frameworks */ = {isa = PBXBuildFile; productRef = D0A3A8AA2EB03D1A00CE7067 /* Puppy */; };
+		D0A3A8AD2EB03E5E00CE7067 /* LogManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */; };
+		D0A3A8AF2EB2B3FB00CE7067 /* WidgetTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A3A8AE2EB2B3F200CE7067 /* WidgetTracker.swift */; };
 		D0A551AC2C7D6E0A00118C99 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A551AB2C7D6E0A00118C99 /* SyncManager.swift */; };
 		D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */; };
 		D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F5267ED1C600A997DB /* SidebarView.swift */; };
@@ -75,7 +85,6 @@
 		D0C926392DCAD90C005415E5 /* UtilitiesShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */; };
 		D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
 		D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */; };
-		D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F0E276D80D4009CF78F /* BadgeView.swift */; };
 		D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E60F11276E7988009CF78F /* AppDelegate.swift */; };
 		D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D0E60F29277A81C9009CF78F /* Web.bundle */; };
 		D0E88400290C9DD9001ACB25 /* ServerStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */; };
@@ -157,10 +166,17 @@
 		D061B1632C0A433C00E5D993 /* NewsObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsObjects.swift; sourceTree = "<group>"; };
 		D061EB932D5C3EBE003A9914 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		D064CAED26E6D0E80053C11F /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePrefetchManager.swift; sourceTree = "<group>"; };
+		D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefetchAsyncImage.swift; sourceTree = "<group>"; };
+		D0704F8E2EA58FFC001663EF /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 		D07A043926E58B5B00178EEE /* ArticlesPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesPageView.swift; sourceTree = "<group>"; };
+		D07B359B2E88506200D92ADF /* ItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCard.swift; sourceTree = "<group>"; };
 		D07EFCD22B0B011300032103 /* MarkReadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkReadButton.swift; sourceTree = "<group>"; };
 		D0873FAA29737CE70076DCB1 /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 		D0A1005827E6B963005D7D70 /* FooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterLabel.swift; sourceTree = "<group>"; };
+		D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataMigrationManager.swift; sourceTree = "<group>"; };
+		D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogManager.swift; sourceTree = "<group>"; };
+		D0A3A8AE2EB2B3F200CE7067 /* WidgetTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTracker.swift; sourceTree = "<group>"; };
 		D0A551AB2C7D6E0A00118C99 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		D0B0B2F0267C2B0500A997DB /* SettingKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingKeys.swift; sourceTree = "<group>"; };
 		D0B0B2F5267ED1C600A997DB /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -171,7 +187,6 @@
 		D0C925EC2DC836A6005415E5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D0C925EE2DC836A6005415E5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilitiesShared.swift; sourceTree = "<group>"; };
-		D0E60F0E276D80D4009CF78F /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		D0E60F11276E7988009CF78F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D0E60F29277A81C9009CF78F /* Web.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Web.bundle; sourceTree = "<group>"; };
 		D0E883FF290C9DD9001ACB25 /* ServerStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatus.swift; sourceTree = "<group>"; };
@@ -213,6 +228,7 @@
 				D058E1372E5BB190006523B1 /* Valet in Frameworks */,
 				D0E88403290C9E1E001ACB25 /* OpenSSL in Frameworks */,
 				D01AEA212E370EA600731B6F /* SwiftSoup in Frameworks */,
+				D0A3A8AB2EB03D1A00CE7067 /* Puppy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,16 +275,18 @@
 				D02F44A0265C86BE00A3505B /* ContentView.swift */,
 				D0B0B2F5267ED1C600A997DB /* SidebarView.swift */,
 				D0B8A808269928C3002A99A4 /* NodeView.swift */,
-				D0E60F0E276D80D4009CF78F /* BadgeView.swift */,
 				D0F5BC0B295A6E7C001E728A /* ItemsListView.swift */,
 				D0873FAA29737CE70076DCB1 /* ItemView.swift */,
+				D07B359B2E88506200D92ADF /* ItemCard.swift */,
+				D0704F8A2EA58A8A001663EF /* ImagePrefetchManager.swift */,
+				D0704F8C2EA58B22001663EF /* PrefetchAsyncImage.swift */,
 				D0A1005827E6B963005D7D70 /* FooterLabel.swift */,
 				D027487826A9D2A10000FB47 /* AddView.swift */,
 				D035E343287A5C1D00E1FE5E /* ShareLinkButton.swift */,
 				D07EFCD22B0B011300032103 /* MarkReadButton.swift */,
 				D07A043926E58B5B00178EEE /* ArticlesPageView.swift */,
-				D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */,
 				D0B0B2FB267ED1E800A997DB /* ArticleView.swift */,
+				D04565032DFBBC2A001CD015 /* ArticleViewMac.swift */,
 				D04565112E070270001CD015 /* NavigationDecider.swift */,
 				D0FEBD65268AC89F00AC0618 /* ArticleWebContent.swift */,
 				D01AEA242E40097000731B6F /* CssProvider.swift */,
@@ -281,9 +299,12 @@
 				D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */,
 				D0F35C0527249B2F004BFC27 /* MailComposeView.swift */,
 				D0FEBD6B268C09D200AC0618 /* HexColor.swift */,
+				D0704F8E2EA58FFC001663EF /* ImageUtils.swift */,
 				D064CAED26E6D0E80053C11F /* Utilities.swift */,
 				D0C9262C2DCAD592005415E5 /* UtilitiesShared.swift */,
 				D0115C452E5F63D500872354 /* ValetManager.swift */,
+				D0A3A8AC2EB03E5500CE7067 /* LogManager.swift */,
+				D0A3A8AE2EB2B3F200CE7067 /* WidgetTracker.swift */,
 				D050B31327B0BE0200442584 /* block-ads.json */,
 				D0E60F29277A81C9009CF78F /* Web.bundle */,
 				D02F44A2265C86BF00A3505B /* Assets.xcassets */,
@@ -347,6 +368,7 @@
 		D0F41D6A2A76CA4C00EEAC78 /* SwiftData */ = {
 			isa = PBXGroup;
 			children = (
+				D0A3A8422EAB046B00CE7067 /* DataMigrationManager.swift */,
 				D04A7A702C62FC2F00C24568 /* ModelContextExtension.swift */,
 				D00634B02E2F25C400283CD7 /* FavIcon.swift */,
 				D0F41D6E2A76CA4C00EEAC78 /* Folder.swift */,
@@ -383,6 +405,7 @@
 				D0E88402290C9E1E001ACB25 /* OpenSSL */,
 				D01AEA202E370EA600731B6F /* SwiftSoup */,
 				D058E1362E5BB190006523B1 /* Valet */,
+				D0A3A8AA2EB03D1A00CE7067 /* Puppy */,
 			);
 			productName = "CloudNews (iOS)";
 			productReference = D02F44A7265C86BF00A3505B /* CloudNews.app */;
@@ -442,6 +465,7 @@
 				D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */,
 				D01AEA1F2E370EA600731B6F /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				D058E1352E5BB190006523B1 /* XCRemoteSwiftPackageReference "Valet" */,
+				D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */,
 			);
 			productRefGroup = D02F44A8265C86BF00A3505B /* Products */;
 			projectDirPath = "";
@@ -493,6 +517,7 @@
 				D0367B982A8C5F2D0099D34D /* CloudStatus.swift in Sources */,
 				D0F41D762A78185C00EEAC78 /* Folder.swift in Sources */,
 				D00634B12E2F25C400283CD7 /* FavIcon.swift in Sources */,
+				D0704F8F2EA58FFC001663EF /* ImageUtils.swift in Sources */,
 				D04565042DFBBC2A001CD015 /* ArticleViewMac.swift in Sources */,
 				D050B31727B0C0C100442584 /* ContentBlocker.swift in Sources */,
 				D0FEBD6C268C09D200AC0618 /* HexColor.swift in Sources */,
@@ -502,6 +527,7 @@
 				D01AEA1E2E34347B00731B6F /* LoginView.swift in Sources */,
 				D0873FAB29737CE70076DCB1 /* ItemView.swift in Sources */,
 				D0367B942A8C5E1D0099D34D /* Version.swift in Sources */,
+				D07B359C2E88506200D92ADF /* ItemCard.swift in Sources */,
 				D0115C462E5F63D500872354 /* ValetManager.swift in Sources */,
 				D08ED8722873B0BE00A8F585 /* ArticleView.swift in Sources */,
 				D027487926A9D2A10000FB47 /* AddView.swift in Sources */,
@@ -510,6 +536,7 @@
 				D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */,
 				D0F35C0627249B2F004BFC27 /* MailComposeView.swift in Sources */,
 				D006343D2E29931300283CD7 /* NewsModelActor.swift in Sources */,
+				D0A3A8AF2EB2B3FB00CE7067 /* WidgetTracker.swift in Sources */,
 				D01AEA252E40097A00731B6F /* CssProvider.swift in Sources */,
 				D0F41D782A78186200EEAC78 /* Read.swift in Sources */,
 				D0367B922A8C5D960099D34D /* Meta.swift in Sources */,
@@ -521,10 +548,13 @@
 				D0FEBD66268AC8A000AC0618 /* ArticleWebContent.swift in Sources */,
 				D02F44F3265C89F700A3505B /* NotificationNames.swift in Sources */,
 				D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */,
+				D0704F8B2EA58A8A001663EF /* ImagePrefetchManager.swift in Sources */,
 				D064CAEE26E6D0E80053C11F /* Utilities.swift in Sources */,
 				D02F451B265C8CC400A3505B /* Avatar.swift in Sources */,
 				D061B1642C0A433C00E5D993 /* NewsObjects.swift in Sources */,
+				D0A3A8AD2EB03E5E00CE7067 /* LogManager.swift in Sources */,
 				D0B0B2F1267C2B0500A997DB /* SettingKeys.swift in Sources */,
+				D0704F8D2EA58B22001663EF /* PrefetchAsyncImage.swift in Sources */,
 				D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */,
 				D02CFFE329C7C72900F956CF /* Constants.swift in Sources */,
 				D0E60F12276E7988009CF78F /* AppDelegate.swift in Sources */,
@@ -533,9 +563,9 @@
 				D0A1005927E6B963005D7D70 /* FooterLabel.swift in Sources */,
 				D0F41D792A78186600EEAC78 /* Feed.swift in Sources */,
 				D0B0B2FF267FF86300A997DB /* NewsModel.swift in Sources */,
-				D0E60F0F276D80D4009CF78F /* BadgeView.swift in Sources */,
 				D07A043A26E58B5B00178EEE /* ArticlesPageView.swift in Sources */,
 				D0F41D752A78185900EEAC78 /* Item.swift in Sources */,
+				D0A3A8442EAB046B00CE7067 /* DataMigrationManager.swift in Sources */,
 				D02F44B7265C86BF00A3505B /* ContentView.swift in Sources */,
 				D02F4519265C8CBE00A3505B /* NodeType.swift in Sources */,
 				D02FA074269E2E7600A77875 /* FeedSettingsView.swift in Sources */,
@@ -547,6 +577,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0704FC22EA9A5DA001663EF /* ImageUtils.swift in Sources */,
 				D0C926372DCAD8ED005415E5 /* NodeType.swift in Sources */,
 				D0C926302DCAD8C8005415E5 /* Item.swift in Sources */,
 				D0C926392DCAD90C005415E5 /* UtilitiesShared.swift in Sources */,
@@ -559,6 +590,7 @@
 				D0C926352DCAD8C8005415E5 /* Feed.swift in Sources */,
 				D0C926362DCAD8C8005415E5 /* Read.swift in Sources */,
 				D006343E2E29931300283CD7 /* NewsModelActor.swift in Sources */,
+				D0A3A8432EAB046B00CE7067 /* DataMigrationManager.swift in Sources */,
 				D0C9263B2DCAD92F005415E5 /* ModelContextExtension.swift in Sources */,
 				D0C9263A2DCAD917005415E5 /* Errors.swift in Sources */,
 			);
@@ -716,7 +748,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1786;
+				CURRENT_PROJECT_VERSION = 1796;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -730,7 +762,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -756,7 +788,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1786;
+				CURRENT_PROJECT_VERSION = 1796;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -770,7 +802,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -798,7 +830,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1786;
+				CURRENT_PROJECT_VERSION = 1796;
 				ENABLE_APP_SANDBOX = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -813,7 +845,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -840,7 +872,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1786;
+				CURRENT_PROJECT_VERSION = 1796;
 				ENABLE_APP_SANDBOX = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -855,7 +887,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -922,6 +954,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sushichop/Puppy";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
 		D0E88401290C9E1E001ACB25 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL";
@@ -948,6 +988,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D058E1352E5BB190006523B1 /* XCRemoteSwiftPackageReference "Valet" */;
 			productName = Valet;
+		};
+		D0A3A8AA2EB03D1A00CE7067 /* Puppy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A3A8A92EB03D1900CE7067 /* XCRemoteSwiftPackageReference "Puppy" */;
+			productName = Puppy;
 		};
 		D0E88402290C9E1E001ACB25 /* OpenSSL */ = {
 			isa = XCSwiftPackageProductDependency;

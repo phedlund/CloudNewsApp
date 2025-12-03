@@ -10,7 +10,6 @@ and (orientation: portrait) {
         text-align: left;
         width: var(--body-width-portrait);
         max-width: 700px;
-        margin-top: 40px;
         margin-bottom: 40px;
         margin-left: auto;
         margin-right: auto;
@@ -22,7 +21,6 @@ and (orientation: portrait) {
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
-        margin-top: 30px;
         word-wrap: break-word;
     }
 
@@ -36,7 +34,6 @@ and (orientation: landscape) {
         text-align: left;
         width: var(--body-width-landscape);
         max-width: 700px;
-        margin-top: 40px;
         margin-bottom: 40px;
         margin-left: auto;
         margin-right: auto;
@@ -47,7 +44,6 @@ and (orientation: landscape) {
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
-        margin-top: 30px;
     }
 
 }

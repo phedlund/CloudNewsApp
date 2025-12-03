@@ -9,14 +9,6 @@ import Foundation
 import OSLog
 import SwiftSoup
 
-#if os(macOS)
-import AppKit
-public typealias SystemImage = NSImage
-#else
-import UIKit
-public typealias SystemImage = UIImage
-#endif
-
 @MainActor
 extension DateFormatter {
     static var dateAuthorFormatter: DateFormatter {

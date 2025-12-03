@@ -8,47 +8,47 @@
 import SwiftData
 import SwiftUI
 
-struct NodeView: View {
+struct NodeView: View, Equatable {
+
+    static func == (lhs: NodeView, rhs: NodeView) -> Bool {
+        lhs.node == rhs.node
+    }
+
     @Environment(NewsModel.self) private var newsModel
 
     let node: Node
 
-    @State private var unreadCount = 0
-
-#if os(iOS)
-    let noChildrenPadding = 10.0
-    let childrenPadding = -8.0
-#else
-    let noChildrenPadding = 0.0
-    let childrenPadding = 0.0
-#endif
-
     @Query private var favIcons: [FavIcon]
 
+    private var count: Int {
+        newsModel.unreadCount(for: node)
+    }
+
     var body: some View {
-        HStack {
-            Label {
-                HStack {
-                    Text(node.title)
-                        .lineLimit(1)
-                    Spacer()
-                    BadgeView(node: node, unreadCount: $unreadCount)
-                        .padding(.trailing, node.id.hasPrefix("dddd_") ? childrenPadding : noChildrenPadding)
-                }
-                .contentShape(Rectangle())
-            } icon: {
-                favIconView
-            }
-            .labelStyle(.titleAndIcon)
-            Spacer()
+        let badgeView = Text("\(count > 0 ? "\(count)" : "")")
+                .monospacedDigit()
+                .foregroundColor(node.errorCount > 0 ? .red : .secondary)
+
+        Label {
+            Text(node.title)
+                .lineLimit(1)
+                .badge(badgeView)
+        } icon: {
+            favIconView
         }
-        .onChange(of: unreadCount, initial: true) { _, newValue in
-            newsModel.unreadCounts[node.type] = newValue
+        .labelStyle(.titleAndIcon)
+        .task(id: node.id) {
+            await newsModel.refreshUnreadCount(for: node)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .unreadStateDidChange)) { _ in
+            Task {
+                await newsModel.refreshUnreadCount(for: node)
+            }
         }
     }
 
     var favIconView: some View {
-        HStack {
+        Group {
             switch node.type {
             case .all, .empty:
                 Image(.rss)
@@ -88,3 +88,4 @@ struct NodeView: View {
 //        NodeView()
 //    }
 //}
+

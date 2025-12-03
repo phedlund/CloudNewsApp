@@ -25,6 +25,7 @@ struct SidebarView: View {
     @Environment(NewsModel.self) private var newsModel
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
@@ -34,6 +35,9 @@ struct SidebarView: View {
 #endif
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
+    @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
+
+    private let logger = LogManager.shared.logger
 
     @State private var modalSheet: ModalSheet?
     @State private var isShowingConfirmation = false
@@ -43,8 +47,7 @@ struct SidebarView: View {
     @State private var errorMessage = ""
     @State private var confirmationNode: Node?
     @State private var alertInput = ""
-    @State private var selectedFeed: Int64 = 0
-    @State private var unreadPredicate = #Predicate<Item>{ _ in false }
+    @State private var lastSyncTime = Date.distantPast
 
     @Binding var nodeSelection: Data?
 
@@ -52,7 +55,7 @@ struct SidebarView: View {
     @Query(sort: [SortDescriptor<Feed>(\.id)]) private var feeds: [Feed]
     @Query(
         FetchDescriptor(predicate: #Predicate<Node>{ $0.parent == nil },
-                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.id)])
+                        sortBy: [SortDescriptor<Node>(\.pinned, order: .reverse), SortDescriptor<Node>(\.title)])
     ) private var nodes: [Node]
 
     init(nodeSelection: Binding<Data?>) {
@@ -141,6 +144,7 @@ struct SidebarView: View {
                 }
                 .listStyle(.automatic)
                 .refreshable {
+                    logger.info("Pulled to refresh")
                     sync()
                 }
             }
@@ -160,9 +164,30 @@ struct SidebarView: View {
                 }
             }
         }
+#else
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            guard newPhase != oldPhase else {
+                return
+            }
+            switch newPhase {
+            case .active:
+                Task {
+                    await refresh()
+                }
+            case .inactive:
+                break
+            case .background:
+                break
+            @unknown default:
+                fatalError("Unknown scene phase")
+            }
+        }
 #endif
         .navigationTitle(Text("Feeds"))
         .navigationSubtitle(syncManager.syncState.description)
+        .task {
+            await newsModel.refreshAllUnreadCounts(nodes: nodes)
+        }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
         }, content: { sheet in
@@ -335,6 +360,7 @@ struct SidebarView: View {
             }
 #endif
             Button {
+                logger.info("Tapped sync", tag: "Button")
                 sync()
             } label: {
                 Image(systemName: "arrow.clockwise")
@@ -348,22 +374,6 @@ struct SidebarView: View {
             }
 #endif
         }
-    }
-
-    private func unreadFetchDescriptor(node: Node) -> FetchDescriptor<Item> {
-        var result = FetchDescriptor<Item>()
-        switch node.type {
-        case .empty, .starred:
-            result.predicate = #Predicate<Item>{ _ in false }
-        case .all, .unread:
-            result.predicate = #Predicate<Item>{ $0.unread }
-        case .folder(id: let id):
-            let feedIds = feeds.filter( { $0.folderId == id }).map( { $0.id } )
-            result.predicate = #Predicate<Item>{ feedIds.contains($0.feedId) && $0.unread }
-        case .feed(id: let id):
-            result.predicate = #Predicate<Item>{  $0.feedId == id && $0.unread }
-        }
-        return result
     }
 
     private func sync() {
@@ -384,7 +394,20 @@ struct SidebarView: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isShowingError = true
+                syncManager.syncState = .idle
             }
+        }
+    }
+
+    private func refresh() async {
+        if let nodeSelection, let type = NodeType.fromData(nodeSelection) {
+            newsModel.currentNodeType = type
+        }
+        await WidgetTracker.shared.detect()
+        if syncOnStart, Date() > lastSyncTime.addingTimeInterval(3 * 60) {
+            logger.info("Sync on start")
+            sync()
+            lastSyncTime = Date()
         }
     }
 }
