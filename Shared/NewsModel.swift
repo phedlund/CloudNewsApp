@@ -424,9 +424,10 @@ class NewsModel: @unchecked Sendable {
     func markCurrentItemsRead() async {
         var internalUnreadItemIds = [Int64]()
         let backgroundActor = NewsModelActor(modelContainer: modelContainer)
-        let itemIdsToMark = currentUnreadItemIds
 
         do {
+            await refreshCurrentNodeState()
+            let itemIdsToMark = currentUnreadItemIds
             // First update in background
             for unreadItemId in itemIdsToMark {
                 if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {

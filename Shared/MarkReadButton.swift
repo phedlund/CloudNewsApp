@@ -31,9 +31,7 @@ struct MarkReadButton: View {
     var body: some View {
         Button(role: .confirm) {
             Task {
-                if let nodeType {
-                    newsModel.currentNodeType = nodeType
-                }
+                newsModel.currentNodeType = effectiveNodeType
                 await newsModel.markCurrentItemsRead()
             }
         } label: {
