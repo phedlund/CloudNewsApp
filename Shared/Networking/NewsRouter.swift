@@ -109,10 +109,11 @@ enum Router {
 
     case version
     case status
+    case favicon(url: String)
 
     private var method: UrlSessionMethod {
         switch self {
-        case .feeds, .folders, .items, .updatedItems, .version, .status:
+        case .feeds, .folders, .items, .updatedItems, .version, .status, .favicon:
             return .get
         case .addFeed, .addFolder, .itemsRead, .itemsUnread, .itemStarred, .itemUnstarred, .itemsStarred, .itemsUnstarred, .markFeedRead, .renameFeed, .moveFeed, .markFolderRead, .itemRead, .itemUnread, .allItemsRead:
             return .post
@@ -175,6 +176,8 @@ enum Router {
             return "/version"
         case .status:
             return "/status"
+        case .favicon:
+            return "/favicon"
         }
     }
 
@@ -258,6 +261,14 @@ enum Router {
 
         case .version, .status, .markFeedRead, .markFolderRead, .itemRead, .itemUnread, .itemStarred, .itemUnstarred, .allItemsRead:
             break
+
+        case .favicon(let url):
+            if let requestUrl = urlRequest.url {
+                let md5Hash = url.md5
+                let newUrl = requestUrl.appendingPathComponent(md5Hash)
+                print(newUrl.absoluteString)
+                urlRequest.url = newUrl
+            }
         }
 
         return urlRequest
