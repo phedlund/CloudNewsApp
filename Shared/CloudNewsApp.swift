@@ -173,7 +173,7 @@ struct CloudNewsApp: App {
         .restorationBehavior(.disabled)
         .modelContainer(container)
 
-        Window(Text("Acknowledgement"), id: ModalSheet.acknowledgement.rawValue) {
+        Window(Text("Acknowledgements"), id: ModalSheet.acknowledgement.rawValue) {
             AcknowledgementsView()
                 .frame(width: 600, height: 600)
         }

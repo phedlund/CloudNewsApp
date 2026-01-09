@@ -79,6 +79,36 @@
         }
       }
     },
+    "15 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 Minuten"
+          }
+        }
+      }
+    },
+    "30 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 Minuten"
+          }
+        }
+      }
+    },
+    "60 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 Minuten"
+          }
+        }
+      }
+    },
     "A list of the most recent articles from your feeds." : {
       "localizations" : {
         "de" : {
@@ -227,6 +257,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lokale Daten löschen"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ende"
           }
         }
       }
@@ -772,6 +812,16 @@
         }
       }
     },
+    "Log In" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        }
+      }
+    },
     "Log In..." : {
       "localizations" : {
         "de" : {
@@ -853,6 +903,16 @@
         }
       }
     },
+    "Never" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie"
+          }
+        }
+      }
+    },
     "New Feed..." : {
       "localizations" : {
         "de" : {
@@ -916,6 +976,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nein"
+          }
+        }
+      }
+    },
+    "No Article Selected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Artikel Ausgewählt"
           }
         }
       }
@@ -1132,6 +1202,16 @@
         }
       }
     },
+    "Select an article from the list to display it" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wählen Sie einen Artikel aus der Liste aus, um ihn anzuzeigen"
+          }
+        }
+      }
+    },
     "Server" : {
       "localizations" : {
         "de" : {
@@ -1243,12 +1323,32 @@
         }
       }
     },
+    "Sync Every" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisieren Sie Jeden"
+          }
+        }
+      }
+    },
     "Sync in Background" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Synchronisation im Hintergrund"
+          }
+        }
+      }
+    },
+    "Sync Interval" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierungsintervall"
           }
         }
       }
