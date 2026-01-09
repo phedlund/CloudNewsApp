@@ -11,7 +11,7 @@ struct AcknowledgementsView: View {
     var body: some View {
         Form {
             Section {
-                Text(
+                Text(verbatim:
                 """
                     LICENSE ISSUES
                     ==============
@@ -142,10 +142,10 @@ struct AcknowledgementsView: View {
                 )
                 .font(.footnote)
             } header: {
-                Text("OpenSSL")
+                Text(verbatim: "OpenSSL")
             }
             Section {
-                Text(
+                Text(verbatim:
                     """
                     MIT License
 
@@ -172,10 +172,10 @@ struct AcknowledgementsView: View {
                 )
                 .font(.footnote)
             } header: {
-                Text("SwiftSoup")
+                Text(verbatim: "SwiftSoup")
             }
             Section {
-                Text(
+                Text(verbatim:
                     """
                                                   Apache License
                                             Version 2.0, January 2004
@@ -382,7 +382,7 @@ struct AcknowledgementsView: View {
                 )
                 .font(.footnote)
             } header: {
-                Text("Valet")
+                Text(verbatim: "Valet")
             }
         }
         .formStyle(.grouped)

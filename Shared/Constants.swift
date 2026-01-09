@@ -25,7 +25,24 @@ struct Constants {
     static let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
     static let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
+    static let allArticles = NSLocalizedString("All Articles", comment: "Title for all articles")
+    static let unreadArticles = NSLocalizedString("Unread Articles", comment: "Title for unread articles")
+    static let starredArticles = NSLocalizedString("Starred Articles", comment: "Title for starred articles")
+    static let genericUntitled = NSLocalizedString("Untitled", comment: "Generic untitled")
+    static let untitledFeedName = NSLocalizedString("Untitled Feed", comment: "Untitled feed name")
     static let untitledFolderName = NSLocalizedString("Untitled Folder", comment: "Untitled folder name")
+    static let noError = NSLocalizedString("No error", comment: "No error")
+
+    struct SyncMessages {
+        static let gettingStarted = NSLocalizedString("Getting started…", comment: "")
+        static let updatingFolders = NSLocalizedString("Updating folders…", comment: "")
+        static let updatingFeeds = NSLocalizedString("Updating feeds…", comment: "")
+        static let updatingArticles = NSLocalizedString("Updating articles…", comment: "")
+        static let updatingCount = NSLocalizedString("Updating %d of %d…", comment: "")
+        static let updatingUnreadArticles = NSLocalizedString("Updating unread articles…", comment: "")
+        static let updatingStarredArticles = NSLocalizedString("Updating starred articles…", comment: "")
+        static let updatingFavicons = NSLocalizedString("Updating favicons…", comment: "")
+    }
 
     struct Headers {
         static let contentTypeJson = "application/json"

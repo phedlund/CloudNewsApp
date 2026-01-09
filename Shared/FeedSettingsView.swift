@@ -8,7 +8,7 @@
 import SwiftData
 import SwiftUI
 
-let noFolderName = "(No Folder)"
+let noFolderName = NSLocalizedString("(No Folder)", comment: "Not in a folder")
 
 struct FeedSettingsView: View {
     @Environment(\.dismiss) var dismiss
@@ -128,12 +128,12 @@ struct FeedSettingsView: View {
                             folderSelection = folderName
                             initialFolderSelection = folderName
                         }
-                        initialTitle = feed.title ?? "Untitled"
+                        initialTitle = feed.title ?? Constants.genericUntitled
                         title = initialTitle
                         preferWeb = feed.preferWeb
                         pinned = feed.pinned
                         updateErrorCount = "\(feed.updateErrorCount)"
-                        lastUpdateError = feed.lastUpdateError ?? "No error"
+                        lastUpdateError = feed.lastUpdateError ?? Constants.noError
                         url = feed.url ?? ""
                         let dateAdded = feed.added
                         let dateFormatter = DateFormatter()

@@ -12,7 +12,7 @@ struct ShareLinkButton: View {
     var url: URL?
 
     var body: some View {
-        let subject = item?.title ?? "Untitled"
+        let subject = item?.title ?? Constants.genericUntitled
         let message = item?.displayBody ?? ""
         if let url {
             if url.scheme?.hasPrefix("file") ?? false {

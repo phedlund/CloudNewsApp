@@ -20,7 +20,7 @@ enum SyncState: CustomStringConvertible, Equatable {
     case started
     case folders
     case feeds
-    case articles(update: String)
+    case articles(current: Int, total: Int)
     case unread
     case starred
     case favicons
@@ -30,22 +30,22 @@ enum SyncState: CustomStringConvertible, Equatable {
         case .idle:
             return ""
         case .started:
-            return "Getting started…"
+            return Constants.SyncMessages.gettingStarted
         case .folders:
-            return "Updating folders…"
+            return Constants.SyncMessages.updatingFolders
         case .feeds:
-            return "Updating feeds…"
-        case .articles(let update):
-            if update.isEmpty {
-                return "Updating articles…"
+            return Constants.SyncMessages.updatingFeeds
+        case .articles(let current, let total):
+            if current == .zero {
+                return Constants.SyncMessages.updatingArticles
             }
-            return "Updating \(update)…"
+            return String(format: Constants.SyncMessages.updatingCount, current, total)
         case .unread:
-            return "Updating unread articles…"
+            return Constants.SyncMessages.updatingUnreadArticles
         case .starred:
-            return "Updating starred articles…"
+            return Constants.SyncMessages.updatingStarredArticles
         case .favicons:
-            return "Updating favicons…"
+            return Constants.SyncMessages.updatingFavicons
         }
     }
 }
@@ -409,7 +409,7 @@ final class SyncManager {
             await parseFeeds(data: feedsData)
         }
         if let itemsData = results[3] as Data?, !itemsData.isEmpty {
-            syncState = .articles(update: "")
+            syncState = .articles(current: 0, total: 0)
             await parseItems(data: itemsData)
         }
     }
@@ -440,18 +440,18 @@ final class SyncManager {
             return
         }
         self.feedDTOs = decodedResponse.feeds
-        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: "All Articles", pinned: 5)
+        let allNode = Node(id: Constants.allNodeGuid, type: .all, title: Constants.allArticles, pinned: 5)
         await backgroundActor.insert(allNode)
-        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: "Unread Articles", pinned: 4)
+        let unreadNode = Node(id: Constants.unreadNodeGuid, type: .unread, title: Constants.unreadArticles, pinned: 4)
         await backgroundActor.insert(unreadNode)
-        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: "Starred Articles", pinned: 3)
+        let starredNode = Node(id: Constants.starNodeGuid, type: .starred, title: Constants.starredArticles, pinned: 3)
         await backgroundActor.insert(starredNode)
         for folderDTO in foldersDTO.folders {
             var feeds = [NodeDTO]()
             let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == folderDTO.id })
             for feedDTO in feedDTOs  {
                 let type = NodeType.feed(id: feedDTO.id)
-                let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+                let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? Constants.untitledFeedName, favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
                 feeds.append(feedNodeDTO)
                 await backgroundActor.insertFeed(feedDTO: feedDTO)
             }
@@ -469,7 +469,7 @@ final class SyncManager {
         let feedDTOs = decodedResponse.feeds.filter( { $0.folderId == nil })
         for feedDTO in feedDTOs {
             let type = NodeType.feed(id: feedDTO.id)
-            let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? "Untitled Feed", favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
+            let feedNodeDTO = NodeDTO(id: type.description, errorCount: feedDTO.updateErrorCount, isExpanded: false, type: type, title: feedDTO.title ?? Constants.untitledFeedName, favIconURL: nil, pinned: feedDTO.pinned ? 1 : 0, favIcon: nil, children: nil)
             await backgroundActor.insertFeed(feedDTO: feedDTO)
             await backgroundActor.insertNode(nodeDTO: feedNodeDTO)
         }
@@ -509,7 +509,7 @@ final class SyncManager {
             for eachItem in incomingItems {
                 counter += 1
                 await MainActor.run {
-                    self.syncState = .articles(update: "\(counter) of \(totalCount)")
+                    self.syncState = .articles(current: counter, total: totalCount)
                 }
 
                 ogImageCache = await backgroundActor.buildAndInsert(

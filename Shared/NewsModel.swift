@@ -261,7 +261,7 @@ class NewsModel: @unchecked Sendable {
                         let type = NodeType.feed(id: feedDTO.id)
                         let feedNode = Node(id: type.description,
                                             type: type,
-                                            title: feedDTO.title ?? "Untitled Feed",
+                                            title: feedDTO.title ?? Constants.untitledFeedName,
                                             children: [],
                                             errorCount: 0)
                         await backgroundActor.insert(feedNode)

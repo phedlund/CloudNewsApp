@@ -30,13 +30,13 @@ struct ItemViewWidget: View {
                 Spacer(minLength: 6)
             }
             VStack(alignment: .leading, spacing: 0) {
-                Text(article.title ?? "Untitled")
+                Text(article.title ?? Constants.genericUntitled)
                     .font(.footnote)
                     .bold()
                     .lineLimit(1)
                     .foregroundColor(.primary)
                 HStack(spacing: 0) {
-                    Text(article.feed?.title ?? "Untitled Feed")
+                    Text(article.feed?.title ?? Constants.untitledFeedName)
                         .font(.caption)
                         .lineLimit(1)
                         .foregroundColor(.secondary)

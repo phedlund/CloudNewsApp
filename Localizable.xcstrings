@@ -1,0 +1,1648 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "(No Folder)" : {
+      "comment" : "Not in a folder",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Kein Ordner)"
+          }
+        }
+      }
+    },
+    "%@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
+    },
+    "%lld articles" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Artikel"
+          }
+        }
+      }
+    },
+    "<Please state your question or problem here>" : {
+      "comment" : "Support email body placeholder",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "<Bitte geben Sie Ihre Frage oder Ihr Problem hier an>"
+          }
+        }
+      }
+    },
+    "1 month" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 Monat"
+          }
+        }
+      }
+    },
+    "3 months" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 Monate"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 månader"
+          }
+        }
+      }
+    },
+    "12 months" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 Monate"
+          }
+        }
+      }
+    },
+    "A list of the most recent articles from your feeds." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Liste der neuesten Artikel aus Ihren Feeds."
+          }
+        }
+      }
+    },
+    "Acknowledgements" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danksagungen"
+          }
+        }
+      }
+    },
+    "Acknowledgements..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danksagung..."
+          }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinzufügen"
+          }
+        }
+      }
+    },
+    "Add Feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed hinzufügen"
+          }
+        }
+      }
+    },
+    "Add Feed..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed hinzufügen..."
+          }
+        }
+      }
+    },
+    "Add Folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner Hinzufügen"
+          }
+        }
+      }
+    },
+    "Add Folder..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner hinzufügen..."
+          }
+        }
+      }
+    },
+    "All Articles" : {
+      "comment" : "Title for all articles",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Artikel"
+          }
+        }
+      }
+    },
+    "Article" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artikel"
+          }
+        }
+      }
+    },
+    "Block Ads" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeigen blockieren"
+          }
+        }
+      }
+    },
+    "By %@" : {
+      "comment" : "By #author#",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von %@"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "Certificate" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urkunde"
+          }
+        }
+      }
+    },
+    "Clear local data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokale Daten löschen"
+          }
+        }
+      }
+    },
+    "CloudNews" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CloudNews"
+          }
+        }
+      }
+    },
+    "CloudNews Support Request" : {
+      "comment" : "Support email subject",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CloudNews-Supportanfrage"
+          }
+        }
+      }
+    },
+    "CloudNews uses a block list from the [Brave project](https://github.com/brave/brave-core/blob/master/ios/brave-ios/Sources/Brave/WebFilters/ContentBlocker/Lists/block-ads.json)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CloudNews verwendet eine Sperrliste aus dem [Brave-Projekt](https://github.com/brave/brave-core/blob/master/ios/brave-ios/Sources/Brave/WebFilters/ContentBlocker/Lists/block-ads.json)"
+          }
+        }
+      }
+    },
+    "Compact View" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompakte Ansicht"
+          }
+        }
+      }
+    },
+    "Connection Error" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindungsfehler"
+          }
+        }
+      }
+    },
+    "Contact" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontakt"
+          }
+        }
+      }
+    },
+    "Copy Link" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link Kopieren"
+          }
+        }
+      }
+    },
+    "Date Added" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datum hinzugefügt"
+          }
+        }
+      }
+    },
+    "Decrease" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minderung"
+          }
+        }
+      }
+    },
+    "Delete %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Löschen"
+          }
+        }
+      }
+    },
+    "Delete Feed..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed löschen..."
+          }
+        }
+      }
+    },
+    "Delete Folder..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner Löschen..."
+          }
+        }
+      }
+    },
+    "Delete?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen?"
+          }
+        }
+      }
+    },
+    "Delete..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen..."
+          }
+        }
+      }
+    },
+    "Dismiss" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entlassen"
+          }
+        }
+      }
+    },
+    "Do you want to connect to the server anyway?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Möchten Sie sich trotzdem mit dem Server verbinden?"
+          }
+        }
+      }
+    },
+    "Do you want to remove all feeds and articles from this device? You will also be signed out." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Möchten Sie alle Feeds und Artikel von diesem Gerät entfernen? Sie werden auch abgemeldet."
+          }
+        }
+      }
+    },
+    "DuckDuckGo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DuckDuckGo"
+          }
+        }
+      }
+    },
+    "Duration" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dauer"
+          }
+        }
+      }
+    },
+    "Error adding feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Hinzufügen von Feed"
+          }
+        }
+      }
+    },
+    "Error adding folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Hinzufügen von Ordnern"
+          }
+        }
+      }
+    },
+    "Error deleting feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Löschen des Feeds"
+          }
+        }
+      }
+    },
+    "Error deleting folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Löschen des Ordners"
+          }
+        }
+      }
+    },
+    "Error moving feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Verschieben des Feeds"
+          }
+        }
+      }
+    },
+    "Error renaming feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Umbenennen des Feeds"
+          }
+        }
+      }
+    },
+    "Error renaming folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Umbenennen des Ordners"
+          }
+        }
+      }
+    },
+    "Failed to add articles to the database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Hinzufügen von Artikeln zur Datenbank"
+          }
+        }
+      }
+    },
+    "Failed to add feeds to the database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feeds konnten nicht zur Datenbank hinzugefügt werden"
+          }
+        }
+      }
+    },
+    "Failed to add folders to the database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner konnten nicht zur Datenbank hinzugefügt werden"
+          }
+        }
+      }
+    },
+    "Failed to delete article from database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artikel aus der Datenbank konnte nicht gelöscht werden"
+          }
+        }
+      }
+    },
+    "Failed to delete feed from database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Löschen des Feeds aus der Datenbank"
+          }
+        }
+      }
+    },
+    "Failed to delete folder from database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Löschen des Ordners aus der Datenbank"
+          }
+        }
+      }
+    },
+    "Failed to delete node from database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knoten aus der Datenbank konnte nicht gelöscht werden"
+          }
+        }
+      }
+    },
+    "Failed to delete old items from database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alte Elemente konnten nicht aus der Datenbank gelöscht werden"
+          }
+        }
+      }
+    },
+    "Failed to mark article starred in database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Markieren des markierten Artikels in der Datenbank"
+          }
+        }
+      }
+    },
+    "Failed to mark folder expanded in database" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Markieren des erweiterten Ordners in der Datenbank"
+          }
+        }
+      }
+    },
+    "Feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Füttern"
+          }
+        }
+      }
+    },
+    "Feed Home Page" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed-Startseite"
+          }
+        }
+      }
+    },
+    "Feed Settings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed-Einstellungen"
+          }
+        }
+      }
+    },
+    "Feed Settings..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed-Einstellungen..."
+          }
+        }
+      }
+    },
+    "Feeds" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fütter"
+          }
+        }
+      }
+    },
+    "Folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktendeckel"
+          }
+        }
+      }
+    },
+    "Folder Name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordnername"
+          }
+        }
+      }
+    },
+    "Font Size" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schriftgröße"
+          }
+        }
+      }
+    },
+    "Getting started…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erste Schritte..."
+          }
+        }
+      }
+    },
+    "Google" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google"
+          }
+        }
+      }
+    },
+    "Hide Read Items" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelesene Elemente ausblenden"
+          }
+        }
+      }
+    },
+    "I don't know why." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich weiß nicht warum."
+          }
+        }
+      }
+    },
+    "Images" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bilder"
+          }
+        }
+      }
+    },
+    "Increase" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhöhung"
+          }
+        }
+      }
+    },
+    "Information" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Information"
+          }
+        }
+      }
+    },
+    "Keep Articles For" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behalte Artikel Für"
+          }
+        }
+      }
+    },
+    "Last Update Error" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler bei der letzten Aktualisierung"
+          }
+        }
+      }
+    },
+    "Line Spacing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeilenabstand"
+          }
+        }
+      }
+    },
+    "Log In..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden..."
+          }
+        }
+      }
+    },
+    "Maintenance" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartung"
+          }
+        }
+      }
+    },
+    "Margin" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rand"
+          }
+        }
+      }
+    },
+    "Mark Items Read While Scrolling" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Scrollen Gelesene Elemente Markieren"
+          }
+        }
+      }
+    },
+    "Mark Read" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelesen markieren"
+          }
+        }
+      }
+    },
+    "Method not allowed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Methode nicht erlaubt"
+          }
+        }
+      }
+    },
+    "Missing server address" : {
+      "comment" : "A valid server URL was missing",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlende Serveradresse"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "New Feed..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Feed..."
+          }
+        }
+      }
+    },
+    "New Folder..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Ordner..."
+          }
+        }
+      }
+    },
+    "new_key" : {
+      "extractionState" : "NEW",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer_Schlüssel"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "NEW",
+            "value" : ""
+          }
+        }
+      }
+    },
+    "Next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster"
+          }
+        }
+      }
+    },
+    "Nextcloud News" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nextcloud News"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nein"
+          }
+        }
+      }
+    },
+    "No error" : {
+      "comment" : "No error",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Fehler"
+          }
+        }
+      }
+    },
+    "No Feed Selected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Feed ausgewählt"
+          }
+        }
+      }
+    },
+    "No Feeds Available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Feeds verfügbar"
+          }
+        }
+      }
+    },
+    "No unread articles" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine ungelesenen Artikel"
+          }
+        }
+      }
+    },
+    "Not logged in" : {
+      "comment" : "Message about not being logged in",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht angemeldet"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Ordnung"
+          }
+        }
+      }
+    },
+    "Pinned" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gepinnt"
+          }
+        }
+      }
+    },
+    "Please update the News app on the server to enable feed renaming" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte aktualisieren Sie die News-App auf dem Server, um die Umbenennung von Feeds zu aktivieren"
+          }
+        }
+      }
+    },
+    "Previous" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Früher"
+          }
+        }
+      }
+    },
+    "Read" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lesen"
+          }
+        }
+      }
+    },
+    "Reading" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lesen"
+          }
+        }
+      }
+    },
+    "Recent Articles" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuelle Artikel"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auffrischen"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen"
+          }
+        }
+      }
+    },
+    "Rename the folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benennen Sie den Ordner"
+          }
+        }
+      }
+    },
+    "Rename..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen..."
+          }
+        }
+      }
+    },
+    "Reset Data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten zurücksetzen"
+          }
+        }
+      }
+    },
+    "Reset Local Data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokale Daten Zurücksetzen"
+          }
+        }
+      }
+    },
+    "Restore" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederherstellen"
+          }
+        }
+      }
+    },
+    "Search for Favicon" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche nach Favicon"
+          }
+        }
+      }
+    },
+    "Select a feed from the list to display its articles" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wählen Sie einen Feed aus der Liste aus, um seine Artikel anzuzeigen"
+          }
+        }
+      }
+    },
+    "Server" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        }
+      }
+    },
+    "Settings..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen..."
+          }
+        }
+      }
+    },
+    "Show Favicons" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favicons anzeigen"
+          }
+        }
+      }
+    },
+    "Show Thumbnails" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miniaturansichten anzeigen"
+          }
+        }
+      }
+    },
+    "Sort Oldest Item First" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ältester Artikel Zuerst Sortieren"
+          }
+        }
+      }
+    },
+    "Star" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stern"
+          }
+        }
+      }
+    },
+    "Starred Articles" : {
+      "comment" : "Title for starred articles",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artikel mit Sternen"
+          }
+        }
+      }
+    },
+    "Starred articles will never be deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Sternen ausgezeichnete Artikel werden niemals gelöscht"
+          }
+        }
+      }
+    },
+    "Support" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterstützung"
+          }
+        }
+      }
+    },
+    "Switch it off and on again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schalten Sie es aus und wieder ein."
+          }
+        }
+      }
+    },
+    "Sync in Background" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisation im Hintergrund"
+          }
+        }
+      }
+    },
+    "Sync on Start" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisieren bei Start"
+          }
+        }
+      }
+    },
+    "Syncing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisieren"
+          }
+        }
+      }
+    },
+    "Tap the sync button %@ to download your feeds. Then select a feed from the sidebar to show its articles." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippen Sie auf die Synchronisierungsschaltfläche %@, um Ihre Feeds herunterzuladen. Wählen Sie dann einen Feed aus der Seitenleiste aus, um seine Artikel anzuzeigen."
+          }
+        }
+      }
+    },
+    "The certificate for this server is invalid" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zertifikat für diesen Server ist ungültig"
+          }
+        }
+      }
+    },
+    "The cron job on the Nextcloud server is not configured properly" : {
+      "comment" : "Message that the Nextcloud server cron job is not configured properly",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Cron-Job auf dem Nextcloud-Server ist nicht richtig konfiguriert"
+          }
+        }
+      }
+    },
+    "The feed already exists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Feed existiert bereits"
+          }
+        }
+      }
+    },
+    "The feed could not be read. It most likely contains errors" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Feed konnte nicht gelesen werden. Es enthält höchstwahrscheinlich Fehler"
+          }
+        }
+      }
+    },
+    "The feed does not exist" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Feed existiert nicht"
+          }
+        }
+      }
+    },
+    "The folder already exists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner existiert bereits"
+          }
+        }
+      }
+    },
+    "The folder does not exist" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner existiert nicht"
+          }
+        }
+      }
+    },
+    "The folder name is invalid" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordnername ist ungültig"
+          }
+        }
+      }
+    },
+    "The Nextcloud server database charset is not configured properly" : {
+      "comment" : "Message that the database on the Nextcloud server is not configured properly",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Nextcloud-Server-Datenbanksatz ist nicht ordnungsgemäß konfiguriert"
+          }
+        }
+      }
+    },
+    "This will delete the feed %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dadurch wird der Feed %@ gelöscht"
+          }
+        }
+      }
+    },
+    "This will delete the folder %@ and all its feeds" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dadurch wird der Ordner %@ und alle seine Feeds gelöscht"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel"
+          }
+        }
+      }
+    },
+    "Unread" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungelesen"
+          }
+        }
+      }
+    },
+    "Unread Articles" : {
+      "comment" : "Title for unread articles",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungelesene Artikel"
+          }
+        }
+      }
+    },
+    "Unstar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unstar"
+          }
+        }
+      }
+    },
+    "Untitled" : {
+      "comment" : "Generic untitled",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Titel"
+          }
+        }
+      }
+    },
+    "Untitled Feed" : {
+      "comment" : "Untitled feed name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbetiteltes Futter"
+          }
+        }
+      }
+    },
+    "Untitled Folder" : {
+      "comment" : "Untitled folder name",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbetitelter Ordner"
+          }
+        }
+      }
+    },
+    "Update Error Count" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierungsfehlerzahl"
+          }
+        }
+      }
+    },
+    "Updating %@…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierung von %@..."
+          }
+        }
+      }
+    },
+    "Updating %d of %d…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierung %d von %d..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Updating %1$d of %2$d…"
+          }
+        }
+      }
+    },
+    "Updating articles…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artikel werden aktualisiert..."
+          }
+        }
+      }
+    },
+    "Updating favicons…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierung von Favicons..."
+          }
+        }
+      }
+    },
+    "Updating feeds…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feeds aktualisieren..."
+          }
+        }
+      }
+    },
+    "Updating folders…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner aktualisieren..."
+          }
+        }
+      }
+    },
+    "Updating starred articles…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierung von Sternenartikeln..."
+          }
+        }
+      }
+    },
+    "Updating unread articles…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungelesene Artikel werden aktualisiert..."
+          }
+        }
+      }
+    },
+    "URL" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        }
+      }
+    },
+    "Use the web interface to change or correct this information.\nThe last %lld months of articles will be kept locally." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwenden Sie die Weboberfläche, um diese Informationen zu ändern oder zu korrigieren.\n\nDie letzten %lld Monate der Artikel werden lokal aufbewahrt."
+          }
+        }
+      }
+    },
+    "Using News %@on %@ %@." : {
+      "comment" : "Message with News version, product name and version",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwenden News %@on %@ %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Using News %1$@on %2$@ %3$@."
+          }
+        }
+      }
+    },
+    "View Certificate" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zertifikat anzeigen"
+          }
+        }
+      }
+    },
+    "View web version" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webversion anzeigen"
+          }
+        }
+      }
+    },
+    "Web Site" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webseite"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}
