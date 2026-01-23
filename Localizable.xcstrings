@@ -60,12 +60,6 @@
             "state" : "translated",
             "value" : "3 Monate"
           }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "3 månader"
-          }
         }
       }
     },
@@ -742,17 +736,6 @@
         }
       }
     },
-    "I don't know why." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ich weiß nicht warum."
-          }
-        }
-      }
-    },
     "Images" : {
       "localizations" : {
         "de" : {
@@ -1297,17 +1280,6 @@
         }
       }
     },
-    "Switch it off and on again." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schalten Sie es aus und wieder ein."
-          }
-        }
-      }
-    },
     "Sync Every" : {
       "localizations" : {
         "de" : {
@@ -1560,17 +1532,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aktualisierungsfehlerzahl"
-          }
-        }
-      }
-    },
-    "Updating %@…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktualisierung von %@..."
           }
         }
       }
