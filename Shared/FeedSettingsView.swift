@@ -242,9 +242,10 @@ struct FeedSettingsView: View {
     private func refreshFavIcon(service: FavIconService) async {
         if let feed = feedForNodeType(newsModel.currentNodeType) {
             do {
-                try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link, service: service)
+                try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link, feedUrl: feed.url, service: service)
             } catch {
-                //
+                footerMessage = error.localizedDescription
+                footerSuccess = false
             }
         }
     }
@@ -274,6 +275,14 @@ struct FeedSettingsView: View {
             }
             Spacer()
             Menu {
+                Button {
+                    Task {
+                       await refreshFavIcon(service: .ncNews)
+                    }
+                } label: {
+                    Label("Nextcloud News", systemImage: "")
+                        .labelStyle(.titleOnly)
+                }
                 Button {
                     Task {
                        await refreshFavIcon(service: .homePage)

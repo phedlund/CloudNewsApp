@@ -144,7 +144,7 @@ struct SettingsView: View {
                     Text("Mark Items Read While Scrolling")
                 }
                 Toggle(isOn: $compactView) {
-                    Text("Comapct View")
+                    Text("Compact View")
                 }
                 Toggle(isOn: $hideRead) {
                     Text("Hide Read Items")

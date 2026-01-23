@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 5/6/25.
 //
 
+import CryptoKit
 import Foundation
 import OSLog
 import SwiftSoup
@@ -58,5 +59,15 @@ extension String {
         } else {
             return ""
         }
+    }
+
+    var md5: String {
+        guard let data = self.data(using: .utf8) else {
+            return ""
+        }
+
+        let digest = Insecure.MD5.hash(data: data)
+
+        return digest.map { String(format: "%02hhx", $0) }.joined()
     }
 }

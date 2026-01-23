@@ -14,6 +14,7 @@ import WidgetKit
 
 public enum FavIconService {
     case feed
+    case ncNews
     case homePage
     case duckDuckGo
     case google
@@ -280,7 +281,7 @@ class NewsModel: @unchecked Sendable {
                                                 items: [])
                         await backgroundActor.insert(feedToInsert)
                         try await addItems(feed: feedDTO.id)
-                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link, service: .feed)
+                        try await addFavIcon(feedId: feedDTO.id, faviconLink: feedDTO.faviconLink, link: feedDTO.link, feedUrl: feedDTO.url, service: .feed)
                     }
                     WidgetCenter.shared.reloadAllTimelines()
                 case 405:
@@ -368,9 +369,10 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
-    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?, service: FavIconService = .homePage) async throws {
+    func addFavIcon(feedId: Int64, faviconLink: String?, link: String?, feedUrl: String?, service: FavIconService = .homePage) async throws {
         let validSchemas = ["http", "https", "file"]
         var itemImageUrl: URL?
+        var imageData: Data?
 
         switch service {
         case .feed:
@@ -391,6 +393,14 @@ class NewsModel: @unchecked Sendable {
                     }
                 }
             }
+        case .ncNews:
+            if let feedUrl {
+                let favIconRequest = try Router.favicon(url: feedUrl).urlRequest()
+                print(favIconRequest.url?.absoluteString ?? "")
+                let (data, response) = try await URLSession.shared.data(for: favIconRequest)
+                itemImageUrl = response.url
+                imageData = data
+            }
         case .duckDuckGo:
             if let feedUrl = URL(string: link ?? "data:null"),
                let host = feedUrl.host,
@@ -405,8 +415,7 @@ class NewsModel: @unchecked Sendable {
             }
         }
 
-        var imageData: Data?
-        if let itemImageUrl {
+        if let itemImageUrl, imageData == nil {
             let (data, _) = try await URLSession.shared.data(from: itemImageUrl)
             imageData = data
         }
