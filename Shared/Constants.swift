@@ -21,7 +21,7 @@ struct Constants {
     static let starNodeGuid = "cccc"
 
     static let email = "support@pbh.dev"
-    static let website = "https://pbh.dev/cloudnews"
+    static let website = "https://pbh.dev/cloud-news"
     static let subject = NSLocalizedString("CloudNews Support Request", comment: "Support email subject")
     static let message = NSLocalizedString("<Please state your question or problem here>", comment: "Support email body placeholder")
 
