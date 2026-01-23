@@ -106,25 +106,4 @@ enum NetworkError: Error {
         }
     }
 
-//    public var failureReason: String? {
-//        switch self {
-//        case .customError:
-//            return NSLocalizedString("I don't know why.", comment: "")
-//        }
-//    }
-//
-//    public var helpAnchor: String? {
-//        switch self {
-//        case .customError:
-//            return NSLocalizedString("I don't know why.", comment: "")
-//        }
-//    }
-
-//    public var recoverySuggestion: String? {
-//        switch self {
-//        case .customError:
-//            return NSLocalizedString("Switch it off and on again.", comment: "")
-//        }
-//    }
-
 }

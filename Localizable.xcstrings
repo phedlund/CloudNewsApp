@@ -637,7 +637,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Füttern"
+            "value" : "Feed"
           }
         }
       }
@@ -677,7 +677,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fütter"
+            "value" : "Feeds"
           }
         }
       }
@@ -743,6 +743,7 @@
       }
     },
     "I don't know why." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -933,23 +934,6 @@
         }
       }
     },
-    "new_key" : {
-      "extractionState" : "NEW",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neuer_Schlüssel"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "NEW",
-            "value" : ""
-          }
-        }
-      }
-    },
     "Next" : {
       "localizations" : {
         "de" : {
@@ -1047,7 +1031,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In Ordnung"
+            "value" : "OK"
           }
         }
       }
@@ -1314,6 +1298,7 @@
       }
     },
     "Switch it off and on again." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1553,7 +1538,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unbetiteltes Futter"
+            "value" : "Unbetiteltes Feed"
           }
         }
       }
