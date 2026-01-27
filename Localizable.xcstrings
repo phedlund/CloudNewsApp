@@ -128,7 +128,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Danksagung..."
+            "value" : "Danksagungen..."
           }
         }
       }
@@ -168,7 +168,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ordner Hinzufügen"
+            "value" : "Ordner hinzufügen"
           }
         }
       }
@@ -771,7 +771,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Behalte Artikel Für"
+            "value" : "Behalte Artikel für"
           }
         }
       }
@@ -841,7 +841,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beim Scrollen Gelesene Elemente Markieren"
+            "value" : "Beim Scrollen gelesene Elemente markieren"
           }
         }
       }
@@ -1234,7 +1234,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ältester Artikel Zuerst Sortieren"
+            "value" : "Älteste Artikel zuerst"
           }
         }
       }
@@ -1315,7 +1315,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisieren bei Start"
+            "value" : "Synchronisation beim Start"
           }
         }
       }
@@ -1638,7 +1638,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwenden News %@on %@ %@."
+            "value" : "Verwendet News %@auf %@ %@."
           }
         },
         "en" : {
