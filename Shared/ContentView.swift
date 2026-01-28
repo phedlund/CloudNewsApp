@@ -38,17 +38,17 @@ struct ContentView: View {
             case .empty:
                 result = ""
             case .all:
-                result = "All Articles"
+            result = Constants.allArticles
             case .unread:
-                result = "Unread Articles"
+            result = Constants.unreadArticles
             case .starred:
-                result = "Starred Articles"
+            result = Constants.starredArticles
             case .folder(let id):
                 let folder = folders.first(where: { $0.id == id })
                 result = folder?.name ?? Constants.untitledFolderName
             case .feed(let id):
                 let feed = feeds.first(where: { $0.id == id })
-                result = feed?.title ?? "Untitled Feed"
+            result = feed?.title ?? Constants.untitledFeedName
             }
         return result
     }

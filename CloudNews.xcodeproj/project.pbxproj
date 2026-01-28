@@ -20,6 +20,7 @@
 		D01AEA252E40097A00731B6F /* CssProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01AEA242E40097000731B6F /* CssProvider.swift */; };
 		D027487926A9D2A10000FB47 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D027487826A9D2A10000FB47 /* AddView.swift */; };
 		D029FDD0298A07CF0099FD95 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D029FDCF298A07CF0099FD95 /* Errors.swift */; };
+		D02CF5992F10A4FB00194F7C /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFE229C7C72900F956CF /* Constants.swift */; };
 		D02CFFDF29C4E90300F956CF /* AcknowledgementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFDE29C4E90300F956CF /* AcknowledgementsView.swift */; };
 		D02CFFE329C7C72900F956CF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFE229C7C72900F956CF /* Constants.swift */; };
 		D02CFFE529C7E8A900F956CF /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02CFFE429C7E8A900F956CF /* AppCommands.swift */; };
@@ -68,6 +69,8 @@
 		D0B0B2F6267ED1C600A997DB /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2F5267ED1C600A997DB /* SidebarView.swift */; };
 		D0B0B2FF267FF86300A997DB /* NewsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B0B2FE267FF86300A997DB /* NewsModel.swift */; };
 		D0B8A809269928C3002A99A4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B8A808269928C3002A99A4 /* NodeView.swift */; };
+		D0BAF1F12F0E031800BF599D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D0BAF1F02F0E031800BF599D /* Localizable.xcstrings */; };
+		D0BAF1F22F0E031800BF599D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D0BAF1F02F0E031800BF599D /* Localizable.xcstrings */; };
 		D0C925ED2DC836A6005415E5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EC2DC836A6005415E5 /* WidgetKit.framework */; };
 		D0C925EF2DC836A6005415E5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C925EE2DC836A6005415E5 /* SwiftUI.framework */; };
 		D0C925FA2DC836A7005415E5 /* CloudNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -183,6 +186,7 @@
 		D0B0B2FB267ED1E800A997DB /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		D0B0B2FE267FF86300A997DB /* NewsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsModel.swift; sourceTree = "<group>"; };
 		D0B8A808269928C3002A99A4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		D0BAF1F02F0E031800BF599D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D0C925EB2DC836A6005415E5 /* CloudNewsWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CloudNewsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0C925EC2DC836A6005415E5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D0C925EE2DC836A6005415E5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -248,6 +252,7 @@
 		D02F4497265C86BE00A3505B = {
 			isa = PBXGroup;
 			children = (
+				D0BAF1F02F0E031800BF599D /* Localizable.xcstrings */,
 				D054E3E72E6A450A0088D629 /* CloudNews.icon */,
 				D02F44AA265C86BF00A3505B /* Info.plist */,
 				D0F1B72D2868DE7200C51BFF /* CloudNews.entitlements */,
@@ -442,7 +447,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D02F44A6265C86BF00A3505B = {
 						CreatedOnToolsVersion = 12.5;
@@ -459,6 +464,7 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
 			);
 			mainGroup = D02F4497265C86BE00A3505B;
 			packageReferences = (
@@ -484,6 +490,7 @@
 			files = (
 				D050B31427B0BE0200442584 /* block-ads.json in Resources */,
 				D054E3E82E6A450A0088D629 /* CloudNews.icon in Resources */,
+				D0BAF1F12F0E031800BF599D /* Localizable.xcstrings in Resources */,
 				D0E60F2A277A81C9009CF78F /* Web.bundle in Resources */,
 				D02F44BB265C86BF00A3505B /* Assets.xcassets in Resources */,
 				D0FEBD5A268AB55600AC0618 /* Colors.xcassets in Resources */,
@@ -496,6 +503,7 @@
 			files = (
 				D0C926032DC968CB005415E5 /* Assets.xcassets in Resources */,
 				D054E3E92E6A450A0088D629 /* CloudNews.icon in Resources */,
+				D0BAF1F22F0E031800BF599D /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -588,6 +596,7 @@
 				D0C926342DCAD8C8005415E5 /* Feeds.swift in Sources */,
 				D0C926382DCAD8FE005415E5 /* NewsObjects.swift in Sources */,
 				D0C926352DCAD8C8005415E5 /* Feed.swift in Sources */,
+				D02CF5992F10A4FB00194F7C /* Constants.swift in Sources */,
 				D0C926362DCAD8C8005415E5 /* Read.swift in Sources */,
 				D006343E2E29931300283CD7 /* NewsModelActor.swift in Sources */,
 				D0A3A8432EAB046B00CE7067 /* DataMigrationManager.swift in Sources */,
@@ -612,6 +621,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -672,6 +682,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
 			};
@@ -682,6 +693,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -735,6 +747,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 			};
@@ -748,7 +761,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1798;
+				CURRENT_PROJECT_VERSION = 1800;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -762,7 +775,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.5;
+				MARKETING_VERSION = 4.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -788,7 +801,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1798;
+				CURRENT_PROJECT_VERSION = 1800;
 				DEVELOPMENT_TEAM = 73AQJ77PZ5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -802,7 +815,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.5;
+				MARKETING_VERSION = 4.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews;
 				PRODUCT_NAME = CloudNews;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -830,7 +843,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1798;
+				CURRENT_PROJECT_VERSION = 1800;
 				ENABLE_APP_SANDBOX = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -845,7 +858,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.5;
+				MARKETING_VERSION = 4.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -872,7 +885,7 @@
 				CODE_SIGN_ENTITLEMENTS = CloudNews.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1798;
+				CURRENT_PROJECT_VERSION = 1800;
 				ENABLE_APP_SANDBOX = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -887,7 +900,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 4.1.5;
+				MARKETING_VERSION = 4.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peterandlinda.iOCNews.CloudNewsWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

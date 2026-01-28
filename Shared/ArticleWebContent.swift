@@ -204,7 +204,7 @@ struct ArticleWebContent: Identifiable {
     private func itemAuthor() -> String {
         var author = ""
         if let itemAuthor = item.author, !itemAuthor.isEmpty {
-            author = "By \(itemAuthor)"
+            author = String(format: NSLocalizedString("By %@", comment: "By #author#"), itemAuthor)
         }
         return author
     }
