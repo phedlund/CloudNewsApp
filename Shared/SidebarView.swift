@@ -312,7 +312,6 @@ struct SidebarView: View {
             MarkReadButton(nodeType: node.type)
                 .environment(newsModel)
             Button {
-                nodeSelection = node.type.asData
                 newsModel.currentNodeType = node.type
                 alertInput = node.title
                 isShowingRename = true
@@ -329,7 +328,7 @@ struct SidebarView: View {
             MarkReadButton(nodeType: node.type)
                 .environment(newsModel)
             Button {
-                nodeSelection = node.type.asData
+                nodeSelection = nil
                 newsModel.currentNodeType = node.type
 #if os(macOS)
                 openWindow(id: ModalSheet.feedSettings.rawValue)

@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-nonisolated final class Folder {
+nonisolated final class Folder: Identifiable64 {
     #Index<Folder>([\.id])
 
     @Attribute(.unique) var id: Int64
