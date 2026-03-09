@@ -33,6 +33,10 @@ struct ExistingItemMedia: Sendable {
     let thumbnail: Data?
 }
 
+protocol Identifiable64: PersistentModel {
+    nonisolated var id: Int64 { get }
+}
+
 @ModelActor
 actor NewsModelActor: Sendable {
 
@@ -208,12 +212,14 @@ actor NewsModelActor: Sendable {
         }
     }
 
-    func update<T>(_ persistentIdentifier: PersistentIdentifier, keypath: ReferenceWritableKeyPath<Item, T>, to value: T) async throws -> Int64? {
-        guard let model = modelContext.model(for: persistentIdentifier) as? Item else {
+    func update<Model, Value>(_ persistentIdentifier: PersistentIdentifier, keyPath: ReferenceWritableKeyPath<Model, Value>, to value: Value) async throws -> Int64? where Model: PersistentModel & Identifiable64 {
+
+        guard let model = modelContext.model(for: persistentIdentifier) as? Model else {
             // Error handling
             return nil
         }
-        model[keyPath: keypath] = value
+
+        model[keyPath: keyPath] = value
         return model.id
     }
 

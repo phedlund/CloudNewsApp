@@ -11,7 +11,7 @@ import SwiftSoup
 import SwiftUI
 
 @Model
-nonisolated final class Item {
+nonisolated final class Item: Identifiable64 {
     #Index<Item>([\.id], [\.feedId])
 
     var author: String?

@@ -428,6 +428,17 @@ class NewsModel: @unchecked Sendable {
         }
     }
 
+    func feedPrefersWeb(feed: Feed, isWebPreferred: Bool) async {
+        do {
+            let backgroundActor = NewsModelActor(modelContainer: modelContainer)
+            let _ = try await backgroundActor.update(feed.persistentModelID, keyPath: \Feed.preferWeb, to: isWebPreferred)
+            feed.preferWeb = isWebPreferred
+            try await backgroundActor.save()
+        } catch {
+            print("Error toggling prefer web: \(error)")
+        }
+    }
+
     // MARK: - Mark Read/Unread Operations
 
     func markCurrentItemsRead() async {
@@ -439,7 +450,7 @@ class NewsModel: @unchecked Sendable {
             let itemIdsToMark = currentUnreadItemIds
             // First update in background
             for unreadItemId in itemIdsToMark {
-                if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
+                if let itemId = try await backgroundActor.update(unreadItemId, keyPath: \Item.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
             }
@@ -489,7 +500,7 @@ class NewsModel: @unchecked Sendable {
             var internalUnreadItemIds = [Int64]()
 
             for unreadItemId in items.compactMap(\.persistentModelID) {
-                if let itemId = try await backgroundActor.update(unreadItemId, keypath: \.unread, to: false) {
+                if let itemId = try await backgroundActor.update(unreadItemId, keyPath: \Item.unread, to: false) {
                     internalUnreadItemIds.append(itemId)
                 }
             }
@@ -543,7 +554,7 @@ class NewsModel: @unchecked Sendable {
             let currentState = item.unread
             var internalUnreadItemIds = [Int64]()
 
-            if let itemId = try await backgroundActor.update(item.persistentModelID, keypath: \.unread, to: !currentState) {
+            if let itemId = try await backgroundActor.update(item.persistentModelID, keyPath: \Item.unread, to: !currentState) {
                 internalUnreadItemIds.append(itemId)
             }
 
@@ -636,7 +647,7 @@ class NewsModel: @unchecked Sendable {
         do {
             let backgroundActor = NewsModelActor(modelContainer: modelContainer)
             let currentState = item.starred
-            let _ = try await backgroundActor.update(item.persistentModelID, keypath: \.starred, to: !currentState)
+            let _ = try await backgroundActor.update(item.persistentModelID, keyPath: \Item.starred, to: !currentState)
             item.starred.toggle()
             try await backgroundActor.save()
             try await markStarred(itemIds: [item.id], starred: !currentState)

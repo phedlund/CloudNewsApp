@@ -30,6 +30,7 @@ struct FeedSettingsView: View {
     @State private var added = ""
     @State private var initialTitle = ""
     @State private var initialFolderSelection = noFolderName
+    @State private var feed: Feed?
 
     @Query private var nodes: [Node]
     @Query private var folders: [Folder]
@@ -109,7 +110,7 @@ struct FeedSettingsView: View {
 #if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(role: .close) {
+                    Button(role: .confirm) {
                         dismiss()
                     }
                 }
@@ -119,6 +120,7 @@ struct FeedSettingsView: View {
                 switch newsModel.currentNodeType {
                 case .feed(id: let id):
                     if let feed = feeds.first(where: { $0.id == id }) {
+                        self.feed = feed
                         var fNames = [noFolderName]
                         let names = folders.compactMap( { $0.name } ).sorted()
                         fNames.append(contentsOf: names)
@@ -152,8 +154,10 @@ struct FeedSettingsView: View {
                 }
             }
             .onChange(of: preferWeb) { _, newValue in
-                if let feed = feedForNodeType(newsModel.currentNodeType) {
-                    feed.preferWeb = newValue
+                if let feed = self.feed {
+                    Task {
+                        await newsModel.feedPrefersWeb(feed: feed, isWebPreferred: newValue)
+                    }
                 }
             }
 #if os(macOS)
@@ -172,8 +176,8 @@ struct FeedSettingsView: View {
     }
 
     private func onTitleCommit() async {
-        if let feed = feedForNodeType(newsModel.currentNodeType),
-            let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
+        if let feed = self.feed,
+           let node = nodes.first(where: { $0.type == NodeType.feed(id: feed.id) } ) {
             if !title.isEmpty, title != feed.title {
                 do {
                     try await newsModel.renameFeed(feedId: feed.id, to: title)
@@ -198,7 +202,7 @@ struct FeedSettingsView: View {
     }
 
     private func onFolderSelection(_ newFolderName: String) async {
-        if let feed = feedForNodeType(newsModel.currentNodeType), let node = nodes.first(where: { $0.type == newsModel.currentNodeType } ) {
+        if let feed = self.feed, let node = nodes.first(where: { $0.type == NodeType.feed(id: feed.id) } ) {
             var newFolderId: Int64 = 0
             if let newFolder = folders.first(where: { $0.name == newFolderName }) {
                 newFolderId = newFolder.id
@@ -230,17 +234,8 @@ struct FeedSettingsView: View {
         }
     }
 
-    private func feedForNodeType(_ nodeType: NodeType) -> Feed? {
-        switch nodeType {
-        case .empty, .all, .unread, .starred, .folder:
-            return nil
-        case .feed(let id):
-            return feeds.first(where: { $0.id == id })
-        }
-    }
-
     private func refreshFavIcon(service: FavIconService) async {
-        if let feed = feedForNodeType(newsModel.currentNodeType) {
+        if let feed = self.feed {
             do {
                 try await newsModel.addFavIcon(feedId: feed.id, faviconLink: feed.faviconLink, link: feed.link, feedUrl: feed.url, service: service)
             } catch {
@@ -252,26 +247,21 @@ struct FeedSettingsView: View {
 
     var favIconView: some View {
         HStack {
-            switch newsModel.currentNodeType {
-            case .feed(id: let id):
-                if let favicon = favIcons.first(where: { $0.id == id }),
-                   let data = favicon.icon,
-                   let uiImage = SystemImage(data: data) {
+            if let feed = self.feed, let favicon = favIcons.first(where: { $0.id == feed.id }),
+               let data = favicon.icon,
+               let uiImage = SystemImage(data: data) {
 #if os(macOS)
-                    Image(nsImage: uiImage)
-                        .resizable()
-                        .frame(width: 44, height: 44)
+                Image(nsImage: uiImage)
+                    .resizable()
+                    .frame(width: 44, height: 44)
 #else
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .frame(width: 44, height: 44)
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .frame(width: 44, height: 44)
 #endif
-                } else {
-                    Image(.rss)
-                        .font(.system(size: 36, weight: .light))
-                }
-            default:
-                EmptyView()
+            } else {
+                Image(.rss)
+                    .font(.system(size: 36, weight: .light))
             }
             Spacer()
             Menu {
