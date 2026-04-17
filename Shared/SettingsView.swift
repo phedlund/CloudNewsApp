@@ -56,6 +56,7 @@ struct SettingsView: View {
     @AppStorage(SettingKeys.showFavIcons) var showFavIcons = true
     @AppStorage(SettingKeys.showThumbnails) var showThumbnails = true
     @AppStorage(SettingKeys.markReadWhileScrolling) var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.markReadWhileScrollingIncludingEnd) var markReadWhileScrollingIncludingEnd = false
     @AppStorage(SettingKeys.sortOldestFirst) var sortOldestFirst = false
     @AppStorage(SettingKeys.compactView) var compactView = false
     @AppStorage(SettingKeys.keepDuration) var keepDuration: KeepDuration = .three
@@ -143,6 +144,20 @@ struct SettingsView: View {
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
+                .listRowSeparator(.hidden)
+                .padding(.bottom, -12)
+                .onChange(of: markReadWhileScrolling) { _, newValue in
+                    if !newValue {
+                        markReadWhileScrollingIncludingEnd = false
+                    }
+                }
+                Toggle(isOn: $markReadWhileScrollingIncludingEnd) {
+                    Text("Mark All Read at End of Feed")
+                }
+                .padding(.leading, 20)
+                .padding(.top, -12)
+                .disabled(!markReadWhileScrolling)
+                .foregroundStyle(markReadWhileScrolling ? .primary : .secondary)
                 Toggle(isOn: $compactView) {
                     Text("Compact View")
                 }

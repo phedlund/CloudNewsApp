@@ -20,6 +20,7 @@ enum SettingKeys {
     static let lineHeight = "LineHeight"
     static let marginPortrait = "MarginPortrait"
     static let markReadWhileScrolling = "MarkWhileScrolling"
+    static let markReadWhileScrollingIncludingEnd = "MarkWhileScrollingIncludingEnd"
     static let newsVersion = "newsVersion"
     static let password = "password"
     static let productName = "productName"

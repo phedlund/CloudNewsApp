@@ -836,6 +836,16 @@
         }
       }
     },
+    "Mark All Read at End of Feed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle gelesenen am Ende des Feeds markieren"
+          }
+        }
+      }
+    },
     "Mark Items Read While Scrolling" : {
       "localizations" : {
         "de" : {

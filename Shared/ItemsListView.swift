@@ -27,6 +27,7 @@ struct ItemsListView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
+    @AppStorage(SettingKeys.markReadWhileScrollingIncludingEnd) private var markReadWhileScrollingIncludingEnd = false
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
     @AppStorage(SettingKeys.sortOldestFirst) private var sortOldestFirst = false
     @AppStorage(SettingKeys.hideRead) private var hideRead = false
@@ -175,17 +176,33 @@ struct ItemsListView: View {
                             .environment(newsModel)
                     }
                 }
-                // Debounce the scroll marking with a time threshold
+                .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
+                    if newPath.count < oldPath.count {
+                        navigatedBack = true
+                    }
+                }
                 .onScrollPhaseChange { _, newPhase, context in
                     if newPhase == .idle,
                        markReadWhileScrolling == true,
                        isScrollingToTop == false,
                        scenePhase == .active {
-                        let currentOffset = context.geometry.contentOffset.y + context.geometry.contentInsets.top
-                        // Only mark as read if scrolled significantly since last mark
+                        let geometry = context.geometry
+                        let currentOffset = geometry.contentOffset.y + geometry.contentInsets.top
+                        let visibleHeight = geometry.containerSize.height
+                        let totalHeight = geometry.contentSize.height
+
                         if abs(currentOffset - lastOffset) > 50 {
                             Task {
                                 try? await markRead(currentOffset)
+                            }
+                        }
+
+                        if currentOffset > 0,
+                           currentOffset + visibleHeight >= totalHeight - 5.0,
+                           markReadWhileScrollingIncludingEnd == true {
+                            print("Bottom reached!")
+                            Task {
+                                try? await markRead(CGFloat(Int.max))
                             }
                         }
                     }
@@ -197,11 +214,6 @@ struct ItemsListView: View {
                         .ignoresSafeArea(edges: .vertical)
                 }
                 .scrollContentBackground(.hidden)
-            }
-            .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
-                if newPath.count < oldPath.count {
-                    navigatedBack = true
-                }
             }
             .onChange(of: selectedNode, initial: true) { oldNode, newNode in
                 guard newNode != oldNode else {
