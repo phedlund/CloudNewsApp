@@ -36,4 +36,5 @@ enum SettingKeys {
     static let syncOnStart = "SyncOnStart"
     static let username = "username"
     static let hasWidgets = "HasWidgets"
+    static let launchCount = "LaunchCount"
 }

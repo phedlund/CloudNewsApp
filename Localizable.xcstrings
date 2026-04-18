@@ -1159,6 +1159,16 @@
         }
       }
     },
+    "Review on the App Store" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bewertung im App Store"
+          }
+        }
+      }
+    },
     "Search for Favicon" : {
       "localizations" : {
         "de" : {

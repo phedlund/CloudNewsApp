@@ -207,6 +207,9 @@ struct SettingsView: View {
             }
 #if !os(macOS)
             Section {
+                Link(destination: URL(string: Constants.reviewUrl)!) {
+                    Label("Review on the App Store", systemImage: "bubble.left.and.text.bubble.right")
+                }
                 Button {
                     sendMail()
                 } label: {

@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+import StoreKit
 import SwiftData
 import SwiftUI
 
@@ -26,6 +27,7 @@ struct SidebarView: View {
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) var requestReview
 
 #if os(macOS)
     @Environment(\.openWindow) var openWindow
@@ -36,6 +38,7 @@ struct SidebarView: View {
     @AppStorage(SettingKeys.isNewInstall) var isNewInstall = true
     @AppStorage(SettingKeys.newsVersion) var newsVersion = ""
     @AppStorage(SettingKeys.syncOnStart) var syncOnStart = false
+    @AppStorage(SettingKeys.launchCount) var launchCount = 0
 
     private let logger = LogManager.shared.logger
 
@@ -186,7 +189,16 @@ struct SidebarView: View {
         .navigationTitle(Text("Feeds"))
         .navigationSubtitle(syncManager.syncState.description)
         .task {
-            await newsModel.refreshAllUnreadCounts(nodes: nodes)
+            do {
+                await newsModel.refreshAllUnreadCounts(nodes: nodes)
+                launchCount += 1
+                if launchCount > 5 {
+                    try await Task.sleep(for: .seconds(2))
+                    requestReview()
+                }
+            } catch {
+                //
+            }
         }
         .sheet(item: $modalSheet, onDismiss: {
             modalSheet = nil
