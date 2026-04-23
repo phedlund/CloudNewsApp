@@ -189,15 +189,15 @@ struct SidebarView: View {
         .navigationTitle(Text("Feeds"))
         .navigationSubtitle(syncManager.syncState.description)
         .task {
-            do {
-                await newsModel.refreshAllUnreadCounts(nodes: nodes)
-                launchCount += 1
-                if launchCount > 5 {
+            await newsModel.refreshAllUnreadCounts(nodes: nodes)
+            launchCount += 1
+        }
+        .task(id: launchCount) {
+            if launchCount > 5 {
+                do {
                     try await Task.sleep(for: .seconds(2))
                     requestReview()
-                }
-            } catch {
-                //
+                } catch { }
             }
         }
         .sheet(item: $modalSheet, onDismiss: {

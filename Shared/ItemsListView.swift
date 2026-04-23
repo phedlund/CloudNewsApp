@@ -9,11 +9,19 @@ import OSLog
 import SwiftData
 import SwiftUI
 
+private struct ScrollMetrics: Equatable {
+    var offset: CGFloat
+    var visibleHeight: CGFloat
+    var totalHeight: CGFloat
+}
+
 struct ItemsListView: View {
 #if os(macOS)
     let cellSpacing: CGFloat = 15.0
     let listRowSeparatorVisibility: Visibility = .visible
     let listRowBackground = EmptyView()
+    @FocusState private var isListFocused: Bool
+    @State private var scrollID: PersistentIdentifier? = nil
 #else
     let cellSpacing: CGFloat = 21.0
     let listRowSeparatorVisibility: Visibility = .hidden
@@ -25,6 +33,7 @@ struct ItemsListView: View {
     @Environment(SyncManager.self) private var syncManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
+    
     @AppStorage(SettingKeys.compactView) private var compactView = false
     @AppStorage(SettingKeys.markReadWhileScrolling) private var markReadWhileScrolling = true
     @AppStorage(SettingKeys.markReadWhileScrollingIncludingEnd) private var markReadWhileScrollingIncludingEnd = false
@@ -44,11 +53,12 @@ struct ItemsListView: View {
     @State private var favIconDataByFeedId = [Int64: Data]()
     @State private var navigatedBack = false
 
-    @Binding var selectedItem: Item?
+    // ContentListView
+    @Binding var focusedItemID: PersistentIdentifier?
     @Query private var feeds: [Feed]
 
-    init(selectedItem: Binding<Item?>) {
-        self._selectedItem = selectedItem
+    init(selectedItemID: Binding<PersistentIdentifier?>) {
+        self._focusedItemID = selectedItemID
     }
 
     var body: some View {
@@ -76,7 +86,6 @@ struct ItemsListView: View {
             .applyMacOSObservers(
                 navigationItemId: bindable.navigationItemId,
                 items: items,
-                selectedItem: $selectedItem,
                 bindable: bindable,
                 handlePreviousArticle: handlePreviousArticle,
                 handleNextArticle: handleNextArticle
@@ -111,41 +120,74 @@ struct ItemsListView: View {
     // MARK: - macOS Content View
     @ViewBuilder
     private func macOSContentView() -> some View {
-        List(items, selection: $selectedItem) { item in
-            NavigationLink(value: item) {
-                ItemView(item: item, faviconData: favIconDataByFeedId[item.feedId])
-                    .id(item.id)
-                    .contextMenu {
-                        contextMenu(item: item)
-                    }
-            }
-            .listRowSeparator(.hidden)
-        }
-        .onScrollGeometryChange(for: CGFloat.self) { geometry in
-            geometry.contentOffset.y + geometry.contentInsets.top
-        } action: { oldValue, newValue in
-            scrollStoppedTask?.cancel()
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .center, spacing: 16.0) {
+                ForEach(items) { item in
+                    let faviconData = favIconDataByFeedId[item.feedId]
 
-            scrollStoppedTask = Task {
-                try? await Task.sleep(for: .milliseconds(150))
-
-                if !Task.isCancelled {
-                    if markReadWhileScrolling == true,
-                       isScrollingToTop == false,
-                       scenePhase == .active {
-                        let currentOffset = newValue
-                        if abs(currentOffset - lastOffset) > 50 {
-                            Task {
-                                try? await markRead(currentOffset)
-                            }
+                    ItemView(item: item, faviconData: faviconData)
+                        .id(item.persistentModelID)
+                        // Manual highlight — no .focusable(), no .focused()
+                        .background(
+                            focusedItemID == item.persistentModelID
+                                ? (isListFocused ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.2))
+                                : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 8)
+                        )
+                        .padding(.horizontal, 8) // outer padding keeps it away from column edges
+                        .onTapGesture {
+                            focusedItemID = item.persistentModelID
                         }
-                    }
+                        .contextMenu {
+                            contextMenuContent(for: item)
+                        }
                 }
             }
+            .scrollTargetLayout()
         }
-        .defaultScrollAnchor(.top)
+        .scrollPosition(id: $scrollID)
+        .focusable()
+        .focusEffectDisabled()
+        .focused($isListFocused)
+        .onKeyPress(keys: [.downArrow, .upArrow]) { keyPress in
+            moveSelection(forward: keyPress.key == .downArrow)
+            return .handled
+        }
+        .onChange(of: focusedItemID) { _, newValue in
+            withAnimation { scrollID = newValue }
+        }
+        .onAppear {
+            focusedItemID = items.first?.persistentModelID
+        }
+        .onChange(of: selectedNode, initial: true) { oldNode, newNode in
+            guard newNode != oldNode else { return }
+            doScrollToTop()
+            updateFetchDescriptor()
+            focusedItemID = items.first?.persistentModelID
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            handleScenePhaseChange(newPhase)
+        }
+        .scrollContentBackground(.hidden)
     }
 
+    private func moveSelection(forward: Bool = true) {
+        guard !items.isEmpty else { return }
+
+        // If nothing selected, select first/last and return
+        guard let currentID = focusedItemID,
+              let currentIndex = items.firstIndex(where: { $0.persistentModelID == currentID })
+        else {
+            focusedItemID = forward ? items.first?.persistentModelID
+                                    : items.last?.persistentModelID
+            return
+        }
+
+        let newIndex = forward ? currentIndex + 1 : currentIndex - 1
+        guard items.indices.contains(newIndex) else { return }
+        focusedItemID = items[newIndex].persistentModelID
+    }
+    
 #else
 
     // MARK: - iOS Content View
@@ -276,21 +318,11 @@ struct ItemsListView: View {
 
 #if os(macOS)
     private func handlePreviousArticle() {
-        var nextIndex = items.startIndex
-        if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
-            nextIndex = currentIndex.advanced(by: -1)
-        }
-        nextIndex = nextIndex > items.startIndex ? nextIndex: items.startIndex
-        selectedItem = items[nextIndex]
+        moveSelection(forward: false)
     }
 
     private func handleNextArticle() {
-        var nextIndex = items.startIndex
-        if let selectedItem, let currentIndex = items.firstIndex(of: selectedItem) {
-            nextIndex = currentIndex.advanced(by: 1)
-        }
-        nextIndex = nextIndex > items.endIndex ? items.startIndex : nextIndex
-        selectedItem = items[nextIndex]
+        moveSelection(forward: true)
     }
 #endif
 
@@ -481,8 +513,7 @@ extension View {
 extension View {
     func applyMacOSObservers(
         navigationItemId: Int64,
-        items: [Item],
-        selectedItem: Binding<Item?>,
+        items: [Item], 
         bindable: NewsModel,
         handlePreviousArticle: @escaping () -> Void,
         handleNextArticle: @escaping () -> Void
@@ -491,8 +522,7 @@ extension View {
             .onChange(of: navigationItemId) { _, newId in
                 Logger.app.debug("Getting new item: \(newId)")
                 if newId > 0,
-                   let item = items.first(where: { $0.id == bindable.navigationItemId }) {
-                    selectedItem.wrappedValue = item
+                   let _ = items.first(where: { $0.id == bindable.navigationItemId }) {
                     bindable.navigationItemId = 0
                 }
             }

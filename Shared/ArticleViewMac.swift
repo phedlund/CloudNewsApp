@@ -30,13 +30,13 @@ struct ArticleViewMac: View {
                 articleToolBarContent()
             }
             .onChange(of: fontSize) {
-                content.reloadItemSummary()
+                content.reloadItemSummary(true)
             }
             .onChange(of: lineHeight) {
-                content.reloadItemSummary()
+                content.reloadItemSummary(true)
             }
             .onChange(of: marginPortrait) {
-                content.reloadItemSummary()
+                content.reloadItemSummary(true)
             }
     }
 
@@ -52,7 +52,9 @@ struct ArticleViewMac: View {
             }
             .disabled(content.page.backForwardList.backList.isEmpty)
             Button {
-                //                page.goForward()
+                if let url = content.page.backForwardList.forwardList.last?.url {
+                    content.page.load(URLRequest(url: url))
+                }
             } label: {
                 Image(systemName: "chevron.forward")
             }
@@ -71,7 +73,7 @@ struct ArticleViewMac: View {
                 }
             }
             Spacer()
-            ShareLinkButton(item: newsModel.currentItem, url: content.page.url)
+            ShareLinkButton(item: content.item, url: content.page.url)
                 .disabled(content.page.isLoading)
         }
     }

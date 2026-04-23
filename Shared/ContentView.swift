@@ -24,12 +24,14 @@ struct ContentView: View {
     @AppStorage(SettingKeys.selectedNodeModel) private var selectedNode: Data?
 
     @State private var isShowingLogin = false
-    @State private var selectedItem: Item? = nil
+    @State private var focusedItemID: PersistentIdentifier? = nil
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
     @State private var isInitialized = false
+    @State var cache = ArticleWebContentCache()
 
     @Query private var feeds: [Feed]
     @Query private var folders: [Folder]
+    @Query private var items: [Item]
     @Query private var nodes: [Node]
 
     var navigationTitle: String {
@@ -66,7 +68,7 @@ struct ContentView: View {
         } detail: {
             Group {
                 if selectedNode != nil {
-                    ItemsListView(selectedItem: $selectedItem)
+                    ItemsListView(selectedItemID: $focusedItemID)
                         .environment(newsModel)
                         .environment(syncManager)
                         .onOpenURL { url in
@@ -127,11 +129,14 @@ struct ContentView: View {
                 preferredColumn = .detail
             }
         }
-        .onChange(of: selectedItem, initial: true) { oldValue, newValue in
-            guard newValue != oldValue else {
-                return
+        .onChange(of: focusedItemID) { oldValue, newValue in
+            guard let newItem = items.first(where: { $0.persistentModelID == focusedItemID })
+            else { return }
+
+            newsModel.currentItem = newItem
+            Task {
+                await newsModel.markItemsRead(items: [newItem])
             }
-            newsModel.currentItem = newValue
         }
 #else
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -142,13 +147,15 @@ struct ContentView: View {
                     let _ = Logger.app.debug("Opening URL \(url)")
                     processUrl(url)
                 }
+                .focusSection()
 
         } content: {
             if selectedNode != nil {
                 let _ = Self._printChanges()
-                ItemsListView(selectedItem: $selectedItem)
+                ItemsListView(selectedItemID: $focusedItemID)
                     .environment(newsModel)
                     .environment(syncManager)
+                    .focusSection()
                     .toolbar {
                         contentViewToolBarContent()
                     }
@@ -163,8 +170,10 @@ struct ContentView: View {
             }
         } detail: {
             if let item = newsModel.currentItem {
-                ArticleViewMac(content: ArticleWebContent(item: item, openUrlAction: openUrl))
+                let content = cache.content(for: item, openUrlAction: openUrl)
+                ArticleViewMac(content: content)
                     .environment(newsModel)
+                    .focusSection()
             } else {
                 ContentUnavailableView("No Article Selected",
                                        systemImage: "doc.richtext",
@@ -198,14 +207,15 @@ struct ContentView: View {
                 preferredColumn = .detail
             }
         }
-        .onChange(of: selectedItem, initial: true) { _, newValue in
-            newsModel.currentItem = newValue
-            if let newValue {
-                Task {
-                    await newsModel.markItemsRead(items: [newValue])
-                }
+        .onChange(of: focusedItemID, { oldValue, newValue in
+            guard let newItem = items.first(where: { $0.persistentModelID == focusedItemID })
+            else { return }
+
+            newsModel.currentItem = newItem
+            Task {
+                await newsModel.markItemsRead(items: [newItem])
             }
-        }
+        })
 #endif
     }
 
@@ -254,3 +264,4 @@ struct ContentView: View {
 //    }
 //}
 //
+

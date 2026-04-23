@@ -141,6 +141,25 @@ struct SettingsView: View {
                 Text("Images")
             }
             Section {
+#if os(macOS)
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle(isOn: $markReadWhileScrolling) {
+                        Text("Mark Items Read While Scrolling")
+                    }
+                    .onChange(of: markReadWhileScrolling) { _, newValue in
+                        if !newValue {
+                            markReadWhileScrollingIncludingEnd = false
+                        }
+                    }
+
+                    Toggle(isOn: $markReadWhileScrollingIncludingEnd) {
+                        Text("Mark All Read at End of Feed")
+                    }
+                    .padding(.leading, 20)
+                    .disabled(!markReadWhileScrolling)
+                    .foregroundStyle(markReadWhileScrolling ? .primary : .secondary)
+                }
+#else
                 Toggle(isOn: $markReadWhileScrolling) {
                     Text("Mark Items Read While Scrolling")
                 }
@@ -158,6 +177,7 @@ struct SettingsView: View {
                 .padding(.top, -12)
                 .disabled(!markReadWhileScrolling)
                 .foregroundStyle(markReadWhileScrolling ? .primary : .secondary)
+#endif
                 Toggle(isOn: $compactView) {
                     Text("Compact View")
                 }
