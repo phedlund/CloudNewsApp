@@ -77,20 +77,25 @@ struct ItemView: View, Equatable {
         )
         .listRowInsets(.none)
         .opacity((item.unread || item.starred) ? 1.0 : 0.4)
-#if os(macOS)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.background)  // always full opacity
+        )
+        #if os(macOS)
+        // macOS: vertical only — horizontal width is controlled by the LazyVStack padding
         .containerRelativeFrame(.vertical, alignment: .center) { _, _ in
-            return compactView ? .compactCellHeight : .defaultCellHeight
+            compactView ? .compactCellHeight : .defaultCellHeight
         }
-#else
+        #else
+        // iOS/iPadOS: vertical same as macOS, horizontal capped for wide iPad layouts
         .containerRelativeFrame([.horizontal, .vertical], alignment: .center) { length, axis in
             if axis == .vertical {
-                return compactView ? .compactCellHeight : .defaultCellHeight
+                compactView ? .compactCellHeight : .defaultCellHeight
             } else {
-                return min(length * 0.93, 700.0)
+                min(length * 0.93, 700.0)
             }
         }
-        .padding(.trailing, .paddingSix)
-#endif
+        #endif
         .task(id: faviconData) {
             // Convert Data to Image once and cache it
             if let data = faviconData, showFavIcons {
@@ -109,10 +114,3 @@ struct ItemView: View, Equatable {
         }
     }
 }
-
-//struct ItemRow_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ItemView()
-//    }
-//}
-
