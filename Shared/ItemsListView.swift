@@ -233,45 +233,28 @@ struct ItemsListView: View {
         LazyVStack(alignment: .center, spacing: 16.0) {
             ForEach(items) { item in
                 let faviconData = favIconDataByFeedId[item.feedId]
-#if os(macOS)
-                ItemView(item: item, faviconData: faviconData)
+                let selectionOverlay = focusedItemID == item.persistentModelID
+                    ? (isListFocused ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.2))
+                    : Color.clear
+
+                let itemView = ItemView(item: item, faviconData: faviconData)
+                    .overlay(RoundedRectangle(cornerRadius: 12).fill(selectionOverlay))
+                    .padding(.horizontal, supportsKeyboardNavigation ? 8 : 0)
+                    .contextMenu { contextMenuContent(for: item) }
+
+                #if os(macOS)
+                itemView
                     .id(item.persistentModelID)
-                    .background(
-                        focusedItemID == item.persistentModelID
-                            ? (isListFocused ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.2))
-                            : Color.clear,
-                        in: RoundedRectangle(cornerRadius: 8)
-                    )
-                    .padding(.horizontal, 8)
-                    .onTapGesture {
-                        focusedItemID = item.persistentModelID
-                    }
-                    .contextMenu {
-                        contextMenuContent(for: item)
-                    }
-#else
-                NavigationLink(value: item) {
-                    ItemView(item: item, faviconData: faviconData)
-                        .id(item.id)
-                        // On iPad, show selection highlight to reflect keyboard nav state
-                        .background(
-                            supportsKeyboardNavigation && focusedItemID == item.persistentModelID
-                                ? (isListFocused ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.2))
-                                : Color.clear,
-                            in: RoundedRectangle(cornerRadius: 8)
-                        )
-                        .padding(.horizontal, supportsKeyboardNavigation ? 8 : 0)
-                }
-                .buttonStyle(.plain)
-                .simultaneousGesture(TapGesture().onEnded {
-                    if supportsKeyboardNavigation {
-                        focusedItemID = item.persistentModelID
-                    }
-                })
-                .contextMenu {
-                    contextMenuContent(for: item)
-                }
-#endif
+                    .onTapGesture { focusedItemID = item.persistentModelID }
+                #else
+                NavigationLink(value: item) { itemView.id(item.id) }
+                    .buttonStyle(.plain)
+                    .simultaneousGesture(TapGesture().onEnded {
+                        if supportsKeyboardNavigation {
+                            focusedItemID = item.persistentModelID
+                        }
+                    })
+                #endif
             }
         }
         .scrollTargetLayout()
