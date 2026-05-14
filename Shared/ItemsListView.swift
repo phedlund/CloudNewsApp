@@ -59,7 +59,7 @@ struct ItemsListView: View {
     @State private var scrollStoppedTask: Task<Void, Never>?
     @State private var isScrollingToTop = false
     @State private var favIconDataByFeedId = [Int64: Data]()
-    @State private var navigatedBack = false
+    @State private var canNavigateBack = false
 
     // MARK: - Binding
     @Binding var focusedItemID: PersistentIdentifier?
@@ -104,20 +104,7 @@ struct ItemsListView: View {
                     ArticlesPageView(itemId: item.id, items: items)
                         .environment(newsModel)
                 }
-                .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
-                    if newPath.count < oldPath.count {
-                        navigatedBack = true
-                    }
-                }
         }
-        .task {
-            if navigatedBack {
-                navigatedBack = false
-            } else {
-                updateFetchDescriptor()
-            }
-        }
-        .navigationSubtitle(Text("\(items.count) articles"))
         .applySharedObservers(
             selectedNode: selectedNode,
             hideRead: hideRead,
@@ -131,6 +118,19 @@ struct ItemsListView: View {
             fetchDescriptor: fetchDescriptor,
             setItems: { newItems in items = newItems }
         )
+        .onChange(of: bindable.itemNavigationPath) { oldPath, newPath in
+            if newPath.count > oldPath.count {
+                canNavigateBack = true
+            }
+        }
+        .onAppear {
+            if canNavigateBack {
+                canNavigateBack = false
+            } else {
+                updateFetchDescriptor()
+            }
+        }
+        .navigationSubtitle(Text("\(items.count) articles"))
 #endif
     }
 
