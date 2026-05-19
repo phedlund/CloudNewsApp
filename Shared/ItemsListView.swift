@@ -60,6 +60,7 @@ struct ItemsListView: View {
     @State private var isScrollingToTop = false
     @State private var favIconDataByFeedId = [Int64: Data]()
     @State private var canNavigateBack = false
+    @State private var didScrollPastBottom: Bool = false
 
     // MARK: - Binding
     @Binding var focusedItemID: PersistentIdentifier?
@@ -167,7 +168,6 @@ struct ItemsListView: View {
 #endif
     }
 
-    /// The core ScrollView, shared across all platforms.
     @ViewBuilder
     private func baseScrollView(scrollProxy: ScrollViewProxy? = nil) -> some View {
         ScrollView(.vertical) {
@@ -180,10 +180,9 @@ struct ItemsListView: View {
         }
         .scrollPosition(id: $scrollID)
         .onScrollPhaseChange { _, newPhase, context in
-            guard newPhase == .idle,
+            guard scenePhase == .active,
                   markReadWhileScrolling,
-                  !isScrollingToTop,
-                  scenePhase == .active
+                  !isScrollingToTop
             else { return }
 
             let geometry = context.geometry
@@ -191,14 +190,22 @@ struct ItemsListView: View {
             let visibleHeight = geometry.containerSize.height
             let totalHeight = geometry.contentSize.height
 
-            if abs(currentOffset - lastOffset) > 50 {
-                Task { try? await markRead(currentOffset) }
-            }
-
-            if currentOffset > 0,
-               currentOffset + visibleHeight >= totalHeight - 5.0,
-               markReadWhileScrollingIncludingEnd {
-                Task { try? await markRead(CGFloat(Int.max)) }
+            switch newPhase {
+            case .idle:
+                if didScrollPastBottom {
+                    didScrollPastBottom = false
+                    Task { try? await markRead(CGFloat(Int.max)) }
+                } else {
+                    if abs(currentOffset - lastOffset) > 50 {
+                        Task { try? await markRead(currentOffset) }
+                    }
+                }
+            case .decelerating:
+                if currentOffset > (totalHeight - visibleHeight), markReadWhileScrollingIncludingEnd {
+                    didScrollPastBottom = true
+                }
+            default:
+                return
             }
         }
         .defaultScrollAnchor(.top)

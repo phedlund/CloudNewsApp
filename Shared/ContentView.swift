@@ -112,13 +112,19 @@ struct ContentView: View {
             if !isInitialized {
                 await newsModel.populateInitialCache(nodes: nodes)
                 isInitialized = true
-
-
-                // Now restore the selected node AFTER cache is ready
                 if let nodeType = NodeType.fromData(selectedNode ?? Data()) {
                     newsModel.currentNodeType = nodeType
                 }
             }
+        }
+        .onChange(of: focusedItemID, initial: true) { oldValue, newValue in
+            guard oldValue != nil else {
+                return
+            }
+            guard let newItem = items.first(where: { $0.persistentModelID == newValue }) else {
+                return
+            }
+            newsModel.currentItem = newItem
         }
         .onChange(of: selectedNode ?? Data(), initial: true) { oldValue, newValue in
             guard newValue != oldValue else {
@@ -127,15 +133,6 @@ struct ContentView: View {
             if let nodeType = NodeType.fromData(newValue) {
                 newsModel.currentNodeType = nodeType
                 preferredColumn = .detail
-            }
-        }
-        .onChange(of: focusedItemID) { oldValue, newValue in
-            guard let newItem = items.first(where: { $0.persistentModelID == focusedItemID })
-            else { return }
-
-            newsModel.currentItem = newItem
-            Task {
-                await newsModel.markItemsRead(items: [newItem])
             }
         }
 #else
