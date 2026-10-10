@@ -83,7 +83,7 @@ nonisolated final class Item: Identifiable64 {
                 do {
                     let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
                     if let html = String(data: data, encoding: .utf8) {
-                        let doc: Document = try SwiftSoup.parse(html)
+                        let doc: SwiftSoup.Document = try SwiftSoup.parse(html)
                         if let meta = try doc.head()?.select("meta[property=og:image]").first() as? Element {
                             let ogImage = try meta.attr("content")
                             let ogUrl = URL(string: ogImage)
@@ -136,7 +136,7 @@ nonisolated final class Item: Identifiable64 {
             itemImageUrl = imgUrl
         } else if let summary = item.body {
             do {
-                let doc: Document = try SwiftSoup.parse(summary)
+                let doc: SwiftSoup.Document = try SwiftSoup.parse(summary)
                 let srcs: Elements = try doc.select("img[src]")
                 let images = try srcs.array().map({ try $0.attr("src") })
                 let filteredImages = images.filter({ validSchemas.contains(String($0.prefix(4))) })

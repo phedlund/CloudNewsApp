@@ -386,7 +386,7 @@ class NewsModel: @unchecked Sendable {
             if let urlString = link, let url = URL(string: urlString) {
                 let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
                 if let html = String(data: data, encoding: .utf8) {
-                    let doc: Document = try SwiftSoup.parse(html)
+                    let doc: SwiftSoup.Document = try SwiftSoup.parse(html)
                     if let favIconLinkString = try doc.select("link[rel=icon]").first()?.attr("href"),
                        let favIconUrl = URL(string: favIconLinkString, relativeTo: url) {
                         itemImageUrl = favIconUrl
