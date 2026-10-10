@@ -9,6 +9,7 @@ import BackgroundTasks
 import SwiftData
 import SwiftUI
 import Valet
+import Puppy
 
 @main
 struct CloudNewsApp: App {
