@@ -5,6 +5,7 @@
 //  Created by Peter Hedlund on 6/19/21.
 //
 
+import Puppy
 import StoreKit
 import SwiftData
 import SwiftUI

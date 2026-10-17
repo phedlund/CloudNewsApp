@@ -189,12 +189,14 @@ struct CloudNewsApp: App {
         request.earliestBeginDate = Date(timeIntervalSinceNow: .fifteenMinutes)
         request.requiresExternalPower = false
         request.requiresNetworkConnectivity = true
-        do {
-            try BGTaskScheduler.shared.submit(request)
-            logger.info("Added background task to refresh app")
-        } catch {
-            logger.error("Could not schedule app refresh task \(error.localizedDescription)")
-        }
+        Task {
+              do {
+                  try await BGTaskScheduler.shared.submitTaskRequest(request)
+                  logger.info("Added background task to refresh app")
+              } catch {
+                  logger.error("Could not schedule app refresh task \(error.localizedDescription)")
+              }
+          }
     }
 #endif
 

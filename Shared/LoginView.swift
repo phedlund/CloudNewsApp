@@ -66,20 +66,23 @@ struct LoginView: View {
             request.addValue("true", forHTTPHeaderField: "OCS-APIREQUEST")
             page.customUserAgent = userAgent
             Task {
-                for try await event in page.load(request) {
-                    // Optionally do something with `event`.
-                    switch event {
-                    case .committed:
-                        print("Page committed, URL is now: \(String(describing: page.url))")
-                    case .startedProvisionalNavigation:
-                        print("Page started, URL is now: \(String(describing: page.url))")
-                    case .finished:
-                        print("Page finished, URL is now: \(String(describing: page.url))")
-                    case .receivedServerRedirect:
-                        print("Redirect")
-                    @unknown default:
-                        break
+                do {
+                    for try await event in page.load(request) {
+                        switch event {
+                        case .committed:
+                            print("Page committed, URL is now: \(String(describing: page.url))")
+                        case .startedProvisionalNavigation:
+                            print("Page started, URL is now: \(String(describing: page.url))")
+                        case .finished:
+                            print("Page finished, URL is now: \(String(describing: page.url))")
+                        case .receivedServerRedirect:
+                            print("Redirect")
+                        @unknown default:
+                            break
+                        }
                     }
+                } catch {
+                    print("Login flow failed to load: \(error)")
                 }
             }
         }

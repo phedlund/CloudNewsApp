@@ -28,34 +28,6 @@ extension CGFloat {
     static let paddingEight: CGFloat = 8.0
 }
 
-extension URL {
-
-    @MainActor
-    init?(withCheck string: String?) {
-        let regEx = "((https|http)://)((\\w|-)+)(([.]|[/])((\\w|-)+))+"
-#if os(macOS)
-        guard
-            let urlString = string,
-            let url = URL(string: urlString),
-            NSPredicate(format: "SELF MATCHES %@", argumentArray: [regEx]).evaluate(with: urlString)
-        else {
-            return nil
-        }
-        self = url
-#else
-        guard
-            let urlString = string,
-            let url = URL(string: urlString),
-            NSPredicate(format: "SELF MATCHES %@", argumentArray: [regEx]).evaluate(with: urlString),
-            UIApplication.shared.canOpenURL(url)
-        else {
-            return nil
-        }
-        self = url
-#endif
-    }
-}
-
 extension SystemImage {
     convenience init?(symbolName: String) {
 #if os(macOS)
